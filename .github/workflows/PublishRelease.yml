@@ -52,20 +52,16 @@ jobs:
               run: dotnet build --configuration=${{env.BUILD_CONFIGURATION}} --no-restore 
 
             - name: Pack binaries CompuMaster.Dms.Providers
-              run: |
-                (cd ${{env.BUILD_OUTPUT_BASEDIR}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-providers.zip -r .)
+              run: Compress-Archive -DestinationPath bin-providers.zip ${{env.BUILD_OUTPUT_BASEDIR}}/${{env.BUILD_CONFIGURATION}}
 
             - name: Pack binaries CompuMaster.Dms.BrowserUI
-              run: |
-                (cd ${{env.BUILD_OUTPUT_BASEDIR2}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-browserui.zip -r .)
+              run: Compress-Archive -DestinationPath bin-browserui.zip ${{env.BUILD_OUTPUT_BASEDIR2}}/${{env.BUILD_CONFIGURATION}}
 
             - name: Pack binaries CompuMaster.Dms.TestDemo.ScopevisioTeamwork
-              run: |
-                (cd ${{env.BUILD_OUTPUT_BASEDIR3}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-scopevisio-teamwork.zip -r .)
+              run: Compress-Archive -DestinationPath bin-scopevisio-teamwork.zip ${{env.BUILD_OUTPUT_BASEDIR3}}/${{env.BUILD_CONFIGURATION}}
 
             - name: Pack binaries CompuMaster.Dms.TestDemo.WebDav
-              run: |
-                (cd ${{env.BUILD_OUTPUT_BASEDIR4}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-webdav.zip -r .)
+              run: Compress-Archive -DestinationPath bin-webdav.zip ${{env.BUILD_OUTPUT_BASEDIR4}}/${{env.BUILD_CONFIGURATION}}
 
             - name: Publish binaries CompuMaster.Dms.Providers
               uses: softprops/action-gh-release@v1
