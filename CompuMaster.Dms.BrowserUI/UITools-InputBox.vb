@@ -8,9 +8,9 @@ Imports CompuMaster.VisualBasicCompatibility.Information
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 
-Partial Friend Module Tools
+Partial Friend Class UITools
 
-    Private Function ApplicationTitle() As String
+    Private Shared Function ApplicationTitle() As String
         Try
             Dim entryAssembly = System.Reflection.Assembly.GetEntryAssembly()
             Dim Result As String = (CType(entryAssembly.GetCustomAttributes(GetType(System.Reflection.AssemblyTitleAttribute), False)(0), System.Reflection.AssemblyTitleAttribute)).Title
@@ -32,7 +32,7 @@ Partial Friend Module Tools
     ''' <param name="xPos">Ignored value</param>
     ''' <param name="yPos">Ignored value</param>
     ''' <returns></returns>
-    Public Function InputBox(prompt As String, Optional title As String = "", Optional defaultResponse As String = "", Optional xPos As Integer = -1, Optional yPos As Integer = -1) As String
+    Public Shared Function InputBox(prompt As String, Optional title As String = "", Optional defaultResponse As String = "", Optional xPos As Integer = -1, Optional yPos As Integer = -1) As String
         Dim localInputText As String = defaultResponse
         If title = "" Then title = ApplicationTitle()
 
@@ -43,7 +43,7 @@ Partial Friend Module Tools
         End If
     End Function
 
-    Private Function InputQuery(ByVal caption As String, ByVal prompt As String, ByRef value As String) As Boolean
+    Private Shared Function InputQuery(ByVal caption As String, ByVal prompt As String, ByRef value As String) As Boolean
         Dim form As Form
         form = New Form()
         form.AutoScaleMode = AutoScaleMode.Font
@@ -97,16 +97,16 @@ Partial Friend Module Tools
         End If
     End Function
 
-    Private Function MulDiv(ByVal nNumber As Single, ByVal nNumerator As Single, ByVal nDenominator As Integer) As Integer
+    Private Shared Function MulDiv(ByVal nNumber As Single, ByVal nNumerator As Single, ByVal nDenominator As Integer) As Integer
         Return CInt(Math.Round(nNumber * nNumerator / nDenominator))
     End Function
 
-    Private Function MulDiv(ByVal nNumber As Integer, ByVal nNumerator As Single, ByVal nDenominator As Integer) As Integer
+    Private Shared Function MulDiv(ByVal nNumber As Integer, ByVal nNumerator As Single, ByVal nDenominator As Integer) As Integer
         Return CInt(Math.Round(CSng(nNumber) * nNumerator / nDenominator))
     End Function
 
-    Private Function MulDiv(ByVal nNumber As Integer, ByVal nNumerator As Integer, ByVal nDenominator As Integer) As Integer
+    Private Shared Function MulDiv(ByVal nNumber As Integer, ByVal nNumerator As Integer, ByVal nDenominator As Integer) As Integer
         Return CInt(Math.Round(CSng(nNumber) * nNumerator / nDenominator))
     End Function
 
-End Module
+End Class

@@ -3,6 +3,30 @@ Option Strict On
 
 Friend NotInheritable Class Tools
 
+    Public Shared Function ByteSizeToUIDisplayText(value As Long) As String
+        If value < 0 Then
+            Throw New ArgumentOutOfRangeException(NameOf(value), "Negative size values are not allowed")
+        ElseIf value < 1300L Then
+            'Output in Bytes
+            Return value.ToString("#,##0") & " Bytes"
+        ElseIf value < 1300L * 1000L Then
+            'Output in KB
+            Return (value / 1024).ToString("#,##0") & " KB"
+        ElseIf value < 1300L * 1000L ^ 2 Then
+            'Output in MB
+            Return (value / 1024 ^ 2).ToString("#,##0") & " MB"
+        ElseIf value < 1300L * 1000L ^ 3 Then
+            'Output in GB
+            Return (value / 1024 ^ 3).ToString("#,##0") & " GB"
+        ElseIf value < 1300L * 1000L ^ 4 Then
+            'Output in TB
+            Return (value / 1024 ^ 4).ToString("#,##0") & " TB"
+        Else
+            'Output in PB
+            Return (value / 1024 ^ 5).ToString("#,##0") & " PB"
+        End If
+    End Function
+
     ''' <summary>
     ''' Check if a text contains all required search values
     ''' </summary>
@@ -136,7 +160,7 @@ Friend NotInheritable Class Tools
     ''' <param name="inAcceptableDifference"></param>
     ''' <returns></returns>
     Public Shared Function DoubleValueIsEqual(value1 As Double, value2 As Double, inAcceptableDifference As Double) As Boolean
-        If inAcceptableDifference < 0.0 Then Throw New ArgumentOutOfRangeException("Must be >= 0", NameOf(inAcceptableDifference))
+        If inAcceptableDifference < 0.0 Then Throw New ArgumentOutOfRangeException(NameOf(inAcceptableDifference), "Must be >= 0")
         Dim Diff As Double = value1 - value2
         If Diff = 0.0 Then
             'Is equal

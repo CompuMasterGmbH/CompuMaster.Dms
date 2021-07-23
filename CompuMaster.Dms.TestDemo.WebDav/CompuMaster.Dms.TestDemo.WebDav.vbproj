@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <RootNamespace>CompuMaster.Dms.TestDemo.WebDav</RootNamespace>
+    <TargetFrameworks>net5.0-windows;net48</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>CompuMaster.Dms.TestDemo.WebDav.LoginForm</StartupObject>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <MyType>WindowsFormsWithCustomSubMain</MyType>
+    <Configurations>Debug;Release;CI_CD</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CompuMaster.Dms.BrowserUI\CompuMaster.Dms.BrowserUI.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="LoginForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+</Project>

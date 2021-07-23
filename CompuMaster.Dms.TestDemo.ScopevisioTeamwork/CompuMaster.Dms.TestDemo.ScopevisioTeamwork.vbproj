@@ -7,6 +7,8 @@
     <OutputType>WinExe</OutputType>
     <StartupObject>CompuMaster.Dms.TestDemo.ScopevisioTeamwork.LoginForm</StartupObject>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <MyType>WindowsFormsWithCustomSubMain</MyType>
+    <Configurations>Debug;Release;CI_CD</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,13 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="LoginForm.vb">
       <SubType>Form</SubType>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
   </ItemGroup>
 
 </Project>

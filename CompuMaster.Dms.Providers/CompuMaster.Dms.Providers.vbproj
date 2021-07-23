@@ -13,9 +13,15 @@
     <Product>CompuMaster.Dms</Product>
     <AssemblyName>CompuMaster.Dms.Providers</AssemblyName>
     <OptionStrict>On</OptionStrict>
+    <Configurations>Debug;Release;CI_CD</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn />
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CI_CD|AnyCPU'">
     <NoWarn />
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
   </PropertyGroup>

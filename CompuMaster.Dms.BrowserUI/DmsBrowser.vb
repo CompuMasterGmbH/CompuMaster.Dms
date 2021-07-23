@@ -3,6 +3,7 @@ Imports System.Drawing
 Imports System.ComponentModel
 Imports CompuMaster.Dms.Providers
 Imports CompuMaster.Dms.Data
+Imports CompuMaster.Dms
 Imports CompuMaster.VisualBasicCompatibility
 Imports CompuMaster.VisualBasicCompatibility.Information
 Imports InfoBox
@@ -126,22 +127,22 @@ Public Class DmsBrowser
             Me.ToolStripFileShareActions.Visible = Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings)
             Me.ToolStripFolderShareActions.Visible = Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings)
             Me.ToolStripButtonPropertiesFile.Visible = True
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonNewFolder, ((value And FileOrFolderActions.AllowCreateFolders) = FileOrFolderActions.AllowCreateFolders), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonCopyFolder, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonMoveFolder, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonRenameFolder, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonDeleteFolder, ((value And FileOrFolderActions.AllowDeleteFiles) = FileOrFolderActions.AllowDeleteFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonRefreshFilesList, True, False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonShareFolder, Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonProperties, True, False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonUploadFile, ((value And FileOrFolderActions.AllowUploadFiles) = FileOrFolderActions.AllowUploadFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonDownloadFile, ((value And FileOrFolderActions.AllowDownloadFiles) = FileOrFolderActions.AllowDownloadFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonCopyFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonMoveFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonRenameFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonDeleteFile, ((value And FileOrFolderActions.AllowDeleteFiles) = FileOrFolderActions.AllowDeleteFiles), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonShareFile, Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
-            Tools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonProperties, True, False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonNewFolder, ((value And FileOrFolderActions.AllowCreateFolders) = FileOrFolderActions.AllowCreateFolders), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonCopyFolder, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonMoveFolder, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonRenameFolder, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonDeleteFolder, ((value And FileOrFolderActions.AllowDeleteFiles) = FileOrFolderActions.AllowDeleteFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonRefreshFilesList, True, False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonShareFolder, Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonProperties, True, False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonUploadFile, ((value And FileOrFolderActions.AllowUploadFiles) = FileOrFolderActions.AllowUploadFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonDownloadFile, ((value And FileOrFolderActions.AllowDownloadFiles) = FileOrFolderActions.AllowDownloadFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonCopyFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonMoveFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonRenameFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonDeleteFile, ((value And FileOrFolderActions.AllowDeleteFiles) = FileOrFolderActions.AllowDeleteFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonShareFile, Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonProperties, True, False)
         End Set
     End Property
 
@@ -934,7 +935,7 @@ Public Class DmsBrowser
             e.Cancel = True
             Return
         End If
-        Tools.SwitchSeparatorLinesVisibility(Me.ContextMenuStripFolder.Items)
+        UITools.SwitchSeparatorLinesVisibility(Me.ContextMenuStripFolder.Items)
     End Sub
 
     Private Sub ToolStripFolderContextButtonNewFolder_Click(sender As Object, e As EventArgs) Handles ToolStripFolderContextButtonNewFolder.Click
@@ -1041,7 +1042,7 @@ Public Class DmsBrowser
             e.Cancel = True
             Return
         End If
-        Tools.SwitchSeparatorLinesVisibility(Me.ContextMenuStripFile.Items)
+        UITools.SwitchSeparatorLinesVisibility(Me.ContextMenuStripFile.Items)
     End Sub
 
     ''' <summary>
