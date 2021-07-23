@@ -4,7 +4,7 @@
     <RootNamespace>CompuMaster.Dms.BrowserUI</RootNamespace>
     <TargetFrameworks>net5.0-windows;net48</TargetFrameworks>
     <Configurations>Debug;Release;CI_CD</Configurations>
-    <Version>2021.07.20.100</Version>
+    <Version>2021.07.23.100</Version>
     <Authors>Jochen Wezel</Authors>
     <Company>CompuMaster GmbH</Company>
     <Copyright>2019-2021 CompuMaster GmbH</Copyright>
@@ -18,6 +18,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <StartupObject></StartupObject>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <Description>Implementation of browser dialogs for System.Windows.Form</Description>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -45,6 +47,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|netstandard2.0|AnyCPU'">
     <NoWarn />
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0-windows|AnyCPU'">
+    <DocumentationFile>CompuMaster.Dms.BrowserUI.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0-windows|AnyCPU'">
+    <DocumentationFile>CompuMaster.Dms.BrowserUI.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net5.0-windows|AnyCPU'">
+    <DocumentationFile>CompuMaster.Dms.BrowserUI.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

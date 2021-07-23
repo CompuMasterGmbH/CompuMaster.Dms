@@ -19,13 +19,15 @@ env:
   SOLUTION_FILE_PATH: .
 
   # Name of project configuration for build as well as name of the bin output subdirectory (both must match for "dotnet pack" to find compiled files!)
-  BUILD_CONFIGURATION: CI_CD
+  BUILD_CONFIGURATION: Release
   # Name of build project which creates required output for packaging/deployment
   BUILD_PROJECT: CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj
   BUILD_PROJECT2: CompuMaster.Dms.BrowserUI/CompuMaster.Dms.BrowserUI.vbproj
   # Name of directory (e.g. "bin") containing the subdirectory (e.g. "CI_CD") with all output files (*.dll)
   BUILD_OUTPUT_BASEDIR: CompuMaster.Dms.Providers/bin
   BUILD_OUTPUT_BASEDIR2: CompuMaster.Dms.BrowserUI/bin
+  BUILD_OUTPUT_BASEDIR3: CompuMaster.Dms.TestDemo.ScopevisioTeamwork/bin
+  BUILD_OUTPUT_BASEDIR4: CompuMaster.Dms.TestDemo.WebDav/bin
 
 
 jobs:
@@ -57,6 +59,14 @@ jobs:
               run: |
                 (cd ${{env.BUILD_OUTPUT_BASEDIR2}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-browserui.zip -r .)
 
+            - name: Pack binaries CompuMaster.Dms.TestDemo.ScopevisioTeamwork
+              run: |
+                (cd ${{env.BUILD_OUTPUT_BASEDIR3}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-scopevisio-teamwork.zip -r .)
+
+            - name: Pack binaries CompuMaster.Dms.TestDemo.WebDav
+              run: |
+                (cd ${{env.BUILD_OUTPUT_BASEDIR4}}/${{env.BUILD_CONFIGURATION}} && zip $OLDPWD/bin-webdav.zip -r .)
+
             - name: Publish binaries CompuMaster.Dms.Providers
               uses: softprops/action-gh-release@v1
               with:
@@ -68,6 +78,20 @@ jobs:
               uses: softprops/action-gh-release@v1
               with:
                 files: "bin-browserui.zip"
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish binaries CompuMaster.Dms.TestDemo.ScopevisioTeamwork
+              uses: softprops/action-gh-release@v1
+              with:
+                files: "bin-scopevisio-teamwork.zip"
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish binaries CompuMaster.Dms.TestDemo.WebDav
+              uses: softprops/action-gh-release@v1
+              with:
+                files: "bin-webdav.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

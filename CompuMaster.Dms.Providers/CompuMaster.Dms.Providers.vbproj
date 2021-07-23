@@ -7,7 +7,7 @@
     <PackageIconUrl />
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>DmsBrowser NextCloud OwnCloud CenterDevice Scopevisio Teamwork WebDAV API</PackageTags>
-    <Version>2021.07.20.100</Version>
+    <Version>2021.07.23.100</Version>
     <Authors>Jochen Wezel</Authors>
     <Company>CompuMaster GmbH</Company>
     <Product>CompuMaster.Dms</Product>
@@ -29,6 +29,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn />
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>CompuMaster.Dms.Providers.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>CompuMaster.Dms.Providers.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|netstandard2.0|AnyCPU'">
+    <OutputPath>bin\CI_CD\</OutputPath>
+    <DocumentationFile>CompuMaster.Dms.Providers.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
