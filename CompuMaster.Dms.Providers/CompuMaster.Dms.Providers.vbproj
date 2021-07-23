@@ -7,7 +7,7 @@
     <PackageIconUrl />
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>DmsBrowser NextCloud OwnCloud CenterDevice Scopevisio Teamwork WebDAV API</PackageTags>
-    <Version>2021.07.23.100</Version>
+    <Version>2021.07.23.101</Version>
     <Authors>Jochen Wezel</Authors>
     <Company>CompuMaster GmbH</Company>
     <Product>CompuMaster.Dms</Product>
