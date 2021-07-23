@@ -83,7 +83,7 @@ jobs:
               run: odbcinst -q -d
 
             - name: Install dependencies
-              run: dotnet restore CompuMaster.Data.VS2012.sln
+              run: dotnet restore 
 
             - name: Build
               run: dotnet build --configuration=${{env.BUILD_CONFIGURATION}} --no-restore
