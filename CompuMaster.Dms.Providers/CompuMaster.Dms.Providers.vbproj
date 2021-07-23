@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>CompuMaster.Dms</RootNamespace>
+    <TargetFrameworks>netstandard2.0;net48;net5.0</TargetFrameworks>
+    <PackageIcon>logo_64x64.png</PackageIcon>
+    <PackageIconUrl />
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>DmsBrowser NextCloud OwnCloud CenterDevice Scopevisio Teamwork WebDAV API</PackageTags>
+    <Version>2021.07.20.100</Version>
+    <Authors>Jochen Wezel</Authors>
+    <Company>CompuMaster GmbH</Company>
+    <Product>CompuMaster.Dms</Product>
+    <AssemblyName>CompuMaster.Dms.Providers</AssemblyName>
+    <OptionStrict>On</OptionStrict>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn />
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn />
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\CompuMaster.Dms\logo_64x64.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CompuMaster.CenterDevice.Rest" Version="2021.7.20.100" />
+    <PackageReference Include="CompuMaster.Scopevisio.OpenApi" Version="2021.7.20.102" />
+    <PackageReference Include="CompuMaster.Scopevisio.Teamwork" Version="2021.7.20.100" />
+    <PackageReference Include="RestSharp" Version="106.12.0" />
+    <PackageReference Include="WebDav.Client" Version="2.7.0" />
+  </ItemGroup>
+
+</Project>

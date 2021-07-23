@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <RootNamespace>CompuMaster.Dms.TestDemo.ScopevisioTeamwork</RootNamespace>
+    <TargetFrameworks>net5.0-windows;net48</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>CompuMaster.Dms.TestDemo.ScopevisioTeamwork.LoginForm</StartupObject>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CompuMaster.Dms.BrowserUI\CompuMaster.Dms.BrowserUI.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="LoginForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>
