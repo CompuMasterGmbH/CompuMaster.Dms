@@ -9,6 +9,7 @@
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <MyType>WindowsFormsWithCustomSubMain</MyType>
     <Configurations>Debug;Release;CI_CD</Configurations>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0-windows|AnyCPU'">
