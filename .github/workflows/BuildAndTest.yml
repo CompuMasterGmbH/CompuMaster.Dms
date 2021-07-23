@@ -83,7 +83,7 @@ jobs:
               run: odbcinst -q -d
 
             - name: Install dependencies
-              run: dotnet restore 
+              run: dotnet restore --configuration=${{env.BUILD_CONFIGURATION}}
 
             - name: Build
               run: dotnet build --configuration=${{env.BUILD_CONFIGURATION}} --no-restore
