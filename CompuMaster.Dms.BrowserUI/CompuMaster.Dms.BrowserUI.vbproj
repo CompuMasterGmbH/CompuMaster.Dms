@@ -4,7 +4,7 @@
     <RootNamespace>CompuMaster.Dms.BrowserUI</RootNamespace>
     <TargetFrameworks>net5.0-windows;net48</TargetFrameworks>
     <Configurations>Debug;Release;CI_CD</Configurations>
-    <Version>2021.07.23.101</Version>
+    <Version>2021.07.25.100</Version>
     <Authors>Jochen Wezel</Authors>
     <Company>CompuMaster GmbH</Company>
     <Copyright>2019-2021 CompuMaster GmbH</Copyright>
@@ -19,7 +19,7 @@
     <StartupObject></StartupObject>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <Description>Implementation of browser dialogs for System.Windows.Form</Description>
-    <NeutralLanguage>en</NeutralLanguage>
+    <NeutralLanguage>de</NeutralLanguage>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
 
