@@ -27,6 +27,11 @@
     Public Shared Function InputFromBufferFile(ByVal fieldName As String) As String
         Dim BufferFile As String = BufferFilePath(fieldName)
 
+        Dim EnvVarName As String = "TEST_" & fieldName.Replace(" ", "").Replace(".", "").ToUpperInvariant()
+        If Not String.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable(EnvVarName)) Then
+            Return System.Environment.GetEnvironmentVariable(EnvVarName)
+        End If
+
         If System.IO.File.Exists(BufferFile) Then
             Return System.IO.File.ReadAllText(BufferFile)
         Else
