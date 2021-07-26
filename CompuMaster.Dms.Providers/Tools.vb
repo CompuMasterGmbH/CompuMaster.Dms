@@ -3,6 +3,22 @@ Option Strict On
 
 Friend NotInheritable Class Tools
 
+    Public Shared Function IsParentDirectory(expectedParentDirectory As String, subDirectory As String) As Boolean
+        If expectedParentDirectory = Nothing Then Throw New ArgumentNullException(NameOf(expectedParentDirectory))
+        If subDirectory = Nothing Then Throw New ArgumentNullException(NameOf(subDirectory))
+        If expectedParentDirectory = subDirectory Then
+            Return True
+        Else
+            Dim NextParentDirOfSubDir As String = System.IO.Path.GetDirectoryName(subDirectory)
+            If NextParentDirOfSubDir = Nothing Then
+                'no parent any more
+                Return False
+            Else
+                Return IsParentDirectory(expectedParentDirectory, NextParentDirOfSubDir)
+            End If
+        End If
+    End Function
+
     Public Shared Function ByteSizeToUIDisplayText(value As Long) As String
         If value < 0 Then
             Throw New ArgumentOutOfRangeException(NameOf(value), "Negative size values are not allowed")

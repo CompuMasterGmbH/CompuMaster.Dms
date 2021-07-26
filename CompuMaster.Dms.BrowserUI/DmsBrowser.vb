@@ -40,10 +40,10 @@ Public Class DmsBrowser
         Me.DialogOperationModeInternal = dialogOperationMode
         Me.LocalParentMustFolder = localParentMustFolder
         If localParentMustFolder <> Nothing Then
-            If localParentMustFolder.StartsWith(localDefaultFolderDownloads) = False Then
+            If Tools.IsParentDirectory(localParentMustFolder, localDefaultFolderDownloads) = False Then
                 Throw New ArgumentException("Local default downloads folder """ & localDefaultFolderDownloads & """ must be a sub folder of directory """ & localParentMustFolder & "", NameOf(localDefaultFolderDownloads))
             End If
-            If localParentMustFolder.StartsWith(localDefaultFolderUploads) = False Then
+            If Tools.IsParentDirectory(localParentMustFolder, localDefaultFolderUploads) = False Then
                 Throw New ArgumentException("Local default uploads folder """ & localDefaultFolderUploads & """ must be a sub folder of directory """ & localParentMustFolder & "", NameOf(localDefaultFolderUploads))
             End If
         End If

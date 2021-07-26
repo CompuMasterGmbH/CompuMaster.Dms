@@ -25,4 +25,20 @@ Imports NUnit.Framework
         End Try
     End Sub
 
+    <Test> Public Sub IsParentDirectory()
+        Assert.IsTrue(Tools.IsParentDirectory("D:\", "D:\"))
+        Assert.IsTrue(Tools.IsParentDirectory("D:\", "D:\Test\SubDir"))
+        Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test\"))
+        Assert.IsTrue(Tools.IsParentDirectory("D:\Test\", "D:\Test\"))
+        Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test"))
+        Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test\SubDir"))
+        Assert.IsFalse(Tools.IsParentDirectory("D:\Test\SubDir", "D:\Test"))
+        Assert.IsTrue(Tools.IsParentDirectory("D:\Test\SubDir", "D:\Test\SubDir"))
+        Assert.IsFalse(Tools.IsParentDirectory("E:\", "D:\Test\SubDir"))
+        Assert.Throws(Of ArgumentNullException)(
+            Sub()
+                Tools.IsParentDirectory("", "D:\Test\SubDir")
+            End Sub)
+    End Sub
+
 End Class
