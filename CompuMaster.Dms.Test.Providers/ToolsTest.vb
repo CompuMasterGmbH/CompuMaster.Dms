@@ -26,18 +26,31 @@ Imports NUnit.Framework
     End Sub
 
     <Test> Public Sub IsParentDirectory()
-        Assert.IsTrue(Tools.IsParentDirectory("D:\", "D:\"))
-        Assert.IsTrue(Tools.IsParentDirectory("D:\", "D:\Test\SubDir"))
-        Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test\"))
-        Assert.IsTrue(Tools.IsParentDirectory("D:\Test\", "D:\Test\"))
-        Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test"))
-        Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test\SubDir"))
-        Assert.IsFalse(Tools.IsParentDirectory("D:\Test\SubDir", "D:\Test"))
-        Assert.IsTrue(Tools.IsParentDirectory("D:\Test\SubDir", "D:\Test\SubDir"))
-        Assert.IsFalse(Tools.IsParentDirectory("E:\", "D:\Test\SubDir"))
+        Select Case System.Environment.OSVersion.Platform
+            Case PlatformID.Win32NT
+                Assert.IsTrue(Tools.IsParentDirectory("D:\", "D:\"))
+                Assert.IsTrue(Tools.IsParentDirectory("D:\", "D:\Test\SubDir"))
+                Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test\"))
+                Assert.IsTrue(Tools.IsParentDirectory("D:\Test\", "D:\Test\"))
+                Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test"))
+                Assert.IsTrue(Tools.IsParentDirectory("D:\Test", "D:\Test\SubDir"))
+                Assert.IsFalse(Tools.IsParentDirectory("D:\Test\SubDir", "D:\Test"))
+                Assert.IsTrue(Tools.IsParentDirectory("D:\Test\SubDir", "D:\Test\SubDir"))
+                Assert.IsFalse(Tools.IsParentDirectory("E:\", "D:\Test\SubDir"))
+            Case Else 'Unix/Mac/Linux
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp", "/tmp/"))
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp", "/tmp/Test/SubDir"))
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp/Test", "/tmp/Test/"))
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp/Test/", "/tmp/Test/"))
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp/Test", "/tmp/Test"))
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp/Test", "/tmp/Test/SubDir"))
+                Assert.IsFalse(Tools.IsParentDirectory("/tmp/Test/SubDir", "/tmp/Test"))
+                Assert.IsTrue(Tools.IsParentDirectory("/tmp/Test/SubDir", "/tmp/Test/SubDir"))
+                Assert.IsFalse(Tools.IsParentDirectory("/root/", "/tmp/Test\SubDir"))
+        End Select
         Assert.Throws(Of ArgumentNullException)(
             Sub()
-                Tools.IsParentDirectory("", "D:\Test\SubDir")
+                Tools.IsParentDirectory("", "/tmp/Test\SubDir")
             End Sub)
     End Sub
 
