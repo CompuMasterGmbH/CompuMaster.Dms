@@ -1,6 +1,20 @@
 # CompuMaster.Dms
 DMS Browser component for Scopevisio Teamwork, CenterDevice, WebDAV (e.g. NextCloud, OwnCloud)
 
+[![Github Release](https://img.shields.io/github/release/CompuMasterGmbH/CompuMaster.Dms.svg?maxAge=2592000&label=GitHub%20Release)](https://github.com/CompuMasterGmbH/CompuMaster.Dms/releases) 
+[![NuGet CompuMaster.Dms](https://img.shields.io/nuget/v/CompuMaster.Dms.svg?maxAge=2592000&label=NuGet%20CM.Dms)](https://www.nuget.org/packages/CompuMaster.Dms/) 
+[![NuGet CompuMaster.Dms.BrowserUI](https://img.shields.io/nuget/v/CompuMaster.Dms.BrowserUI.svg?maxAge=2592000&label=NuGet%20CM.Dms.Controls)](https://www.nuget.org/packages/CompuMaster.Dms.BrowserUI) 
+
+## Simple download/installation using NuGet
+```powershell
+Install-Package CompuMaster.Dms
+```
+respectively
+```powershell
+Install-Package CompuMaster.Dms.BrowserUI
+```
+Also see: https://www.nuget.org/packages/CompuMaster.Dms/
+
 ## Modules Overview
 
 There are following main modules for your use:
