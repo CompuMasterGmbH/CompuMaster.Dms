@@ -55,6 +55,7 @@ Public Class DmsLinkShareSetup
                     Me.CheckBoxAllowUpload.Enabled = True
                     Me.CheckBoxAllowDelete.Enabled = False
                     Me.CheckBoxAllowShare.Enabled = False
+                    Me.TextBoxNumberOfUploads.Text = "5000"
                 Else
                     'Update link mode: view and upload links can't be exchanged and must remain
                     Me.CheckBoxAllowView.Enabled = False
