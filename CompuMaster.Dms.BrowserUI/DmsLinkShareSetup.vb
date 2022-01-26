@@ -261,4 +261,17 @@ Public Class DmsLinkShareSetup
         End Try
     End Sub
 
+    ''' <summary>
+    ''' Handle ESC key to cancel dialog
+    ''' </summary>
+    ''' <param name="keyData"></param>
+    ''' <returns></returns>
+    Protected Overrides Function ProcessDialogKey(keyData As Keys) As Boolean
+        If Form.ModifierKeys = Keys.None AndAlso keyData = Keys.Escape Then
+            Me.Close()
+            Return True
+        End If
+        Return MyBase.ProcessDialogKey(keyData)
+    End Function
+
 End Class

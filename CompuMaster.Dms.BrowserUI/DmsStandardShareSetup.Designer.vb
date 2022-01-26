@@ -44,9 +44,10 @@ Partial Class DmsStandardShareSetup
         'CheckBoxAllowView
         '
         Me.CheckBoxAllowView.AutoSize = True
-        Me.CheckBoxAllowView.Location = New System.Drawing.Point(6, 19)
+        Me.CheckBoxAllowView.Location = New System.Drawing.Point(7, 22)
+        Me.CheckBoxAllowView.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowView.Name = "CheckBoxAllowView"
-        Me.CheckBoxAllowView.Size = New System.Drawing.Size(70, 17)
+        Me.CheckBoxAllowView.Size = New System.Drawing.Size(75, 19)
         Me.CheckBoxAllowView.TabIndex = 11
         Me.CheckBoxAllowView.Text = "Anzeigen"
         Me.CheckBoxAllowView.UseVisualStyleBackColor = True
@@ -61,9 +62,11 @@ Partial Class DmsStandardShareSetup
         Me.GroupBoxAuthorizations.Controls.Add(Me.CheckBoxAllowDownload)
         Me.GroupBoxAuthorizations.Controls.Add(Me.CheckBoxAllowEdit)
         Me.GroupBoxAuthorizations.Controls.Add(Me.CheckBoxAllowView)
-        Me.GroupBoxAuthorizations.Location = New System.Drawing.Point(12, 66)
+        Me.GroupBoxAuthorizations.Location = New System.Drawing.Point(14, 76)
+        Me.GroupBoxAuthorizations.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxAuthorizations.Name = "GroupBoxAuthorizations"
-        Me.GroupBoxAuthorizations.Size = New System.Drawing.Size(509, 70)
+        Me.GroupBoxAuthorizations.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxAuthorizations.Size = New System.Drawing.Size(594, 81)
         Me.GroupBoxAuthorizations.TabIndex = 10
         Me.GroupBoxAuthorizations.TabStop = False
         Me.GroupBoxAuthorizations.Text = "Berechtigungen"
@@ -71,9 +74,10 @@ Partial Class DmsStandardShareSetup
         'CheckBoxAllowShare
         '
         Me.CheckBoxAllowShare.AutoSize = True
-        Me.CheckBoxAllowShare.Location = New System.Drawing.Point(6, 47)
+        Me.CheckBoxAllowShare.Location = New System.Drawing.Point(7, 54)
+        Me.CheckBoxAllowShare.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowShare.Name = "CheckBoxAllowShare"
-        Me.CheckBoxAllowShare.Size = New System.Drawing.Size(55, 17)
+        Me.CheckBoxAllowShare.Size = New System.Drawing.Size(56, 19)
         Me.CheckBoxAllowShare.TabIndex = 16
         Me.CheckBoxAllowShare.Text = "Teilen"
         Me.CheckBoxAllowShare.UseVisualStyleBackColor = True
@@ -81,9 +85,10 @@ Partial Class DmsStandardShareSetup
         'CheckBoxAllowDelete
         '
         Me.CheckBoxAllowDelete.AutoSize = True
-        Me.CheckBoxAllowDelete.Location = New System.Drawing.Point(423, 19)
+        Me.CheckBoxAllowDelete.Location = New System.Drawing.Point(493, 22)
+        Me.CheckBoxAllowDelete.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowDelete.Name = "CheckBoxAllowDelete"
-        Me.CheckBoxAllowDelete.Size = New System.Drawing.Size(67, 17)
+        Me.CheckBoxAllowDelete.Size = New System.Drawing.Size(70, 19)
         Me.CheckBoxAllowDelete.TabIndex = 15
         Me.CheckBoxAllowDelete.Text = "Löschen"
         Me.CheckBoxAllowDelete.UseVisualStyleBackColor = True
@@ -91,9 +96,10 @@ Partial Class DmsStandardShareSetup
         'CheckBoxAllowUpload
         '
         Me.CheckBoxAllowUpload.AutoSize = True
-        Me.CheckBoxAllowUpload.Location = New System.Drawing.Point(333, 19)
+        Me.CheckBoxAllowUpload.Location = New System.Drawing.Point(388, 22)
+        Me.CheckBoxAllowUpload.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowUpload.Name = "CheckBoxAllowUpload"
-        Me.CheckBoxAllowUpload.Size = New System.Drawing.Size(60, 17)
+        Me.CheckBoxAllowUpload.Size = New System.Drawing.Size(64, 19)
         Me.CheckBoxAllowUpload.TabIndex = 14
         Me.CheckBoxAllowUpload.Text = "Upload"
         Me.CheckBoxAllowUpload.UseVisualStyleBackColor = True
@@ -101,9 +107,10 @@ Partial Class DmsStandardShareSetup
         'CheckBoxAllowDownload
         '
         Me.CheckBoxAllowDownload.AutoSize = True
-        Me.CheckBoxAllowDownload.Location = New System.Drawing.Point(227, 19)
+        Me.CheckBoxAllowDownload.Location = New System.Drawing.Point(265, 22)
+        Me.CheckBoxAllowDownload.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowDownload.Name = "CheckBoxAllowDownload"
-        Me.CheckBoxAllowDownload.Size = New System.Drawing.Size(74, 17)
+        Me.CheckBoxAllowDownload.Size = New System.Drawing.Size(80, 19)
         Me.CheckBoxAllowDownload.TabIndex = 13
         Me.CheckBoxAllowDownload.Text = "Download"
         Me.CheckBoxAllowDownload.UseVisualStyleBackColor = True
@@ -111,9 +118,10 @@ Partial Class DmsStandardShareSetup
         'CheckBoxAllowEdit
         '
         Me.CheckBoxAllowEdit.AutoSize = True
-        Me.CheckBoxAllowEdit.Location = New System.Drawing.Point(120, 19)
+        Me.CheckBoxAllowEdit.Location = New System.Drawing.Point(140, 22)
+        Me.CheckBoxAllowEdit.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowEdit.Name = "CheckBoxAllowEdit"
-        Me.CheckBoxAllowEdit.Size = New System.Drawing.Size(77, 17)
+        Me.CheckBoxAllowEdit.Size = New System.Drawing.Size(82, 19)
         Me.CheckBoxAllowEdit.TabIndex = 12
         Me.CheckBoxAllowEdit.Text = "Bearbeiten"
         Me.CheckBoxAllowEdit.UseVisualStyleBackColor = True
@@ -121,9 +129,10 @@ Partial Class DmsStandardShareSetup
         'ButtonCancel
         '
         Me.ButtonCancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.ButtonCancel.Location = New System.Drawing.Point(365, 143)
+        Me.ButtonCancel.Location = New System.Drawing.Point(426, 165)
+        Me.ButtonCancel.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCancel.Name = "ButtonCancel"
-        Me.ButtonCancel.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
         Me.ButtonCancel.TabIndex = 41
         Me.ButtonCancel.Text = "&Abbrechen"
         Me.ButtonCancel.UseVisualStyleBackColor = True
@@ -131,9 +140,10 @@ Partial Class DmsStandardShareSetup
         'ButtonSave
         '
         Me.ButtonSave.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.ButtonSave.Location = New System.Drawing.Point(446, 143)
+        Me.ButtonSave.Location = New System.Drawing.Point(520, 165)
+        Me.ButtonSave.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonSave.Name = "ButtonSave"
-        Me.ButtonSave.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonSave.Size = New System.Drawing.Size(88, 27)
         Me.ButtonSave.TabIndex = 40
         Me.ButtonSave.Text = "&Speichern"
         Me.ButtonSave.UseVisualStyleBackColor = True
@@ -144,9 +154,11 @@ Partial Class DmsStandardShareSetup
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.GroupBoxGeneral.Controls.Add(Me.ComboBoxUsersOrGroups)
         Me.GroupBoxGeneral.Controls.Add(Me.LabelName)
-        Me.GroupBoxGeneral.Location = New System.Drawing.Point(12, 12)
+        Me.GroupBoxGeneral.Location = New System.Drawing.Point(14, 14)
+        Me.GroupBoxGeneral.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxGeneral.Name = "GroupBoxGeneral"
-        Me.GroupBoxGeneral.Size = New System.Drawing.Size(509, 48)
+        Me.GroupBoxGeneral.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxGeneral.Size = New System.Drawing.Size(594, 55)
         Me.GroupBoxGeneral.TabIndex = 0
         Me.GroupBoxGeneral.TabStop = False
         Me.GroupBoxGeneral.Text = "Allgemeine Einstellungen"
@@ -158,31 +170,35 @@ Partial Class DmsStandardShareSetup
         Me.ComboBoxUsersOrGroups.DisplayMember = "Value"
         Me.ComboBoxUsersOrGroups.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.ComboBoxUsersOrGroups.FormattingEnabled = True
-        Me.ComboBoxUsersOrGroups.Location = New System.Drawing.Point(120, 19)
+        Me.ComboBoxUsersOrGroups.Location = New System.Drawing.Point(140, 22)
+        Me.ComboBoxUsersOrGroups.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ComboBoxUsersOrGroups.Name = "ComboBoxUsersOrGroups"
-        Me.ComboBoxUsersOrGroups.Size = New System.Drawing.Size(383, 21)
+        Me.ComboBoxUsersOrGroups.Size = New System.Drawing.Size(446, 23)
         Me.ComboBoxUsersOrGroups.TabIndex = 1
         Me.ComboBoxUsersOrGroups.ValueMember = "Key"
         '
         'LabelName
         '
         Me.LabelName.AutoSize = True
-        Me.LabelName.Location = New System.Drawing.Point(6, 22)
+        Me.LabelName.Location = New System.Drawing.Point(7, 25)
+        Me.LabelName.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.LabelName.Name = "LabelName"
-        Me.LabelName.Size = New System.Drawing.Size(35, 13)
+        Me.LabelName.Size = New System.Drawing.Size(39, 15)
         Me.LabelName.TabIndex = 31
         Me.LabelName.Text = "Name"
         '
         'DmsStandardShareSetup
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(533, 178)
+        Me.CancelButton = Me.ButtonCancel
+        Me.ClientSize = New System.Drawing.Size(622, 205)
         Me.Controls.Add(Me.GroupBoxGeneral)
         Me.Controls.Add(Me.ButtonCancel)
         Me.Controls.Add(Me.ButtonSave)
         Me.Controls.Add(Me.GroupBoxAuthorizations)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.Name = "DmsStandardShareSetup"
         Me.Text = "DMS Freigabe Einstellungen - {0}"
         Me.GroupBoxAuthorizations.ResumeLayout(False)

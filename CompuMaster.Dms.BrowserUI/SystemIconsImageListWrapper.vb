@@ -79,8 +79,12 @@ Friend NotInheritable Class SystemIconsImageListWrapper
             If FileExtSubKeyName Is Nothing Then
                 Return New KeyValuePair(Of String, Integer)(String.Empty, Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex))
             Else
-                Dim IconPathRaw As String = ClassRootKey.OpenSubKey(FileExtSubKeyName).OpenSubKey("DefaultIcon").GetValue("").ToString()
-                Return New KeyValuePair(Of String, Integer)(IconPathRaw.Split(","c)(0), Integer.Parse(IconPathRaw.Split(","c)(1)))
+                Dim IconPathRaw As String = ClassRootKey.OpenSubKey(FileExtSubKeyName)?.OpenSubKey("DefaultIcon")?.GetValue("")?.ToString()
+                If IconPathRaw Is Nothing Then
+                    Return New KeyValuePair(Of String, Integer)(String.Empty, Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex))
+                Else
+                    Return New KeyValuePair(Of String, Integer)(IconPathRaw.Split(","c)(0), Integer.Parse(IconPathRaw.Split(","c)(1)))
+                End If
             End If
         Catch ex As Exception
             Return New KeyValuePair(Of String, Integer)(String.Empty, Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex))

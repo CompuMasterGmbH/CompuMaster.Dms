@@ -42,6 +42,8 @@ Public Class LoginForm
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, ex.ToString, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)
 #Enable Warning CA1031 ' Do not catch general exception types
+            Me.Cursor = Cursors.Default
+            Me.UseWaitCursor = False
         End Try
     End Sub
 

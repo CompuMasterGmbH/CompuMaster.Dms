@@ -77,7 +77,7 @@ Partial Class LoginForm
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.UsernameTextBox.Location = New System.Drawing.Point(174, 73)
         Me.UsernameTextBox.Name = "UsernameTextBox"
-        Me.UsernameTextBox.Size = New System.Drawing.Size(586, 23)
+        Me.UsernameTextBox.Size = New System.Drawing.Size(643, 23)
         Me.UsernameTextBox.TabIndex = 2
         '
         'PasswordTextBox
@@ -87,13 +87,13 @@ Partial Class LoginForm
         Me.PasswordTextBox.Location = New System.Drawing.Point(174, 119)
         Me.PasswordTextBox.Name = "PasswordTextBox"
         Me.PasswordTextBox.PasswordChar = Global.Microsoft.VisualBasic.ChrW(42)
-        Me.PasswordTextBox.Size = New System.Drawing.Size(586, 23)
+        Me.PasswordTextBox.Size = New System.Drawing.Size(643, 23)
         Me.PasswordTextBox.TabIndex = 3
         '
         'OK
         '
         Me.OK.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.OK.Location = New System.Drawing.Point(563, 160)
+        Me.OK.Location = New System.Drawing.Point(620, 160)
         Me.OK.Name = "OK"
         Me.OK.Size = New System.Drawing.Size(94, 23)
         Me.OK.TabIndex = 4
@@ -103,19 +103,19 @@ Partial Class LoginForm
         '
         Me.Cancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.Cancel.Location = New System.Drawing.Point(666, 160)
+        Me.Cancel.Location = New System.Drawing.Point(723, 160)
         Me.Cancel.Name = "Cancel"
         Me.Cancel.Size = New System.Drawing.Size(94, 23)
         Me.Cancel.TabIndex = 5
         Me.Cancel.Text = "E&xit"
         '
-        'CustomerNoTextBox
+        'ServerAddress
         '
         Me.ServerAddress.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ServerAddress.Location = New System.Drawing.Point(174, 27)
-        Me.ServerAddress.Name = "CustomerNoTextBox"
-        Me.ServerAddress.Size = New System.Drawing.Size(586, 23)
+        Me.ServerAddress.Name = "ServerAddress"
+        Me.ServerAddress.Size = New System.Drawing.Size(643, 23)
         Me.ServerAddress.TabIndex = 1
         '
         'Label1
@@ -129,9 +129,11 @@ Partial Class LoginForm
         '
         'Label2
         '
-        Me.Label2.Location = New System.Drawing.Point(171, 159)
+        Me.Label2.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.Label2.Location = New System.Drawing.Point(171, 145)
         Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(375, 23)
+        Me.Label2.Size = New System.Drawing.Size(443, 48)
         Me.Label2.TabIndex = 7
         Me.Label2.Text = "NOTE: Credentials are persisted to disk (plain text in temp directory)"
         Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
@@ -142,7 +144,7 @@ Partial Class LoginForm
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.Cancel
-        Me.ClientSize = New System.Drawing.Size(767, 191)
+        Me.ClientSize = New System.Drawing.Size(824, 191)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.ServerAddress)
         Me.Controls.Add(Me.Label1)
@@ -153,9 +155,9 @@ Partial Class LoginForm
         Me.Controls.Add(Me.PasswordLabel)
         Me.Controls.Add(Me.UsernameLabel)
         Me.Controls.Add(Me.LogoPictureBox)
-        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.MinimizeBox = False
+        Me.MinimumSize = New System.Drawing.Size(840, 230)
         Me.Name = "LoginForm"
         Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent

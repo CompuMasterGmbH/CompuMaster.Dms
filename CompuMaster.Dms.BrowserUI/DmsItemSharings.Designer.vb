@@ -28,9 +28,9 @@ Partial Class DmsItemSharings
         Me.ButtonCancel = New System.Windows.Forms.Button()
         Me.GroupBoxInternalSharings = New System.Windows.Forms.GroupBox()
         Me.ListViewInternalSharings = New System.Windows.Forms.ListView()
-        Me.ColumnHeaderType = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ColumnHeaderName = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ColumnHeaderAuthorizations = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderType = New System.Windows.Forms.ColumnHeader()
+        Me.ColumnHeaderName = New System.Windows.Forms.ColumnHeader()
+        Me.ColumnHeaderAuthorizations = New System.Windows.Forms.ColumnHeader()
         Me.ToolStripInternalSharings = New System.Windows.Forms.ToolStrip()
         Me.ToolStripButtonInternalSharingsAddGroup = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripButtonInternalSharingsAddUser = New System.Windows.Forms.ToolStripButton()
@@ -38,9 +38,9 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonInternalSharingsDelete = New System.Windows.Forms.ToolStripButton()
         Me.GroupBoxExternalSharings = New System.Windows.Forms.GroupBox()
         Me.ListViewExternalSharings = New System.Windows.Forms.ListView()
-        Me.ColumnHeaderDisplayName = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ColumnHeaderAuths = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ColumnHeaderLimitations = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderDisplayName = New System.Windows.Forms.ColumnHeader()
+        Me.ColumnHeaderAuths = New System.Windows.Forms.ColumnHeader()
+        Me.ColumnHeaderLimitations = New System.Windows.Forms.ColumnHeader()
         Me.ToolStripExternalSharings = New System.Windows.Forms.ToolStrip()
         Me.ToolStripButtonExternalSharingsAdd = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripButtonExternalSharingsEdit = New System.Windows.Forms.ToolStripButton()
@@ -56,9 +56,10 @@ Partial Class DmsItemSharings
         'ButtonCancel
         '
         Me.ButtonCancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.ButtonCancel.Location = New System.Drawing.Point(479, 296)
+        Me.ButtonCancel.Location = New System.Drawing.Point(559, 342)
+        Me.ButtonCancel.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCancel.Name = "ButtonCancel"
-        Me.ButtonCancel.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
         Me.ButtonCancel.TabIndex = 30
         Me.ButtonCancel.Text = "&Schließen"
         Me.ButtonCancel.UseVisualStyleBackColor = True
@@ -69,9 +70,11 @@ Partial Class DmsItemSharings
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.GroupBoxInternalSharings.Controls.Add(Me.ListViewInternalSharings)
         Me.GroupBoxInternalSharings.Controls.Add(Me.ToolStripInternalSharings)
-        Me.GroupBoxInternalSharings.Location = New System.Drawing.Point(12, 12)
+        Me.GroupBoxInternalSharings.Location = New System.Drawing.Point(14, 14)
+        Me.GroupBoxInternalSharings.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxInternalSharings.Name = "GroupBoxInternalSharings"
-        Me.GroupBoxInternalSharings.Size = New System.Drawing.Size(542, 143)
+        Me.GroupBoxInternalSharings.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxInternalSharings.Size = New System.Drawing.Size(632, 165)
         Me.GroupBoxInternalSharings.TabIndex = 10
         Me.GroupBoxInternalSharings.TabStop = False
         Me.GroupBoxInternalSharings.Text = "Freigaben an interne Benutzer/Gruppen"
@@ -82,11 +85,12 @@ Partial Class DmsItemSharings
         Me.ListViewInternalSharings.Dock = System.Windows.Forms.DockStyle.Fill
         Me.ListViewInternalSharings.FullRowSelect = True
         Me.ListViewInternalSharings.HideSelection = False
-        Me.ListViewInternalSharings.Location = New System.Drawing.Point(3, 42)
+        Me.ListViewInternalSharings.Location = New System.Drawing.Point(4, 45)
+        Me.ListViewInternalSharings.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ListViewInternalSharings.MultiSelect = False
         Me.ListViewInternalSharings.Name = "ListViewInternalSharings"
         Me.ListViewInternalSharings.ShowItemToolTips = True
-        Me.ListViewInternalSharings.Size = New System.Drawing.Size(536, 98)
+        Me.ListViewInternalSharings.Size = New System.Drawing.Size(624, 117)
         Me.ListViewInternalSharings.TabIndex = 12
         Me.ListViewInternalSharings.UseCompatibleStateImageBehavior = False
         Me.ListViewInternalSharings.View = System.Windows.Forms.View.Details
@@ -109,10 +113,10 @@ Partial Class DmsItemSharings
         '
         Me.ToolStripInternalSharings.ImageScalingSize = New System.Drawing.Size(19, 19)
         Me.ToolStripInternalSharings.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonInternalSharingsAddGroup, Me.ToolStripButtonInternalSharingsAddUser, Me.ToolStripButtonInternalSharingsEdit, Me.ToolStripButtonInternalSharingsDelete})
-        Me.ToolStripInternalSharings.Location = New System.Drawing.Point(3, 16)
+        Me.ToolStripInternalSharings.Location = New System.Drawing.Point(4, 19)
         Me.ToolStripInternalSharings.Name = "ToolStripInternalSharings"
         Me.ToolStripInternalSharings.Padding = New System.Windows.Forms.Padding(0, 0, 2, 0)
-        Me.ToolStripInternalSharings.Size = New System.Drawing.Size(536, 26)
+        Me.ToolStripInternalSharings.Size = New System.Drawing.Size(624, 26)
         Me.ToolStripInternalSharings.TabIndex = 11
         '
         'ToolStripButtonInternalSharingsAddGroup
@@ -153,9 +157,11 @@ Partial Class DmsItemSharings
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.GroupBoxExternalSharings.Controls.Add(Me.ListViewExternalSharings)
         Me.GroupBoxExternalSharings.Controls.Add(Me.ToolStripExternalSharings)
-        Me.GroupBoxExternalSharings.Location = New System.Drawing.Point(12, 161)
+        Me.GroupBoxExternalSharings.Location = New System.Drawing.Point(14, 186)
+        Me.GroupBoxExternalSharings.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxExternalSharings.Name = "GroupBoxExternalSharings"
-        Me.GroupBoxExternalSharings.Size = New System.Drawing.Size(542, 129)
+        Me.GroupBoxExternalSharings.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxExternalSharings.Size = New System.Drawing.Size(632, 149)
         Me.GroupBoxExternalSharings.TabIndex = 20
         Me.GroupBoxExternalSharings.TabStop = False
         Me.GroupBoxExternalSharings.Text = "Freigaben an externe Benutzer via Link"
@@ -166,11 +172,12 @@ Partial Class DmsItemSharings
         Me.ListViewExternalSharings.Dock = System.Windows.Forms.DockStyle.Fill
         Me.ListViewExternalSharings.FullRowSelect = True
         Me.ListViewExternalSharings.HideSelection = False
-        Me.ListViewExternalSharings.Location = New System.Drawing.Point(3, 42)
+        Me.ListViewExternalSharings.Location = New System.Drawing.Point(4, 45)
+        Me.ListViewExternalSharings.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ListViewExternalSharings.MultiSelect = False
         Me.ListViewExternalSharings.Name = "ListViewExternalSharings"
         Me.ListViewExternalSharings.ShowItemToolTips = True
-        Me.ListViewExternalSharings.Size = New System.Drawing.Size(536, 84)
+        Me.ListViewExternalSharings.Size = New System.Drawing.Size(624, 101)
         Me.ListViewExternalSharings.TabIndex = 22
         Me.ListViewExternalSharings.UseCompatibleStateImageBehavior = False
         Me.ListViewExternalSharings.View = System.Windows.Forms.View.Details
@@ -194,10 +201,10 @@ Partial Class DmsItemSharings
         '
         Me.ToolStripExternalSharings.ImageScalingSize = New System.Drawing.Size(19, 19)
         Me.ToolStripExternalSharings.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonExternalSharingsAdd, Me.ToolStripButtonExternalSharingsEdit, Me.ToolStripButtonExternalSharingsDelete, Me.ToolStripButtonCopyLinkUrlToClipboard})
-        Me.ToolStripExternalSharings.Location = New System.Drawing.Point(3, 16)
+        Me.ToolStripExternalSharings.Location = New System.Drawing.Point(4, 19)
         Me.ToolStripExternalSharings.Name = "ToolStripExternalSharings"
         Me.ToolStripExternalSharings.Padding = New System.Windows.Forms.Padding(0, 0, 2, 0)
-        Me.ToolStripExternalSharings.Size = New System.Drawing.Size(536, 26)
+        Me.ToolStripExternalSharings.Size = New System.Drawing.Size(624, 26)
         Me.ToolStripExternalSharings.TabIndex = 21
         '
         'ToolStripButtonExternalSharingsAdd
@@ -235,22 +242,25 @@ Partial Class DmsItemSharings
         'LabelCurrentOwner
         '
         Me.LabelCurrentOwner.AutoSize = True
-        Me.LabelCurrentOwner.Location = New System.Drawing.Point(12, 301)
+        Me.LabelCurrentOwner.Location = New System.Drawing.Point(14, 347)
+        Me.LabelCurrentOwner.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.LabelCurrentOwner.Name = "LabelCurrentOwner"
-        Me.LabelCurrentOwner.Size = New System.Drawing.Size(124, 13)
+        Me.LabelCurrentOwner.Size = New System.Drawing.Size(138, 15)
         Me.LabelCurrentOwner.TabIndex = 31
         Me.LabelCurrentOwner.Text = "Aktueller Eigentümer: {0}"
         '
         'DmsItemSharings
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(566, 331)
+        Me.CancelButton = Me.ButtonCancel
+        Me.ClientSize = New System.Drawing.Size(660, 382)
         Me.Controls.Add(Me.LabelCurrentOwner)
         Me.Controls.Add(Me.GroupBoxExternalSharings)
         Me.Controls.Add(Me.GroupBoxInternalSharings)
         Me.Controls.Add(Me.ButtonCancel)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.Name = "DmsItemSharings"
         Me.Text = "DMS Freigabe-Einstellungen"
         Me.GroupBoxInternalSharings.ResumeLayout(False)

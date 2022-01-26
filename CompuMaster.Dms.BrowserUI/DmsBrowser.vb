@@ -724,6 +724,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Sub ButtonClose_Click(sender As Object, e As EventArgs) Handles ButtonClose.Click
+        Me.DialogResult = DialogResult.Cancel
         Me.Close()
     End Sub
 
@@ -1075,4 +1076,18 @@ Public Class DmsBrowser
             End If
         End If
     End Sub
+
+    ''' <summary>
+    ''' Handle ESC key to cancel dialog
+    ''' </summary>
+    ''' <param name="keyData"></param>
+    ''' <returns></returns>
+    Protected Overrides Function ProcessDialogKey(keyData As Keys) As Boolean
+        If Form.ModifierKeys = Keys.None AndAlso keyData = Keys.Escape Then
+            Me.Close()
+            Return True
+        End If
+        Return MyBase.ProcessDialogKey(keyData)
+    End Function
+
 End Class

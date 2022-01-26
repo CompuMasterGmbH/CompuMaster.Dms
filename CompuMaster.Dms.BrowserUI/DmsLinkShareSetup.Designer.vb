@@ -80,9 +80,10 @@ Partial Class DmsLinkShareSetup
         'CheckBoxAllowView
         '
         Me.CheckBoxAllowView.AutoSize = True
-        Me.CheckBoxAllowView.Location = New System.Drawing.Point(6, 19)
+        Me.CheckBoxAllowView.Location = New System.Drawing.Point(7, 22)
+        Me.CheckBoxAllowView.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowView.Name = "CheckBoxAllowView"
-        Me.CheckBoxAllowView.Size = New System.Drawing.Size(70, 17)
+        Me.CheckBoxAllowView.Size = New System.Drawing.Size(75, 19)
         Me.CheckBoxAllowView.TabIndex = 11
         Me.CheckBoxAllowView.Text = "Anzeigen"
         Me.CheckBoxAllowView.UseVisualStyleBackColor = True
@@ -96,9 +97,11 @@ Partial Class DmsLinkShareSetup
         Me.GroupBoxAuthorizations.Controls.Add(Me.CheckBoxAllowDownload)
         Me.GroupBoxAuthorizations.Controls.Add(Me.CheckBoxAllowEdit)
         Me.GroupBoxAuthorizations.Controls.Add(Me.CheckBoxAllowView)
-        Me.GroupBoxAuthorizations.Location = New System.Drawing.Point(448, 12)
+        Me.GroupBoxAuthorizations.Location = New System.Drawing.Point(523, 14)
+        Me.GroupBoxAuthorizations.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxAuthorizations.Name = "GroupBoxAuthorizations"
-        Me.GroupBoxAuthorizations.Size = New System.Drawing.Size(108, 156)
+        Me.GroupBoxAuthorizations.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxAuthorizations.Size = New System.Drawing.Size(126, 180)
         Me.GroupBoxAuthorizations.TabIndex = 10
         Me.GroupBoxAuthorizations.TabStop = False
         Me.GroupBoxAuthorizations.Text = "Berechtigungen"
@@ -106,9 +109,10 @@ Partial Class DmsLinkShareSetup
         'CheckBoxAllowShare
         '
         Me.CheckBoxAllowShare.AutoSize = True
-        Me.CheckBoxAllowShare.Location = New System.Drawing.Point(6, 134)
+        Me.CheckBoxAllowShare.Location = New System.Drawing.Point(7, 155)
+        Me.CheckBoxAllowShare.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowShare.Name = "CheckBoxAllowShare"
-        Me.CheckBoxAllowShare.Size = New System.Drawing.Size(55, 17)
+        Me.CheckBoxAllowShare.Size = New System.Drawing.Size(56, 19)
         Me.CheckBoxAllowShare.TabIndex = 16
         Me.CheckBoxAllowShare.Text = "Teilen"
         Me.CheckBoxAllowShare.UseVisualStyleBackColor = True
@@ -116,9 +120,10 @@ Partial Class DmsLinkShareSetup
         'CheckBoxAllowDelete
         '
         Me.CheckBoxAllowDelete.AutoSize = True
-        Me.CheckBoxAllowDelete.Location = New System.Drawing.Point(6, 111)
+        Me.CheckBoxAllowDelete.Location = New System.Drawing.Point(7, 128)
+        Me.CheckBoxAllowDelete.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowDelete.Name = "CheckBoxAllowDelete"
-        Me.CheckBoxAllowDelete.Size = New System.Drawing.Size(67, 17)
+        Me.CheckBoxAllowDelete.Size = New System.Drawing.Size(70, 19)
         Me.CheckBoxAllowDelete.TabIndex = 15
         Me.CheckBoxAllowDelete.Text = "Löschen"
         Me.CheckBoxAllowDelete.UseVisualStyleBackColor = True
@@ -126,9 +131,10 @@ Partial Class DmsLinkShareSetup
         'CheckBoxAllowUpload
         '
         Me.CheckBoxAllowUpload.AutoSize = True
-        Me.CheckBoxAllowUpload.Location = New System.Drawing.Point(6, 88)
+        Me.CheckBoxAllowUpload.Location = New System.Drawing.Point(7, 102)
+        Me.CheckBoxAllowUpload.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowUpload.Name = "CheckBoxAllowUpload"
-        Me.CheckBoxAllowUpload.Size = New System.Drawing.Size(60, 17)
+        Me.CheckBoxAllowUpload.Size = New System.Drawing.Size(64, 19)
         Me.CheckBoxAllowUpload.TabIndex = 14
         Me.CheckBoxAllowUpload.Text = "Upload"
         Me.CheckBoxAllowUpload.UseVisualStyleBackColor = True
@@ -136,9 +142,10 @@ Partial Class DmsLinkShareSetup
         'CheckBoxAllowDownload
         '
         Me.CheckBoxAllowDownload.AutoSize = True
-        Me.CheckBoxAllowDownload.Location = New System.Drawing.Point(6, 65)
+        Me.CheckBoxAllowDownload.Location = New System.Drawing.Point(7, 75)
+        Me.CheckBoxAllowDownload.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowDownload.Name = "CheckBoxAllowDownload"
-        Me.CheckBoxAllowDownload.Size = New System.Drawing.Size(74, 17)
+        Me.CheckBoxAllowDownload.Size = New System.Drawing.Size(80, 19)
         Me.CheckBoxAllowDownload.TabIndex = 13
         Me.CheckBoxAllowDownload.Text = "Download"
         Me.CheckBoxAllowDownload.UseVisualStyleBackColor = True
@@ -146,9 +153,10 @@ Partial Class DmsLinkShareSetup
         'CheckBoxAllowEdit
         '
         Me.CheckBoxAllowEdit.AutoSize = True
-        Me.CheckBoxAllowEdit.Location = New System.Drawing.Point(6, 42)
+        Me.CheckBoxAllowEdit.Location = New System.Drawing.Point(7, 48)
+        Me.CheckBoxAllowEdit.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxAllowEdit.Name = "CheckBoxAllowEdit"
-        Me.CheckBoxAllowEdit.Size = New System.Drawing.Size(77, 17)
+        Me.CheckBoxAllowEdit.Size = New System.Drawing.Size(82, 19)
         Me.CheckBoxAllowEdit.TabIndex = 12
         Me.CheckBoxAllowEdit.Text = "Bearbeiten"
         Me.CheckBoxAllowEdit.UseVisualStyleBackColor = True
@@ -156,9 +164,10 @@ Partial Class DmsLinkShareSetup
         'ButtonCancel
         '
         Me.ButtonCancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.ButtonCancel.Location = New System.Drawing.Point(400, 328)
+        Me.ButtonCancel.Location = New System.Drawing.Point(467, 378)
+        Me.ButtonCancel.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCancel.Name = "ButtonCancel"
-        Me.ButtonCancel.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
         Me.ButtonCancel.TabIndex = 41
         Me.ButtonCancel.Text = "&Abbrechen"
         Me.ButtonCancel.UseVisualStyleBackColor = True
@@ -166,9 +175,10 @@ Partial Class DmsLinkShareSetup
         'ButtonSave
         '
         Me.ButtonSave.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.ButtonSave.Location = New System.Drawing.Point(481, 328)
+        Me.ButtonSave.Location = New System.Drawing.Point(561, 378)
+        Me.ButtonSave.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonSave.Name = "ButtonSave"
-        Me.ButtonSave.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonSave.Size = New System.Drawing.Size(88, 27)
         Me.ButtonSave.TabIndex = 40
         Me.ButtonSave.Text = "&Speichern"
         Me.ButtonSave.UseVisualStyleBackColor = True
@@ -176,9 +186,10 @@ Partial Class DmsLinkShareSetup
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(6, 22)
+        Me.Label1.Location = New System.Drawing.Point(7, 25)
+        Me.Label1.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(18, 13)
+        Me.Label1.Size = New System.Drawing.Size(18, 15)
         Me.Label1.TabIndex = 21
         Me.Label1.Text = "ID"
         '
@@ -186,10 +197,11 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxID.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxID.Location = New System.Drawing.Point(101, 19)
+        Me.TextBoxID.Location = New System.Drawing.Point(118, 22)
+        Me.TextBoxID.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxID.Name = "TextBoxID"
         Me.TextBoxID.ReadOnly = True
-        Me.TextBoxID.Size = New System.Drawing.Size(323, 20)
+        Me.TextBoxID.Size = New System.Drawing.Size(376, 23)
         Me.TextBoxID.TabIndex = 1
         '
         'GroupBoxGeneral
@@ -210,9 +222,11 @@ Partial Class DmsLinkShareSetup
         Me.GroupBoxGeneral.Controls.Add(Me.Label2)
         Me.GroupBoxGeneral.Controls.Add(Me.TextBoxID)
         Me.GroupBoxGeneral.Controls.Add(Me.Label1)
-        Me.GroupBoxGeneral.Location = New System.Drawing.Point(12, 12)
+        Me.GroupBoxGeneral.Location = New System.Drawing.Point(14, 14)
+        Me.GroupBoxGeneral.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxGeneral.Name = "GroupBoxGeneral"
-        Me.GroupBoxGeneral.Size = New System.Drawing.Size(430, 177)
+        Me.GroupBoxGeneral.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxGeneral.Size = New System.Drawing.Size(502, 204)
         Me.GroupBoxGeneral.TabIndex = 0
         Me.GroupBoxGeneral.TabStop = False
         Me.GroupBoxGeneral.Text = "Allgemeine Einstellungen"
@@ -221,24 +235,27 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxName.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxName.Location = New System.Drawing.Point(101, 45)
+        Me.TextBoxName.Location = New System.Drawing.Point(118, 52)
+        Me.TextBoxName.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxName.Name = "TextBoxName"
-        Me.TextBoxName.Size = New System.Drawing.Size(323, 20)
+        Me.TextBoxName.Size = New System.Drawing.Size(376, 23)
         Me.TextBoxName.TabIndex = 30
         '
         'Label12
         '
         Me.Label12.AutoSize = True
-        Me.Label12.Location = New System.Drawing.Point(6, 48)
+        Me.Label12.Location = New System.Drawing.Point(7, 55)
+        Me.Label12.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label12.Name = "Label12"
-        Me.Label12.Size = New System.Drawing.Size(35, 13)
+        Me.Label12.Size = New System.Drawing.Size(39, 15)
         Me.Label12.TabIndex = 31
         Me.Label12.Text = "Name"
         '
         'CheckBoxPassword
         '
         Me.CheckBoxPassword.AutoSize = True
-        Me.CheckBoxPassword.Location = New System.Drawing.Point(101, 152)
+        Me.CheckBoxPassword.Location = New System.Drawing.Point(118, 175)
+        Me.CheckBoxPassword.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxPassword.Name = "CheckBoxPassword"
         Me.CheckBoxPassword.Size = New System.Drawing.Size(15, 14)
         Me.CheckBoxPassword.TabIndex = 6
@@ -247,7 +264,8 @@ Partial Class DmsLinkShareSetup
         'CheckBoxExpiryDate
         '
         Me.CheckBoxExpiryDate.AutoSize = True
-        Me.CheckBoxExpiryDate.Location = New System.Drawing.Point(101, 126)
+        Me.CheckBoxExpiryDate.Location = New System.Drawing.Point(118, 145)
+        Me.CheckBoxExpiryDate.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxExpiryDate.Name = "CheckBoxExpiryDate"
         Me.CheckBoxExpiryDate.Size = New System.Drawing.Size(15, 14)
         Me.CheckBoxExpiryDate.TabIndex = 4
@@ -255,18 +273,20 @@ Partial Class DmsLinkShareSetup
         '
         'DateTimePickerExpiryDate
         '
-        Me.DateTimePickerExpiryDate.Location = New System.Drawing.Point(122, 123)
+        Me.DateTimePickerExpiryDate.Location = New System.Drawing.Point(142, 142)
+        Me.DateTimePickerExpiryDate.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.DateTimePickerExpiryDate.Name = "DateTimePickerExpiryDate"
-        Me.DateTimePickerExpiryDate.Size = New System.Drawing.Size(200, 20)
+        Me.DateTimePickerExpiryDate.Size = New System.Drawing.Size(233, 23)
         Me.DateTimePickerExpiryDate.TabIndex = 5
         '
         'TextBoxPassword
         '
         Me.TextBoxPassword.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxPassword.Location = New System.Drawing.Point(122, 149)
+        Me.TextBoxPassword.Location = New System.Drawing.Point(142, 172)
+        Me.TextBoxPassword.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxPassword.Name = "TextBoxPassword"
-        Me.TextBoxPassword.Size = New System.Drawing.Size(302, 20)
+        Me.TextBoxPassword.Size = New System.Drawing.Size(352, 23)
         Me.TextBoxPassword.TabIndex = 7
         '
         'Label8
@@ -274,9 +294,10 @@ Partial Class DmsLinkShareSetup
         Me.Label8.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label8.AutoSize = True
-        Me.Label8.Location = New System.Drawing.Point(6, 152)
+        Me.Label8.Location = New System.Drawing.Point(7, 175)
+        Me.Label8.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label8.Name = "Label8"
-        Me.Label8.Size = New System.Drawing.Size(50, 13)
+        Me.Label8.Size = New System.Drawing.Size(54, 15)
         Me.Label8.TabIndex = 29
         Me.Label8.Text = "Passwort"
         '
@@ -285,9 +306,10 @@ Partial Class DmsLinkShareSetup
         Me.Label7.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label7.AutoSize = True
-        Me.Label7.Location = New System.Drawing.Point(6, 126)
+        Me.Label7.Location = New System.Drawing.Point(7, 145)
+        Me.Label7.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(71, 13)
+        Me.Label7.Size = New System.Drawing.Size(83, 15)
         Me.Label7.TabIndex = 27
         Me.Label7.Text = "Ablauf-Datum"
         '
@@ -295,10 +317,11 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxDownloadUrl.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxDownloadUrl.Location = New System.Drawing.Point(101, 97)
+        Me.TextBoxDownloadUrl.Location = New System.Drawing.Point(118, 112)
+        Me.TextBoxDownloadUrl.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxDownloadUrl.Name = "TextBoxDownloadUrl"
         Me.TextBoxDownloadUrl.ReadOnly = True
-        Me.TextBoxDownloadUrl.Size = New System.Drawing.Size(323, 20)
+        Me.TextBoxDownloadUrl.Size = New System.Drawing.Size(376, 23)
         Me.TextBoxDownloadUrl.TabIndex = 3
         '
         'Label3
@@ -306,9 +329,10 @@ Partial Class DmsLinkShareSetup
         Me.Label3.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(6, 100)
+        Me.Label3.Location = New System.Drawing.Point(7, 115)
+        Me.Label3.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(78, 13)
+        Me.Label3.Size = New System.Drawing.Size(88, 15)
         Me.Label3.TabIndex = 25
         Me.Label3.Text = "Download-Link"
         '
@@ -316,18 +340,20 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxWebUrl.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxWebUrl.Location = New System.Drawing.Point(101, 71)
+        Me.TextBoxWebUrl.Location = New System.Drawing.Point(118, 82)
+        Me.TextBoxWebUrl.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxWebUrl.Name = "TextBoxWebUrl"
         Me.TextBoxWebUrl.ReadOnly = True
-        Me.TextBoxWebUrl.Size = New System.Drawing.Size(323, 20)
+        Me.TextBoxWebUrl.Size = New System.Drawing.Size(376, 23)
         Me.TextBoxWebUrl.TabIndex = 2
         '
         'Label2
         '
         Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(6, 74)
+        Me.Label2.Location = New System.Drawing.Point(7, 85)
+        Me.Label2.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(53, 13)
+        Me.Label2.Size = New System.Drawing.Size(58, 15)
         Me.Label2.TabIndex = 23
         Me.Label2.Text = "Web-Link"
         '
@@ -347,9 +373,11 @@ Partial Class DmsLinkShareSetup
         Me.GroupBoxExtended.Controls.Add(Me.Label5)
         Me.GroupBoxExtended.Controls.Add(Me.TextBoxMaxDownloads)
         Me.GroupBoxExtended.Controls.Add(Me.Label4)
-        Me.GroupBoxExtended.Location = New System.Drawing.Point(12, 195)
+        Me.GroupBoxExtended.Location = New System.Drawing.Point(14, 225)
+        Me.GroupBoxExtended.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBoxExtended.Name = "GroupBoxExtended"
-        Me.GroupBoxExtended.Size = New System.Drawing.Size(267, 127)
+        Me.GroupBoxExtended.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBoxExtended.Size = New System.Drawing.Size(312, 147)
         Me.GroupBoxExtended.TabIndex = 20
         Me.GroupBoxExtended.TabStop = False
         Me.GroupBoxExtended.Text = "Limits"
@@ -357,7 +385,8 @@ Partial Class DmsLinkShareSetup
         'CheckBoxMaxViews
         '
         Me.CheckBoxMaxViews.AutoSize = True
-        Me.CheckBoxMaxViews.Location = New System.Drawing.Point(101, 22)
+        Me.CheckBoxMaxViews.Location = New System.Drawing.Point(118, 25)
+        Me.CheckBoxMaxViews.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxMaxViews.Name = "CheckBoxMaxViews"
         Me.CheckBoxMaxViews.Size = New System.Drawing.Size(15, 14)
         Me.CheckBoxMaxViews.TabIndex = 21
@@ -367,9 +396,10 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxMaxViews.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxMaxViews.Location = New System.Drawing.Point(122, 19)
+        Me.TextBoxMaxViews.Location = New System.Drawing.Point(142, 22)
+        Me.TextBoxMaxViews.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxMaxViews.Name = "TextBoxMaxViews"
-        Me.TextBoxMaxViews.Size = New System.Drawing.Size(139, 20)
+        Me.TextBoxMaxViews.Size = New System.Drawing.Size(162, 23)
         Me.TextBoxMaxViews.TabIndex = 22
         '
         'Label14
@@ -377,16 +407,18 @@ Partial Class DmsLinkShareSetup
         Me.Label14.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label14.AutoSize = True
-        Me.Label14.Location = New System.Drawing.Point(6, 22)
+        Me.Label14.Location = New System.Drawing.Point(7, 25)
+        Me.Label14.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label14.Name = "Label14"
-        Me.Label14.Size = New System.Drawing.Size(61, 13)
+        Me.Label14.Size = New System.Drawing.Size(66, 15)
         Me.Label14.TabIndex = 32
         Me.Label14.Text = "Max. Views"
         '
         'CheckBoxMaxBytes
         '
         Me.CheckBoxMaxBytes.AutoSize = True
-        Me.CheckBoxMaxBytes.Location = New System.Drawing.Point(101, 100)
+        Me.CheckBoxMaxBytes.Location = New System.Drawing.Point(118, 115)
+        Me.CheckBoxMaxBytes.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxMaxBytes.Name = "CheckBoxMaxBytes"
         Me.CheckBoxMaxBytes.Size = New System.Drawing.Size(15, 14)
         Me.CheckBoxMaxBytes.TabIndex = 27
@@ -395,7 +427,8 @@ Partial Class DmsLinkShareSetup
         'CheckBoxMaxUploads
         '
         Me.CheckBoxMaxUploads.AutoSize = True
-        Me.CheckBoxMaxUploads.Location = New System.Drawing.Point(101, 73)
+        Me.CheckBoxMaxUploads.Location = New System.Drawing.Point(118, 84)
+        Me.CheckBoxMaxUploads.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxMaxUploads.Name = "CheckBoxMaxUploads"
         Me.CheckBoxMaxUploads.Size = New System.Drawing.Size(15, 14)
         Me.CheckBoxMaxUploads.TabIndex = 25
@@ -404,7 +437,8 @@ Partial Class DmsLinkShareSetup
         'CheckBoxMaxDownloads
         '
         Me.CheckBoxMaxDownloads.AutoSize = True
-        Me.CheckBoxMaxDownloads.Location = New System.Drawing.Point(101, 48)
+        Me.CheckBoxMaxDownloads.Location = New System.Drawing.Point(118, 55)
+        Me.CheckBoxMaxDownloads.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.CheckBoxMaxDownloads.Name = "CheckBoxMaxDownloads"
         Me.CheckBoxMaxDownloads.Size = New System.Drawing.Size(15, 14)
         Me.CheckBoxMaxDownloads.TabIndex = 23
@@ -414,9 +448,10 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxMaxBytes.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxMaxBytes.Location = New System.Drawing.Point(122, 97)
+        Me.TextBoxMaxBytes.Location = New System.Drawing.Point(142, 112)
+        Me.TextBoxMaxBytes.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxMaxBytes.Name = "TextBoxMaxBytes"
-        Me.TextBoxMaxBytes.Size = New System.Drawing.Size(139, 20)
+        Me.TextBoxMaxBytes.Size = New System.Drawing.Size(162, 23)
         Me.TextBoxMaxBytes.TabIndex = 28
         '
         'Label6
@@ -424,9 +459,10 @@ Partial Class DmsLinkShareSetup
         Me.Label6.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label6.AutoSize = True
-        Me.Label6.Location = New System.Drawing.Point(6, 100)
+        Me.Label6.Location = New System.Drawing.Point(7, 115)
+        Me.Label6.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(59, 13)
+        Me.Label6.Size = New System.Drawing.Size(64, 15)
         Me.Label6.TabIndex = 29
         Me.Label6.Text = "Max. Bytes"
         '
@@ -434,9 +470,10 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxMaxUploads.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxMaxUploads.Location = New System.Drawing.Point(122, 71)
+        Me.TextBoxMaxUploads.Location = New System.Drawing.Point(142, 82)
+        Me.TextBoxMaxUploads.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxMaxUploads.Name = "TextBoxMaxUploads"
-        Me.TextBoxMaxUploads.Size = New System.Drawing.Size(139, 20)
+        Me.TextBoxMaxUploads.Size = New System.Drawing.Size(162, 23)
         Me.TextBoxMaxUploads.TabIndex = 26
         '
         'Label5
@@ -444,9 +481,10 @@ Partial Class DmsLinkShareSetup
         Me.Label5.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(6, 74)
+        Me.Label5.Location = New System.Drawing.Point(7, 85)
+        Me.Label5.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(72, 13)
+        Me.Label5.Size = New System.Drawing.Size(79, 15)
         Me.Label5.TabIndex = 27
         Me.Label5.Text = "Max. Uploads"
         '
@@ -454,9 +492,10 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxMaxDownloads.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxMaxDownloads.Location = New System.Drawing.Point(122, 45)
+        Me.TextBoxMaxDownloads.Location = New System.Drawing.Point(142, 52)
+        Me.TextBoxMaxDownloads.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxMaxDownloads.Name = "TextBoxMaxDownloads"
-        Me.TextBoxMaxDownloads.Size = New System.Drawing.Size(139, 20)
+        Me.TextBoxMaxDownloads.Size = New System.Drawing.Size(162, 23)
         Me.TextBoxMaxDownloads.TabIndex = 24
         '
         'Label4
@@ -464,9 +503,10 @@ Partial Class DmsLinkShareSetup
         Me.Label4.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(6, 48)
+        Me.Label4.Location = New System.Drawing.Point(7, 55)
+        Me.Label4.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(86, 13)
+        Me.Label4.Size = New System.Drawing.Size(95, 15)
         Me.Label4.TabIndex = 25
         Me.Label4.Text = "Max. Downloads"
         '
@@ -482,9 +522,11 @@ Partial Class DmsLinkShareSetup
         Me.GroupBox1.Controls.Add(Me.Label10)
         Me.GroupBox1.Controls.Add(Me.TextBoxNumberOfDownloads)
         Me.GroupBox1.Controls.Add(Me.Label11)
-        Me.GroupBox1.Location = New System.Drawing.Point(289, 195)
+        Me.GroupBox1.Location = New System.Drawing.Point(337, 225)
+        Me.GroupBox1.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(267, 127)
+        Me.GroupBox1.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.GroupBox1.Size = New System.Drawing.Size(312, 147)
         Me.GroupBox1.TabIndex = 30
         Me.GroupBox1.TabStop = False
         Me.GroupBox1.Text = "Statistiken"
@@ -493,10 +535,11 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxNumberOfViews.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxNumberOfViews.Location = New System.Drawing.Point(101, 19)
+        Me.TextBoxNumberOfViews.Location = New System.Drawing.Point(118, 22)
+        Me.TextBoxNumberOfViews.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxNumberOfViews.Name = "TextBoxNumberOfViews"
         Me.TextBoxNumberOfViews.ReadOnly = True
-        Me.TextBoxNumberOfViews.Size = New System.Drawing.Size(160, 20)
+        Me.TextBoxNumberOfViews.Size = New System.Drawing.Size(186, 23)
         Me.TextBoxNumberOfViews.TabIndex = 31
         '
         'Label13
@@ -504,9 +547,10 @@ Partial Class DmsLinkShareSetup
         Me.Label13.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label13.AutoSize = True
-        Me.Label13.Location = New System.Drawing.Point(6, 22)
+        Me.Label13.Location = New System.Drawing.Point(7, 25)
+        Me.Label13.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label13.Name = "Label13"
-        Me.Label13.Size = New System.Drawing.Size(70, 13)
+        Me.Label13.Size = New System.Drawing.Size(76, 15)
         Me.Label13.TabIndex = 34
         Me.Label13.Text = "Anzahl Views"
         '
@@ -514,10 +558,11 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxNumberOfBytes.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxNumberOfBytes.Location = New System.Drawing.Point(101, 97)
+        Me.TextBoxNumberOfBytes.Location = New System.Drawing.Point(118, 112)
+        Me.TextBoxNumberOfBytes.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxNumberOfBytes.Name = "TextBoxNumberOfBytes"
         Me.TextBoxNumberOfBytes.ReadOnly = True
-        Me.TextBoxNumberOfBytes.Size = New System.Drawing.Size(160, 20)
+        Me.TextBoxNumberOfBytes.Size = New System.Drawing.Size(186, 23)
         Me.TextBoxNumberOfBytes.TabIndex = 34
         '
         'Label9
@@ -525,9 +570,10 @@ Partial Class DmsLinkShareSetup
         Me.Label9.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label9.AutoSize = True
-        Me.Label9.Location = New System.Drawing.Point(6, 100)
+        Me.Label9.Location = New System.Drawing.Point(7, 115)
+        Me.Label9.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label9.Name = "Label9"
-        Me.Label9.Size = New System.Drawing.Size(68, 13)
+        Me.Label9.Size = New System.Drawing.Size(74, 15)
         Me.Label9.TabIndex = 29
         Me.Label9.Text = "Anzahl Bytes"
         '
@@ -535,10 +581,11 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxNumberOfUploads.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxNumberOfUploads.Location = New System.Drawing.Point(101, 71)
+        Me.TextBoxNumberOfUploads.Location = New System.Drawing.Point(118, 82)
+        Me.TextBoxNumberOfUploads.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxNumberOfUploads.Name = "TextBoxNumberOfUploads"
         Me.TextBoxNumberOfUploads.ReadOnly = True
-        Me.TextBoxNumberOfUploads.Size = New System.Drawing.Size(160, 20)
+        Me.TextBoxNumberOfUploads.Size = New System.Drawing.Size(186, 23)
         Me.TextBoxNumberOfUploads.TabIndex = 33
         '
         'Label10
@@ -546,9 +593,10 @@ Partial Class DmsLinkShareSetup
         Me.Label10.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label10.AutoSize = True
-        Me.Label10.Location = New System.Drawing.Point(6, 74)
+        Me.Label10.Location = New System.Drawing.Point(7, 85)
+        Me.Label10.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label10.Name = "Label10"
-        Me.Label10.Size = New System.Drawing.Size(81, 13)
+        Me.Label10.Size = New System.Drawing.Size(89, 15)
         Me.Label10.TabIndex = 27
         Me.Label10.Text = "Anzahl Uploads"
         '
@@ -556,10 +604,11 @@ Partial Class DmsLinkShareSetup
         '
         Me.TextBoxNumberOfDownloads.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxNumberOfDownloads.Location = New System.Drawing.Point(101, 45)
+        Me.TextBoxNumberOfDownloads.Location = New System.Drawing.Point(118, 52)
+        Me.TextBoxNumberOfDownloads.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TextBoxNumberOfDownloads.Name = "TextBoxNumberOfDownloads"
         Me.TextBoxNumberOfDownloads.ReadOnly = True
-        Me.TextBoxNumberOfDownloads.Size = New System.Drawing.Size(160, 20)
+        Me.TextBoxNumberOfDownloads.Size = New System.Drawing.Size(186, 23)
         Me.TextBoxNumberOfDownloads.TabIndex = 32
         '
         'Label11
@@ -567,17 +616,19 @@ Partial Class DmsLinkShareSetup
         Me.Label11.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label11.AutoSize = True
-        Me.Label11.Location = New System.Drawing.Point(6, 48)
+        Me.Label11.Location = New System.Drawing.Point(7, 55)
+        Me.Label11.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.Label11.Name = "Label11"
-        Me.Label11.Size = New System.Drawing.Size(95, 13)
+        Me.Label11.Size = New System.Drawing.Size(105, 15)
         Me.Label11.TabIndex = 25
         Me.Label11.Text = "Anzahl Downloads"
         '
         'DmsLinkShareSetup
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(568, 363)
+        Me.CancelButton = Me.ButtonCancel
+        Me.ClientSize = New System.Drawing.Size(663, 419)
         Me.Controls.Add(Me.GroupBox1)
         Me.Controls.Add(Me.GroupBoxExtended)
         Me.Controls.Add(Me.GroupBoxGeneral)
@@ -585,6 +636,7 @@ Partial Class DmsLinkShareSetup
         Me.Controls.Add(Me.ButtonSave)
         Me.Controls.Add(Me.GroupBoxAuthorizations)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.Name = "DmsLinkShareSetup"
         Me.Text = "DMS Externe Links Einstellungen"
         Me.GroupBoxAuthorizations.ResumeLayout(False)
