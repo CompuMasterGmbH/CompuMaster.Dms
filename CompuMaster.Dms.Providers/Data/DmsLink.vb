@@ -11,9 +11,28 @@ Namespace Data
         Inherits DmsShareBase
         Implements ICloneable
 
-        Public Sub New(parentDmsResourceItem As DmsResourceItem, id As String, dmsProvider As BaseDmsProvider, fillLinkDetailsMethod As FillLinkDetailsFromId)
-            MyBase.New(parentDmsResourceItem, False, False, False, False, False, False)
-            Me.ID = id
+        ''' <summary>
+        ''' Create a new instance of DMS link settings for a new DMS link
+        ''' </summary>
+        ''' <param name="relatedDmsResourceItem"></param>
+        ''' <param name="dmsProvider"></param>
+        Public Sub New(relatedDmsResourceItem As DmsResourceItem, dmsProvider As BaseDmsProvider)
+            MyBase.New(relatedDmsResourceItem, False, False, False, False, False, False)
+            Me.ID = Nothing
+            Me.DmsProvider = dmsProvider
+            Me.FillLinkDetails = Nothing
+        End Sub
+
+        ''' <summary>
+        ''' Create a new instance of DMS link settings for an existing DMS link
+        ''' </summary>
+        ''' <param name="relatedDmsResourceItem"></param>
+        ''' <param name="linkID">Existing link ID</param>
+        ''' <param name="dmsProvider"></param>
+        ''' <param name="fillLinkDetailsMethod"></param>
+        Public Sub New(relatedDmsResourceItem As DmsResourceItem, linkID As String, dmsProvider As BaseDmsProvider, fillLinkDetailsMethod As FillLinkDetailsFromId)
+            MyBase.New(relatedDmsResourceItem, False, False, False, False, False, False)
+            Me.ID = linkID
             Me.DmsProvider = dmsProvider
             Me.FillLinkDetails = fillLinkDetailsMethod
         End Sub

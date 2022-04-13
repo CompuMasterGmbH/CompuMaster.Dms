@@ -204,7 +204,7 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
-            Dim NewChildDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteCollectionName)
+            Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteCollectionName)
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteCollectionName)
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             FoundDirItem.CreateDirectory(NewChildDirName)
@@ -592,6 +592,7 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
+            If shareInfo.ID = Nothing Then Throw New InvalidOperationException("Update of link requires an ID in DmsLink")
             If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
             If shareInfo.AllowDelete Then Throw New NotSupportedException("AllowDelete not supported by provider")
             If shareInfo.AllowShare Then Throw New NotSupportedException("AllowShare not supported by provider")
@@ -613,11 +614,11 @@ Namespace Providers
                 Else
                     'Update view/download link
                     Dim AccessControl As New LinkAccessControl With {
-                .ViewOnly = Not shareInfo.AllowDownload,
-                .Password = shareInfo.Password,
-                .ExpiryDate = DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
-                .MaxDownloads = ConvertNarrowingToNullableInt32(shareInfo.MaxDownloads)
-            }
+                        .ViewOnly = Not shareInfo.AllowDownload,
+                        .Password = shareInfo.Password,
+                        .ExpiryDate = DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
+                        .MaxDownloads = ConvertNarrowingToNullableInt32(shareInfo.MaxDownloads)
+                    }
                     Me.IOClient.ApiClient.Link.UpdateLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID, AccessControl)
                 End If
             Catch ex As ForbiddenException
