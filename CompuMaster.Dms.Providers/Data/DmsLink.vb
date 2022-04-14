@@ -69,7 +69,7 @@ Namespace Data
             Me.DownloadUrl = downloadUrl
             Me.RestUrl = restUrl
             Me.MaxUploads = maxUploads
-            Me.MaxBytes = MaxBytes
+            Me.MaxBytes = maxUploadBytes
             Me.MaxDownloads = maxDownloads
             Me.UploadedBytes = uploadedBytes
             Me.UploadsCount = uploadsCount
