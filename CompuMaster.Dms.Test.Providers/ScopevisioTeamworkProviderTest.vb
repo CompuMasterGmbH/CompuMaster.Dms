@@ -7,6 +7,7 @@ Public Class ScopevisioTeamworkProviderTest
     Inherits BaseDmsProviderTestBase
 
     Private Function CreateLoginProfile() As DmsLoginProfile
+        Dim Settings As New ScopevisioTeamworkSettings
         Dim username As String = Settings.InputLine("username")
         Dim customerno As String = Settings.InputLine("customer no.")
         Dim password As String = Settings.InputLine("password")

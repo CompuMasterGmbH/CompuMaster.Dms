@@ -1,17 +1,22 @@
 ﻿Imports System.Text
 Imports NUnit.Framework
 
-<TestFixture> Public NotInheritable Class Settings
+<TestFixture> Public MustInherit Class SettingsBase
 
-    Private Const AppTitle As String = "Scopevisio.Teamwork.Test"
+    Public MustOverride ReadOnly Property AppTitleInBufferFile As String
+    Public MustOverride ReadOnly Property AppTitleInEnvironmentVariable As String
+
+    Private Function EnvironmentVariable(key As String) As String
+        Return "TEST_" & AppTitleInEnvironmentVariable & "_" & key.ToUpperInvariant
+    End Function
 
     <Test, Explicit("Run only to persist login credentials on dev workstation")>
     Public Sub PersistInputValue()
-        Dim username As String = Settings.InputLine("username")
-        Dim customerno As String = Settings.InputLine("customer no.")
-        Dim password As String = Settings.InputLine("password")
+        Dim username As String = InputLine("username")
+        Dim customerno As String = InputLine("customer no.")
+        Dim password As String = InputLine("password")
 
-        System.Console.WriteLine("Environment TEST_USERNAME=" & System.Environment.GetEnvironmentVariable("TEST_USERNAME"))
+        System.Console.WriteLine("Environment " & EnvironmentVariable("USERNAME") & "=" & System.Environment.GetEnvironmentVariable(EnvironmentVariable("USERNAME")))
         System.Console.WriteLine("Environment written to disk for future use at local dev workstation:")
         System.Console.WriteLine("- ClientNumber=" & customerno)
         System.Console.WriteLine("- Username=" & username)
@@ -28,9 +33,9 @@ Imports NUnit.Framework
 
     End Sub
 
-    Public Shared Function InputLine(ByVal fieldName As String) As String
+    Public Function InputLine(ByVal fieldName As String) As String
         Dim BufferFile As String = BufferFilePath(fieldName)
-        Dim EnvVarName As String = "TEST_" & fieldName.Replace(" ", "").Replace(".", "").ToUpperInvariant()
+        Dim EnvVarName As String = EnvironmentVariable(fieldName.Replace(" ", "").Replace(".", "").ToUpperInvariant())
 
         If Not String.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable(EnvVarName)) Then
 
@@ -53,13 +58,13 @@ Imports NUnit.Framework
         Throw New InvalidOperationException("Missing persisted input for field """ & fieldName & """, use environment variable " & EnvVarName & " or write to disk by code with method PersistInputValue()" & vbCrLf &
                                             "Ex. run following customized batch to create local temp-files-cache for credentials (works on WKSxxxx workstations only):" & vbCrLf &
                                             "@echo off" & vbCrLf &
-                                            "SET TEST_USERNAME=xy@abc.login" & vbCrLf &
-                                            "SET TEST_CUSTOMERNO=1234567" & vbCrLf &
-                                            "SET TEST_PASSWORD=xxxxxxx(encode with leading ^-char )" & vbCrLf &
-                                            "dotnet test --filter ""FullyQualifiedName=" & GetType(Settings).FullName & "." & NameOf(PersistInputValue) & """ --framework net5.0")
+                                            "SET " & EnvironmentVariable("USERNAME") & "=xy@abc.login" & vbCrLf &
+                                            "SET " & EnvironmentVariable("CUSTOMERNO") & "=1234567" & vbCrLf &
+                                            "SET " & EnvironmentVariable("PASSWORD") & "=xxxxxxx(encode with leading ^-char )" & vbCrLf &
+                                            "dotnet test --filter ""FullyQualifiedName=" & GetType(ScopevisioTeamworkSettings).FullName & "." & NameOf(PersistInputValue) & """ --framework net5.0")
     End Function
 
-    Private Shared Function BufferFilePath(ByVal fieldName As String) As String
+    Private Function BufferFilePath(ByVal fieldName As String) As String
         Dim HashedFieldName As String
 
         Using md5 As System.Security.Cryptography.MD5 = System.Security.Cryptography.MD5.Create()
@@ -74,14 +79,14 @@ Imports NUnit.Framework
             HashedFieldName = sb.ToString()
         End Using
 
-        Return System.IO.Path.Combine(System.IO.Path.GetTempPath(), "~Buffer." & AppTitle & "." & HashedFieldName & ".tmp")
+        Return System.IO.Path.Combine(System.IO.Path.GetTempPath(), "~Buffer." & AppTitleInBufferFile & "." & HashedFieldName & ".tmp")
     End Function
 
-    Private Shared Sub PersistInputValue(ByVal fieldName As String, ByVal value As String)
+    Private Sub PersistInputValue(ByVal fieldName As String, ByVal value As String)
         System.IO.File.WriteAllText(BufferFilePath(fieldName), value)
     End Sub
 
-    Private Shared Function InputFromBufferFile(ByVal fieldName As String) As String
+    Private Function InputFromBufferFile(ByVal fieldName As String) As String
         Dim BufferFile As String = BufferFilePath(fieldName)
 
         If System.IO.File.Exists(BufferFile) Then
@@ -91,7 +96,7 @@ Imports NUnit.Framework
         End If
     End Function
 
-    Private Shared Sub InputToBufferFile(ByVal fieldName As String, ByVal value As String)
+    Private Sub InputToBufferFile(ByVal fieldName As String, ByVal value As String)
         System.IO.File.WriteAllText(BufferFilePath(fieldName), value)
     End Sub
 
