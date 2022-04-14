@@ -61,7 +61,11 @@ Namespace Providers
             End Try
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Nothing
             If FoundFileItem Is Nothing Then
-                FoundDirItem = Me.IOClient.RootDirectory.OpenDirectoryPath(remotePath)
+                Try
+                    FoundDirItem = Me.IOClient.RootDirectory.OpenDirectoryPath(remotePath)
+                Catch ex As System.IO.DirectoryNotFoundException
+                    FoundDirItem = Nothing
+                End Try
             End If
             If FoundDirItem IsNot Nothing Then
                 Return Me.CreateDmsResourceItem(FoundDirItem)
@@ -175,9 +179,16 @@ Namespace Providers
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
-            Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.GetFile(RemoteFileName)
-            If FoundFileItem IsNot Nothing Then
-                FoundFileItem.Delete()
+            If ParentRemoteDir.FileExists(RemoteFileName) Then
+                Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.GetFile(RemoteFileName)
+                If FoundFileItem IsNot Nothing Then
+                    FoundFileItem.Delete()
+                End If
+            Else
+                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = ParentRemoteDir.GetDirectory(RemoteFileName)
+                If FoundDirItem IsNot Nothing Then
+                    FoundDirItem.Delete()
+                End If
             End If
         End Sub
 
@@ -729,6 +740,12 @@ Namespace Providers
         Public Overrides ReadOnly Property SupportsRuntimeAccessToRemoteServer As RuntimeAccessTypes
             Get
                 Return RuntimeAccessTypes.ConfigurationAndRuntimeAccess
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
+            Get
+                Return False
             End Get
         End Property
 

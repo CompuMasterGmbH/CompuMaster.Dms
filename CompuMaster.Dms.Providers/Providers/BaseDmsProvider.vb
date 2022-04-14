@@ -18,7 +18,7 @@ Namespace Providers
             CenterDevice = 21
         End Enum
 
-        Public MustOverride ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
+        <Obsolete("Implementation in wrong solution")> Public MustOverride ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
 
         Public MustOverride ReadOnly Property DmsProviderID As DmsProviders
 
@@ -231,18 +231,50 @@ Namespace Providers
         ''' <summary>
         ''' The parent folder name for a path
         ''' </summary>
-        ''' <param name="path"></param>
+        ''' <param name="absolutePath"></param>
         ''' <returns></returns>
-        Public Overridable Function ParentDirectoryPath(path As String) As String
-            If path = Nothing OrElse path = Me.DirectorySeparator Then
+        Public Overridable Function ParentDirectoryPath(absolutePath As String) As String
+            If absolutePath = Nothing OrElse absolutePath = Me.DirectorySeparator Then
                 Return Nothing
-            ElseIf path.Contains(Me.DirectorySeparator) = False Then
+            ElseIf absolutePath.Contains(Me.DirectorySeparator) = False Then
                 Return ""
-            ElseIf path.EndsWith(Me.DirectorySeparator) Then
-                Return path.Substring(0, path.LastIndexOf(Me.DirectorySeparator, path.Length - 1))
+            ElseIf absolutePath.EndsWith(Me.DirectorySeparator) Then
+                Return absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator, absolutePath.Length - 1))
             Else
-                Return path.Substring(0, path.LastIndexOf(Me.DirectorySeparator))
+                Return absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator))
             End If
+        End Function
+
+        ''' <summary>
+        ''' The item name (directory name or file name) in an absolute path
+        ''' </summary>
+        ''' <param name="absolutePath"></param>
+        ''' <returns></returns>
+        Public Overridable Function ItemName(absolutePath As String) As String
+            If absolutePath = Nothing Then
+                Throw New ArgumentNullException(NameOf(absolutePath))
+            ElseIf absolutePath = Me.DirectorySeparator OrElse absolutePath.EndsWith(Me.DirectorySeparator) Then
+                Throw New ArgumentException("Must not end with a directory separator char", NameOf(absolutePath))
+            Else
+                Dim ParentPath As String = Me.ParentDirectoryPath(absolutePath)
+                Dim Result As String = absolutePath.Substring(ParentPath.Length)
+                If Result.StartsWith(Me.DirectorySeparator) Then Result = Result.Substring(1)
+                Return Result
+            End If
+        End Function
+
+        Public Function CollectionExists(remoteFolderPath As String) As Boolean
+            Dim ParentPath As String = Me.ParentDirectoryPath(remoteFolderPath)
+            Dim ItemName As String = Me.ItemName(remoteFolderPath)
+            Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllCollectionNames(ParentPath)
+            Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+        End Function
+
+        Public Function FolderExists(remoteFolderPath As String) As Boolean
+            Dim ParentPath As String = Me.ParentDirectoryPath(remoteFolderPath)
+            Dim ItemName As String = Me.ItemName(remoteFolderPath)
+            Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllFolderNames(ParentPath)
+            Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
         End Function
 
         ''' <summary>
@@ -262,6 +294,13 @@ Namespace Providers
         ''' </summary>
         ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsSubFolderConfiguration As Boolean
+
+        ''' <summary>
+        ''' DMS provider supports files in root folder (or only folders/collections)
+        ''' </summary>
+        ''' <returns></returns>
+        Public MustOverride ReadOnly Property SupportsFilesInRootFolder As Boolean
+
 
         Public Enum RuntimeAccessTypes As Byte
             ''' <summary>

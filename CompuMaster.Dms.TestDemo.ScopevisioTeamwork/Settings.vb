@@ -1,6 +1,6 @@
 ﻿Public NotInheritable Class Settings
 
-    Private Const AppTitle As String = "Sample"
+    Private Const AppTitle As String = "SampleScopevisioTeamwork"
 
     Private Shared Function BufferFilePath(ByVal fieldName As String) As String
         Dim HashedFieldName As String

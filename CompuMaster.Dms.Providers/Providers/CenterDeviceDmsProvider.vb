@@ -80,7 +80,7 @@ Namespace Providers
             Me.Authorize(Credentials)
         End Sub
 
-        Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
+        <Obsolete("Implementation in wrong solution")> Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
             Get
                 Return "FiBu-Upload-Guide-CenterDevice.pdf"
             End Get

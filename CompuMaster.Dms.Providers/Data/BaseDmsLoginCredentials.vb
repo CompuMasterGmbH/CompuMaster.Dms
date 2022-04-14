@@ -24,13 +24,13 @@ Namespace Data
 
         Public Property EncryptionProvider As Byte
 
-        Public Overridable ReadOnly Property IDmsLoginProfile_ProfileName As String Implements IDmsLoginProfile.ProfileName
+        Protected Overridable ReadOnly Property IDmsLoginProfile_ProfileName As String Implements IDmsLoginProfile.ProfileName
             Get
                 Return Me.DmsProvider.ToString
             End Get
         End Property
 
-        Public ReadOnly Property IDmsLoginProfile_ProviderID As BaseDmsProvider.DmsProviders Implements IDmsLoginProfile.ProviderID
+        Private ReadOnly Property IDmsLoginProfile_ProviderID As BaseDmsProvider.DmsProviders Implements IDmsLoginProfile.ProviderID
             Get
                 Return Me.DmsProvider
             End Get
@@ -48,13 +48,13 @@ Namespace Data
             End Get
         End Property
 
-        Public ReadOnly Property IDmsLoginProfile_CustomerInstance As String Implements IDmsLoginProfile.CustomerInstance
+        Private ReadOnly Property IDmsLoginProfile_CustomerInstance As String Implements IDmsLoginProfile.CustomerInstance
             Get
                 Return Me.CustomerInstance
             End Get
         End Property
 
-        Public ReadOnly Property IDmsLoginProfile_ServerAddress As String Implements IDmsLoginProfile.ServerAddress
+        Private ReadOnly Property IDmsLoginProfile_ServerAddress As String Implements IDmsLoginProfile.ServerAddress
             Get
                 Return Me.BaseUrl
             End Get

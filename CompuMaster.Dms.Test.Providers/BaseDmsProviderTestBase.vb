@@ -75,7 +75,11 @@ Public MustInherit Class BaseDmsProviderTestBase
         For Each MyItem As String In Items
             System.Console.WriteLine(MyItem)
         Next
-        Assert.NotZero(Items.Count)
+        If DmsProvider.SupportsFilesInRootFolder Then
+            Assert.NotZero(Items.Count)
+        Else
+            Assert.Zero(Items.Count)
+        End If
         System.Console.WriteLine("---")
 
         For Each RemoteFolder As String In Me.RemoteFoldersWithFiles
@@ -92,6 +96,18 @@ Public MustInherit Class BaseDmsProviderTestBase
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of DmsResourceItem)
 
+        If DmsProvider.SupportsCollections Then
+            Items = DmsProvider.ListAllCollectionItems(DmsProvider.BrowseInRootFolderName)
+            For Each MyItem As DmsResourceItem In Items
+                System.Console.WriteLine(MyItem)
+                Assert.AreEqual("/", MyItem.Collection)
+                Assert.AreEqual("", MyItem.Folder)
+                Assert.AreEqual(DmsResourceItem.ItemTypes.Collection, MyItem.ItemType)
+            Next
+            Assert.NotZero(Items.Count)
+            System.Console.WriteLine("---")
+        End If
+
         Items = DmsProvider.ListAllFolderItems(DmsProvider.BrowseInRootFolderName)
         For Each MyItem As DmsResourceItem In Items
             System.Console.WriteLine(MyItem)
@@ -99,8 +115,15 @@ Public MustInherit Class BaseDmsProviderTestBase
             Assert.AreEqual("", MyItem.Folder)
             Assert.AreEqual(DmsResourceItem.ItemTypes.Folder, MyItem.ItemType)
         Next
-        Assert.NotZero(Items.Count)
-        System.Console.WriteLine("---")
+        If DmsProvider.SupportsCollections Then
+            'expect no folders
+            Assert.Zero(Items.Count)
+            System.Console.WriteLine("---")
+        Else
+            'expect existing folders count > 1
+            Assert.NotZero(Items.Count)
+            System.Console.WriteLine("---")
+        End If
 
         For Each RemoteFolder As String In Me.RemoteFoldersWithSubFolders
             Items = DmsProvider.ListAllFolderItems(RemoteFolder)
@@ -112,6 +135,22 @@ Public MustInherit Class BaseDmsProviderTestBase
             Next
             Assert.NotZero(Items.Count)
             System.Console.WriteLine("---")
+        Next
+    End Sub
+
+    <Test> Public Sub RemoteItemExists()
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        For Each MustNotExistItem As String In Me.RemoteItemsMustNotExist
+            Assert.IsFalse(DmsProvider.RemoteItemExists(MustNotExistItem))
+        Next
+        For Each MustNotExistItem As String In Me.RemoteFilesMustExist
+            Assert.IsTrue(DmsProvider.RemoteItemExists(MustNotExistItem))
+        Next
+        For Each MustNotExistItem As String In Me.RemoteCollectionsMustExist
+            Assert.IsTrue(DmsProvider.RemoteItemExists(MustNotExistItem))
+        Next
+        For Each MustNotExistItem As String In Me.RemoteFoldersMustExist
+            Assert.IsTrue(DmsProvider.RemoteItemExists(MustNotExistItem))
         Next
     End Sub
 
@@ -139,7 +178,11 @@ Public MustInherit Class BaseDmsProviderTestBase
             Assert.AreEqual("", MyItem.Folder)
             Assert.AreEqual(DmsResourceItem.ItemTypes.File, MyItem.ItemType)
         Next
-        Assert.NotZero(Items.Count)
+        If DmsProvider.SupportsFilesInRootFolder Then
+            Assert.NotZero(Items.Count)
+        Else
+            Assert.Zero(Items.Count)
+        End If
         System.Console.WriteLine("---")
 
         For Each RemoteFolder As String In Me.RemoteFoldersWithFiles
@@ -218,8 +261,11 @@ Public MustInherit Class BaseDmsProviderTestBase
             System.Console.WriteLine("---")
         Next
 
+        Item = DmsProvider.ListRemoteItem("not-found")
+        System.Console.WriteLine(Item)
+        Assert.Null(Item)
         For Each RemoteItem As String In Me.RemoteItemsMustNotExist
-            Item = DmsProvider.ListRemoteItem("not-found")
+            Item = DmsProvider.ListRemoteItem(RemoteItem)
             System.Console.WriteLine(Item)
             Assert.Null(Item)
         Next
@@ -231,7 +277,7 @@ Public MustInherit Class BaseDmsProviderTestBase
     Public Overridable ReadOnly Property RemoteFilesMustExist As String() = New String() {}
     Public Overridable ReadOnly Property RemoteFoldersMustExist As String() = New String() {}
     Public Overridable ReadOnly Property RemoteCollectionsMustExist As String() = New String() {}
-    Public Overridable ReadOnly Property RemoteItemsMustNotExist As String() = New String() {}
+    Public Overridable ReadOnly Property RemoteItemsMustNotExist As String() = New String() {"/not-existing-test-item"}
     Public Overridable ReadOnly Property RemoteFoldersWithFiles As String() = New String() {}
     Public Overridable ReadOnly Property RemoteFoldersWithSubFolders As String() = New String() {}
     Public Overridable ReadOnly Property DownloadTestFilesText As KeyValuePair(Of String, String)() = New KeyValuePair(Of String, String)() {}
@@ -267,6 +313,31 @@ Public MustInherit Class BaseDmsProviderTestBase
         Assert.AreEqual("", DmsProvider.CombinePath("folder1/folder2", "/"))
         Assert.AreEqual("", DmsProvider.CombinePath("", "/"))
         Assert.AreEqual("", DmsProvider.CombinePath("", ""))
+    End Sub
+
+    <Test> Public Sub ParentDirectoryPath()
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
+        Assert.AreEqual("folder1/folder2/folder3/folder4", DmsProvider.ParentDirectoryPath("folder1/folder2/folder3/folder4/folder5"))
+        Assert.AreEqual("/folder1/folder2/folder3/folder4", DmsProvider.ParentDirectoryPath("/folder1/folder2/folder3/folder4/folder5"))
+        Assert.AreEqual("/folder1", DmsProvider.ParentDirectoryPath("/folder1/"))
+        Assert.AreEqual("", DmsProvider.ParentDirectoryPath("/file1"))
+        Assert.AreEqual("", DmsProvider.ParentDirectoryPath("file1"))
+        Assert.AreEqual(Nothing, DmsProvider.ParentDirectoryPath("/"))
+        Assert.AreEqual(Nothing, DmsProvider.ParentDirectoryPath(""))
+    End Sub
+
+    <Test> Public Sub ItemName()
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
+        Assert.AreEqual("folder4", DmsProvider.ItemName("folder1/folder2/folder3/folder4"))
+        Assert.AreEqual("folder4", DmsProvider.ItemName("/folder1/folder2/folder3/folder4"))
+        Assert.AreEqual("file1", DmsProvider.ItemName("/file1"))
+        Assert.AreEqual("file1", DmsProvider.ItemName("file1"))
+        Assert.Catch(Of ArgumentException)(Sub()
+                                               DmsProvider.ItemName("/")
+                                           End Sub)
+        Assert.Catch(Of ArgumentException)(Sub()
+                                               DmsProvider.ItemName("")
+                                           End Sub)
     End Sub
 
     Protected OriginalSslValidateCallback As System.Net.Security.RemoteCertificateValidationCallback = System.Net.ServicePointManager.ServerCertificateValidationCallback

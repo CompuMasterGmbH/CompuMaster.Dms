@@ -9,7 +9,7 @@ Namespace Providers
     Public Class NoDmsProvider
         Inherits BaseDmsProvider
 
-        Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
+        <Obsolete("Implementation in wrong solution")> Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
             Get
                 Return Nothing
             End Get
@@ -66,6 +66,12 @@ Namespace Providers
         Public Overrides ReadOnly Property SupportsSharingSetup As Boolean
             Get
                 Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
+            Get
+                Return True
             End Get
         End Property
 

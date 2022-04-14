@@ -408,7 +408,7 @@ Namespace Providers
             End Get
         End Property
 
-        Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
+        <Obsolete("Implementation in wrong solution")> Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
             Get
                 Return "FiBu-Upload-Guide-WebDav.pdf"
             End Get
@@ -423,6 +423,12 @@ Namespace Providers
         Public Overrides ReadOnly Property SupportsRuntimeAccessToRemoteServer As RuntimeAccessTypes
             Get
                 Return RuntimeAccessTypes.ConfigurationAndRuntimeAccess
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
+            Get
+                Return True
             End Get
         End Property
 

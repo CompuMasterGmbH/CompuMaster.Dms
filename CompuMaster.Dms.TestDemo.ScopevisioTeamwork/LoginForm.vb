@@ -20,13 +20,14 @@ Public Class LoginForm
             Me.UseWaitCursor = True
             Me.Cursor = Cursors.WaitCursor
             Me.Refresh()
-            Dim b As New CompuMaster.Dms.BrowserUI.DmsBrowser(
-                    New DmsLoginProfile() With {
+            Dim LoginProfile As New DmsLoginProfile() With {
                             .DmsProvider = Providers.BaseDmsProvider.DmsProviders.Scopevisio,
                             .CustomerInstance = Me.CustomerNoTextBox.Text,
                             .Username = Me.UsernameTextBox.Text,
                             .Password = Me.PasswordTextBox.Text
-                        },
+                        }
+            Dim Browser As New CompuMaster.Dms.BrowserUI.DmsBrowser(
+                        LoginProfile,
                         "DMS Browser DEMO for Scopevisio Teamwork", Me.Icon,
                         "", "",
                         BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
@@ -37,9 +38,12 @@ Public Class LoginForm
             Me.Cursor = Cursors.Default
             Me.UseWaitCursor = False
             Me.Refresh()
-            b.ShowDialog(Me)
+            Browser.ShowDialog(Me)
 #Disable Warning CA1031 ' Do not catch general exception types
         Catch ex As Exception
+            Me.Cursor = Cursors.Default
+            Me.UseWaitCursor = False
+            Me.Refresh()
             System.Windows.Forms.MessageBox.Show(Me, ex.ToString, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)
 #Enable Warning CA1031 ' Do not catch general exception types
         End Try
