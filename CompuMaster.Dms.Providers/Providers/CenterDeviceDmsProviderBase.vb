@@ -394,9 +394,9 @@ Namespace Providers
 
             'Require at least empty strings
             Result.Name = Tools.NotNullOrEmptyStringValue(Result.Name)
-            Result.Folder = Tools.NotNullOrEmptyStringValue(Result.Folder)
-            Result.Collection = Tools.NotNullOrEmptyStringValue(Result.Collection)
-            Result.FullName = Tools.NotNullOrEmptyStringValue(Result.FullName)
+            Result.Folder = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.Folder))
+            Result.Collection = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.Collection))
+            Result.FullName = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.FullName))
             Return Result
         End Function
 
@@ -483,10 +483,18 @@ Namespace Providers
 
             'Require at least empty strings
             Result.Name = Tools.NotNullOrEmptyStringValue(Result.Name)
-            Result.Folder = Tools.NotNullOrEmptyStringValue(Result.Folder)
-            Result.Collection = Tools.NotNullOrEmptyStringValue(Result.Collection)
-            Result.FullName = Tools.NotNullOrEmptyStringValue(Result.FullName)
+            Result.Folder = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.Folder))
+            Result.Collection = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.Collection))
+            Result.FullName = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.FullName))
             Return Result
+        End Function
+
+        Private Function PathWithoutLeadingDirectorySeparator(path As String) As String
+            If path <> Nothing AndAlso path.StartsWith(Me.DirectorySeparator) Then
+                Return path.Substring(1)
+            Else
+                Return path
+            End If
         End Function
 
         Public Shared Sub DelegatedFillLinkDetails(provider As Object, linkId As String, dmsLink As DmsLink)

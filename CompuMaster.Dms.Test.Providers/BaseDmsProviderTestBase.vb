@@ -60,6 +60,9 @@ Imports CompuMaster.Dms.Providers
         For Each MyItem As String In Items
             System.Console.WriteLine(MyItem)
         Next
+        If DmsProvider.SupportsCollections = False AndAlso Me.RemoteCollectionsMustExist.Length <> 0 Then
+            Throw New NotSupportedException("Provider doesn't support collections, but " & NameOf(RemoteCollectionsMustExist) & " contains elements")
+        End If
         If Me.RemoteCollectionsMustExist.Length = 0 Then
             Assert.Zero(Items.Count)
         Else
@@ -100,7 +103,7 @@ Imports CompuMaster.Dms.Providers
             Items = DmsProvider.ListAllCollectionItems(DmsProvider.BrowseInRootFolderName)
             For Each MyItem As DmsResourceItem In Items
                 System.Console.WriteLine(MyItem)
-                Assert.AreEqual("/", MyItem.Collection)
+                Assert.AreEqual("", MyItem.Collection)
                 Assert.AreEqual("", MyItem.Folder)
                 Assert.AreEqual(DmsResourceItem.ItemTypes.Collection, MyItem.ItemType)
             Next
@@ -160,6 +163,9 @@ Imports CompuMaster.Dms.Providers
         For Each MyItem As DmsResourceItem In Items
             System.Console.WriteLine(MyItem)
         Next
+        If DmsProvider.SupportsCollections = False AndAlso Me.RemoteCollectionsMustExist.Length <> 0 Then
+            Throw New NotSupportedException("Provider doesn't support collections, but " & NameOf(RemoteCollectionsMustExist) & " contains elements")
+        End If
         If Me.RemoteCollectionsMustExist.Length = 0 Then
             Assert.Zero(Items.Count)
         Else
@@ -222,10 +228,9 @@ Imports CompuMaster.Dms.Providers
             Items = DmsProvider.ListAllRemoteItems(RemoteFolder, BaseDmsProvider.SearchItemType.AllItems)
             For Each MyItem As DmsResourceItem In Items
                 System.Console.WriteLine(MyItem.ToString & " [ETag/ProvderSpecificHash: " & MyItem.ProviderSpecificHashOrETag & "] [Last Modification: " & MyItem.LastModificationOnLocalTime.GetValueOrDefault.ToString("yyyy-MM-dd HH:mm:ss") & "]")
-                Assert.AreEqual(Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFolder), MyItem.Folder)
+                Assert.AreEqual(Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFolder), IIf(MyItem.Folder <> Nothing, MyItem.Folder, MyItem.Collection))
                 Assert.IsNotEmpty(MyItem.Name)
             Next
-            Assert.NotZero(Items.Count, "RemoteFoldersMustExist for " & RemoteFolder & ": Items.Count must be not 0")
             System.Console.WriteLine("---")
         Next
     End Sub
@@ -246,7 +251,7 @@ Imports CompuMaster.Dms.Providers
             System.Console.WriteLine(Item)
             Assert.NotNull(Item)
             Assert.AreEqual(True, Item.ItemType = DmsResourceItem.ItemTypes.Folder OrElse Item.ItemType = DmsResourceItem.ItemTypes.Collection)
-            Assert.AreEqual(Me.RemoteTestItemFolderName(DmsProvider, Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFolder)), Item.Folder)
+            Assert.AreEqual(Me.RemoteTestItemFolderName(DmsProvider, Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFolder)), IIf(Item.Folder <> Nothing, Item.Folder, Item.Collection))
             Assert.AreEqual(Me.RemoteTestItemFileName(DmsProvider, Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFolder)), Item.Name)
             System.Console.WriteLine("---")
         Next
@@ -256,7 +261,7 @@ Imports CompuMaster.Dms.Providers
             System.Console.WriteLine(Item)
             Assert.NotNull(Item)
             Assert.AreEqual(DmsResourceItem.ItemTypes.File, Item.ItemType)
-            Assert.AreEqual(Me.RemoteTestItemFolderName(DmsProvider, Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFile)), Item.Folder)
+            Assert.AreEqual(Me.RemoteTestItemFolderName(DmsProvider, Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFile)), IIf(Item.Folder <> Nothing, Item.Folder, Item.Collection))
             Assert.AreEqual(Me.RemoteTestItemFileName(DmsProvider, Me.FolderNameWithoutTrailingDirectorySeparator(DmsProvider, RemoteFile)), Item.Name)
             System.Console.WriteLine("---")
         Next

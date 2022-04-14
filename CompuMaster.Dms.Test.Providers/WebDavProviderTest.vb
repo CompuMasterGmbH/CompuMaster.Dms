@@ -3,18 +3,18 @@ Option Strict On
 
 Imports NUnit.Framework
 
-Public Class ScopevisioTeamworkProviderTest
+Public Class WebDavProviderTest
     Inherits BaseDmsProviderTestBase
 
     Private Function CreateLoginProfile() As DmsLoginProfile
-        Dim Settings As New ScopevisioTeamworkSettings
+        Dim Settings As New WebDavSettings
         Dim username As String = Settings.InputLine("username")
-        Dim customerno As String = Settings.InputLine("customer no.")
+        Dim serverurl As String = Settings.InputLine("server url")
         Dim password As String = Settings.InputLine("password")
 
         Return New DmsLoginProfile() With {
-                            .DmsProvider = CompuMaster.Dms.Providers.BaseDmsProvider.DmsProviders.Scopevisio,
-                            .CustomerInstance = customerno,
+                            .DmsProvider = CompuMaster.Dms.Providers.BaseDmsProvider.DmsProviders.WebDAV,
+                            .BaseUrl = serverurl,
                             .Username = username,
                             .Password = password
                             }
@@ -48,8 +48,8 @@ Public Class ScopevisioTeamworkProviderTest
 
     <OneTimeSetUp> Public Sub CreateTestDir()
         Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
-        If Provider.CollectionExists(TestDirName) = False Then
-            Provider.CreateCollection(TestDirName)
+        If Provider.FolderExists(TestDirName) = False Then
+            Provider.CreateFolder(TestDirName)
         End If
         If Provider.FolderExists(TestDirNameSub1) = False Then
             Provider.CreateFolder(TestDirNameSub1)
@@ -61,17 +61,17 @@ Public Class ScopevisioTeamworkProviderTest
 
     <OneTimeTearDown> Public Sub CleanupTestDir()
         Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
-        If Provider.CollectionExists(TestDirName) Then
+        If Provider.FolderExists(TestDirName) Then
             Provider.DeleteRemoteItem(TestDirName)
         End If
     End Sub
 
     Public Overrides ReadOnly Property RemoteFilesMustExist As String() = New String() {}
-    Public Overrides ReadOnly Property RemoteFoldersMustExist As String() = New String() {TestDirNameSub1, TestDirNameSub2}
-    Public Overrides ReadOnly Property RemoteCollectionsMustExist As String() = New String() {TestDirName}
+    Public Overrides ReadOnly Property RemoteFoldersMustExist As String() = New String() {TestDirName, TestDirNameSub1, TestDirNameSub2}
+    Public Overrides ReadOnly Property RemoteCollectionsMustExist As String() = New String() {}
     Public Overrides ReadOnly Property RemoteItemsMustNotExist As String() = New String() {"/gibt's nicht"}
     Public Overrides ReadOnly Property RemoteFoldersWithFiles As String() = New String() {}
-    Public Overrides ReadOnly Property RemoteFoldersWithSubFolders As String() = New String() {TestDirNameSub1}
+    Public Overrides ReadOnly Property RemoteFoldersWithSubFolders As String() = New String() {TestDirName, TestDirNameSub1}
     Public Overrides ReadOnly Property DownloadTestFilesText As KeyValuePair(Of String, String)() = New KeyValuePair(Of String, String)() {}
     Public Overrides ReadOnly Property DownloadTestFilesBinary As KeyValuePair(Of String, Byte())() = New KeyValuePair(Of String, Byte())() {}
     Public Overrides ReadOnly Property UploadTestFilesAndCleanupAgainText As KeyValuePair(Of String, String)() = New KeyValuePair(Of String, String)() {}

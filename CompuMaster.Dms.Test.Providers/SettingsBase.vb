@@ -6,32 +6,11 @@ Imports NUnit.Framework
     Public MustOverride ReadOnly Property AppTitleInBufferFile As String
     Public MustOverride ReadOnly Property AppTitleInEnvironmentVariable As String
 
-    Private Function EnvironmentVariable(key As String) As String
+    Protected Function EnvironmentVariable(key As String) As String
         Return "TEST_" & AppTitleInEnvironmentVariable & "_" & key.ToUpperInvariant
     End Function
 
-    <Test, Explicit("Run only to persist login credentials on dev workstation")>
-    Public Sub PersistInputValue()
-        Dim username As String = InputLine("username")
-        Dim customerno As String = InputLine("customer no.")
-        Dim password As String = InputLine("password")
-
-        System.Console.WriteLine("Environment " & EnvironmentVariable("USERNAME") & "=" & System.Environment.GetEnvironmentVariable(EnvironmentVariable("USERNAME")))
-        System.Console.WriteLine("Environment written to disk for future use at local dev workstation:")
-        System.Console.WriteLine("- ClientNumber=" & customerno)
-        System.Console.WriteLine("- Username=" & username)
-
-        If password <> "" Then
-            System.Console.WriteLine("- Password=********************")
-        Else
-            System.Console.WriteLine("- Password=")
-        End If
-
-        Assert.NotNull(username, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
-        Assert.NotNull(customerno, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
-        Assert.NotNull(password, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
-
-    End Sub
+    Public MustOverride Sub PersistInputValue()
 
     Public Function InputLine(ByVal fieldName As String) As String
         Dim BufferFile As String = BufferFilePath(fieldName)
@@ -57,12 +36,10 @@ Imports NUnit.Framework
         If Not String.IsNullOrWhiteSpace(DefaultValue) Then Return DefaultValue
         Throw New InvalidOperationException("Missing persisted input for field """ & fieldName & """, use environment variable " & EnvVarName & " or write to disk by code with method PersistInputValue()" & vbCrLf &
                                             "Ex. run following customized batch to create local temp-files-cache for credentials (works on WKSxxxx workstations only):" & vbCrLf &
-                                            "@echo off" & vbCrLf &
-                                            "SET " & EnvironmentVariable("USERNAME") & "=xy@abc.login" & vbCrLf &
-                                            "SET " & EnvironmentVariable("CUSTOMERNO") & "=1234567" & vbCrLf &
-                                            "SET " & EnvironmentVariable("PASSWORD") & "=xxxxxxx(encode with leading ^-char )" & vbCrLf &
-                                            "dotnet test --filter ""FullyQualifiedName=" & GetType(ScopevisioTeamworkSettings).FullName & "." & NameOf(PersistInputValue) & """ --framework net5.0")
+                                            PersitingScriptForRequiredEnvironmentVariables())
     End Function
+
+    Public MustOverride Function PersitingScriptForRequiredEnvironmentVariables() As String
 
     Private Function BufferFilePath(ByVal fieldName As String) As String
         Dim HashedFieldName As String
