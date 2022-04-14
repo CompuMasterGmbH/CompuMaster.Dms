@@ -156,6 +156,7 @@ Namespace Providers
                 'Upload new file
                 ParentRemoteDir.UploadAndCreateNewFile(localFilePath, RemoteFileName)
             End If
+            ParentRemoteDir.ResetFilesCache()
         End Sub
 
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
@@ -169,10 +170,12 @@ Namespace Providers
 
         Public Overrides Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, recursive As Boolean, overwrite As Boolean)
             Throw New NotImplementedException()
+            'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
         Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
             Throw New NotImplementedException()
+            'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
@@ -184,11 +187,13 @@ Namespace Providers
                 If FoundFileItem IsNot Nothing Then
                     FoundFileItem.Delete()
                 End If
+                ParentRemoteDir.ResetFilesCache()
             Else
                 Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = ParentRemoteDir.GetDirectory(RemoteFileName)
                 If FoundDirItem IsNot Nothing Then
                     FoundDirItem.Delete()
                 End If
+                ParentRemoteDir.ResetDirectoriesCache()
             End If
         End Sub
 
@@ -205,6 +210,32 @@ Namespace Providers
                 Case Else
                     Throw New NotImplementedException(remoteItem.ItemType.ToString)
             End Select
+            Me.ResetParentDirectoryCache(remoteItem)
+        End Sub
+
+        ''' <summary>
+        ''' Reset cache of parent directory
+        ''' </summary>
+        ''' <param name="remoteItem"></param>
+        Protected Sub ResetParentDirectoryCache(remoteItem As DmsResourceItem)
+            Dim IsFileItem As Boolean
+            Select Case remoteItem.ItemType
+                Case DmsResourceItem.ItemTypes.Root
+                    Throw New DmsUserErrorMessageException("Root folder can't be deleted")
+                Case DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder
+                Case DmsResourceItem.ItemTypes.File
+                    IsFileItem = True
+                Case Else
+                    Throw New NotImplementedException(remoteItem.ItemType.ToString)
+            End Select
+
+            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteItem.FullName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            If IsFileItem Then
+                ParentRemoteDir.ResetFilesCache()
+            Else
+                ParentRemoteDir.ResetDirectoriesCache()
+            End If
         End Sub
 
         Public Overrides Sub CreateFolder(remoteFilePath As String)
@@ -212,6 +243,7 @@ Namespace Providers
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             FoundDirItem.CreateDirectory(NewChildDirName)
+            FoundDirItem.ResetDirectoriesCache()
         End Sub
 
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
@@ -219,6 +251,7 @@ Namespace Providers
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteCollectionName)
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             FoundDirItem.CreateDirectory(NewChildDirName)
+            FoundDirItem.ResetDirectoriesCache()
         End Sub
 
         Public Overrides ReadOnly Property DirectorySeparator As Char
@@ -263,6 +296,11 @@ Namespace Providers
             End If
         End Function
 
+        ''' <summary>
+        ''' Fill DmsResourceItem from CenterDevice.IO.DirectoryInfo
+        ''' </summary>
+        ''' <param name="res"></param>
+        ''' <returns></returns>
         Private Function CreateDmsResourceItem(res As CenterDevice.IO.DirectoryInfo) As DmsResourceItem
             Dim Result As New DmsResourceItem() With {
                         .Name = res.Name,
@@ -362,6 +400,11 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <summary>
+        ''' Fill DmsResourceItem from CenterDevice.IO.FileInfo
+        ''' </summary>
+        ''' <param name="res"></param>
+        ''' <returns></returns>
         Private Function CreateDmsResourceItem(res As CenterDevice.IO.FileInfo) As DmsResourceItem
             Dim Result As New DmsResourceItem() With {
                             .Name = res.FileName,
