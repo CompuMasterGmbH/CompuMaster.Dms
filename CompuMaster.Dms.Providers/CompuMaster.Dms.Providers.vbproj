@@ -55,9 +55,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CompuMaster.CenterDevice.Rest" Version="2022.4.13.100" />
+    <PackageReference Include="CompuMaster.CenterDevice.Rest" Version="2022.4.13.101" />
     <PackageReference Include="CompuMaster.Scopevisio.OpenApi" Version="2022.4.1.100" />
-    <PackageReference Include="CompuMaster.Scopevisio.Teamwork" Version="2021.7.20.100" />
+    <PackageReference Include="CompuMaster.Scopevisio.Teamwork" Version="2022.4.14.100" />
     <PackageReference Include="RestSharp" Version="107.3.0" />
     <PackageReference Include="WebDav.Client" Version="2.8.0" />
   </ItemGroup>
