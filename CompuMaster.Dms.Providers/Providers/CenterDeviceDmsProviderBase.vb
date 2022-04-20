@@ -595,11 +595,11 @@ Namespace Providers
                 Else
                     'Create view/download link
                     Dim AccessControl As New LinkAccessControl With {
-                .ViewOnly = Not shareInfo.AllowDownload,
-                .Password = shareInfo.Password,
-                .ExpiryDate = DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
-                .MaxDownloads = ConvertNarrowingToNullableInt32(shareInfo.MaxDownloads)
-            }
+                        .ViewOnly = Not shareInfo.AllowDownload,
+                        .Password = shareInfo.Password,
+                        .ExpiryDate = DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
+                        .MaxDownloads = ConvertNarrowingToNullableInt32(shareInfo.MaxDownloads)
+                    }
                     Dim CreatedLink As LinkCreationResponse
                     Select Case dmsResource.ItemType
                         Case DmsResourceItem.ItemTypes.Collection
@@ -618,7 +618,7 @@ Namespace Providers
                     Return Result
                 End If
             Catch ex As ForbiddenException
-                Throw New Data.DmsUserErrorMessageException(ex.ErrorResponse.Message)
+                Throw New Data.DmsUserErrorMessageException("Forbidden: " & ex.ErrorResponse.Message)
             Catch ex As BadRequestException
                 If ex.ErrorResponse.Data.ContainsKey("explanation") Then
                     Throw New Data.DmsUserErrorMessageException(CType(ex.ErrorResponse.Data("explanation"), String))
