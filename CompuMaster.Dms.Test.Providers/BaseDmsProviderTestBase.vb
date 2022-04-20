@@ -469,5 +469,143 @@ Imports CompuMaster.Dms.Providers
         Return LocalFilePath
     End Function
 
-End Class
+    Protected Enum DirectoryTypes As Byte
+        Folder = 0
+        Collection = 1
+    End Enum
 
+    Protected Sub CreateRemoteTestFolderIfNotExisting(remotePath As String, directoryType As DirectoryTypes)
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim RemoteItem As Dms.Data.DmsResourceItem
+
+        'Lookup status (and fill caches) + create directory
+        RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+        Select Case directoryType
+            Case DirectoryTypes.Collection
+                If DmsProvider.CollectionExists(remotePath) = False Then
+                    'Create the collection
+                    DmsProvider.CreateCollection(remotePath)
+                End If
+            Case DirectoryTypes.Folder
+                If DmsProvider.FolderExists(remotePath) = False Then
+                    'Create the folder
+                    DmsProvider.CreateFolder(remotePath)
+                End If
+            Case Else
+                Throw New NotImplementedException
+        End Select
+
+
+        'Lookup status again and check that old caches don't exist
+        Select Case directoryType
+            Case DirectoryTypes.Collection
+                Assert.IsTrue(DmsProvider.CollectionExists(remotePath))
+                RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+                Assert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, RemoteItem.ItemType)
+            Case DirectoryTypes.Folder
+                Assert.IsTrue(DmsProvider.FolderExists(remotePath))
+                RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+                Assert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Folder, RemoteItem.ItemType)
+            Case Else
+                Throw New NotImplementedException
+        End Select
+    End Sub
+
+    Protected Sub RemoveRemoteTestFolder(remotePath As String, directoryType As DirectoryTypes)
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim RemoteItem As Dms.Data.DmsResourceItem
+
+        'Lookup status (and fill caches)
+        Select Case directoryType
+            Case DirectoryTypes.Collection
+                Assert.IsTrue(DmsProvider.CollectionExists(remotePath))
+                RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+                Assert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, RemoteItem.ItemType)
+            Case DirectoryTypes.Folder
+                Assert.IsTrue(DmsProvider.FolderExists(remotePath))
+                RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+                Assert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Folder, RemoteItem.ItemType)
+            Case Else
+                Throw New NotImplementedException
+        End Select
+
+        'Lookup status (and fill caches)
+        Select Case directoryType
+            Case DirectoryTypes.Collection
+                If DmsProvider.CollectionExists(remotePath) Then
+                    'Delete the collection
+                    DmsProvider.DeleteRemoteItem(remotePath)
+                End If
+            Case DirectoryTypes.Folder
+                If DmsProvider.FolderExists(remotePath) Then
+                    'Delete the folder
+                    DmsProvider.DeleteRemoteItem(remotePath)
+                End If
+            Case Else
+                Throw New NotImplementedException
+        End Select
+
+        'Lookup status again and check that old caches don't exist
+        Select Case directoryType
+            Case DirectoryTypes.Collection
+                Assert.IsFalse(DmsProvider.CollectionExists(remotePath))
+                RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+                Assert.IsNull(RemoteItem)
+            Case DirectoryTypes.Folder
+                Assert.IsFalse(DmsProvider.FolderExists(remotePath))
+                RemoteItem = DmsProvider.ListRemoteItem(remotePath)
+                Assert.IsNull(RemoteItem)
+            Case Else
+                Throw New NotImplementedException
+        End Select
+
+    End Sub
+
+    ''' <summary>
+    ''' Test for whole procedure of creating directory + creating link share + update link share + remove share and directory
+    ''' </summary>
+    <Test> Public Sub CreateUploadLinkForCollectionAndCleanup()
+        Const RemoteTestFolderName As String = "ZZZ_UnitTest_CM.Dms.CenterDevice_TempUploadLinkDir"
+
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        If DmsProvider.SupportsSharingSetup = False Then Assert.Ignore("Sharing setup not supported by provider")
+
+        Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+
+        Me.CreateRemoteTestFolderIfNotExisting(RemoteTestFolderName, DirectoryTypes.Collection)
+        Dim RemoteDirItem As CompuMaster.Dms.Data.DmsResourceItem = DmsProvider.ListRemoteItem(RemoteTestFolderName)
+        Assert.NotNull(RemoteDirItem.FullName)
+        Assert.IsNotEmpty(RemoteDirItem.FullName)
+        Assert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, RemoteDirItem.ItemType)
+        Assert.AreEqual(RemoteTestFolderName, RemoteDirItem.FullName)
+
+        Dim ShareLink As New Data.DmsLink(RemoteDirItem, DmsProvider) With
+            {
+            .AllowUpload = True,
+            .MaxUploads = 4000,
+            .MaxBytes = Integer.MaxValue,
+            .Password = Guid.NewGuid.ToString("n"),
+            .Name = "UnitTest_UploadLinkShare_" & RemoteTestFolderName
+            }
+
+        ShareLink = CenterDeviceProvider.CreateLink(RemoteDirItem, ShareLink)
+
+        Assert.NotNull(ShareLink.ID)
+        Assert.IsNotEmpty(ShareLink.ID)
+        Assert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID).Id)
+
+        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryTypes.Collection)
+
+        Assert.Catch(Of CenterDevice.Rest.Exceptions.NotFoundException)(Sub()
+                                                                            CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID)
+                                                                        End Sub)
+
+        Dim AllUploadLinks = CenterDeviceProvider.IOClient.ApiClient.UploadLinks.GetAllUploadLinks(CenterDeviceProvider.IOClient.CurrentAuthenticationContextUserID)
+        Dim FoundUploadLink As CenterDevice.Rest.Clients.Link.UploadLink = AllUploadLinks.UploadLinksList.Find(Function(item As CenterDevice.Rest.Clients.Link.UploadLink) As Boolean
+                                                                                                                   Return item.Id = ShareLink.ID
+                                                                                                               End Function)
+        Assert.IsNull(FoundUploadLink)
+
+    End Sub
+
+End Class

@@ -190,6 +190,13 @@ Namespace Providers
                 ParentRemoteDir.ResetFilesCache()
             Else
                 Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = ParentRemoteDir.GetDirectory(RemoteFileName)
+                If FoundDirItem.Type = CenterDevice.IO.DirectoryInfo.DirectoryType.Collection Then
+                    Dim RelatedUploadLink As CenterDevice.Rest.Clients.Link.UploadLink = FindUploadLinkForCollection(FoundDirItem.CollectionID)
+                    If RelatedUploadLink IsNot Nothing Then
+                        Me.IOClient.ApiClient.UploadLink.DeleteLink(Me.IOClient.CurrentAuthenticationContextUserID, RelatedUploadLink.Id)
+                    End If
+                    _AllUploadLinks = Nothing 'Reset cache
+                End If
                 If FoundDirItem IsNot Nothing Then
                     FoundDirItem.Delete()
                 End If
@@ -197,11 +204,27 @@ Namespace Providers
             End If
         End Sub
 
+        Private Function FindUploadLinkForCollection(collectionID As String) As CenterDevice.Rest.Clients.Link.UploadLink
+            If collectionID <> Nothing AndAlso AllUploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(collectionID) Then
+                Return AllUploadLinks.UploadLinksList.Find(Function(item) item.Collection = collectionID)
+            Else
+                Return Nothing
+            End If
+        End Function
+
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Select Case remoteItem.ItemType
                 Case DmsResourceItem.ItemTypes.Root
                     Throw New DmsUserErrorMessageException("Root folder can't be deleted")
                 Case DmsResourceItem.ItemTypes.Collection
+                    If remoteItem.ExtendedInfosHasLinks Then
+                        For Each link As DmsLink In remoteItem.ExtendedInfosLinks
+                            If link.AllowUpload Then
+                                Me.IOClient.ApiClient.UploadLink.DeleteLink(Me.IOClient.CurrentAuthenticationContextUserID, link.ID)
+                                _AllUploadLinks = Nothing 'Reset cache
+                            End If
+                        Next
+                    End If
                     Me.IOClient.ApiClient.Collection.DeleteCollection(Me.IOClient.CurrentAuthenticationContextUserID, remoteItem.ExtendedInfosCollectionID)
                 Case DmsResourceItem.ItemTypes.Folder
                     Me.IOClient.ApiClient.Folder.DeleteFolder(Me.IOClient.CurrentAuthenticationContextUserID, remoteItem.ExtendedInfosFolderID)
@@ -272,12 +295,12 @@ Namespace Providers
             End Get
         End Property
 
+        Private _AllUploadLinks As CenterDevice.Rest.Clients.Link.UploadLinks
         Private Function AllUploadLinks() As CenterDevice.Rest.Clients.Link.UploadLinks
-            Static Result As CenterDevice.Rest.Clients.Link.UploadLinks
-            If Result Is Nothing Then
-                Result = Me.IOClient.ApiClient.UploadLinks.GetAllUploadLinks(Me.IOClient.CurrentAuthenticationContextUserID)
+            If _AllUploadLinks Is Nothing Then
+                _AllUploadLinks = Me.IOClient.ApiClient.UploadLinks.GetAllUploadLinks(Me.IOClient.CurrentAuthenticationContextUserID)
             End If
-            Return Result
+            Return _AllUploadLinks
         End Function
 
         Private Shared Function DateTimeUtcToLocalTime(value As Date?) As Date?
@@ -565,6 +588,7 @@ Namespace Providers
                                                                    Tools.NotNullOrEmptyStringValue(shareInfo.Password),
                                                                    Nothing
                                                                    )
+                    _AllUploadLinks = Nothing 'Reset cache
                     Dim Result As DmsLink
                     Result = New DmsLink(dmsResource, CreatedUploadLink.Id, Me, AddressOf DelegatedFillUploadLinkDetails)
                     Return Result
@@ -673,6 +697,7 @@ Namespace Providers
                                                         Tools.NotNullOrEmptyStringValue(shareInfo.Password),
                                                         Nothing
                                                         )
+                    _AllUploadLinks = Nothing 'Reset cache
                 Else
                     'Update view/download link
                     Dim AccessControl As New LinkAccessControl With {
@@ -706,6 +731,7 @@ Namespace Providers
             If shareInfo.AllowUpload Then
                 'Delete upload link
                 Me.IOClient.ApiClient.UploadLink.DeleteLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID)
+                _AllUploadLinks = Nothing 'Reset cache
             Else
                 'Delete view/download link            
                 Me.IOClient.ApiClient.Link.DeleteLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID)
