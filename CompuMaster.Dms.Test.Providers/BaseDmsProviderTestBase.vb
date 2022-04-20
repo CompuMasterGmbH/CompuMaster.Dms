@@ -402,19 +402,35 @@ Imports CompuMaster.Dms.Providers
 
         'Test RemoteTestFolderName as is
         Assert.IsFalse(Me.RemoteTestFolderName.StartsWith(DmsProvider.DirectorySeparator)) 'ensure RemoteTestFolderName is without leading "/"
-        System.Console.WriteLine("Remote test collection name: " & Me.RemoteTestFolderName)
-        Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
-        Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
-        Me.RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
-        Assert.IsFalse(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+        If DmsProvider.SupportsCollections Then
+            System.Console.WriteLine("Remote test collection name: " & Me.RemoteTestFolderName)
+            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+            Me.RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            Assert.IsFalse(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+        Else
+            System.Console.WriteLine("Remote test folder name: " & Me.RemoteTestFolderName)
+            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+            Me.RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            Assert.IsFalse(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+        End If
 
         'Test RemoteTestFolderName with leading "/"
         Dim RemoteTestFolderNameWithLeadingDirectorySeparator As String = DmsProvider.CombinePath(DmsProvider.DirectorySeparator, Me.RemoteTestFolderName)
-        System.Console.WriteLine("Remote test collection name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
-        Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
-        Assert.IsTrue(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
-        Me.RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
-        Assert.IsFalse(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
+        If DmsProvider.SupportsCollections Then
+            System.Console.WriteLine("Remote test collection name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
+            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            Assert.IsTrue(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
+            Me.RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            Assert.IsFalse(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
+        Else
+            System.Console.WriteLine("Remote test folder name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
+            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            Assert.IsTrue(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
+            Me.RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            Assert.IsFalse(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
+        End If
     End Sub
 
     <Test> Public Sub UploadFilesAndCleanup()
