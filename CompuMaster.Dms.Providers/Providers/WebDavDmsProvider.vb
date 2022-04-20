@@ -120,7 +120,7 @@ Namespace Providers
             Throw New NotImplementedException
         End Function
 
-        Public Overrides Function FindDocumentById(id As String) As DmsResourceItem
+        Public Overrides Function FindFileById(id As String) As DmsResourceItem
             Throw New NotImplementedException
         End Function
 

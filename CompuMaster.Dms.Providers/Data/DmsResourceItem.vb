@@ -3,38 +3,142 @@ Option Strict On
 
 Namespace Data
 
+    ''' <summary>
+    ''' Meta data for a remote item
+    ''' </summary>
     Public Class DmsResourceItem
 
         Public Sub New()
         End Sub
 
+        ''' <summary>
+        ''' Types of remote items
+        ''' </summary>
         Public Enum ItemTypes As Byte
+            ''' <summary>
+            ''' A file
+            ''' </summary>
             File = 1
+            ''' <summary>
+            ''' A regular directory
+            ''' </summary>
             Folder = 2
+            ''' <summary>
+            ''' A collection directory, usually implementing additional special features on remote DMS
+            ''' </summary>
             Collection = 3
+            ''' <summary>
+            ''' The root directory of the remote DMS
+            ''' </summary>
             Root = 4
         End Enum
 
+        ''' <summary>
+        ''' Item name
+        ''' </summary>
+        ''' <returns></returns>
         Public Property Name As String
+        ''' <summary>
+        ''' Full path of parent folder
+        ''' </summary>
+        ''' <returns></returns>
         Public Property Folder As String
+        ''' <summary>
+        ''' Full path of parent collection
+        ''' </summary>
+        ''' <returns></returns>
         Public Property Collection As String
+        ''' <summary>
+        ''' Full path of remote item
+        ''' </summary>
+        ''' <returns></returns>
         Public Property FullName As String
+        ''' <summary>
+        ''' The remote item's last modification date/time
+        ''' </summary>
+        ''' <returns></returns>
         Public Property LastModificationOnLocalTime As DateTime?
+        ''' <summary>
+        ''' The remote item creation date/time
+        ''' </summary>
+        ''' <returns></returns>
         Public Property CreatedOnLocalTime As DateTime?
+        ''' <summary>
+        ''' The item is attributed as hidden
+        ''' </summary>
+        ''' <returns></returns>
         Public Property IsHidden As Boolean
+        ''' <summary>
+        ''' The length of the file
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ContentLength As Long
+        ''' <summary>
+        ''' This item represents a folder item
+        ''' </summary>
+        ''' <returns></returns>
         Private Property IsFolder As Boolean
+        ''' <summary>
+        ''' This item represents a collection item
+        ''' </summary>
+        ''' <returns></returns>
+        ''' <remarks>Collections behave similar to folders, but they usually implement additional special features on remote DMS systems</remarks>
         Private Property IsCollection As Boolean
+        ''' <summary>
+        ''' This item represents the root directory item
+        ''' </summary>
+        ''' <returns></returns>
         Private Property IsRoot As Boolean
+        ''' <summary>
+        ''' A hash or similar check value of the remote file (item) data
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ProviderSpecificHashOrETag As String
+        ''' <summary>
+        ''' The remote DMS contains 2 or more items with the very same item name
+        ''' </summary>
+        ''' <returns></returns>
+        ''' <remarks>
+        ''' <para>Attention is requested if 2 or more items could be the operation target of an action (e.g. open or delete a remote file): the action might be related to the wrong remote item.</para>
+        ''' <para>Most often, the additional file was created by uploading a file for a 2nd time instead of creating a new version of the existing file, but this issue depends on the remote DMS type/provider.</para>
+        ''' <para>In case of duplicate items on remote DMS, the file/folder/collection ID should be considered to act on the correct remote item.</para>
+        ''' </remarks>
         Public Property ExtendedInfosCollisionDetected As Boolean
+        ''' <summary>
+        ''' The unique ID of a file
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosFileID As String
+        ''' <summary>
+        ''' The unique ID of a folder
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosFolderID As String
+        ''' <summary>
+        ''' The unique ID of a collection
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosCollectionID As String
+        ''' <summary>
+        ''' The unique ID of the parent folder
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosAssignedFolderID As String
+        ''' <summary>
+        ''' The unique ID of the parent collection
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosAssignedCollectionID As String
         Public Property ExtendedInfosData As Object
+        ''' <summary>
+        ''' The owner of the remote item
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosOwner As DmsUser
+        ''' <summary>
+        ''' The user who wrote the last modification
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosLastModificationUser As DmsUser
         Public Property ExtendedInfosLinks As List(Of DmsLink)
         Public Property ExtendedInfosLocks As List(Of String)
@@ -42,18 +146,62 @@ Namespace Data
         Public Property ExtendedInfosArchivedDateLocalTime As Date?
         Public Property ExtendedInfosVersion As String
         Public Property ExtendedInfosVersionDateLocalTime As Date?
+        ''' <summary>
+        ''' The remote item is shared by links or shared for users/groups
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosIsShared As Boolean
         Public Property ExtendedInfosIsPublicCollection As Boolean
         Public Property ExtendedInfosIsAuditing As Boolean
+        ''' <summary>
+        ''' The remote item (collection) has got some smart components, e.g. is a query on remote file system
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosIsIntelligent As Boolean
+        ''' <summary>
+        ''' The remote item is shared for groups
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosHasGroupSharings As Boolean
+        ''' <summary>
+        ''' The remote item is shared for groups which are not visible to the current user
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosHasHiddenGroupSharings As Boolean
+        ''' <summary>
+        ''' The sharing entries for groups
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosGroupSharings As List(Of DmsShareForGroup)
+        ''' <summary>
+        ''' The remote item is shared for users
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosHasUserSharings As Boolean
+        ''' <summary>
+        ''' The remote item is shared for users which are not visible to the current user
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosHasHiddenUserSharings As Boolean
+        ''' <summary>
+        ''' The sharing entries for users
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosUserSharings As List(Of DmsShareForUser)
+        ''' <summary>
+        ''' References by other folders to this remote item
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosReferencedFromFolderIDs As List(Of String)
+        ''' <summary>
+        ''' References by other collections to this remote item
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ExtendedInfosReferencedFromCollectionIDs As List(Of String)
+        ''' <summary>
+        ''' The remote item is shared by links
+        ''' </summary>
+        ''' <returns></returns>
         Public ReadOnly Property ExtendedInfosHasLinks As Boolean
             Get
                 If Me.ExtendedInfosLinks Is Nothing OrElse Me.ExtendedInfosLinks.Count = 0 Then
@@ -64,6 +212,10 @@ Namespace Data
             End Get
         End Property
 
+        ''' <summary>
+        ''' The type of the remote item
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ItemType As ItemTypes
             Get
                 If IsRoot Then
@@ -105,6 +257,10 @@ Namespace Data
             End Set
         End Property
 
+        ''' <summary>
+        ''' The full path of the remote item
+        ''' </summary>
+        ''' <returns></returns>
         Public Overrides Function ToString() As String
             Return Me.FullName
         End Function

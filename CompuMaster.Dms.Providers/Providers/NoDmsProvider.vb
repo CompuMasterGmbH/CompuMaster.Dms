@@ -181,7 +181,7 @@ Namespace Providers
             Throw New NotSupportedException()
         End Function
 
-        Public Overrides Function FindDocumentById(id As String) As DmsResourceItem
+        Public Overrides Function FindFileById(id As String) As DmsResourceItem
             Throw New NotSupportedException()
         End Function
 

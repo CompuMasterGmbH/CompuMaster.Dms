@@ -33,7 +33,7 @@ Namespace Providers
 
         'Protected Property ApiToken As TokenResponse
         'Protected Property CenterDeviceClient As CenterDevice.Rest.Clients.CenterDeviceClient
-        Protected Property IOClient As CenterDevice.IO.IOClientBase
+        Protected Friend Property IOClient As CenterDevice.IO.IOClientBase
 
         Public Overrides ReadOnly Property BrowseInRootFolderName() As String = "/"
 
@@ -45,7 +45,7 @@ Namespace Providers
             Return Me.CreateDmsResourceItem(New CenterDevice.IO.DirectoryInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Folder.GetFolder(Me.IOClient.CurrentAuthenticationContextUserID, id, Nothing)))
         End Function
 
-        Public Overrides Function FindDocumentById(id As String) As DmsResourceItem
+        Public Overrides Function FindFileById(id As String) As DmsResourceItem
             Return Me.CreateDmsResourceItem(New CenterDevice.IO.FileInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Document.GetDocumentMetadata(Me.IOClient.CurrentAuthenticationContextUserID, id)))
         End Function
 

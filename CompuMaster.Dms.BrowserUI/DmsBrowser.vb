@@ -896,7 +896,7 @@ Public Class DmsBrowser
     Private Function LookupFileNameForUI(id As String) As String
         Select Case Me.DmsProvider.DmsProviderID
             Case Providers.BaseDmsProvider.DmsProviders.CenterDevice, Providers.BaseDmsProvider.DmsProviders.Scopevisio
-                Return Me.DmsProvider.FindDocumentById(id).Name & " (" & id & ")"
+                Return Me.DmsProvider.FindFileById(id).Name & " (" & id & ")"
             Case Else
                 Return id
         End Select
