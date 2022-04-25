@@ -269,6 +269,15 @@ Namespace Providers
             End Try
         End Sub
 
+        Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
+            Dim PutParams As New Global.WebDav.PutFileParameters
+            Try
+                Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams).Wait()
+            Finally
+            End Try
+        End Sub
+
+
         Protected Shared Function StreamToByteArray(inputStream As System.IO.Stream) As Byte()
             Dim bytes = New Byte(16383) {}
             Using memoryStream = New System.IO.MemoryStream()

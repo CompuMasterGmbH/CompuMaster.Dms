@@ -101,6 +101,10 @@ Namespace Providers
             Throw New NotSupportedException()
         End Sub
 
+        Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
+            Throw New NotSupportedException()
+        End Sub
+
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As Date?)
             Throw New NotSupportedException()
         End Sub

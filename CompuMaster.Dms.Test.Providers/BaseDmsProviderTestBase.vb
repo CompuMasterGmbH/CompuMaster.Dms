@@ -288,7 +288,7 @@ Imports CompuMaster.Dms.Providers
     Public Overridable ReadOnly Property RemoteFoldersWithSubFolders As String() = New String() {}
     Public Overridable ReadOnly Property DownloadTestFilesText As KeyValuePair(Of String, String)() = New KeyValuePair(Of String, String)() {}
     Public Overridable ReadOnly Property DownloadTestFilesBinary As KeyValuePair(Of String, Byte())() = New KeyValuePair(Of String, Byte())() {}
-    Public Overridable ReadOnly Property UploadTestFilesAndCleanupAgainText As KeyValuePair(Of String, String)() = New KeyValuePair(Of String, String)() {}
+    Public Overridable ReadOnly Property UploadTestFilesAndCleanupAgainFilePath As KeyValuePair(Of String, String)() = New KeyValuePair(Of String, String)() {}
     Public Overridable ReadOnly Property UploadTestFilesAndCleanupAgainBinary As KeyValuePair(Of String, Byte())() = New KeyValuePair(Of String, Byte())() {
             New KeyValuePair(Of String, Byte())("upload-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
         }
@@ -404,15 +404,15 @@ Imports CompuMaster.Dms.Providers
         Assert.IsFalse(Me.RemoteTestFolderName.StartsWith(DmsProvider.DirectorySeparator)) 'ensure RemoteTestFolderName is without leading "/"
         If DmsProvider.SupportsCollections Then
             System.Console.WriteLine("Remote test collection name: " & Me.RemoteTestFolderName)
-            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
-            Me.RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsFalse(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
         Else
             System.Console.WriteLine("Remote test folder name: " & Me.RemoteTestFolderName)
-            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
-            Me.RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsFalse(DmsProvider.FolderExists(Me.RemoteTestFolderName))
         End If
 
@@ -420,15 +420,15 @@ Imports CompuMaster.Dms.Providers
         Dim RemoteTestFolderNameWithLeadingDirectorySeparator As String = DmsProvider.CombinePath(DmsProvider.DirectorySeparator, Me.RemoteTestFolderName)
         If DmsProvider.SupportsCollections Then
             System.Console.WriteLine("Remote test collection name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
-            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsTrue(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
-            Me.RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsFalse(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
         Else
             System.Console.WriteLine("Remote test folder name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
-            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsTrue(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
-            Me.RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsFalse(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
         End If
     End Sub
@@ -436,9 +436,9 @@ Imports CompuMaster.Dms.Providers
     <Test> Public Sub UploadFilesAndCleanup()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
-        If Me.UploadTestFilesAndCleanupAgainText.Length > 0 OrElse Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
+        If Me.UploadTestFilesAndCleanupAgainFilePath.Length > 0 OrElse Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
 
-            Me.CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
 
             If DmsProvider.SupportsCollections Then
                 Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
@@ -446,15 +446,13 @@ Imports CompuMaster.Dms.Providers
                 Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
             End If
 
-            For Each upload In Me.UploadTestFilesAndCleanupAgainText
+            For Each upload In Me.UploadTestFilesAndCleanupAgainFilePath
                 Dim LocalPathAbsolute As String = TestFileForUploadTests(upload.Value)
                 UploadFilesAndCleanup(DmsProvider, LocalPathAbsolute, upload.Key)
             Next
 
             For Each upload In Me.UploadTestFilesAndCleanupAgainBinary
-                Dim LocalPathAbsolute As String = System.IO.Path.GetTempFileName()
-                System.IO.File.WriteAllBytes(LocalPathAbsolute, upload.Value)
-                UploadFilesAndCleanup(DmsProvider, LocalPathAbsolute, upload.Key)
+                UploadFilesAndCleanup(DmsProvider, upload.Value, upload.Key)
             Next
 
             If DmsProvider.SupportsCollections Then
@@ -463,30 +461,79 @@ Imports CompuMaster.Dms.Providers
                 Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
             End If
 
-            Me.RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
 
         End If
 
     End Sub
 
-    Private Sub UploadFilesAndCleanup(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, localFilePathAbsolute As String, remoteFilePath As String)
+    Private Sub UploadFilesAndCleanup(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, binaryData As Byte(), remoteFileNameInTestFolder As String)
+        If Me.RemoteTestFolderName = Nothing Then Throw New NotSupportedException(Me.RemoteTestFolderName)
+
         Dim Item As DmsResourceItem
+        Dim RemoteFilePath As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, remoteFileNameInTestFolder)
 
-        Item = dmsProvider.ListRemoteItem(remoteFilePath)
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        If Item IsNot Nothing Then
+            'JIT-cleanup
+            dmsProvider.DeleteRemoteItem(Item, DmsResourceItem.ItemTypes.File)
+            Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        End If
         Assert.IsNull(Item)
-        Assert.IsFalse(dmsProvider.RemoteItemExists(remoteFilePath))
+        Assert.IsFalse(dmsProvider.RemoteItemExists(RemoteFilePath))
 
-        dmsProvider.UploadFile(dmsProvider.CombinePath(Me.RemoteTestFolderName, remoteFilePath), localFilePathAbsolute)
-
-        Item = dmsProvider.ListRemoteItem(remoteFilePath)
+        'Upload 1st time
+        dmsProvider.UploadFile(RemoteFilePath, binaryData)
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
         Assert.IsNotNull(Item)
-        Assert.IsTrue(dmsProvider.RemoteItemExists(remoteFilePath))
+        Assert.IsTrue(dmsProvider.RemoteItemExists(RemoteFilePath))
 
-        dmsProvider.DeleteRemoteItem(dmsProvider.CombinePath(Me.RemoteTestFolderName, remoteFilePath))
+        'Upload 2nd time -> create new version instead of new file
+        dmsProvider.UploadFile(RemoteFilePath, binaryData)
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        Assert.IsNotNull(Item)
+        Assert.IsTrue(dmsProvider.RemoteItemExists(RemoteFilePath))
 
-        Item = dmsProvider.ListRemoteItem(remoteFilePath)
+        'Cleanup
+        dmsProvider.DeleteRemoteItem(RemoteFilePath)
+
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
         Assert.IsNull(Item)
-        Assert.IsFalse(dmsProvider.RemoteItemExists(remoteFilePath))
+        Assert.IsFalse(dmsProvider.RemoteItemExists(RemoteFilePath))
+    End Sub
+
+    Private Sub UploadFilesAndCleanup(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, localFilePathAbsolute As String, remoteFileNameInTestFolder As String)
+        If Me.RemoteTestFolderName = Nothing Then Throw New NotSupportedException(Me.RemoteTestFolderName)
+
+        Dim Item As DmsResourceItem
+        Dim RemoteFilePath As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, remoteFileNameInTestFolder)
+
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        If Item IsNot Nothing Then
+            'JIT-cleanup
+            dmsProvider.DeleteRemoteItem(Item, DmsResourceItem.ItemTypes.File)
+            Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        End If
+        Assert.IsNull(Item)
+        Assert.IsFalse(dmsProvider.RemoteItemExists(RemoteFilePath))
+
+        'Upload 1st time
+        dmsProvider.UploadFile(RemoteFilePath, localFilePathAbsolute)
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        Assert.IsNotNull(Item)
+        Assert.IsTrue(dmsProvider.RemoteItemExists(RemoteFilePath))
+
+        'Upload 2nd time -> create new version instead of new file
+        dmsProvider.UploadFile(RemoteFilePath, localFilePathAbsolute)
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        Assert.IsNotNull(Item)
+        Assert.IsTrue(dmsProvider.RemoteItemExists(RemoteFilePath))
+
+        'Cleanup
+        dmsProvider.DeleteRemoteItem(RemoteFilePath)
+        Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+        Assert.IsNull(Item)
+        Assert.IsFalse(dmsProvider.RemoteItemExists(RemoteFilePath))
     End Sub
 
     Protected Function TestAssembly() As System.Reflection.Assembly

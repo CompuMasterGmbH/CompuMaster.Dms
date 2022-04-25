@@ -159,6 +159,21 @@ Namespace Providers
             ParentRemoteDir.ResetFilesCache()
         End Sub
 
+        Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
+            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
+            Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
+            If FoundFileItem IsNot Nothing Then
+                'File exists, upload new file version
+                FoundFileItem.UploadNewVersion(binaryData)
+            Else
+                'Upload new file
+                ParentRemoteDir.UploadAndCreateNewFile(binaryData, RemoteFileName)
+            End If
+            ParentRemoteDir.ResetFilesCache()
+        End Sub
+
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)

@@ -274,6 +274,24 @@ Namespace Providers
         Public MustOverride Sub UploadFile(remoteFilePath As String, localFilePath As String)
 
         ''' <summary>
+        ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
+        ''' </summary>
+        ''' <param name="remoteFilePath"></param>
+        ''' <param name="binaryData"></param>
+        Public MustOverride Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
+
+        ''' <summary>
+        ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
+        ''' </summary>
+        ''' <param name="remoteFilePath"></param>
+        ''' <param name="binaryData"></param>
+        Public Overridable Sub UploadFile(remoteFilePath As String, binaryData As Byte())
+            Me.UploadFile(remoteFilePath, Function()
+                                              Return New System.IO.MemoryStream(binaryData)
+                                          End Function)
+        End Sub
+
+        ''' <summary>
         ''' Download a remote DMS file
         ''' </summary>
         ''' <param name="remoteFilePath"></param>
