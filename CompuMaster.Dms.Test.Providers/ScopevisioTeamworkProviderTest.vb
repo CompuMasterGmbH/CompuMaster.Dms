@@ -68,7 +68,7 @@ Public Class ScopevisioTeamworkProviderTest
 
     Public Overrides ReadOnly Property RemoteFilesMustExist As String() = New String() {}
     Public Overrides ReadOnly Property RemoteFoldersMustExist As String() = New String() {TestDirNameSub1, TestDirNameSub2}
-    Public Overrides ReadOnly Property RemoteCollectionsMustExist As String() = New String() {TestDirName}
+    Public Overrides ReadOnly Property RemoteCollectionsMustExist As String() = New String() {TestDirName, "Eingangsrechnungen"}
     Public Overrides ReadOnly Property RemoteItemsMustNotExist As String() = New String() {"/gibt's nicht"}
     Public Overrides ReadOnly Property RemoteFoldersWithFiles As String() = New String() {}
     Public Overrides ReadOnly Property RemoteFoldersWithSubFolders As String() = New String() {TestDirNameSub1}

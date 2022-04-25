@@ -397,6 +397,31 @@ Imports CompuMaster.Dms.Providers
 
     End Sub
 
+    Protected Overridable Sub RemoveRemoteItemIfItExists(dmsProvider As BaseDmsProvider, remotePath As String, expectedRemoteItemType As DmsResourceItem.ItemTypes, preCheckItemExistance As TriState)
+        Dim RemoteItemExists As Boolean
+        RemoteItemExists = dmsProvider.RemoteItemExists(remotePath)
+        System.Console.WriteLine("CHECK: file " & remotePath & " exists: " & RemoteItemExists)
+        If preCheckItemExistance = TriState.True Then
+            Assert.IsTrue(RemoteItemExists)
+        ElseIf preCheckItemExistance = TriState.False Then
+            Assert.IsFalse(RemoteItemExists)
+        End If
+        If RemoteItemExists Then
+            If expectedRemoteItemType = Nothing Then
+                dmsProvider.DeleteRemoteItem(remotePath)
+            Else
+                dmsProvider.DeleteRemoteItem(remotePath, expectedRemoteItemType)
+            End If
+            System.Console.WriteLine("DELETED: " & remotePath)
+            RemoteItemExists = dmsProvider.RemoteItemExists(remotePath)
+            System.Console.WriteLine("CHECK: file " & remotePath & " exists: " & RemoteItemExists)
+        Else
+            System.Console.WriteLine("DELETION NOT REQUIRED")
+        End If
+        Assert.IsFalse(RemoteItemExists)
+    End Sub
+
+
     <Test> Public Sub CreateCollectionOrFolderAndCleanup()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
@@ -430,6 +455,57 @@ Imports CompuMaster.Dms.Providers
             Assert.IsTrue(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
             RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsFalse(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
+        End If
+    End Sub
+
+    Protected Overridable Sub CreateRemoteCollection(dmsProvider As BaseDmsProvider, remoteCollectionName As String)
+        Try
+            dmsProvider.CreateCollection(remoteCollectionName)
+            Assert.IsTrue(dmsProvider.RemoteItemExists(remoteCollectionName))
+        Catch ex As NotSupportedException
+            'OK: e.g. WebDAV doesn't support collections
+#Disable Warning CA1031 ' Do not catch general exception types
+        Catch ex As Exception
+            Assert.Fail(ex.Message)
+#Enable Warning CA1031 ' Do not catch general exception types
+        End Try
+    End Sub
+
+    Protected Overridable Sub CreateRemoteFolder(dmsProvider As BaseDmsProvider, remoteFolderName As String)
+        dmsProvider.CreateCollection(remoteFolderName)
+        Assert.IsTrue(dmsProvider.RemoteItemExists(remoteFolderName))
+    End Sub
+
+    <Test> Public Sub CreateRemoteFolderAndCleanup()
+        Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim RemotePath As String = "Bierdeckel.UnitTest.Temp"
+        Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
+        DmsProvider.CreateFolder(RemotePath)
+        Assert.IsTrue(DmsProvider.RemoteItemExists(RemotePath))
+        If DmsProvider.SupportsCollections Then
+            Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Collection, TriState.True)
+        Else
+            Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Folder, TriState.True)
+        End If
+    End Sub
+
+    <Test> Public Sub CreateRemoteCollectionAndCleanup()
+        Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim RemotePath As String = "Bierdeckel.UnitTest.Temp"
+        If DmsProvider.SupportsCollections Then
+            'CenterDevice / Scopevisio Teamwork
+            Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
+            Try
+                DmsProvider.CreateCollection(RemotePath)
+                Assert.IsTrue(DmsProvider.RemoteItemExists(RemotePath))
+                Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Collection, TriState.True)
+            Catch ex As NotSupportedException
+            End Try
+        Else
+            'WebDAV
+            Assert.Catch(Of NotSupportedException)(Sub()
+                                                       DmsProvider.CreateCollection(RemotePath)
+                                                   End Sub)
         End If
     End Sub
 

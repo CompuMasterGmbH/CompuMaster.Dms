@@ -9,12 +9,6 @@ Namespace Providers
     Public Class ManualUrlDmsProvider
         Inherits BaseDmsProvider
 
-        <Obsolete("Implementation in wrong solution")> Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
-            Get
-                Return Nothing
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
                 Return DmsProviders.ManualUrl
