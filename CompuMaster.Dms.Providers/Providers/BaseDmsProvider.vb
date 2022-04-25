@@ -21,8 +21,6 @@ Namespace Providers
             CenterDevice = 21
         End Enum
 
-        <Obsolete("Implementation in wrong solution")> Public MustOverride ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
-
         ''' <summary>
         ''' The unique ID of the provider
         ''' </summary>

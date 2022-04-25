@@ -96,12 +96,6 @@ Namespace Providers
             Me.Authorize(Credentials)
         End Sub
 
-        <Obsolete("Implementation in wrong solution")> Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
-            Get
-                Return "FiBu-Upload-Guide-Teamwork.pdf"
-            End Get
-        End Property
-
     End Class
 
 End Namespace

@@ -417,12 +417,6 @@ Namespace Providers
             End Get
         End Property
 
-        <Obsolete("Implementation in wrong solution")> Public Overrides ReadOnly Property DocumentationGuideFiBuUploadsFileName As String
-            Get
-                Return "FiBu-Upload-Guide-WebDav.pdf"
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property SupportsSubFolderConfiguration As Boolean
             Get
                 Return True
