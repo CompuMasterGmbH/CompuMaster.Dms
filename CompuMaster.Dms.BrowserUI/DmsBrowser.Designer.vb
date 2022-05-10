@@ -43,12 +43,13 @@ Partial Class DmsBrowser
         Me.ButtonCreateNewFolder = New System.Windows.Forms.Button()
         Me.SplitContainer = New System.Windows.Forms.SplitContainer()
         Me.ListViewDmsFiles = New System.Windows.Forms.ListView()
-        Me.ColumnHeaderFileName = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ColumnHeaderSize = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.ColumnHeaderLastModifiedOn = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderFileName = New System.Windows.Forms.ColumnHeader()
+        Me.ColumnHeaderSize = New System.Windows.Forms.ColumnHeader()
+        Me.ColumnHeaderLastModifiedOn = New System.Windows.Forms.ColumnHeader()
         Me.ContextMenuStripFile = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.ToolStripFileContextButtonUploadFile = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripFileContextButtonDownloadFile = New System.Windows.Forms.ToolStripButton()
+        Me.ToolStripFileContextButtonOpenPreviewFile = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripSeparator2 = New System.Windows.Forms.ToolStripSeparator()
         Me.ToolStripFileContextButtonCopyFile = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripFileContextButtonRenameFile = New System.Windows.Forms.ToolStripButton()
@@ -61,6 +62,7 @@ Partial Class DmsBrowser
         Me.ToolStripFileActions = New System.Windows.Forms.ToolStrip()
         Me.ToolStripButtonUploadFile = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripButtonDownloadFile = New System.Windows.Forms.ToolStripButton()
+        Me.ToolStripButtonOpenFile = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripButtonDeleteFile = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripSeparatorBeforeCopyRenameMove = New System.Windows.Forms.ToolStripSeparator()
         Me.ToolStripButtonCopyFile = New System.Windows.Forms.ToolStripButton()
@@ -99,9 +101,10 @@ Partial Class DmsBrowser
         '
         Me.ButtonCancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.ButtonCancel.Location = New System.Drawing.Point(822, 436)
+        Me.ButtonCancel.Location = New System.Drawing.Point(959, 503)
+        Me.ButtonCancel.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCancel.Name = "ButtonCancel"
-        Me.ButtonCancel.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
         Me.ButtonCancel.TabIndex = 11
         Me.ButtonCancel.Text = "&Abbrechen"
         Me.ButtonCancel.UseVisualStyleBackColor = True
@@ -110,9 +113,10 @@ Partial Class DmsBrowser
         '
         Me.ButtonOkay.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonOkay.DialogResult = System.Windows.Forms.DialogResult.OK
-        Me.ButtonOkay.Location = New System.Drawing.Point(741, 436)
+        Me.ButtonOkay.Location = New System.Drawing.Point(864, 503)
+        Me.ButtonOkay.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonOkay.Name = "ButtonOkay"
-        Me.ButtonOkay.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonOkay.Size = New System.Drawing.Size(88, 27)
         Me.ButtonOkay.TabIndex = 10
         Me.ButtonOkay.Text = "&Okay"
         Me.ButtonOkay.UseVisualStyleBackColor = True
@@ -127,24 +131,26 @@ Partial Class DmsBrowser
         Me.TreeViewDmsFolders.ItemHeight = 24
         Me.TreeViewDmsFolders.LabelEdit = True
         Me.TreeViewDmsFolders.Location = New System.Drawing.Point(0, 0)
+        Me.TreeViewDmsFolders.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.TreeViewDmsFolders.Name = "TreeViewDmsFolders"
         Me.TreeViewDmsFolders.SelectedImageIndex = 2
         Me.TreeViewDmsFolders.ShowNodeToolTips = True
-        Me.TreeViewDmsFolders.Size = New System.Drawing.Size(279, 418)
+        Me.TreeViewDmsFolders.Size = New System.Drawing.Size(324, 482)
         Me.TreeViewDmsFolders.TabIndex = 1
         '
         'ContextMenuStripFolder
         '
+        Me.ContextMenuStripFolder.ImageScalingSize = New System.Drawing.Size(20, 20)
         Me.ContextMenuStripFolder.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripFolderContextButtonNewFolder, Me.ToolStripFolderContextButtonCopyFolder, Me.ToolStripFolderContextButtonRenameFolder, Me.ToolStripFolderContextButtonMoveFolder, Me.ToolStripFolderContextButtonDeleteFolder, Me.ToolStripSeparator3, Me.ToolStripFolderContextButtonShareFolder, Me.ToolStripFolderContextButtonRefreshFilesList, Me.ToolStripFolderContextButtonProperties})
         Me.ContextMenuStripFolder.Name = "ContextMenuStripFolder"
-        Me.ContextMenuStripFolder.Size = New System.Drawing.Size(213, 194)
+        Me.ContextMenuStripFolder.Size = New System.Drawing.Size(253, 226)
         '
         'ToolStripFolderContextButtonNewFolder
         '
         Me.ToolStripFolderContextButtonNewFolder.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_new
         Me.ToolStripFolderContextButtonNewFolder.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonNewFolder.Name = "ToolStripFolderContextButtonNewFolder"
-        Me.ToolStripFolderContextButtonNewFolder.Size = New System.Drawing.Size(149, 20)
+        Me.ToolStripFolderContextButtonNewFolder.Size = New System.Drawing.Size(153, 24)
         Me.ToolStripFolderContextButtonNewFolder.Text = "&Neuen Ordner erstellen"
         '
         'ToolStripFolderContextButtonCopyFolder
@@ -152,7 +158,7 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonCopyFolder.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Duplicate_ui_ux_mobile_web_4960708
         Me.ToolStripFolderContextButtonCopyFolder.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonCopyFolder.Name = "ToolStripFolderContextButtonCopyFolder"
-        Me.ToolStripFolderContextButtonCopyFolder.Size = New System.Drawing.Size(74, 20)
+        Me.ToolStripFolderContextButtonCopyFolder.Size = New System.Drawing.Size(78, 24)
         Me.ToolStripFolderContextButtonCopyFolder.Text = "&Kopieren"
         '
         'ToolStripFolderContextButtonRenameFolder
@@ -160,7 +166,7 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonRenameFolder.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Rename_ui_ux_mobile_web_4960746
         Me.ToolStripFolderContextButtonRenameFolder.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonRenameFolder.Name = "ToolStripFolderContextButtonRenameFolder"
-        Me.ToolStripFolderContextButtonRenameFolder.Size = New System.Drawing.Size(99, 20)
+        Me.ToolStripFolderContextButtonRenameFolder.Size = New System.Drawing.Size(103, 24)
         Me.ToolStripFolderContextButtonRenameFolder.Text = "&Umbenennen"
         '
         'ToolStripFolderContextButtonMoveFolder
@@ -168,7 +174,7 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonMoveFolder.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Arrow_ui_ux_mobile_web_4960722
         Me.ToolStripFolderContextButtonMoveFolder.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonMoveFolder.Name = "ToolStripFolderContextButtonMoveFolder"
-        Me.ToolStripFolderContextButtonMoveFolder.Size = New System.Drawing.Size(90, 20)
+        Me.ToolStripFolderContextButtonMoveFolder.Size = New System.Drawing.Size(94, 24)
         Me.ToolStripFolderContextButtonMoveFolder.Text = "&Verschieben"
         '
         'ToolStripFolderContextButtonDeleteFolder
@@ -176,20 +182,20 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonDeleteFolder.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Trash_ui_ux_mobile_web_4960750
         Me.ToolStripFolderContextButtonDeleteFolder.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonDeleteFolder.Name = "ToolStripFolderContextButtonDeleteFolder"
-        Me.ToolStripFolderContextButtonDeleteFolder.Size = New System.Drawing.Size(71, 20)
+        Me.ToolStripFolderContextButtonDeleteFolder.Size = New System.Drawing.Size(75, 24)
         Me.ToolStripFolderContextButtonDeleteFolder.Text = "&Löschen"
         '
         'ToolStripSeparator3
         '
         Me.ToolStripSeparator3.Name = "ToolStripSeparator3"
-        Me.ToolStripSeparator3.Size = New System.Drawing.Size(209, 6)
+        Me.ToolStripSeparator3.Size = New System.Drawing.Size(249, 6)
         '
         'ToolStripFolderContextButtonShareFolder
         '
         Me.ToolStripFolderContextButtonShareFolder.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Group_ui_ux_mobile_web_4960717
         Me.ToolStripFolderContextButtonShareFolder.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonShareFolder.Name = "ToolStripFolderContextButtonShareFolder"
-        Me.ToolStripFolderContextButtonShareFolder.Size = New System.Drawing.Size(79, 20)
+        Me.ToolStripFolderContextButtonShareFolder.Size = New System.Drawing.Size(83, 24)
         Me.ToolStripFolderContextButtonShareFolder.Text = "&Freigaben"
         '
         'ToolStripFolderContextButtonRefreshFilesList
@@ -197,7 +203,7 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonRefreshFilesList.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_View_ui_ux_mobile_web_4960757
         Me.ToolStripFolderContextButtonRefreshFilesList.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonRefreshFilesList.Name = "ToolStripFolderContextButtonRefreshFilesList"
-        Me.ToolStripFolderContextButtonRefreshFilesList.Size = New System.Drawing.Size(152, 20)
+        Me.ToolStripFolderContextButtonRefreshFilesList.Size = New System.Drawing.Size(156, 24)
         Me.ToolStripFolderContextButtonRefreshFilesList.Text = "Datei-Liste aktualisieren"
         '
         'ToolStripFolderContextButtonProperties
@@ -205,11 +211,12 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonProperties.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_setting_ui_ux_mobile_web_4960747
         Me.ToolStripFolderContextButtonProperties.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFolderContextButtonProperties.Name = "ToolStripFolderContextButtonProperties"
-        Me.ToolStripFolderContextButtonProperties.Size = New System.Drawing.Size(101, 20)
+        Me.ToolStripFolderContextButtonProperties.Size = New System.Drawing.Size(105, 24)
         Me.ToolStripFolderContextButtonProperties.Text = "Eigenschaften"
         '
         'ImageListFileIcons
         '
+        Me.ImageListFileIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
         Me.ImageListFileIcons.ImageStream = CType(resources.GetObject("ImageListFileIcons.ImageStream"), System.Windows.Forms.ImageListStreamer)
         Me.ImageListFileIcons.TransparentColor = System.Drawing.Color.Transparent
         Me.ImageListFileIcons.Images.SetKeyName(0, "iconfinder_Home-ui-ux-mobile-web_4960719.png")
@@ -225,9 +232,10 @@ Partial Class DmsBrowser
         'ButtonCreateNewFolder
         '
         Me.ButtonCreateNewFolder.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.ButtonCreateNewFolder.Location = New System.Drawing.Point(12, 436)
+        Me.ButtonCreateNewFolder.Location = New System.Drawing.Point(14, 503)
+        Me.ButtonCreateNewFolder.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCreateNewFolder.Name = "ButtonCreateNewFolder"
-        Me.ButtonCreateNewFolder.Size = New System.Drawing.Size(138, 23)
+        Me.ButtonCreateNewFolder.Size = New System.Drawing.Size(161, 27)
         Me.ButtonCreateNewFolder.TabIndex = 12
         Me.ButtonCreateNewFolder.Text = "&Neuen Ordner erstellen"
         Me.ButtonCreateNewFolder.UseVisualStyleBackColor = True
@@ -237,7 +245,8 @@ Partial Class DmsBrowser
         Me.SplitContainer.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.SplitContainer.Location = New System.Drawing.Point(12, 12)
+        Me.SplitContainer.Location = New System.Drawing.Point(14, 14)
+        Me.SplitContainer.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.SplitContainer.Name = "SplitContainer"
         '
         'SplitContainer.Panel1
@@ -250,8 +259,9 @@ Partial Class DmsBrowser
         Me.SplitContainer.Panel2.Controls.Add(Me.ListViewDmsFiles)
         Me.SplitContainer.Panel2.Controls.Add(Me.FlowLayoutPanel1)
         Me.SplitContainer.Panel2MinSize = 100
-        Me.SplitContainer.Size = New System.Drawing.Size(885, 418)
-        Me.SplitContainer.SplitterDistance = 279
+        Me.SplitContainer.Size = New System.Drawing.Size(1032, 482)
+        Me.SplitContainer.SplitterDistance = 324
+        Me.SplitContainer.SplitterWidth = 5
         Me.SplitContainer.TabIndex = 13
         '
         'ListViewDmsFiles
@@ -262,10 +272,11 @@ Partial Class DmsBrowser
         Me.ListViewDmsFiles.FullRowSelect = True
         Me.ListViewDmsFiles.HideSelection = False
         Me.ListViewDmsFiles.LargeImageList = Me.ImageListFileIcons
-        Me.ListViewDmsFiles.Location = New System.Drawing.Point(0, 80)
+        Me.ListViewDmsFiles.Location = New System.Drawing.Point(0, 92)
+        Me.ListViewDmsFiles.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ListViewDmsFiles.Name = "ListViewDmsFiles"
         Me.ListViewDmsFiles.ShowItemToolTips = True
-        Me.ListViewDmsFiles.Size = New System.Drawing.Size(602, 338)
+        Me.ListViewDmsFiles.Size = New System.Drawing.Size(703, 390)
         Me.ListViewDmsFiles.SmallImageList = Me.ImageListFileIcons
         Me.ListViewDmsFiles.TabIndex = 2
         Me.ListViewDmsFiles.UseCompatibleStateImageBehavior = False
@@ -285,16 +296,17 @@ Partial Class DmsBrowser
         '
         'ContextMenuStripFile
         '
-        Me.ContextMenuStripFile.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripFileContextButtonUploadFile, Me.ToolStripFileContextButtonDownloadFile, Me.ToolStripSeparator2, Me.ToolStripFileContextButtonCopyFile, Me.ToolStripFileContextButtonRenameFile, Me.ToolStripFileContextButtonMoveFile, Me.ToolStripFileContextButtonDeleteFile, Me.ToolStripSeparator1, Me.ToolStripFileContextButtonShareFile, Me.ToolStripFileContextButtonProperties})
+        Me.ContextMenuStripFile.ImageScalingSize = New System.Drawing.Size(20, 20)
+        Me.ContextMenuStripFile.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripFileContextButtonUploadFile, Me.ToolStripFileContextButtonDownloadFile, Me.ToolStripFileContextButtonOpenPreviewFile, Me.ToolStripSeparator2, Me.ToolStripFileContextButtonCopyFile, Me.ToolStripFileContextButtonRenameFile, Me.ToolStripFileContextButtonMoveFile, Me.ToolStripFileContextButtonDeleteFile, Me.ToolStripSeparator1, Me.ToolStripFileContextButtonShareFile, Me.ToolStripFileContextButtonProperties})
         Me.ContextMenuStripFile.Name = "ContextMenuStripFile"
-        Me.ContextMenuStripFile.Size = New System.Drawing.Size(162, 200)
+        Me.ContextMenuStripFile.Size = New System.Drawing.Size(186, 259)
         '
         'ToolStripFileContextButtonUploadFile
         '
         Me.ToolStripFileContextButtonUploadFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Upload_ui_ux_mobile_web_4960752
         Me.ToolStripFileContextButtonUploadFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonUploadFile.Name = "ToolStripFileContextButtonUploadFile"
-        Me.ToolStripFileContextButtonUploadFile.Size = New System.Drawing.Size(65, 20)
+        Me.ToolStripFileContextButtonUploadFile.Size = New System.Drawing.Size(69, 24)
         Me.ToolStripFileContextButtonUploadFile.Text = "&Upload"
         '
         'ToolStripFileContextButtonDownloadFile
@@ -302,20 +314,28 @@ Partial Class DmsBrowser
         Me.ToolStripFileContextButtonDownloadFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Download_ui_ux_mobile_web_4960707
         Me.ToolStripFileContextButtonDownloadFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonDownloadFile.Name = "ToolStripFileContextButtonDownloadFile"
-        Me.ToolStripFileContextButtonDownloadFile.Size = New System.Drawing.Size(81, 20)
+        Me.ToolStripFileContextButtonDownloadFile.Size = New System.Drawing.Size(85, 24)
         Me.ToolStripFileContextButtonDownloadFile.Text = "&Download"
+        '
+        'ToolStripFileContextButtonOpenPreviewFile
+        '
+        Me.ToolStripFileContextButtonOpenPreviewFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_View_ui_ux_mobile_web_4960757
+        Me.ToolStripFileContextButtonOpenPreviewFile.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.ToolStripFileContextButtonOpenPreviewFile.Name = "ToolStripFileContextButtonOpenPreviewFile"
+        Me.ToolStripFileContextButtonOpenPreviewFile.Size = New System.Drawing.Size(68, 24)
+        Me.ToolStripFileContextButtonOpenPreviewFile.Text = "&Öffnen"
         '
         'ToolStripSeparator2
         '
         Me.ToolStripSeparator2.Name = "ToolStripSeparator2"
-        Me.ToolStripSeparator2.Size = New System.Drawing.Size(158, 6)
+        Me.ToolStripSeparator2.Size = New System.Drawing.Size(182, 6)
         '
         'ToolStripFileContextButtonCopyFile
         '
         Me.ToolStripFileContextButtonCopyFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Duplicate_ui_ux_mobile_web_4960708
         Me.ToolStripFileContextButtonCopyFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonCopyFile.Name = "ToolStripFileContextButtonCopyFile"
-        Me.ToolStripFileContextButtonCopyFile.Size = New System.Drawing.Size(74, 20)
+        Me.ToolStripFileContextButtonCopyFile.Size = New System.Drawing.Size(78, 24)
         Me.ToolStripFileContextButtonCopyFile.Text = "&Kopieren"
         '
         'ToolStripFileContextButtonRenameFile
@@ -323,7 +343,7 @@ Partial Class DmsBrowser
         Me.ToolStripFileContextButtonRenameFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Rename_ui_ux_mobile_web_4960746
         Me.ToolStripFileContextButtonRenameFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonRenameFile.Name = "ToolStripFileContextButtonRenameFile"
-        Me.ToolStripFileContextButtonRenameFile.Size = New System.Drawing.Size(99, 20)
+        Me.ToolStripFileContextButtonRenameFile.Size = New System.Drawing.Size(103, 24)
         Me.ToolStripFileContextButtonRenameFile.Text = "&Umbenennen"
         '
         'ToolStripFileContextButtonMoveFile
@@ -331,7 +351,7 @@ Partial Class DmsBrowser
         Me.ToolStripFileContextButtonMoveFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Arrow_ui_ux_mobile_web_4960722
         Me.ToolStripFileContextButtonMoveFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonMoveFile.Name = "ToolStripFileContextButtonMoveFile"
-        Me.ToolStripFileContextButtonMoveFile.Size = New System.Drawing.Size(90, 20)
+        Me.ToolStripFileContextButtonMoveFile.Size = New System.Drawing.Size(94, 24)
         Me.ToolStripFileContextButtonMoveFile.Text = "&Verschieben"
         '
         'ToolStripFileContextButtonDeleteFile
@@ -339,20 +359,20 @@ Partial Class DmsBrowser
         Me.ToolStripFileContextButtonDeleteFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Trash_ui_ux_mobile_web_4960750
         Me.ToolStripFileContextButtonDeleteFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonDeleteFile.Name = "ToolStripFileContextButtonDeleteFile"
-        Me.ToolStripFileContextButtonDeleteFile.Size = New System.Drawing.Size(71, 20)
+        Me.ToolStripFileContextButtonDeleteFile.Size = New System.Drawing.Size(75, 24)
         Me.ToolStripFileContextButtonDeleteFile.Text = "&Löschen"
         '
         'ToolStripSeparator1
         '
         Me.ToolStripSeparator1.Name = "ToolStripSeparator1"
-        Me.ToolStripSeparator1.Size = New System.Drawing.Size(158, 6)
+        Me.ToolStripSeparator1.Size = New System.Drawing.Size(182, 6)
         '
         'ToolStripFileContextButtonShareFile
         '
         Me.ToolStripFileContextButtonShareFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Group_ui_ux_mobile_web_4960717
         Me.ToolStripFileContextButtonShareFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonShareFile.Name = "ToolStripFileContextButtonShareFile"
-        Me.ToolStripFileContextButtonShareFile.Size = New System.Drawing.Size(79, 20)
+        Me.ToolStripFileContextButtonShareFile.Size = New System.Drawing.Size(83, 24)
         Me.ToolStripFileContextButtonShareFile.Text = "&Freigaben"
         '
         'ToolStripFileContextButtonProperties
@@ -360,7 +380,7 @@ Partial Class DmsBrowser
         Me.ToolStripFileContextButtonProperties.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_setting_ui_ux_mobile_web_4960747
         Me.ToolStripFileContextButtonProperties.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonProperties.Name = "ToolStripFileContextButtonProperties"
-        Me.ToolStripFileContextButtonProperties.Size = New System.Drawing.Size(101, 20)
+        Me.ToolStripFileContextButtonProperties.Size = New System.Drawing.Size(105, 24)
         Me.ToolStripFileContextButtonProperties.Text = "Eigenschaften"
         '
         'FlowLayoutPanel1
@@ -372,19 +392,20 @@ Partial Class DmsBrowser
         Me.FlowLayoutPanel1.Controls.Add(Me.ToolStripProperties)
         Me.FlowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top
         Me.FlowLayoutPanel1.Location = New System.Drawing.Point(0, 0)
+        Me.FlowLayoutPanel1.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.FlowLayoutPanel1.Name = "FlowLayoutPanel1"
-        Me.FlowLayoutPanel1.Size = New System.Drawing.Size(602, 80)
+        Me.FlowLayoutPanel1.Size = New System.Drawing.Size(703, 92)
         Me.FlowLayoutPanel1.TabIndex = 0
         '
         'ToolStripFileActions
         '
         Me.ToolStripFileActions.Dock = System.Windows.Forms.DockStyle.None
         Me.ToolStripFileActions.ImageScalingSize = New System.Drawing.Size(19, 19)
-        Me.ToolStripFileActions.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonUploadFile, Me.ToolStripButtonDownloadFile, Me.ToolStripButtonDeleteFile, Me.ToolStripSeparatorBeforeCopyRenameMove, Me.ToolStripButtonCopyFile, Me.ToolStripButtonRenameFile, Me.ToolStripButtonMoveFile})
+        Me.ToolStripFileActions.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonUploadFile, Me.ToolStripButtonDownloadFile, Me.ToolStripButtonOpenFile, Me.ToolStripButtonDeleteFile, Me.ToolStripSeparatorBeforeCopyRenameMove, Me.ToolStripButtonCopyFile, Me.ToolStripButtonRenameFile, Me.ToolStripButtonMoveFile})
         Me.ToolStripFileActions.Location = New System.Drawing.Point(0, 0)
         Me.ToolStripFileActions.Name = "ToolStripFileActions"
         Me.ToolStripFileActions.Padding = New System.Windows.Forms.Padding(0, 0, 2, 0)
-        Me.ToolStripFileActions.Size = New System.Drawing.Size(517, 26)
+        Me.ToolStripFileActions.Size = New System.Drawing.Size(615, 26)
         Me.ToolStripFileActions.TabIndex = 19
         '
         'ToolStripButtonUploadFile
@@ -402,6 +423,14 @@ Partial Class DmsBrowser
         Me.ToolStripButtonDownloadFile.Name = "ToolStripButtonDownloadFile"
         Me.ToolStripButtonDownloadFile.Size = New System.Drawing.Size(84, 23)
         Me.ToolStripButtonDownloadFile.Text = "&Download"
+        '
+        'ToolStripButtonOpenFile
+        '
+        Me.ToolStripButtonOpenFile.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_View_ui_ux_mobile_web_4960757
+        Me.ToolStripButtonOpenFile.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.ToolStripButtonOpenFile.Name = "ToolStripButtonOpenFile"
+        Me.ToolStripButtonOpenFile.Size = New System.Drawing.Size(67, 23)
+        Me.ToolStripButtonOpenFile.Text = "&Öffnen"
         '
         'ToolStripButtonDeleteFile
         '
@@ -521,9 +550,10 @@ Partial Class DmsBrowser
         Me.ButtonShowFiles.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.ButtonShowFiles.Appearance = System.Windows.Forms.Appearance.Button
         Me.ButtonShowFiles.AutoSize = True
-        Me.ButtonShowFiles.Location = New System.Drawing.Point(156, 436)
+        Me.ButtonShowFiles.Location = New System.Drawing.Point(182, 504)
+        Me.ButtonShowFiles.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonShowFiles.Name = "ButtonShowFiles"
-        Me.ButtonShowFiles.Size = New System.Drawing.Size(100, 23)
+        Me.ButtonShowFiles.Size = New System.Drawing.Size(107, 25)
         Me.ButtonShowFiles.TabIndex = 18
         Me.ButtonShowFiles.Text = "Dateien an&zeigen"
         Me.ButtonShowFiles.UseVisualStyleBackColor = True
@@ -567,9 +597,10 @@ Partial Class DmsBrowser
         'ButtonClose
         '
         Me.ButtonClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.ButtonClose.Location = New System.Drawing.Point(822, 436)
+        Me.ButtonClose.Location = New System.Drawing.Point(959, 503)
+        Me.ButtonClose.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonClose.Name = "ButtonClose"
-        Me.ButtonClose.Size = New System.Drawing.Size(75, 23)
+        Me.ButtonClose.Size = New System.Drawing.Size(88, 27)
         Me.ButtonClose.TabIndex = 19
         Me.ButtonClose.Text = "&Schließen"
         Me.ButtonClose.UseVisualStyleBackColor = True
@@ -579,13 +610,13 @@ Partial Class DmsBrowser
         Me.ToolTipFileSystemItems.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Warning
         Me.ToolTipFileSystemItems.ToolTipTitle = "Konflikt"
         '
-        'BrowseDmsFolders
+        'DmsBrowser
         '
         Me.AcceptButton = Me.ButtonOkay
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.ButtonCancel
-        Me.ClientSize = New System.Drawing.Size(909, 471)
+        Me.ClientSize = New System.Drawing.Size(1060, 543)
         Me.Controls.Add(Me.ButtonClose)
         Me.Controls.Add(Me.ButtonShowFiles)
         Me.Controls.Add(Me.SplitContainer)
@@ -593,8 +624,9 @@ Partial Class DmsBrowser
         Me.Controls.Add(Me.ButtonCancel)
         Me.Controls.Add(Me.ButtonOkay)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
-        Me.MinimumSize = New System.Drawing.Size(495, 235)
-        Me.Name = "BrowseDmsFolders"
+        Me.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
+        Me.MinimumSize = New System.Drawing.Size(575, 263)
+        Me.Name = "DmsBrowser"
         Me.Text = "DMS Ordner durchsuchen"
         Me.ContextMenuStripFolder.ResumeLayout(False)
         Me.SplitContainer.Panel1.ResumeLayout(False)
@@ -673,4 +705,6 @@ Partial Class DmsBrowser
     Friend WithEvents ToolStripSeparator1 As ToolStripSeparator
     Friend WithEvents ToolStripFileContextButtonShareFile As ToolStripButton
     Friend WithEvents ToolStripFileContextButtonProperties As ToolStripButton
+    Friend WithEvents ToolStripButtonOpenFile As ToolStripButton
+    Friend WithEvents ToolStripFileContextButtonOpenPreviewFile As ToolStripButton
 End Class

@@ -115,6 +115,7 @@ Public Class DmsBrowser
             _AllowedActions = value
             Me.ToolStripButtonUploadFile.Enabled = ((value And FileOrFolderActions.AllowUploadFiles) = FileOrFolderActions.AllowUploadFiles)
             Me.ToolStripButtonDownloadFile.Enabled = ((value And FileOrFolderActions.AllowDownloadFiles) = FileOrFolderActions.AllowDownloadFiles)
+            Me.ToolStripButtonOpenFile.Enabled = ((value And FileOrFolderActions.AllowDownloadFiles) = FileOrFolderActions.AllowDownloadFiles)
             Me.ToolStripButtonDeleteFile.Enabled = ((value And FileOrFolderActions.AllowDeleteFiles) = FileOrFolderActions.AllowDeleteFiles)
             Me.ButtonCreateNewFolder.Enabled = ((value And FileOrFolderActions.AllowCreateFolders) = FileOrFolderActions.AllowCreateFolders)
             Me.ButtonShowFiles.Visible = ((value And FileOrFolderActions.AllowSwitchBrowseMode) = FileOrFolderActions.AllowSwitchBrowseMode)
@@ -137,6 +138,7 @@ Public Class DmsBrowser
             UITools.SwitchToolStripVisibility(Me.ToolStripFolderContextButtonProperties, True, False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonUploadFile, ((value And FileOrFolderActions.AllowUploadFiles) = FileOrFolderActions.AllowUploadFiles), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonDownloadFile, ((value And FileOrFolderActions.AllowDownloadFiles) = FileOrFolderActions.AllowDownloadFiles), False)
+            UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonOpenPreviewFile, ((value And FileOrFolderActions.AllowDownloadFiles) = FileOrFolderActions.AllowDownloadFiles), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonCopyFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonMoveFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonRenameFile, ((value And FileOrFolderActions.AllowCopyRenameMoveFiles) = FileOrFolderActions.AllowCopyRenameMoveFiles), False)
@@ -210,6 +212,11 @@ Public Class DmsBrowser
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
         Try
             Me.LoadTree()
+        Catch ex As system.IO.DirectoryNotFoundException
+            MessageBox.Show(Me, ex.Message, "DMS folder not found", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.DialogResult = DialogResult.Cancel
+            Me.Close()
+            Return
         Catch ex As Exception
             If System.Diagnostics.Debugger.IsAttached Then
                 MessageBox.Show(Me, ex.ToString, "Zugangsdaten ungültig, DMS-Server-Instanz-Fehler oder Netzwerkfehler", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -237,6 +244,7 @@ Public Class DmsBrowser
         Me.TreeViewDmsFolders.Nodes.Clear()
         If Me.InitialFolder <> Nothing Then
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(Me.InitialFolder)
+            If Folder Is Nothing Then Throw New System.IO.DirectoryNotFoundException("Remote folder not found: " & Me.InitialFolder)
             Me.RootNode = Me.TreeViewDmsFolders.Nodes.Add("", Me.InitialFolder)
             Me.RootNode.Tag = New NodeTagData(Folder)
             If Folder.ExtendedInfosHasGroupSharings OrElse Folder.ExtendedInfosHasUserSharings Then
@@ -1089,5 +1097,62 @@ Public Class DmsBrowser
         End If
         Return MyBase.ProcessDialogKey(keyData)
     End Function
+
+    ''' <summary>
+    ''' Download to a temporary location and open this file
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    Private Sub ToolStripButtonOpenFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonOpenFile.Click
+        Try
+            Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
+            If SelectedFiles.Count = 0 Then
+                System.Windows.Forms.MessageBox.Show(Me, "Keine Datei(en) ausgewählt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            Else
+                For MyCounter As Integer = 0 To SelectedFiles.Count - 1
+                    Dim TargetFile As New CompuMaster.IO.TemporaryFile(CompuMaster.IO.TemporaryFile.TempFileCleanupEvent.OnApplicationExit,
+                                                                       System.IO.Path.GetRandomFileName,
+                                                                       System.IO.Path.GetFileNameWithoutExtension(SelectedFiles(MyCounter).Name),
+                                                                       System.IO.Path.GetExtension(SelectedFiles(MyCounter).Name))
+                    Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile.FilePath, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                    System.IO.File.SetAttributes(TargetFile.FilePath, System.IO.FileAttributes.ReadOnly Or System.IO.FileAttributes.Temporary)
+                    OpenDownloadedFileItem.Invoke(TargetFile)
+                Next
+            End If
+        Catch ex As Data.DmsUserErrorMessageException
+            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As Exception
+            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Open/preview a remote file, downloaded into a temporary file
+    ''' </summary>
+    ''' <param name="localTemporaryFile">The remote file downloaded into a temporary file on local disk</param>
+    ''' <returns>Process of started file</returns>
+    Public Delegate Function OpenDownloadedFileAction(localTemporaryFile As CompuMaster.IO.TemporaryFile) As System.Diagnostics.Process
+
+    Public Property OpenDownloadedFileItem As OpenDownloadedFileAction = AddressOf _OpenDownloadedFile_Default
+
+    Private Function _OpenDownloadedFile_Default(localTemporaryFile As CompuMaster.IO.TemporaryFile) As System.Diagnostics.Process
+        Return System.Diagnostics.Process.Start(New ProcessStartInfo(localTemporaryFile.FilePath) With {.UseShellExecute = True})
+    End Function
+
+    Private Sub DmsBrowser_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        Me.CleanupTemporaryFiles()
+    End Sub
+
+    ''' <summary>
+    ''' Cleanup previewed/downloaded temporary files
+    ''' </summary>
+    ''' <remarks>Run a CleanupOnApplicationExit for component CompuMaster.IO.TemporaryFile</remarks>
+    Public Overridable Sub CleanupTemporaryFiles()
+        CompuMaster.IO.TemporaryFile.CleanupOnApplicationExit()
+    End Sub
+
+    Private Sub ToolStripFileContextButtonOpenPreviewFile_Click(sender As Object, e As EventArgs) Handles ToolStripFileContextButtonOpenPreviewFile.Click
+        Me.ToolStripButtonOpenFile_Click(sender, e)
+    End Sub
 
 End Class
