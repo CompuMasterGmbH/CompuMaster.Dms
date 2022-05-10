@@ -143,7 +143,7 @@ Partial Class DmsBrowser
         Me.ContextMenuStripFolder.ImageScalingSize = New System.Drawing.Size(20, 20)
         Me.ContextMenuStripFolder.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripFolderContextButtonNewFolder, Me.ToolStripFolderContextButtonCopyFolder, Me.ToolStripFolderContextButtonRenameFolder, Me.ToolStripFolderContextButtonMoveFolder, Me.ToolStripFolderContextButtonDeleteFolder, Me.ToolStripSeparator3, Me.ToolStripFolderContextButtonShareFolder, Me.ToolStripFolderContextButtonRefreshFilesList, Me.ToolStripFolderContextButtonProperties})
         Me.ContextMenuStripFolder.Name = "ContextMenuStripFolder"
-        Me.ContextMenuStripFolder.Size = New System.Drawing.Size(253, 226)
+        Me.ContextMenuStripFolder.Size = New System.Drawing.Size(217, 226)
         '
         'ToolStripFolderContextButtonNewFolder
         '
@@ -188,7 +188,7 @@ Partial Class DmsBrowser
         'ToolStripSeparator3
         '
         Me.ToolStripSeparator3.Name = "ToolStripSeparator3"
-        Me.ToolStripSeparator3.Size = New System.Drawing.Size(249, 6)
+        Me.ToolStripSeparator3.Size = New System.Drawing.Size(213, 6)
         '
         'ToolStripFolderContextButtonShareFolder
         '
@@ -299,7 +299,7 @@ Partial Class DmsBrowser
         Me.ContextMenuStripFile.ImageScalingSize = New System.Drawing.Size(20, 20)
         Me.ContextMenuStripFile.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripFileContextButtonUploadFile, Me.ToolStripFileContextButtonDownloadFile, Me.ToolStripFileContextButtonOpenPreviewFile, Me.ToolStripSeparator2, Me.ToolStripFileContextButtonCopyFile, Me.ToolStripFileContextButtonRenameFile, Me.ToolStripFileContextButtonMoveFile, Me.ToolStripFileContextButtonDeleteFile, Me.ToolStripSeparator1, Me.ToolStripFileContextButtonShareFile, Me.ToolStripFileContextButtonProperties})
         Me.ContextMenuStripFile.Name = "ContextMenuStripFile"
-        Me.ContextMenuStripFile.Size = New System.Drawing.Size(186, 259)
+        Me.ContextMenuStripFile.Size = New System.Drawing.Size(166, 259)
         '
         'ToolStripFileContextButtonUploadFile
         '
@@ -328,7 +328,7 @@ Partial Class DmsBrowser
         'ToolStripSeparator2
         '
         Me.ToolStripSeparator2.Name = "ToolStripSeparator2"
-        Me.ToolStripSeparator2.Size = New System.Drawing.Size(182, 6)
+        Me.ToolStripSeparator2.Size = New System.Drawing.Size(162, 6)
         '
         'ToolStripFileContextButtonCopyFile
         '
@@ -365,7 +365,7 @@ Partial Class DmsBrowser
         'ToolStripSeparator1
         '
         Me.ToolStripSeparator1.Name = "ToolStripSeparator1"
-        Me.ToolStripSeparator1.Size = New System.Drawing.Size(182, 6)
+        Me.ToolStripSeparator1.Size = New System.Drawing.Size(162, 6)
         '
         'ToolStripFileContextButtonShareFile
         '
@@ -405,7 +405,7 @@ Partial Class DmsBrowser
         Me.ToolStripFileActions.Location = New System.Drawing.Point(0, 0)
         Me.ToolStripFileActions.Name = "ToolStripFileActions"
         Me.ToolStripFileActions.Padding = New System.Windows.Forms.Padding(0, 0, 2, 0)
-        Me.ToolStripFileActions.Size = New System.Drawing.Size(615, 26)
+        Me.ToolStripFileActions.Size = New System.Drawing.Size(584, 26)
         Me.ToolStripFileActions.TabIndex = 19
         '
         'ToolStripButtonUploadFile
@@ -539,7 +539,7 @@ Partial Class DmsBrowser
         '
         'ToolStripButtonRefreshFilesList
         '
-        Me.ToolStripButtonRefreshFilesList.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_View_ui_ux_mobile_web_4960757
+        Me.ToolStripButtonRefreshFilesList.Image = Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.Refresh
         Me.ToolStripButtonRefreshFilesList.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonRefreshFilesList.Name = "ToolStripButtonRefreshFilesList"
         Me.ToolStripButtonRefreshFilesList.Size = New System.Drawing.Size(155, 23)
