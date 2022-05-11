@@ -310,18 +310,72 @@ Namespace Providers
             End Using
         End Sub
 
-        Public Overrides Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, recursive As Boolean, overwrite As Boolean)
-            Dim CopyParams As New Global.WebDav.CopyParameters()
-            If recursive = False Then
-                CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceOnly
-            Else
-                CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
+        Protected Sub CheckTaskResultForErrors(completedTask As Task(Of WebDav.WebDavResponse), remoteDestinationPath As String, ioExceptionMessage As String, conflictItemType As DmsResourceItem.FoundItemType)
+            Select Case completedTask.Status
+                Case TaskStatus.Faulted, TaskStatus.RanToCompletion
+                    'ok - continue checks below
+                Case TaskStatus.Created, TaskStatus.WaitingForActivation
+                    Throw New InvalidOperationException("Task not started")
+                Case TaskStatus.WaitingForChildrenToComplete, TaskStatus.WaitingToRun, TaskStatus.Running
+                    Throw New InvalidOperationException("Task not finished")
+                Case TaskStatus.Canceled
+                    Throw New TaskCanceledException()
+                Case Else
+                    Throw New InvalidOperationException("Task status invalid")
+            End Select
+            If completedTask.Status <> TaskStatus.RanToCompletion OrElse completedTask.IsFaulted OrElse completedTask.Result.IsSuccessful = False Then
+                If completedTask.Result Is Nothing Then
+                    Throw New System.IO.IOException("Copy task failed")
+                ElseIf completedTask.Result.StatusCode = 409 Then
+                    Select Case conflictItemType
+                        Case DmsResourceItem.FoundItemType.File
+                            Throw New FileAlreadyExistsException(remoteDestinationPath, New System.Net.HttpListenerException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                        Case DmsResourceItem.FoundItemType.Folder, DmsResourceItem.FoundItemType.Collection
+                            Throw New DirectoryAlreadyExistsException(remoteDestinationPath, New System.Net.HttpListenerException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                        Case Else
+                            Throw New System.IO.IOException("Copy task failed", New System.Net.HttpListenerException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                    End Select
+                ElseIf completedTask.Exception IsNot Nothing Then
+                    Throw New System.IO.IOException("Copy task failed", completedTask.Exception)
+                Else
+                    Throw New System.IO.IOException("Copy task failed", New System.Net.HttpListenerException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                End If
             End If
-            CopyParams.Overwrite = overwrite
-            Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams).Wait()
         End Sub
 
-        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+            Dim CopyParams As New Global.WebDav.CopyParameters()
+            CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
+            Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
+            CopyTask.Wait()
+            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", DmsResourceItem.FoundItemType.File)
+        End Sub
+
+        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+            Dim CopyParams As New Global.WebDav.CopyParameters()
+            CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
+            Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
+            Await CopyTask
+            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", DmsResourceItem.FoundItemType.File)
+        End Function
+
+        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+            Dim CopyParams As New Global.WebDav.CopyParameters()
+            CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
+            Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
+            CopyTask.Wait()
+            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", DmsResourceItem.FoundItemType.File)
+        End Sub
+
+        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+            Dim CopyParams As New Global.WebDav.CopyParameters()
+            CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
+            Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
+            Await CopyTask
+            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", DmsResourceItem.FoundItemType.File)
+        End Function
+
+        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False}).Wait()
         End Sub
 
@@ -432,6 +486,12 @@ Namespace Providers
         Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
             Get
                 Return True
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
+            Get
+                Return False
             End Get
         End Property
 

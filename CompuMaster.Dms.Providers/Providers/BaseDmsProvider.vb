@@ -123,6 +123,38 @@ Namespace Providers
         End Function
 
         ''' <summary>
+        ''' An existance check for a remote item
+        ''' </summary>
+        ''' <param name="remotePath"></param>
+        ''' <returns></returns>
+        Public Overridable Function RemoteItemExistsAs(remotePath As String) As DmsResourceItem.FoundItemType
+            Dim RemoteItem As DmsResourceItem
+            RemoteItem = Me.ListRemoteItem(remotePath)
+            If RemoteItem Is Nothing Then
+                Return DmsResourceItem.FoundItemType.NotFound
+            Else
+                Return CType(CType(RemoteItem.ItemType, Byte), DmsResourceItem.FoundItemType)
+            End If
+        End Function
+
+        ''' <summary>
+        ''' An existance check for a remote item (collissions with remote items under the very same name are checked)
+        ''' </summary>
+        ''' <param name="remotePath"></param>
+        ''' <returns></returns>
+        Public Overridable Function RemoteItemExistsUniquelyAs(remotePath As String) As DmsResourceItem.FoundItemResult
+            Dim RemoteItem As DmsResourceItem
+            RemoteItem = Me.ListRemoteItem(remotePath)
+            If RemoteItem Is Nothing Then
+                Return DmsResourceItem.FoundItemResult.NotFound
+            ElseIf RemoteItem.ExtendedInfosCollisionDetected Then
+                Return DmsResourceItem.FoundItemResult.WithNameCollisions
+            Else
+                Return CType(CType(RemoteItem.ItemType, Byte), DmsResourceItem.FoundItemResult)
+            End If
+        End Function
+
+        ''' <summary>
         ''' Reset file system cache and force refresh on next access
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>
@@ -297,21 +329,200 @@ Namespace Providers
         ''' <param name="lastModificationDateOnLocalTime"></param>
         Public MustOverride Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
 
+
+        ''' <summary>
+        ''' Copy a remote DMS item (overwriting forbidden, destination directory must exist)
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Sub Copy(remoteSourcePath As String, remoteDestinationPath As String)
+            Me.Copy(remoteSourcePath, remoteDestinationPath, False, False)
+        End Sub
+
+        ''' <summary>
+        ''' Copy a remote DMS item (overwriting forbidden, destination directory must exist)
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
+            Await Me.CopyAsync(remoteSourcePath, remoteDestinationPath, False, False)
+        End Function
+
+        ''' <summary>
+        ''' Copy a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath">Absolute source path</param>
+        ''' <param name="remoteDestinationPath">Absolute destination path</param>
+        ''' <param name="allowOverwrite">True to allow overwriting, False to forbid overwriting, null/Nothing to use provider specific default</param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+            If remoteSourcePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteSourcePath))
+            If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
+            If allowOverwrite.HasValue AndAlso allowOverwrite.Value = False Then
+                Select Case Me.RemoteItemExistsUniquelyAs(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.WithNameCollisions
+                        Throw New RemotePathNotUniqueException(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.File
+                        Throw New FileAlreadyExistsException(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.Root
+                        Throw New NotSupportedException("Root directory can't be the target of a copy action")
+                End Select
+            End If
+            Dim ParentDir As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            If ParentDir <> Nothing Then
+                Select Case Me.RemoteItemExistsUniquelyAs(ParentDir)
+                    Case DmsResourceItem.FoundItemResult.Collection, DmsResourceItem.FoundItemResult.Folder
+                        'Ok
+                    Case DmsResourceItem.FoundItemResult.File
+                        Throw New FileAlreadyExistsException(ParentDir)
+                    Case DmsResourceItem.FoundItemResult.NotFound
+                        If allowCreationOfRemoteDirectory Then
+                            Me.CreateFolder(ParentDir)
+                        Else
+                            Throw New DirectoryNotFoundException(ParentDir)
+                        End If
+                    Case DmsResourceItem.FoundItemResult.WithNameCollisions
+                        Throw New RemotePathNotUniqueException(ParentDir)
+                    Case Else
+                        Throw New NotSupportedException("Remote ressource with unsupported type: " & ParentDir)
+                End Select
+            End If
+            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
+            Select Case FoundRemoteSourceItem
+                Case DmsResourceItem.FoundItemResult.WithNameCollisions
+                    Throw New RemotePathNotUniqueException(remoteSourcePath)
+                Case DmsResourceItem.FoundItemResult.NotFound
+                    Throw New RessourceNotFoundException(remoteSourcePath)
+                Case DmsResourceItem.FoundItemResult.Root
+                    Throw New NotSupportedException("Root directory can't be copied recursively")
+                Case DmsResourceItem.FoundItemResult.File
+                    Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
+                    Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
+                Case Else
+                    Throw New ArgumentOutOfRangeException(NameOf(remoteSourcePath), "Invalid value: " & remoteSourcePath.ToString)
+            End Select
+        End Sub
+
         ''' <summary>
         ''' Copy a remote DMS item
         ''' </summary>
         ''' <param name="remoteSourcePath"></param>
         ''' <param name="remoteDestinationPath"></param>
-        ''' <param name="recursive"></param>
-        ''' <param name="overwrite"></param>
-        Public MustOverride Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, recursive As Boolean, overwrite As Boolean)
+        ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+            If remoteSourcePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteSourcePath))
+            If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
+            If allowOverwrite.HasValue AndAlso allowOverwrite.Value = False Then
+                Select Case Me.RemoteItemExistsUniquelyAs(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.WithNameCollisions
+                        Throw New RemotePathNotUniqueException(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.File
+                        Throw New FileAlreadyExistsException(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.Root
+                        Throw New NotSupportedException("Root directory can't be the target of a copy action")
+                End Select
+            End If
+            Dim ParentDir As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            If ParentDir <> Nothing Then
+                Select Case Me.RemoteItemExistsUniquelyAs(ParentDir)
+                    Case DmsResourceItem.FoundItemResult.Collection, DmsResourceItem.FoundItemResult.Folder
+                        'Ok
+                    Case DmsResourceItem.FoundItemResult.File
+                        Throw New FileAlreadyExistsException(ParentDir)
+                    Case DmsResourceItem.FoundItemResult.NotFound
+                        If allowCreationOfRemoteDirectory Then
+                            Me.CreateFolder(ParentDir)
+                        Else
+                            Throw New DirectoryNotFoundException(ParentDir)
+                        End If
+                    Case DmsResourceItem.FoundItemResult.WithNameCollisions
+                        Throw New RemotePathNotUniqueException(ParentDir)
+                    Case Else
+                        Throw New NotSupportedException("Remote ressource with unsupported type: " & ParentDir)
+                End Select
+            End If
+            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
+            Select Case FoundRemoteSourceItem
+                Case DmsResourceItem.FoundItemResult.WithNameCollisions
+                    Throw New NotSupportedException("Not a unique item: " & remoteSourcePath)
+                Case DmsResourceItem.FoundItemResult.NotFound
+                    Throw New RessourceNotFoundException(remoteSourcePath)
+                Case DmsResourceItem.FoundItemResult.Root
+                    Throw New NotSupportedException("Root directory can't be copied recursively")
+                Case DmsResourceItem.FoundItemResult.File
+                    Await Me.CopyFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
+                    Await Me.CopyDirectoryItemAsync(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
+                Case Else
+                    Throw New ArgumentOutOfRangeException(NameOf(remoteSourcePath), "Invalid value: " & remoteSourcePath.ToString)
+            End Select
+        End Function
+
+        ''' <summary>
+        ''' Copy a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Protected MustOverride Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+
+        ''' <summary>
+        ''' Copy a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Protected MustOverride Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+
+        ''' <summary>
+        ''' Copy a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Protected MustOverride Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+
+        ''' <summary>
+        ''' Copy a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Protected MustOverride Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+
+        ''' <summary>
+        ''' Move a remote DMS item (overwriting forbidden, destination directory must exist)
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
+            Me.Move(remoteSourcePath, remoteDestinationPath, False, False)
+        End Sub
 
         ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
         ''' <param name="remoteSourcePath"></param>
         ''' <param name="remoteDestinationPath"></param>
-        Public MustOverride Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public MustOverride Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
 
         ''' <summary>
         ''' Delete a remote item (folder, collection or file)
@@ -478,6 +689,12 @@ Namespace Providers
         ''' </summary>
         ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsSubFolderConfiguration As Boolean
+
+        ''' <summary>
+        ''' DMS provider supports remote items with very same names (e.g. 2 files with the very same name are uniquely accessible only by their DmsItem respectively by their ID)
+        ''' </summary>
+        ''' <returns></returns>
+        Public MustOverride ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
 
         ''' <summary>
         ''' DMS provider supports files in root folder (or only folders/collections)

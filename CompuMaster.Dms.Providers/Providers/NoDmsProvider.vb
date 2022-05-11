@@ -87,6 +87,12 @@ Namespace Providers
             End Get
         End Property
 
+        Public Overrides ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
             Throw New NotSupportedException()
         End Sub
@@ -103,11 +109,23 @@ Namespace Providers
             Throw New NotSupportedException()
         End Sub
 
-        Public Overrides Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, recursive As Boolean, overwrite As Boolean)
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Throw New NotSupportedException()
         End Sub
 
-        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
+        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+            Throw New NotSupportedException()
+        End Function
+
+        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+            Throw New NotSupportedException()
+        End Sub
+
+        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+            Throw New NotSupportedException()
+        End Function
+
+        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Throw New NotSupportedException()
         End Sub
 

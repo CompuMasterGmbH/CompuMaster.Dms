@@ -34,6 +34,62 @@ Namespace Data
         End Enum
 
         ''' <summary>
+        ''' Lookup results for remote items
+        ''' </summary>
+        Public Enum FoundItemType As Byte
+            ''' <summary>
+            ''' Ressource doesn't exist
+            ''' </summary>
+            NotFound = 0
+            ''' <summary>
+            ''' A file
+            ''' </summary>
+            File = 1
+            ''' <summary>
+            ''' A regular directory
+            ''' </summary>
+            Folder = 2
+            ''' <summary>
+            ''' A collection directory, usually implementing additional special features on remote DMS
+            ''' </summary>
+            Collection = 3
+            ''' <summary>
+            ''' The root directory of the remote DMS
+            ''' </summary>
+            Root = 4
+        End Enum
+
+        ''' <summary>
+        ''' Lookup results for remote items
+        ''' </summary>
+        Public Enum FoundItemResult As Byte
+            ''' <summary>
+            ''' Ressource doesn't exist
+            ''' </summary>
+            NotFound = 0
+            ''' <summary>
+            ''' A file
+            ''' </summary>
+            File = 1
+            ''' <summary>
+            ''' A regular directory
+            ''' </summary>
+            Folder = 2
+            ''' <summary>
+            ''' A collection directory, usually implementing additional special features on remote DMS
+            ''' </summary>
+            Collection = 3
+            ''' <summary>
+            ''' The root directory of the remote DMS
+            ''' </summary>
+            Root = 4
+            ''' <summary>
+            ''' There is more than 1 file or folder with the very same name
+            ''' </summary>
+            WithNameCollisions = 255
+        End Enum
+
+        ''' <summary>
         ''' Item name
         ''' </summary>
         ''' <returns></returns>

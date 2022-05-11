@@ -183,12 +183,27 @@ Namespace Providers
             If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
         End Sub
 
-        Public Overrides Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, recursive As Boolean, overwrite As Boolean)
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
-        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
+        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+            Throw New NotImplementedException()
+            'Me.ResetParentDirectoryCache(remoteItem)
+        End Function
+
+        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+            Throw New NotImplementedException()
+            'Me.ResetParentDirectoryCache(remoteItem)
+        End Sub
+
+        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+            Throw New NotImplementedException()
+            'Me.ResetParentDirectoryCache(remoteItem)
+        End Function
+
+        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
@@ -838,6 +853,12 @@ Namespace Providers
         Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
             Get
                 Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
+            Get
+                Return True
             End Get
         End Property
 
