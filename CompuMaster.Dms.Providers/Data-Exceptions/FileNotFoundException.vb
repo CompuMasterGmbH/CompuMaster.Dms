@@ -12,6 +12,11 @@
             Me.RemotePath = remotePath
         End Sub
 
+        Public Sub New(remotePath As String, innerException As Exception)
+            MyBase.New("File not found: " & remotePath, innerException)
+            Me.RemotePath = remotePath
+        End Sub
+
         Public Property RemotePath As String
 
     End Class

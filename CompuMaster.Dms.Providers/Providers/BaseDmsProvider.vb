@@ -297,6 +297,15 @@ Namespace Providers
         Public MustOverride Function CreateNewCredentialsInstance() As BaseDmsLoginCredentials
 
         ''' <summary>
+        ''' The desired exception type in case of errors
+        ''' </summary>
+        Protected Enum ExceptionTypeForItemType As Byte
+            Unspecified = 0
+            Directory = 1
+            File = 2
+        End Enum
+
+        ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
         ''' <param name="remoteFilePath"></param>
@@ -319,6 +328,49 @@ Namespace Providers
             Me.UploadFile(remoteFilePath, Function()
                                               Return New System.IO.MemoryStream(binaryData)
                                           End Function)
+        End Sub
+
+        ''' <summary>
+        ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
+        ''' </summary>
+        ''' <param name="remoteFilePath"></param>
+        ''' <param name="localFilePath"></param>
+        Public Sub UploadFile(remoteFilePath As String, localFilePath As String, createDirectoryStructureIfMissing As Boolean)
+            If remoteFilePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
+            Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
+            If ParentDirectory <> Nothing AndAlso Me.RemoteItemExists(ParentDirectory) = False Then
+                Me.CreateFolder(ParentDirectory)
+            End If
+            Me.UploadFile(remoteFilePath, localFilePath)
+        End Sub
+
+
+        ''' <summary>
+        ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
+        ''' </summary>
+        ''' <param name="remoteFilePath"></param>
+        ''' <param name="binaryData"></param>
+        Public Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), createDirectoryStructureIfMissing As Boolean)
+            If remoteFilePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
+            Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
+            If ParentDirectory <> Nothing AndAlso Me.RemoteItemExists(ParentDirectory) = False Then
+                Me.CreateFolder(ParentDirectory)
+            End If
+            Me.UploadFile(remoteFilePath, binaryData)
+        End Sub
+
+        ''' <summary>
+        ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
+        ''' </summary>
+        ''' <param name="remoteFilePath"></param>
+        ''' <param name="binaryData"></param>
+        Public Sub UploadFile(remoteFilePath As String, binaryData As Byte(), createDirectoryStructureIfMissing As Boolean)
+            If remoteFilePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
+            Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
+            If ParentDirectory <> Nothing AndAlso Me.RemoteItemExists(ParentDirectory) = False Then
+                Me.CreateFolder(ParentDirectory, True)
+            End If
+            Me.UploadFile(remoteFilePath, binaryData)
         End Sub
 
         ''' <summary>
@@ -361,73 +413,65 @@ Namespace Providers
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
-            If remoteSourcePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteSourcePath))
-            If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
-            If allowOverwrite.HasValue AndAlso allowOverwrite.Value = False Then
-                Select Case Me.RemoteItemExistsUniquelyAs(remoteDestinationPath)
-                    Case DmsResourceItem.FoundItemResult.WithNameCollisions
-                        Throw New RemotePathNotUniqueException(remoteDestinationPath)
-                    Case DmsResourceItem.FoundItemResult.File
-                        Throw New FileAlreadyExistsException(remoteDestinationPath)
-                    Case DmsResourceItem.FoundItemResult.Root
-                        Throw New NotSupportedException("Root directory can't be the target of a copy action")
-                End Select
-            End If
-            Dim ParentDir As String = Me.ParentDirectoryPath(remoteDestinationPath)
-            If ParentDir <> Nothing Then
-                Select Case Me.RemoteItemExistsUniquelyAs(ParentDir)
-                    Case DmsResourceItem.FoundItemResult.Collection, DmsResourceItem.FoundItemResult.Folder
-                        'Ok
-                    Case DmsResourceItem.FoundItemResult.File
-                        Throw New FileAlreadyExistsException(ParentDir)
-                    Case DmsResourceItem.FoundItemResult.NotFound
-                        If allowCreationOfRemoteDirectory Then
-                            Me.CreateFolder(ParentDir)
-                        Else
-                            Throw New DirectoryNotFoundException(ParentDir)
-                        End If
-                    Case DmsResourceItem.FoundItemResult.WithNameCollisions
-                        Throw New RemotePathNotUniqueException(ParentDir)
-                    Case Else
-                        Throw New NotSupportedException("Remote ressource with unsupported type: " & ParentDir)
-                End Select
-            End If
             Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
+            Me.CopyArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
             Select Case FoundRemoteSourceItem
-                Case DmsResourceItem.FoundItemResult.WithNameCollisions
-                    Throw New RemotePathNotUniqueException(remoteSourcePath)
-                Case DmsResourceItem.FoundItemResult.NotFound
-                    Throw New RessourceNotFoundException(remoteSourcePath)
-                Case DmsResourceItem.FoundItemResult.Root
-                    Throw New NotSupportedException("Root directory can't be copied recursively")
                 Case DmsResourceItem.FoundItemResult.File
                     Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
                     Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
                 Case Else
-                    Throw New ArgumentOutOfRangeException(NameOf(remoteSourcePath), "Invalid value: " & remoteSourcePath.ToString)
+                    Throw New NotImplementedException
             End Select
         End Sub
 
         ''' <summary>
         ''' Copy a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The path of a file or directory, e.g. &quot;source/file.tmp&quot; or &quot;source/directory&quot;</param>
+        ''' <param name="remoteDestinationPath">The full destination path of a file or directory, e.g. &quot;cloned/directory&quot;</param>
         ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
+            Me.CopyArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Select Case FoundRemoteSourceItem
+                Case DmsResourceItem.FoundItemResult.File
+                    Await Me.CopyFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
+                    Await Me.CopyDirectoryItemAsync(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
+                Case Else
+                    Throw New NotImplementedException
+            End Select
+        End Function
+
+        ''' <summary>
+        ''' Check input arguments for copy methods
+        ''' </summary>
+        ''' <param name="foundSourceRemoteItemType"></param>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="allowOverwrite"></param>
+        ''' <param name="allowCreationOfRemoteDirectory"></param>
+        Private Sub CopyArgumentsCheck(foundSourceRemoteItemType As DmsResourceItem.FoundItemResult, remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             If remoteSourcePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteSourcePath))
             If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
+            If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException("Must be a path without trailing directory separator char: " & remoteDestinationPath, NameOf(remoteDestinationPath))
             If allowOverwrite.HasValue AndAlso allowOverwrite.Value = False Then
                 Select Case Me.RemoteItemExistsUniquelyAs(remoteDestinationPath)
                     Case DmsResourceItem.FoundItemResult.WithNameCollisions
                         Throw New RemotePathNotUniqueException(remoteDestinationPath)
                     Case DmsResourceItem.FoundItemResult.File
                         Throw New FileAlreadyExistsException(remoteDestinationPath)
+                    Case DmsResourceItem.FoundItemResult.Collection, DmsResourceItem.FoundItemResult.Folder
+                        Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
                     Case DmsResourceItem.FoundItemResult.Root
                         Throw New NotSupportedException("Root directory can't be the target of a copy action")
+                    Case DmsResourceItem.FoundItemResult.NotFound
+                        'ok
+                    Case Else
+                        Throw New NotImplementedException
                 End Select
             End If
             Dim ParentDir As String = Me.ParentDirectoryPath(remoteDestinationPath)
@@ -448,23 +492,30 @@ Namespace Providers
                     Case Else
                         Throw New NotSupportedException("Remote ressource with unsupported type: " & ParentDir)
                 End Select
+            Else 'If ParentDir = "" -> root dir
+                If Me.SupportsFilesInRootFolder = False Then
+                    Throw New NotSupportedException("Files in root folder not supported by DMS provider")
+                End If
             End If
-            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
-            Select Case FoundRemoteSourceItem
+            Select Case foundSourceRemoteItemType
                 Case DmsResourceItem.FoundItemResult.WithNameCollisions
                     Throw New NotSupportedException("Not a unique item: " & remoteSourcePath)
                 Case DmsResourceItem.FoundItemResult.NotFound
                     Throw New RessourceNotFoundException(remoteSourcePath)
                 Case DmsResourceItem.FoundItemResult.Root
-                    Throw New NotSupportedException("Root directory can't be copied recursively")
-                Case DmsResourceItem.FoundItemResult.File
-                    Await Me.CopyFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                    Throw New NotSupportedException("Root directory can't be source of a copy action")
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
-                    Await Me.CopyDirectoryItemAsync(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
+                    If allowOverwrite.HasValue = True AndAlso allowOverwrite.Value = False Then
+                        'Supported source object (file or directory)
+                    Else
+                        Throw New NotImplementedException("Source is directory (folder or collection); current implementation only supports AllowOverwrite=False")
+                    End If
+                Case DmsResourceItem.FoundItemResult.File
+                    'Supported source object (file or directory)
                 Case Else
                     Throw New ArgumentOutOfRangeException(NameOf(remoteSourcePath), "Invalid value: " & remoteSourcePath.ToString)
             End Select
-        End Function
+        End Sub
 
         ''' <summary>
         ''' Copy a remote DMS item
@@ -562,8 +613,21 @@ Namespace Providers
         ''' <summary>
         ''' Create a new folder on remote DMS
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        Public MustOverride Sub CreateFolder(remoteFilePath As String)
+        ''' <param name="remoteDirectoryPath"></param>
+        Public MustOverride Sub CreateFolder(remoteDirectoryPath As String)
+
+        ''' <summary>
+        ''' Create a new folder on remote DMS
+        ''' </summary>
+        ''' <param name="remoteDirectoryPath"></param>
+        Public Sub CreateFolder(remoteDirectoryPath As String, createParentFolders As Boolean)
+            If remoteDirectoryPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDirectoryPath))
+            Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteDirectoryPath)
+            If ParentDirectory <> Nothing AndAlso Me.RemoteItemExists(ParentDirectory) = False Then
+                Me.CreateFolder(ParentDirectory, True)
+            End If
+            Me.CreateFolder(remoteDirectoryPath)
+        End Sub
 
         ''' <summary>
         ''' Create a new collection on remote DMS
