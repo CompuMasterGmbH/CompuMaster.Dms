@@ -262,7 +262,7 @@ Namespace Providers
                 fs = System.IO.File.OpenRead(localFilePath)
                 Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, fs, PutParams)
                 UploadTask.Wait()
-                CheckTaskResultForErrors(UploadTask, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File)
+                CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File)
             Finally
                 If fs IsNot Nothing Then
                     fs.Close()
@@ -275,7 +275,7 @@ Namespace Providers
             Dim PutParams As New Global.WebDav.PutFileParameters
             Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams)
             UploadTask.Wait()
-            CheckTaskResultForErrors(UploadTask, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File)
+            CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File)
         End Sub
 
 
@@ -315,10 +315,12 @@ Namespace Providers
         ''' Check for successful run of a task
         ''' </summary>
         ''' <param name="completedTask"></param>
+        ''' <param name="remoteSourcePath">Optional value, required for actions requiring existance of source item</param>
         ''' <param name="remoteDestinationPath"></param>
         ''' <param name="ioExceptionMessage"></param>
         ''' <param name="conflictItemType">Decides on exception type if a HTTP status code 409 is reported</param>
-        Protected Sub CheckTaskResultForErrors(completedTask As Task(Of WebDav.WebDavResponse), remoteDestinationPath As String, ioExceptionMessage As String, conflictItemType As ExceptionTypeForItemType)
+        Protected Sub CheckTaskResultForErrors(completedTask As Task(Of WebDav.WebDavResponse), remoteSourcePath As String, remoteDestinationPath As String, ioExceptionMessage As String, conflictItemType As ExceptionTypeForItemType)
+            If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
             Select Case completedTask.Status
                 Case TaskStatus.Faulted, TaskStatus.RanToCompletion
                     'ok - continue checks below
@@ -339,7 +341,9 @@ Namespace Providers
                     Throw New RessourceNotFoundException(remoteDestinationPath)
                 ElseIf completedTask.Result.StatusCode = 409 Then
                     '409 Conflict
-                    If Me.RemoteItemExists(remoteDestinationPath) Then
+                    If remoteDestinationPath = Nothing Then
+                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                    ElseIf Me.RemoteItemExists(remoteDestinationPath) Then
                         Select Case conflictItemType
                             Case ExceptionTypeForItemType.File
                                 Throw New FileAlreadyExistsException(remoteDestinationPath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
@@ -356,6 +360,13 @@ Namespace Providers
                             Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
                         End If
                     End If
+                ElseIf completedTask.Result.StatusCode = 412 Then
+                    '412 Precondition failed
+                    If remoteSourcePath <> Nothing Then
+                        Throw New RessourceNotFoundException(remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                    Else
+                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                    End If
                 ElseIf completedTask.Exception IsNot Nothing Then
                     Throw New System.IO.IOException(ioExceptionMessage, completedTask.Exception)
                 Else
@@ -364,60 +375,66 @@ Namespace Providers
             End If
         End Sub
 
-        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             CopyTask.Wait()
-            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File)
+            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File)
         End Sub
 
-        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             Await CopyTask
-            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File)
+            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File)
         End Function
 
-        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             CopyTask.Wait()
-            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory)
+            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory)
         End Sub
 
-        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             Await CopyTask
-            CheckTaskResultForErrors(CopyTask, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory)
+            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory)
         End Function
 
-        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False})
             MoveTask.Wait()
-            CheckTaskResultForErrors(MoveTask, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.Unspecified) 'or .File/.Directory
+            CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.File)
+        End Sub
+
+        Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
+            Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False})
+            MoveTask.Wait()
+            CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.Directory)
         End Sub
 
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteFilePath)
             DelTask.Wait()
-            CheckTaskResultForErrors(DelTask, remoteFilePath, "Delete failed", ExceptionTypeForItemType.Unspecified)
+            CheckTaskResultForErrors(DelTask, Nothing, remoteFilePath, "Delete failed", ExceptionTypeForItemType.Unspecified)
         End Sub
 
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteItem.FullName)
             DelTask.Wait()
-            CheckTaskResultForErrors(DelTask, remoteItem.FullName, "Delete failed", ExceptionTypeForItemType.Unspecified)
+            CheckTaskResultForErrors(DelTask, Nothing, remoteItem.FullName, "Delete failed", ExceptionTypeForItemType.Unspecified)
         End Sub
 
         Public Overrides Sub CreateFolder(remoteFilePath As String)
             Dim CreateTask = Me.WebDavClient.Mkcol(Me.CustomWebApiUrl & remoteFilePath)
             CreateTask.Wait()
-            CheckTaskResultForErrors(CreateTask, remoteFilePath, "Create folder failed", ExceptionTypeForItemType.Directory)
+            CheckTaskResultForErrors(CreateTask, Nothing, remoteFilePath, "Create folder failed", ExceptionTypeForItemType.Directory)
         End Sub
 
         Public Overrides Sub CreateCollection(remoteCollectionName As String)

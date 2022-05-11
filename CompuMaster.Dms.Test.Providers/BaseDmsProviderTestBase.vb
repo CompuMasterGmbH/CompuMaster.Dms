@@ -293,8 +293,8 @@ Imports CompuMaster.Dms.Providers
             New KeyValuePair(Of String, Byte())("upload-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
         }
 
-    Public Overridable ReadOnly Property CopyTestFileSource As New KeyValuePair(Of String, Byte())("copy-source-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
-    Public Overridable ReadOnly Property CopyTestFileTargets As String() = New String() {"copy-target-test-file.tmp", "copy-sub-target/copy-target-test-file.tmp"}
+    Public Overridable ReadOnly Property CopyFileTestFileSource As New KeyValuePair(Of String, Byte())("copy-source-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
+    Public Overridable ReadOnly Property CopyFileTestFileTargets As String() = New String() {"copy-target-test-file.tmp", "copy-sub-target/copy-target-test-file.tmp"}
     Public Overridable ReadOnly Property CopyDirTestFileSource As New KeyValuePair(Of String, Byte())("sub/sub2/sub3/copy-source-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
     Public Overridable ReadOnly Property CopyDirTestDirSource As String() = New String() {
         "sub",
@@ -314,14 +314,40 @@ Imports CompuMaster.Dms.Providers
         "sub-copy3/sub3/copy-source-test-file.tmp",
         "sub-copy4/sub3/copy-source-test-file.tmp"
     }
-    Public Overridable ReadOnly Property MoveTestFileSource As New KeyValuePair(Of String, Byte())("move-source-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
-    Public Overridable ReadOnly Property MoveTestFileTargets As String() = New String() {"move-target-test-file.tmp", "move-sub-target/move-target-test-file.tmp"}
+    Public Overridable ReadOnly Property MoveFileTestFileSource As New KeyValuePair(Of String, Byte())("move-source-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
+    Public Overridable ReadOnly Property MoveFileTestFileTargets As String() = New String() {"move-target-test-file.tmp", "move-sub-target/move-target-test-file.tmp"}
+    Public Overridable ReadOnly Property MoveDirTestFileSource As New KeyValuePair(Of String, Byte())("sub/sub2/sub3/move-source-test-file.tmp", New Byte() {0, 255, 68, 46, 64, 87, 92})
+    Public Overridable ReadOnly Property MoveDirTestDirSource As String() = New String() {
+        "sub",
+        "sub",
+        "sub/sub2",
+        "sub/sub2/"
+    }
+    Public Overridable ReadOnly Property MoveDirTestDirTarget As String() = New String() {
+        "sub-move1",
+        "sub-move2/",
+        "sub-move3",
+        "sub-move4"
+    }
+    Public Overridable ReadOnly Property MoveDirTestExpectedTargetFile As String() = New String() {
+        "sub-move1/sub2/sub3/move-source-test-file.tmp",
+        "{NOT-SUPPORTED:ArgumentException}",
+        "sub-move3/sub3/move-source-test-file.tmp",
+        "sub-move4/sub3/move-source-test-file.tmp"
+    }
 
     <Test> Public Sub CorrectTestConfigOverrides()
+        'Copy property
         Assert.AreEqual(CopyDirTestDirSource.Length, CopyDirTestDirTarget.Length)
         Assert.AreEqual(CopyDirTestDirSource.Length, CopyDirTestExpectedTargetFile.Length)
         For Each SourceDir As String In Me.CopyDirTestDirSource
             Assert.True(CopyDirTestFileSource.Key.StartsWith(SourceDir))
+        Next
+        'Move property
+        Assert.AreEqual(MoveDirTestDirSource.Length, MoveDirTestDirTarget.Length)
+        Assert.AreEqual(MoveDirTestDirSource.Length, MoveDirTestExpectedTargetFile.Length)
+        For Each SourceDir As String In Me.MoveDirTestDirSource
+            Assert.True(MoveDirTestFileSource.Key.StartsWith(SourceDir))
         Next
     End Sub
 
@@ -830,9 +856,9 @@ Imports CompuMaster.Dms.Providers
             End If
 
             'Run copy-file tests
-            For Each CopyTarget As String In Me.CopyTestFileTargets
-                UploadFileAndCreateCopy(DmsProvider, Me.CopyTestFileSource.Value, Me.CopyTestFileSource.Key, CopyTarget)
-                UploadFileAndCreateCopyAsync(DmsProvider, Me.CopyTestFileSource.Value, Me.CopyTestFileSource.Key, CopyTarget)
+            For Each CopyTarget As String In Me.CopyFileTestFileTargets
+                UploadFileAndCreateCopy(DmsProvider, Me.CopyFileTestFileSource.Value, Me.CopyFileTestFileSource.Key, CopyTarget)
+                UploadFileAndCreateCopyAsync(DmsProvider, Me.CopyFileTestFileSource.Value, Me.CopyFileTestFileSource.Key, CopyTarget)
             Next
 
             'Test the test
@@ -1007,6 +1033,157 @@ Imports CompuMaster.Dms.Providers
         Assert.False(CopyTask.IsFaulted)
         Assert.AreEqual(TaskStatus.RanToCompletion, CopyTask.Status)
         AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
+
+        'Cleanup
+        CleanupRemoteFile(dmsProvider, RemoteFilePathSource)
+        CleanupRemoteFile(dmsProvider, RemoteFilePathTarget)
+    End Sub
+
+    <Test> Public Sub Move_Files()
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+
+        If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
+
+            'Prepare pre-requisites
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            If DmsProvider.SupportsCollections Then
+                Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+            Else
+                Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+            End If
+
+            'Run move-file tests
+            For Each MoveTarget As String In Me.MoveFileTestFileTargets
+                UploadFileAndMove(DmsProvider, Me.MoveFileTestFileSource.Value, Me.MoveFileTestFileSource.Key, MoveTarget)
+                'UploadFileAndMoveAsync(DmsProvider, Me.MoveFileTestFileSource.Value, Me.MoveFileTestFileSource.Key, MoveTarget)
+            Next
+
+            'Test the test
+            If DmsProvider.SupportsCollections Then
+                Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+            Else
+                Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+            End If
+
+            'Cleanup
+            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+
+        End If
+
+    End Sub
+
+    <Test> Public Sub Move_Directories()
+        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+
+        If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
+
+            'Prepare pre-requisites
+            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            If DmsProvider.SupportsCollections Then
+                Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+            Else
+                Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+            End If
+
+            'Run move-dir tests
+            For MyCounter As Integer = 0 To MoveDirTestDirSource.Length - 1
+                'move and check
+                UploadDirAndMove(DmsProvider, Me.MoveDirTestDirSource(MyCounter), Me.MoveDirTestDirTarget(MyCounter), Me.MoveDirTestFileSource.Key, Me.MoveDirTestExpectedTargetFile(MyCounter))
+            Next
+
+            'Test the test
+            If DmsProvider.SupportsCollections Then
+                Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+            Else
+                Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+            End If
+
+            'Cleanup
+            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+
+        End If
+
+    End Sub
+
+    Private Sub UploadDirAndMove(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, sourceRemoteFileNameInTestFolder As String, targetRemoteFileNameInTestFolder As String, expectedFileNotExistingAnyMoreAfterMove As String, expectedFileExistingAfterMove As String)
+        If Me.RemoteTestFolderName = Nothing Then Throw New NotSupportedException(Me.RemoteTestFolderName)
+
+        Dim RemotePathSource As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, sourceRemoteFileNameInTestFolder)
+        Dim RemotePathTarget As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, targetRemoteFileNameInTestFolder)
+        Dim RemotePathExpectedTarget As String
+        If expectedFileExistingAfterMove.StartsWith("{NOT-SUPPORTED:") Then
+            RemotePathExpectedTarget = expectedFileExistingAfterMove
+        Else
+            RemotePathExpectedTarget = dmsProvider.CombinePath(Me.RemoteTestFolderName, expectedFileExistingAfterMove)
+        End If
+        Dim RemotePathExpectedMovedSourceNotExistingAnyMore As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, expectedFileNotExistingAnyMoreAfterMove)
+
+        '0th step: create initial directory structure with at least 1 file
+        UploadInitialTestFile(dmsProvider, Me.MoveDirTestFileSource.Key, Me.MoveDirTestFileSource.Value)
+
+        AssertRemoteDirectoryExists(dmsProvider, RemotePathSource)
+        AssertRemoteDirectoryNotExists(dmsProvider, RemotePathTarget, True)
+
+        '1st step: move remote dir on remote storage into a non-existing directory
+        Assert.Catch(Of DirectoryNotFoundException)(Sub()
+                                                        dmsProvider.Move(RemotePathSource, dmsProvider.CombinePath(RemotePathTarget, "will", "never", "exist"), False, False)
+                                                    End Sub)
+
+        Try
+            dmsProvider.Move(RemotePathSource, RemotePathTarget, False, True)
+            AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
+            AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
+            AssertRemoteFileNotExists(dmsProvider, RemotePathExpectedMovedSourceNotExistingAnyMore, False)
+        Catch ex As Exception
+            Assert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.Name & "}", "Catched exception type must match with expected result")
+        End Try
+
+        '3rd step: move again and fail because of trial to overwrite: not yet implemented to handle what happens if destination already exists (partially)!
+        If RemotePathTarget.EndsWith(dmsProvider.DirectorySeparator) Then
+            Assert.Catch(Of System.ArgumentException)(Sub()
+                                                          dmsProvider.Move(RemotePathSource, RemotePathTarget, True, False)
+                                                      End Sub)
+        Else
+            Assert.Catch(Of NotImplementedException)(Sub()
+                                                         dmsProvider.Move(RemotePathSource, RemotePathTarget, True, False)
+                                                     End Sub)
+        End If
+
+        'Cleanup
+        CleanupRemoteDirectory(dmsProvider, RemotePathTarget)
+
+    End Sub
+
+    Private Sub UploadFileAndMove(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, binaryData As Byte(), sourceRemoteFileNameInTestFolder As String, targetRemoteFileNameInTestFolder As String)
+        If Me.RemoteTestFolderName = Nothing Then Throw New NotSupportedException(Me.RemoteTestFolderName)
+
+        Dim RemoteFilePathSource As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, sourceRemoteFileNameInTestFolder)
+        Dim RemoteFilePathTarget As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, targetRemoteFileNameInTestFolder)
+
+        AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, True)
+        AssertRemoteFileNotExists(dmsProvider, RemoteFilePathTarget, True)
+
+        '1st step: upload data and create remote source file
+        dmsProvider.UploadFile(RemoteFilePathSource, binaryData)
+        AssertRemoteFileExists(dmsProvider, RemoteFilePathSource)
+
+        '2nd step: move remote file on remote storage
+        dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, True)
+        AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
+        AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, False)
+
+        '3rd step: move again and fail because of trial to overwrite
+        If dmsProvider.RemoteItemExists(RemoteFilePathSource) = False Then dmsProvider.UploadFile(RemoteFilePathSource, binaryData)
+        Assert.Catch(Of FileAlreadyExistsException)(Sub()
+                                                        dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, False)
+                                                    End Sub)
+
+        '4th step: move again and overwrite
+        If dmsProvider.RemoteItemExists(RemoteFilePathSource) = False Then dmsProvider.UploadFile(RemoteFilePathSource, binaryData)
+        AssertRemoteFileExists(dmsProvider, RemoteFilePathSource)
+        dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, True, False)
+        AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
+        AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, False)
 
         'Cleanup
         CleanupRemoteFile(dmsProvider, RemoteFilePathSource)

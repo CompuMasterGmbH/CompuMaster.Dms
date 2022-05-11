@@ -414,12 +414,12 @@ Namespace Providers
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
-            Me.CopyArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
             Select Case FoundRemoteSourceItem
                 Case DmsResourceItem.FoundItemResult.File
-                    Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                    Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
-                    Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
+                    Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -435,12 +435,12 @@ Namespace Providers
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
             Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
-            Me.CopyArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
             Select Case FoundRemoteSourceItem
                 Case DmsResourceItem.FoundItemResult.File
-                    Await Me.CopyFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                    Await Me.CopyFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite)
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
-                    Await Me.CopyDirectoryItemAsync(remoteSourcePath, remoteDestinationPath, allowCreationOfRemoteDirectory)
+                    Await Me.CopyDirectoryItemAsync(remoteSourcePath, remoteDestinationPath)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -454,7 +454,7 @@ Namespace Providers
         ''' <param name="remoteDestinationPath"></param>
         ''' <param name="allowOverwrite"></param>
         ''' <param name="allowCreationOfRemoteDirectory"></param>
-        Private Sub CopyArgumentsCheck(foundSourceRemoteItemType As DmsResourceItem.FoundItemResult, remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Private Sub CopyMoveArgumentsCheck(foundSourceRemoteItemType As DmsResourceItem.FoundItemResult, remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             If remoteSourcePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteSourcePath))
             If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
             If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException("Must be a path without trailing directory separator char: " & remoteDestinationPath, NameOf(remoteDestinationPath))
@@ -525,7 +525,7 @@ Namespace Providers
         ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
-        Protected MustOverride Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected MustOverride Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
 
         ''' <summary>
         ''' Copy a remote DMS item
@@ -535,7 +535,7 @@ Namespace Providers
         ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
-        Protected MustOverride Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected MustOverride Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
 
         ''' <summary>
         ''' Copy a remote DMS item
@@ -544,7 +544,7 @@ Namespace Providers
         ''' <param name="remoteDestinationPath"></param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
-        Protected MustOverride Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+        Protected MustOverride Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
 
         ''' <summary>
         ''' Copy a remote DMS item
@@ -553,7 +553,7 @@ Namespace Providers
         ''' <param name="remoteDestinationPath"></param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
-        Protected MustOverride Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected MustOverride Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
 
         ''' <summary>
         ''' Move a remote DMS item (overwriting forbidden, destination directory must exist)
@@ -573,7 +573,33 @@ Namespace Providers
         ''' <param name="remoteDestinationPath"></param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
-        Public MustOverride Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Public Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
+            Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Select Case FoundRemoteSourceItem
+                Case DmsResourceItem.FoundItemResult.File
+                    Me.MoveFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
+                Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
+                    Me.MoveDirectoryItem(remoteSourcePath, remoteDestinationPath)
+                Case Else
+                    Throw New NotImplementedException
+            End Select
+        End Sub
+
+        ''' <summary>
+        ''' Move a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="allowOverwrite"></param>
+        Protected MustOverride Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
+
+        ''' <summary>
+        ''' Move a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSourcePath"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        Protected MustOverride Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
 
         ''' <summary>
         ''' Delete a remote item (folder, collection or file)

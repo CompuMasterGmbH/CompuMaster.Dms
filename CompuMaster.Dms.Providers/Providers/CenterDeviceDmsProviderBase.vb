@@ -183,27 +183,32 @@ Namespace Providers
             If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
         End Sub
 
-        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
-        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Function
 
-        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
-        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Function
 
-        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
+            Throw New NotImplementedException()
+            'Me.ResetParentDirectoryCache(remoteItem)
+        End Sub
+
+        Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Throw New NotImplementedException()
             'Me.ResetParentDirectoryCache(remoteItem)
         End Sub

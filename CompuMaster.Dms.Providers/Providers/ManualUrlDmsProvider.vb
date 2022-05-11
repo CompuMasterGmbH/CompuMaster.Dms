@@ -109,23 +109,27 @@ Namespace Providers
             Throw New NotSupportedException()
         End Sub
 
-        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Throw New NotSupportedException()
         End Sub
 
-        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
             Throw New NotSupportedException()
         End Function
 
-        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Throw New NotSupportedException()
         End Sub
 
-        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowCreationOfRemoteDirectory As Boolean) As Task
+        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
             Throw New NotSupportedException()
         End Function
 
-        Public Overrides Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+        Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
+            Throw New NotSupportedException()
+        End Sub
+
+        Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Throw New NotSupportedException()
         End Sub
 
