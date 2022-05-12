@@ -41,15 +41,20 @@ Partial Class LoginForm
         Me.CustomerNoTextBox = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
+        Me.StartPathTextBox = New System.Windows.Forms.TextBox()
+        Me.Label3 = New System.Windows.Forms.Label()
         CType(Me.LogoPictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'LogoPictureBox
         '
+        Me.LogoPictureBox.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.LogoPictureBox.Image = CType(resources.GetObject("LogoPictureBox.Image"), System.Drawing.Image)
         Me.LogoPictureBox.Location = New System.Drawing.Point(0, 0)
         Me.LogoPictureBox.Name = "LogoPictureBox"
-        Me.LogoPictureBox.Size = New System.Drawing.Size(165, 193)
+        Me.LogoPictureBox.Size = New System.Drawing.Size(392, 271)
+        Me.LogoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.LogoPictureBox.TabIndex = 0
         Me.LogoPictureBox.TabStop = False
         '
@@ -93,7 +98,7 @@ Partial Class LoginForm
         'OK
         '
         Me.OK.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.OK.Location = New System.Drawing.Point(563, 160)
+        Me.OK.Location = New System.Drawing.Point(563, 233)
         Me.OK.Name = "OK"
         Me.OK.Size = New System.Drawing.Size(94, 23)
         Me.OK.TabIndex = 4
@@ -103,7 +108,7 @@ Partial Class LoginForm
         '
         Me.Cancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.Cancel.Location = New System.Drawing.Point(666, 160)
+        Me.Cancel.Location = New System.Drawing.Point(666, 233)
         Me.Cancel.Name = "Cancel"
         Me.Cancel.Size = New System.Drawing.Size(94, 23)
         Me.Cancel.TabIndex = 5
@@ -129,12 +134,31 @@ Partial Class LoginForm
         '
         'Label2
         '
-        Me.Label2.Location = New System.Drawing.Point(171, 159)
+        Me.Label2.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.Label2.Location = New System.Drawing.Point(171, 232)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(375, 23)
         Me.Label2.TabIndex = 7
         Me.Label2.Text = "NOTE: Credentials are persisted to disk (plain text in temp directory)"
         Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        '
+        'StartPathTextBox
+        '
+        Me.StartPathTextBox.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.StartPathTextBox.Location = New System.Drawing.Point(174, 174)
+        Me.StartPathTextBox.Name = "StartPathTextBox"
+        Me.StartPathTextBox.Size = New System.Drawing.Size(586, 23)
+        Me.StartPathTextBox.TabIndex = 9
+        '
+        'Label3
+        '
+        Me.Label3.Location = New System.Drawing.Point(172, 154)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(220, 23)
+        Me.Label3.TabIndex = 8
+        Me.Label3.Text = "&Start-Pfad"
+        Me.Label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'LoginForm
         '
@@ -142,7 +166,9 @@ Partial Class LoginForm
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.Cancel
-        Me.ClientSize = New System.Drawing.Size(767, 191)
+        Me.ClientSize = New System.Drawing.Size(767, 264)
+        Me.Controls.Add(Me.StartPathTextBox)
+        Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.CustomerNoTextBox)
         Me.Controls.Add(Me.Label1)
@@ -169,4 +195,6 @@ Partial Class LoginForm
     Friend WithEvents CustomerNoTextBox As Windows.Forms.TextBox
     Friend WithEvents Label1 As Windows.Forms.Label
     Friend WithEvents Label2 As Windows.Forms.Label
+    Friend WithEvents StartPathTextBox As Windows.Forms.TextBox
+    Friend WithEvents Label3 As Windows.Forms.Label
 End Class
