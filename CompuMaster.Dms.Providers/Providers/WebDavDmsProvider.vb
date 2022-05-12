@@ -362,8 +362,17 @@ Namespace Providers
                     End If
                 ElseIf completedTask.Result.StatusCode = 412 Then
                     '412 Precondition failed
-                    If remoteSourcePath <> Nothing Then
-                        Throw New RessourceNotFoundException(remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                    If Me.RemoteItemExists(remoteSourcePath) = False Then
+                        Select Case conflictItemType
+                            Case ExceptionTypeForItemType.File
+                                Throw New FileNotFoundException(remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                            Case ExceptionTypeForItemType.Directory
+                                Throw New DirectoryNotFoundException(remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                            Case Else
+                                Throw New RessourceNotFoundException(remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                        End Select
+                    ElseIf remoteSourcePath <> Nothing Then
+                        Throw New System.IO.IOException(ioExceptionMessage & ", but remote item exists: " & remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
                     Else
                         Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
                     End If
@@ -408,7 +417,7 @@ Namespace Providers
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
-            Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False})
+            Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = allowOverwrite.GetValueOrDefault})
             MoveTask.Wait()
             CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.File)
         End Sub

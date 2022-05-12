@@ -1118,13 +1118,12 @@ Imports CompuMaster.Dms.Providers
         End If
         Dim RemotePathExpectedMovedSourceNotExistingAnyMore As String = dmsProvider.CombinePath(Me.RemoteTestFolderName, expectedFileNotExistingAnyMoreAfterMove)
 
-        '0th step: create initial directory structure with at least 1 file
+        '1st step: create initial directory structure with at least 1 file
         UploadInitialTestFile(dmsProvider, Me.MoveDirTestFileSource.Key, Me.MoveDirTestFileSource.Value)
-
         AssertRemoteDirectoryExists(dmsProvider, RemotePathSource)
         AssertRemoteDirectoryNotExists(dmsProvider, RemotePathTarget, True)
 
-        '1st step: move remote dir on remote storage into a non-existing directory
+        '2nd step: move remote dir on remote storage into a non-existing directory
         Assert.Catch(Of DirectoryNotFoundException)(Sub()
                                                         dmsProvider.Move(RemotePathSource, dmsProvider.CombinePath(RemotePathTarget, "will", "never", "exist"), False, False)
                                                     End Sub)
@@ -1139,6 +1138,8 @@ Imports CompuMaster.Dms.Providers
         End Try
 
         '3rd step: move again and fail because of trial to overwrite: not yet implemented to handle what happens if destination already exists (partially)!
+        UploadInitialTestFile(dmsProvider, Me.MoveDirTestFileSource.Key, Me.MoveDirTestFileSource.Value)
+        AssertRemoteDirectoryExists(dmsProvider, RemotePathSource)
         If RemotePathTarget.EndsWith(dmsProvider.DirectorySeparator) Then
             Assert.Catch(Of System.ArgumentException)(Sub()
                                                           dmsProvider.Move(RemotePathSource, RemotePathTarget, True, False)
@@ -1181,6 +1182,7 @@ Imports CompuMaster.Dms.Providers
         '4th step: move again and overwrite
         If dmsProvider.RemoteItemExists(RemoteFilePathSource) = False Then dmsProvider.UploadFile(RemoteFilePathSource, binaryData)
         AssertRemoteFileExists(dmsProvider, RemoteFilePathSource)
+        AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
         dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, True, False)
         AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
         AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, False)
