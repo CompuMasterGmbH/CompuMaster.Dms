@@ -38,6 +38,11 @@ Public Class LoginForm
             Me.UseWaitCursor = False
             Me.Refresh()
             b.ShowDialog(Me)
+        Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
+            Me.Cursor = Cursors.Default
+            Me.UseWaitCursor = False
+            Me.Refresh()
+            System.Windows.Forms.MessageBox.Show(Me, ex.Message, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)
 #Disable Warning CA1031 ' Do not catch general exception types
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, ex.ToString, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)

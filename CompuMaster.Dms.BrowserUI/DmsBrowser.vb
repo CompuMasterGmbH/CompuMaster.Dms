@@ -244,7 +244,7 @@ Public Class DmsBrowser
         Me.TreeViewDmsFolders.Nodes.Clear()
         If Me.InitialFolder <> Nothing Then
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(Me.InitialFolder)
-            If Folder Is Nothing Then Throw New System.IO.DirectoryNotFoundException("Remote folder not found: " & Me.InitialFolder)
+            If Folder Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(Me.InitialFolder)
             Me.RootNode = Me.TreeViewDmsFolders.Nodes.Add("", Me.InitialFolder)
             Me.RootNode.Tag = New NodeTagData(Folder)
             If Folder.ExtendedInfosHasGroupSharings OrElse Folder.ExtendedInfosHasUserSharings Then
