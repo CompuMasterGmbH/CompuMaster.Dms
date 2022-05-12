@@ -212,8 +212,8 @@ Public Class DmsBrowser
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
         Try
             Me.LoadTree()
-        Catch ex As system.IO.DirectoryNotFoundException
-            MessageBox.Show(Me, ex.Message, "DMS folder not found", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
+            MessageBox.Show(Me, ex.Message, "DMS folder not found: " & ex.RemotePath, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Me.DialogResult = DialogResult.Cancel
             Me.Close()
             Return
@@ -431,7 +431,7 @@ Public Class DmsBrowser
             Dim NewFolderName As String = InputBox("Wie soll der neue Ordner unterhalb von """ & Me.SelectedFolderPath & """ heißen?", "Neuer Ordner")
             If NewFolderName = Nothing Then Return
             Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem?.FullName, NewFolderName)
-            Me.DmsProvider.CreateFolder(NewFolderPath)
+            Me.DmsProvider.CreateDirectory(NewFolderPath)
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
             Dim n As New TreeNode(Folder.Name)
             n.Tag = New NodeTagData(Folder)

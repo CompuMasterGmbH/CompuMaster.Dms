@@ -145,6 +145,10 @@ Namespace Providers
             Throw New NotSupportedException()
         End Sub
 
+        Public Overrides Sub CreateDirectory(remoteDirectoryPath As String)
+            Throw New NotSupportedException()
+        End Sub
+
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
             Throw New NotSupportedException()
         End Sub

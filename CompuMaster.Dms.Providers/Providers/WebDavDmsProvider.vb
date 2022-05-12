@@ -446,6 +446,10 @@ Namespace Providers
             CheckTaskResultForErrors(CreateTask, Nothing, remoteFilePath, "Create folder failed", ExceptionTypeForItemType.Directory)
         End Sub
 
+        Public Overrides Sub CreateDirectory(remoteDirectoryPath As String)
+            Me.CreateFolder(remoteDirectoryPath)
+        End Sub
+
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
             Throw New NotSupportedException("Collections are not supported by WebDAV")
         End Sub

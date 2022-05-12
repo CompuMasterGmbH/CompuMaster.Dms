@@ -279,7 +279,8 @@ Imports CompuMaster.Dms.Providers
 
 #Disable Warning CA1819 ' Properties should not return arrays
 #Disable Warning CA1825 ' Avoid zero-length array allocations.
-    Public Overridable ReadOnly Property RemoteTestFolderName As String = "ZZZ_UnitTests_Dms"
+    Public Overridable ReadOnly Property RemoteTestFolderName As String = "ZZZ_UnitTests_Dms_TestFolder"
+    Public Overridable ReadOnly Property RemoteTestCollectionName As String = "ZZZ_UnitTests_Dms_TestCollection"
     Public Overridable ReadOnly Property RemoteFilesMustExist As String() = New String() {}
     Public Overridable ReadOnly Property RemoteFoldersMustExist As String() = New String() {}
     Public Overridable ReadOnly Property RemoteCollectionsMustExist As String() = New String() {}
@@ -413,7 +414,7 @@ Imports CompuMaster.Dms.Providers
         Return True
     End Function
 
-    Private Shared Sub CreateRemoteTestFolderIfNotExisting(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, remotePath As String)
+    Private Shared Sub CreateRemoteTestCollectionOrFolderIfNotExisting(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, remotePath As String)
         Dim Item As DmsResourceItem
 
         'Lookup status (and fill caches)
@@ -434,7 +435,24 @@ Imports CompuMaster.Dms.Providers
         Assert.IsTrue(dmsProvider.RemoteItemExists(remotePath))
     End Sub
 
-    Private Shared Sub RemoveRemoteTestFolder(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, remotePath As String)
+    Private Shared Sub CreateRemoteTestFolderIfNotExisting(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, remotePath As String)
+        Dim Item As DmsResourceItem
+
+        'Lookup status (and fill caches)
+        Item = dmsProvider.ListRemoteItem(remotePath)
+
+        'Create the folder
+        If dmsProvider.RemoteItemExists(remotePath) = False Then
+            dmsProvider.CreateFolder(remotePath)
+        End If
+
+        'Lookup status again and check that old caches don't exist
+        Item = dmsProvider.ListRemoteItem(remotePath)
+        Assert.IsNotNull(Item)
+        Assert.IsTrue(dmsProvider.RemoteItemExists(remotePath))
+    End Sub
+
+    Private Shared Sub RemoveRemoteTestCollectionOrFolder(dmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider, remotePath As String)
         Dim Item As DmsResourceItem
 
         'Lookup status (and fill caches)
@@ -443,11 +461,7 @@ Imports CompuMaster.Dms.Providers
         Assert.IsTrue(dmsProvider.RemoteItemExists(remotePath))
 
         'Delete the folder
-        If dmsProvider.SupportsCollections Then
-            dmsProvider.DeleteRemoteItem(remotePath, DmsResourceItem.ItemTypes.Collection)
-        Else
-            dmsProvider.DeleteRemoteItem(remotePath, DmsResourceItem.ItemTypes.Folder)
-        End If
+        dmsProvider.DeleteRemoteItem(remotePath, DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder)
 
         'Lookup status again and check that old caches don't exist
         Item = dmsProvider.ListRemoteItem(remotePath)
@@ -456,7 +470,11 @@ Imports CompuMaster.Dms.Providers
 
     End Sub
 
-    Protected Overridable Sub RemoveRemoteItemIfItExists(dmsProvider As BaseDmsProvider, remotePath As String, expectedRemoteItemType As DmsResourceItem.ItemTypes, preCheckItemExistance As TriState)
+    Protected Sub RemoveRemoteItemIfItExists(dmsProvider As BaseDmsProvider, remotePath As String, expectedRemoteItemType As DmsResourceItem.ItemTypes, preCheckItemExistance As TriState)
+        Me.RemoveRemoteItemIfItExists(dmsProvider, remotePath, expectedRemoteItemType, Nothing, preCheckItemExistance)
+    End Sub
+
+    Protected Overridable Sub RemoveRemoteItemIfItExists(dmsProvider As BaseDmsProvider, remotePath As String, expectedRemoteItemType As DmsResourceItem.ItemTypes, alternativeExpectedRemoteItemType As DmsResourceItem.ItemTypes, preCheckItemExistance As TriState)
         Dim RemoteItemExists As Boolean
         RemoteItemExists = dmsProvider.RemoteItemExists(remotePath)
         System.Console.WriteLine("CHECK: file " & remotePath & " exists: " & RemoteItemExists)
@@ -468,8 +486,10 @@ Imports CompuMaster.Dms.Providers
         If RemoteItemExists Then
             If expectedRemoteItemType = Nothing Then
                 dmsProvider.DeleteRemoteItem(remotePath)
-            Else
+            ElseIf alternativeExpectedRemoteItemType = Nothing Then
                 dmsProvider.DeleteRemoteItem(remotePath, expectedRemoteItemType)
+            Else
+                dmsProvider.DeleteRemoteItem(remotePath, expectedRemoteItemType, alternativeExpectedRemoteItemType)
             End If
             System.Console.WriteLine("DELETED: " & remotePath)
             RemoteItemExists = dmsProvider.RemoteItemExists(remotePath)
@@ -480,7 +500,6 @@ Imports CompuMaster.Dms.Providers
         Assert.IsFalse(RemoteItemExists)
     End Sub
 
-
     <Test> Public Sub CreateCollectionOrFolderAndCleanup()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
@@ -488,15 +507,15 @@ Imports CompuMaster.Dms.Providers
         Assert.IsFalse(Me.RemoteTestFolderName.StartsWith(DmsProvider.DirectorySeparator)) 'ensure RemoteTestFolderName is without leading "/"
         If DmsProvider.SupportsCollections Then
             System.Console.WriteLine("Remote test collection name: " & Me.RemoteTestFolderName)
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsFalse(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
         Else
             System.Console.WriteLine("Remote test folder name: " & Me.RemoteTestFolderName)
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
             Assert.IsFalse(DmsProvider.FolderExists(Me.RemoteTestFolderName))
         End If
 
@@ -504,15 +523,15 @@ Imports CompuMaster.Dms.Providers
         Dim RemoteTestFolderNameWithLeadingDirectorySeparator As String = DmsProvider.CombinePath(DmsProvider.DirectorySeparator, Me.RemoteTestFolderName)
         If DmsProvider.SupportsCollections Then
             System.Console.WriteLine("Remote test collection name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsTrue(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
-            RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsFalse(DmsProvider.CollectionExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
         Else
             System.Console.WriteLine("Remote test folder name: " & RemoteTestFolderNameWithLeadingDirectorySeparator)
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsTrue(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
-            RemoveRemoteTestFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, RemoteTestFolderNameWithLeadingDirectorySeparator)
             Assert.IsFalse(DmsProvider.FolderExists(RemoteTestFolderNameWithLeadingDirectorySeparator))
         End If
     End Sub
@@ -535,37 +554,106 @@ Imports CompuMaster.Dms.Providers
         Assert.IsTrue(dmsProvider.RemoteItemExists(remoteFolderName))
     End Sub
 
+    ''' <summary>
+    ''' Test creation of provider-decided directory type of collection or folder
+    ''' </summary>
+    <Test> Public Sub CreateRemoteDirectoryAndCleanup()
+        Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim RemotePath As String = Me.RemoteTestFolderName
+        Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
+        DmsProvider.CreateDirectory(RemotePath)
+        Dim FoundFirstDirLevelType = DmsProvider.RemoteItemExistsUniquelyAs(RemotePath)
+        Select Case FoundFirstDirLevelType
+            Case DmsResourceItem.FoundItemResult.Collection
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Collection, FoundFirstDirLevelType)
+            Case Else
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Folder, FoundFirstDirLevelType)
+        End Select
+
+        Dim DeepFolderStructure As String = DmsProvider.CombinePath(RemotePath, "with", "a", "deep", "folder", "structure")
+        Assert.Catch(Of DirectoryNotFoundException)(Sub()
+                                                        DmsProvider.CreateDirectory(DeepFolderStructure, False)
+                                                    End Sub)
+
+        DmsProvider.CreateFolder(DeepFolderStructure, True)
+        Assert.AreEqual(DmsResourceItem.FoundItemResult.Folder, DmsProvider.RemoteItemExistsUniquelyAs(DeepFolderStructure))
+        Dim FirstDirType = DmsProvider.RemoteItemExistsUniquelyAs(RemotePath)
+        Select Case FirstDirType
+            Case DmsResourceItem.FoundItemResult.Collection
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Collection, FirstDirType)
+            Case Else
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Folder, FirstDirType)
+        End Select
+
+        Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection, TriState.True)
+    End Sub
+
     <Test> Public Sub CreateRemoteFolderAndCleanup()
         Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
-        Dim RemotePath As String = "Bierdeckel.UnitTest.Temp"
+        Dim RemotePath As String = Me.RemoteTestFolderName
         Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
-        DmsProvider.CreateFolder(RemotePath)
-        Assert.IsTrue(DmsProvider.RemoteItemExists(RemotePath))
-        If DmsProvider.SupportsCollections Then
-            Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Collection, TriState.True)
-        Else
-            Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Folder, TriState.True)
-        End If
+
+        'Initial step: create test directory
+        DmsProvider.CreateDirectory(RemotePath) 'NOTE: CreateFolder will fail at CenterDevice because folders are not supported as 1st level of directories
+        Dim FoundFirstDirLevelType = DmsProvider.RemoteItemExistsUniquelyAs(RemotePath)
+        Select Case FoundFirstDirLevelType
+            Case DmsResourceItem.FoundItemResult.Collection
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Collection, FoundFirstDirLevelType)
+            Case Else
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Folder, FoundFirstDirLevelType)
+        End Select
+
+        Dim DeepFolderStructure As String = DmsProvider.CombinePath(RemotePath, "with", "a", "deep", "folder", "structure")
+        Assert.Catch(Of DirectoryNotFoundException)(Sub()
+                                                        DmsProvider.CreateFolder(DeepFolderStructure, False)
+                                                    End Sub)
+
+        DmsProvider.CreateFolder(DeepFolderStructure, True)
+        Assert.AreEqual(DmsResourceItem.FoundItemResult.Folder, DmsProvider.RemoteItemExistsUniquelyAs(DeepFolderStructure))
+        FoundFirstDirLevelType = DmsProvider.RemoteItemExistsUniquelyAs(RemotePath)
+        Select Case FoundFirstDirLevelType
+            Case DmsResourceItem.FoundItemResult.Collection
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Collection, FoundFirstDirLevelType)
+            Case Else
+                Assert.AreEqual(DmsResourceItem.FoundItemResult.Folder, FoundFirstDirLevelType)
+        End Select
+
+        Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection, TriState.True)
     End Sub
 
     <Test> Public Sub CreateRemoteCollectionAndCleanup()
         Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
-        Dim RemotePath As String = "Bierdeckel.UnitTest.Temp"
+        Dim RemotePath As String = Me.RemoteTestCollectionName
         If DmsProvider.SupportsCollections Then
             'CenterDevice / Scopevisio Teamwork
             Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
-            Try
-                DmsProvider.CreateCollection(RemotePath)
-                Assert.IsTrue(DmsProvider.RemoteItemExists(RemotePath))
-                Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Collection, TriState.True)
-            Catch ex As NotSupportedException
-            End Try
+
+            '1st step: create collection as it must work
+            DmsProvider.CreateCollection(RemotePath)
+            Assert.AreEqual(DmsResourceItem.FoundItemResult.Collection, DmsProvider.RemoteItemExistsUniquelyAs(RemotePath))
+            Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Collection, TriState.True)
+
+            '2nd step: create a remote collection with multiple sub directories that is expected to fail because parent directory doesn't exist
+            Assert.Catch(Of CompuMaster.Dms.Data.DirectoryNotFoundException)(Sub()
+                                                                                 DmsProvider.CreateCollection(DmsProvider.CombinePath(RemotePath, "with", "a", "deep", "folder", "structure"))
+                                                                             End Sub)
+
+            '3nd step: create a remote collection with multiple sub directories that is expected to fail because collections are supported at very first directory level, only
+            DmsProvider.CreateCollection(RemotePath)
+            Assert.AreEqual(DmsResourceItem.FoundItemResult.Collection, DmsProvider.RemoteItemExistsUniquelyAs(RemotePath))
+
+            Assert.Catch(Of NotSupportedException)(Sub()
+                                                       DmsProvider.CreateCollection(DmsProvider.CombinePath(RemotePath, "sub-collection"))
+                                                   End Sub)
         Else
             'WebDAV
             Assert.Catch(Of NotSupportedException)(Sub()
                                                        DmsProvider.CreateCollection(RemotePath)
                                                    End Sub)
         End If
+
+        'Cleanup
+        Me.CleanupRemoteDirectory(DmsProvider, RemotePath)
     End Sub
 
     <Test> Public Sub UploadFilesAndCleanup()
@@ -573,7 +661,7 @@ Imports CompuMaster.Dms.Providers
 
         If Me.UploadTestFilesAndCleanupAgainFilePath.Length > 0 OrElse Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
 
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
 
             If DmsProvider.SupportsCollections Then
                 Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
@@ -596,7 +684,7 @@ Imports CompuMaster.Dms.Providers
                 Assert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
             End If
 
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
 
         End If
 
@@ -848,7 +936,7 @@ Imports CompuMaster.Dms.Providers
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
 
             'Prepare pre-requisites
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             If DmsProvider.SupportsCollections Then
                 Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
             Else
@@ -869,7 +957,7 @@ Imports CompuMaster.Dms.Providers
             End If
 
             'Cleanup
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
 
         End If
 
@@ -881,7 +969,7 @@ Imports CompuMaster.Dms.Providers
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
 
             'Prepare pre-requisites
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             If DmsProvider.SupportsCollections Then
                 Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
             Else
@@ -905,7 +993,7 @@ Imports CompuMaster.Dms.Providers
             End If
 
             'Cleanup
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
 
         End If
 
@@ -1045,7 +1133,7 @@ Imports CompuMaster.Dms.Providers
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
 
             'Prepare pre-requisites
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             If DmsProvider.SupportsCollections Then
                 Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
             Else
@@ -1066,7 +1154,7 @@ Imports CompuMaster.Dms.Providers
             End If
 
             'Cleanup
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
 
         End If
 
@@ -1078,7 +1166,7 @@ Imports CompuMaster.Dms.Providers
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
 
             'Prepare pre-requisites
-            CreateRemoteTestFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
+            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
             If DmsProvider.SupportsCollections Then
                 Assert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
             Else
@@ -1099,7 +1187,7 @@ Imports CompuMaster.Dms.Providers
             End If
 
             'Cleanup
-            RemoveRemoteTestFolder(DmsProvider, Me.RemoteTestFolderName)
+            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
 
         End If
 

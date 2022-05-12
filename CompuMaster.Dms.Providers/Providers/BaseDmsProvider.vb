@@ -618,6 +618,17 @@ Namespace Providers
         End Sub
 
         ''' <summary>
+        ''' Delete a remote item if its item type matches with the expected item type
+        ''' </summary>
+        ''' <param name="remotePath"></param>
+        ''' <param name="expectedItemType"></param>
+        ''' <param name="alternativeExpectedItemType"></param>
+        Public Overridable Sub DeleteRemoteItem(remotePath As String, expectedItemType As DmsResourceItem.ItemTypes, alternativeExpectedItemType As DmsResourceItem.ItemTypes)
+            Dim Item As DmsResourceItem = Me.ListRemoteItem(remotePath)
+            Me.DeleteRemoteItem(Item, expectedItemType, alternativeExpectedItemType)
+        End Sub
+
+        ''' <summary>
         ''' Delete a remote item (folder, collection or file)
         ''' </summary>
         ''' <param name="remoteItem"></param>
@@ -629,8 +640,25 @@ Namespace Providers
         ''' <param name="remoteItem"></param>
         ''' <param name="expectedItemType"></param>
         Public Overridable Sub DeleteRemoteItem(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes)
+            If expectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(expectedItemType))
             If remoteItem.ItemType <> expectedItemType Then
                 Throw New ArgumentException("ItemType " & expectedItemType.ToString & " expected, but was " & remoteItem.ItemType.ToString, NameOf(remoteItem))
+            Else
+                Me.DeleteRemoteItem(remoteItem)
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Delete a remote item if its item type matches with the expected item type
+        ''' </summary>
+        ''' <param name="remoteItem"></param>
+        ''' <param name="expectedItemType"></param>
+        ''' <param name="alternativeExpectedItemType"></param>
+        Public Overridable Sub DeleteRemoteItem(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes, alternativeExpectedItemType As DmsResourceItem.ItemTypes)
+            If expectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(expectedItemType))
+            If alternativeExpectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(alternativeExpectedItemType))
+            If remoteItem.ItemType <> expectedItemType AndAlso remoteItem.ItemType <> alternativeExpectedItemType Then
+                Throw New ArgumentException("ItemType " & expectedItemType.ToString & " or " & alternativeExpectedItemType.ToString & " expected, but was " & remoteItem.ItemType.ToString, NameOf(remoteItem))
             Else
                 Me.DeleteRemoteItem(remoteItem)
             End If
@@ -650,7 +678,36 @@ Namespace Providers
             If remoteDirectoryPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDirectoryPath))
             Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteDirectoryPath)
             If ParentDirectory <> Nothing AndAlso Me.RemoteItemExists(ParentDirectory) = False Then
-                Me.CreateFolder(ParentDirectory, True)
+                If createParentFolders Then
+                    Me.CreateFolder(ParentDirectory, True)
+                Else
+                    Throw New DirectoryNotFoundException(ParentDirectory)
+                End If
+            End If
+            Me.CreateFolder(remoteDirectoryPath)
+        End Sub
+
+        ''' <summary>
+        ''' Create a new collection or folder on remote DMS
+        ''' </summary>
+        ''' <param name="remoteDirectoryName"></param>
+        ''' <remarks>The provider decides itself to create either a collection or a folder</remarks>
+        Public MustOverride Sub CreateDirectory(remoteDirectoryName As String)
+
+        ''' <summary>
+        ''' Create a new collection or folder on remote DMS
+        ''' </summary>
+        ''' <param name="remoteDirectoryPath"></param>
+        ''' <remarks>The provider decides itself to create either a collection or a folder</remarks>
+        Public Sub CreateDirectory(remoteDirectoryPath As String, createParentFolders As Boolean)
+            If remoteDirectoryPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDirectoryPath))
+            Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteDirectoryPath)
+            If ParentDirectory <> Nothing AndAlso Me.RemoteItemExists(ParentDirectory) = False Then
+                If createParentFolders Then
+                    Me.CreateFolder(ParentDirectory, True)
+                Else
+                    Throw New DirectoryNotFoundException(ParentDirectory)
+                End If
             End If
             Me.CreateFolder(remoteDirectoryPath)
         End Sub

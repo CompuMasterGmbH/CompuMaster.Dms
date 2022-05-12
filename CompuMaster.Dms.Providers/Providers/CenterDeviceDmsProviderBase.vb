@@ -51,19 +51,24 @@ Namespace Providers
 
         Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remotePath)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Return Nothing
+            End Try
             Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remotePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo
             Try
                 FoundFileItem = ParentRemoteDir.GetFile(RemoteFileName)
-            Catch ex As System.IO.FileNotFoundException
+            Catch ex As CenterDevice.Model.Exceptions.FileNotFoundException
                 FoundFileItem = Nothing
             End Try
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Nothing
             If FoundFileItem Is Nothing Then
                 Try
                     FoundDirItem = Me.IOClient.RootDirectory.OpenDirectoryPath(remotePath)
-                Catch ex As System.IO.DirectoryNotFoundException
+                Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                     FoundDirItem = Nothing
                 End Try
             End If
@@ -297,19 +302,72 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub CreateFolder(remoteFilePath As String)
-            Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
-            Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
-            FoundDirItem.CreateDirectory(NewChildDirName)
-            FoundDirItem.ResetDirectoriesCache()
+            Dim ioExceptionMessage As String = "CreateFolder failed: " & remoteFilePath
+            Try
+                Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
+                Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Try
+                    FoundDirItem.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Folder)
+                Catch ex As CenterDevice.Rest.Exceptions.RestClientException
+                    If ex.ErrorResponse Is Nothing Then
+                        Throw New System.IO.IOException(ioExceptionMessage, ex)
+                    Else
+                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
+                    End If
+                End Try
+                FoundDirItem.ResetDirectoriesCache()
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ex.RemotePath)
+            End Try
+        End Sub
+
+        Public Overrides Sub CreateDirectory(remoteDirectoryName As String)
+            Dim ioExceptionMessage As String = "CreateDirectory failed: " & remoteDirectoryName
+            Try
+                Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteDirectoryName)
+                Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteDirectoryName)
+                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Try
+                    FoundDirItem.CreateDirectory(NewChildDirName)
+                Catch ex As CenterDevice.Rest.Exceptions.RestClientException
+                    If ex.ErrorResponse Is Nothing Then
+                        Throw New System.IO.IOException(ioExceptionMessage, ex)
+                    Else
+                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
+                    End If
+                End Try
+                FoundDirItem.ResetDirectoriesCache()
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ex.RemotePath)
+            End Try
         End Sub
 
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
-            Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteCollectionName)
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteCollectionName)
-            Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
-            FoundDirItem.CreateDirectory(NewChildDirName)
-            FoundDirItem.ResetDirectoriesCache()
+            Dim ioExceptionMessage As String = "CreateCollection failed: " & remoteCollectionName
+            Try
+                Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteCollectionName)
+                Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteCollectionName)
+                If ParentRemoteDirName <> Nothing Then
+                    'if this situation wouldn't be catched, then otherwise creation of collection in another parent directory would lead
+                    'to a new collection below root directory (instead of the expected parent directory)
+                    '=> considered as a bug in CenterDevice API / CenterDevice architecture
+                    Throw New NotSupportedException("Collections must be located in root folder only")
+                End If
+                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Try
+                    FoundDirItem.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Collection)
+                Catch ex As CenterDevice.Rest.Exceptions.RestClientException
+                    If ex.ErrorResponse Is Nothing Then
+                        Throw New System.IO.IOException(ioExceptionMessage, ex)
+                    Else
+                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
+                    End If
+                End Try
+                FoundDirItem.ResetDirectoriesCache()
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ex.RemotePath)
+            End Try
         End Sub
 
         Public Overrides ReadOnly Property DirectorySeparator As Char
