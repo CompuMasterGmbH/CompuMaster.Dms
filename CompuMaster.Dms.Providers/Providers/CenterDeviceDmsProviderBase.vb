@@ -151,7 +151,12 @@ Namespace Providers
 
         Public Overrides Sub UploadFile(remoteFilePath As String, localFilePath As String)
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+            End Try
             Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
             If FoundFileItem IsNot Nothing Then
@@ -166,7 +171,12 @@ Namespace Providers
 
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+            End Try
             Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
             If FoundFileItem IsNot Nothing Then
@@ -181,7 +191,12 @@ Namespace Providers
 
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+            End Try
             Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.GetFile(RemoteFileName)
             FoundFileItem.Download(localFilePath)
@@ -220,7 +235,12 @@ Namespace Providers
 
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+            End Try
             Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
             If ParentRemoteDir.FileExists(RemoteFileName) Then
                 Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.GetFile(RemoteFileName)
@@ -293,7 +313,12 @@ Namespace Providers
             End Select
 
             Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteItem.FullName)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+            End Try
             If IsFileItem Then
                 ParentRemoteDir.ResetFilesCache()
             Else
@@ -306,9 +331,14 @@ Namespace Providers
             Try
                 Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
                 Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
-                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
-                    FoundDirItem.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Folder)
+                    ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                    Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+                End Try
+                Try
+                    ParentRemoteDir.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Folder)
                 Catch ex As CenterDevice.Rest.Exceptions.RestClientException
                     If ex.ErrorResponse Is Nothing Then
                         Throw New System.IO.IOException(ioExceptionMessage, ex)
@@ -316,7 +346,7 @@ Namespace Providers
                         Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
                     End If
                 End Try
-                FoundDirItem.ResetDirectoriesCache()
+                ParentRemoteDir.ResetDirectoriesCache()
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ex.RemotePath)
             End Try
@@ -327,9 +357,14 @@ Namespace Providers
             Try
                 Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteDirectoryName)
                 Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteDirectoryName)
-                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
-                    FoundDirItem.CreateDirectory(NewChildDirName)
+                    ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                    Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+                End Try
+                Try
+                    ParentRemoteDir.CreateDirectory(NewChildDirName)
                 Catch ex As CenterDevice.Rest.Exceptions.RestClientException
                     If ex.ErrorResponse Is Nothing Then
                         Throw New System.IO.IOException(ioExceptionMessage, ex)
@@ -337,7 +372,7 @@ Namespace Providers
                         Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
                     End If
                 End Try
-                FoundDirItem.ResetDirectoriesCache()
+                ParentRemoteDir.ResetDirectoriesCache()
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ex.RemotePath)
             End Try
@@ -354,9 +389,14 @@ Namespace Providers
                     '=> considered as a bug in CenterDevice API / CenterDevice architecture
                     Throw New NotSupportedException("Collections must be located in root folder only")
                 End If
-                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
-                    FoundDirItem.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Collection)
+                    ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                    Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+                End Try
+                Try
+                    ParentRemoteDir.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Collection)
                 Catch ex As CenterDevice.Rest.Exceptions.RestClientException
                     If ex.ErrorResponse Is Nothing Then
                         Throw New System.IO.IOException(ioExceptionMessage, ex)
@@ -364,7 +404,7 @@ Namespace Providers
                         Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
                     End If
                 End Try
-                FoundDirItem.ResetDirectoriesCache()
+                ParentRemoteDir.ResetDirectoriesCache()
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ex.RemotePath)
             End Try
