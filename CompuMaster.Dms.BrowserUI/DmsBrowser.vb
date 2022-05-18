@@ -665,9 +665,40 @@ Public Class DmsBrowser
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
                     If f.SelectedPath.StartsWith(Me.LocalParentMustFolder) Then
+                        'Overwrite pre-checks
+                        Dim OverwriteWarning As New System.Text.StringBuilder()
                         For MyCounter As Integer = 0 To SelectedFiles.Count - 1
                             Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
-                            Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                            If System.IO.File.Exists(TargetFile) Then
+                                If OverwriteWarning.Length <> 0 Then
+                                    OverwriteWarning.AppendLine()
+                                End If
+                                OverwriteWarning.Append("- ")
+                                OverwriteWarning.Append(SelectedFiles(MyCounter).Name)
+                            End If
+                        Next
+                        Dim OverwriteLocalFiles As Boolean = False
+                        If OverwriteWarning.Length <> 0 Then
+                            Select Case MessageBox.Show(Me, "Die folgenden Dateien existieren bereits. Sollen diese überschrieben werden?", "Download nach " & f.SelectedPath, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
+                                Case DialogResult.Yes
+                                    OverwriteLocalFiles = True
+                                Case DialogResult.No
+                                    OverwriteLocalFiles = False
+                                Case Else
+                                    'exit loop and method
+                                    Return
+                            End Select
+                        End If
+                        'Save to disk
+                        For MyCounter As Integer = 0 To SelectedFiles.Count - 1
+                            Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
+                            If System.IO.File.Exists(TargetFile) Then
+                                If OverwriteLocalFiles Then
+                                    Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                                End If
+                            Else
+                                Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                            End If
                         Next
                         System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
