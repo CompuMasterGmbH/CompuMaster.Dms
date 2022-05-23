@@ -50,20 +50,19 @@ Namespace Providers
         End Function
 
         Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remotePath)
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remotePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
-            Try
-                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
-            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
-                Return Nothing
-            End Try
-            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remotePath)
-            Dim FoundFileItem As CenterDevice.IO.FileInfo
-            Try
-                FoundFileItem = ParentRemoteDir.GetFile(RemoteFileName)
-            Catch ex As CenterDevice.Model.Exceptions.FileNotFoundException
-                FoundFileItem = Nothing
-            End Try
+            If ParentRemoteDirName = Nothing Then
+                ParentRemoteDir = Me.IOClient.RootDirectory
+            Else
+                Try
+                    ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+                Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                    Return Nothing
+                End Try
+            End If
+            Dim RemoteFileName As String = Me.ItemName(remotePath)
+            Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = Nothing
             If FoundFileItem Is Nothing Then
                 Try
@@ -94,6 +93,34 @@ Namespace Providers
                 Case Else
                     Throw New ArgumentOutOfRangeException(NameOf(searchType))
             End Select
+        End Sub
+
+        ''' <summary>
+        ''' Reset cache of parent directory of remoteItem
+        ''' </summary>
+        ''' <param name="remoteItem"></param>
+        Protected Sub ResetParentDirectoryCache(remoteItem As DmsResourceItem)
+            Dim IsFileItem As Boolean
+            Select Case remoteItem.ItemType
+                Case DmsResourceItem.ItemTypes.Root, DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder
+                Case DmsResourceItem.ItemTypes.File
+                    IsFileItem = True
+                Case Else
+                    Throw New NotImplementedException(remoteItem.ItemType.ToString)
+            End Select
+
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteItem.FullName)
+            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
+            Try
+                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
+            End Try
+            If IsFileItem Then
+                ParentRemoteDir.ResetFilesCache()
+            Else
+                ParentRemoteDir.ResetDirectoriesCache()
+            End If
         End Sub
 
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
@@ -150,14 +177,14 @@ Namespace Providers
         End Function
 
         Public Overrides Sub UploadFile(remoteFilePath As String, localFilePath As String)
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
             Try
                 ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
             End Try
-            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
+            Dim RemoteFileName As String = Me.ItemName(remoteFilePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
             If FoundFileItem IsNot Nothing Then
                 'File exists, upload new file version
@@ -170,14 +197,14 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
             Try
                 ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
             End Try
-            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
+            Dim RemoteFileName As String = Me.ItemName(remoteFilePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
             If FoundFileItem IsNot Nothing Then
                 'File exists, upload new file version
@@ -190,14 +217,14 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
             Try
                 ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
             End Try
-            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
+            Dim RemoteFileName As String = Me.ItemName(remoteFilePath)
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.GetFile(RemoteFileName)
             FoundFileItem.Download(localFilePath)
             If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
@@ -217,7 +244,7 @@ Namespace Providers
         Protected Function GetDirectoryItem(remoteDirectoryPath As String, handlingIfNotFound As RessourceNotFoundHandling) As CenterDevice.IO.DirectoryInfo
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo
             Try
-                FoundDirItem = Me.IOClient.RootDirectory.GetDirectory(remoteDirectoryPath)
+                FoundDirItem = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteDirectoryPath)
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Select Case handlingIfNotFound
                     Case RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound
@@ -238,9 +265,9 @@ Namespace Providers
         ''' <param name="handlingIfNotFound"></param>
         ''' <returns></returns>
         Protected Function GetFileItem(remoteFilePath As String, handlingIfNotFound As RessourceNotFoundHandling) As CenterDevice.IO.FileInfo
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = GetDirectoryItem(ParentRemoteDirName, handlingIfNotFound)
-            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
+            Dim RemoteFileName As String = Me.ItemName(remoteFilePath)
             Return Me.GetFileItem(ParentRemoteDir, RemoteFileName, handlingIfNotFound)
         End Function
 
@@ -270,42 +297,51 @@ Namespace Providers
 
         Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim FoundSourceFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteDestinationPath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationFileName As String = Me.IOClient.Paths.GetFileName(remoteDestinationPath)
+            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            Dim RemoteDestinationFileName As String = Me.ItemName(remoteDestinationPath)
             Dim FoundDestinationFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(ParentRemoteDestinationDir, RemoteDestinationFileName, RessourceNotFoundHandling.ReturnWithNullIfItemOrParentDirectoryIsNotFound)
 
-            Throw New NotImplementedException()
-
-            'FoundSourceFileItem.Download(localFilePath)
-            'OR
-            'FoundSourceFileItem.Download(localFilePath)
-            'FoundSourceFileItem.Upload(localFilePath)
-
-            'Me.ResetParentDirectoryCache(remoteItem)
+            If FoundDestinationFileItem IsNot Nothing AndAlso allowOverwrite Then
+                'destination file already exists
+                'delete remote destination file
+                FoundDestinationFileItem.Delete()
+            End If
+            ParentRemoteDestinationDir.AddCopy(FoundSourceFileItem, RemoteDestinationFileName)
         End Sub
 
         Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
-            Throw New NotImplementedException()
-            'Me.ResetParentDirectoryCache(remoteItem)
+            Await Task.Run(Sub()
+                               CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
+                           End Sub)
         End Function
 
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
-            Throw New NotImplementedException()
-            'Me.ResetParentDirectoryCache(remoteItem)
+            Dim FoundSourceDirItem As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            Dim RemoteDestinationSubDirName As String = Me.ItemName(remoteDestinationPath)
+            Dim FoundDestinationFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(ParentRemoteDestinationDir, RemoteDestinationSubDirName, RessourceNotFoundHandling.ReturnWithNullIfItemOrParentDirectoryIsNotFound)
+
+            If FoundDestinationFileItem IsNot Nothing Then
+                Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
+            Else
+                ParentRemoteDestinationDir.AddCopy(FoundSourceDirItem, RemoteDestinationSubDirName)
+            End If
         End Sub
 
         Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
-            Throw New NotImplementedException()
-            'Me.ResetParentDirectoryCache(remoteItem)
+            Await Task.Run(Sub()
+                               CopyDirectoryItem(remoteSourcePath, remoteDestinationPath)
+                           End Sub)
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
-            Dim ParentRemoteSourceDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteSourcePath)
+            Dim ParentRemoteSourceDirName As String = Me.ParentDirectoryPath(remoteSourcePath)
             Dim FoundSourceFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteDestinationPath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationFileName As String = Me.IOClient.Paths.GetFileName(remoteDestinationPath)
+            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            Dim RemoteDestinationFileName As String = Me.ItemName(remoteDestinationPath)
             Dim FoundDestinationFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(ParentRemoteDestinationDir, RemoteDestinationFileName, RessourceNotFoundHandling.ReturnWithNullIfItemOrParentDirectoryIsNotFound)
 
             'check destination
@@ -322,55 +358,119 @@ Namespace Providers
             If ParentRemoteSourceDirName = ParentRemoteDestinationDirName Then
                 'rename the file
                 FoundSourceFileItem.Rename(RemoteDestinationFileName)
+            ElseIf FoundSourceFileItem.FileName = RemoteDestinationFileName Then
+                'move of file into new directory
+                FoundSourceFileItem.Move(ParentRemoteDestinationDir)
             Else
-                'move of file
-                Throw New NotImplementedException()
+                'move of file into new directory + rename file
+                'CenterDevice doesn't provide a 1-stop-process -> workaround required with 2 steps
+
+                'FOLLOWING CODE FOR 3-STOPS-SHOP
+                Dim GuidDirName As String = Guid.NewGuid.ToString()
+                Dim GuidRemotePath1 As String = Me.CombinePath(ParentRemoteSourceDirName, GuidDirName)
+                Dim GuidRemotePath2 As String = Me.CombinePath(ParentRemoteDestinationDirName, GuidDirName)
+                FoundSourceFileItem.Rename(GuidDirName) 'Rename in source dir to temp name
+                Try
+                    FoundSourceFileItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
+                Catch ex As Exception
+                    'Rollback transaction: rename directory back to origin dir name
+                    FoundSourceFileItem.Rename(Me.ItemName(remoteSourcePath)) 'Rename in source dir to temp name
+                    Throw New FileActionFailedException("move", remoteSourcePath, remoteDestinationPath)
+                End Try
+                FoundSourceFileItem.Rename(RemoteDestinationFileName) 'Rename in destination dir to final name
+
+                'FOLLOWING CODE FOR 1-STOPS-SHOP
                 'FoundSourceFileItem.Move(ParentRemoteDestinationDir, RemoteDestinationFileName)
             End If
-
-            Throw New NotImplementedException()
-            'Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
         Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
-            Dim ParentRemoteSourceDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteSourcePath)
+            Dim ParentRemoteSourceDirName As String = Me.ParentDirectoryPath(remoteSourcePath)
             Dim FoundSourceDirItem As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteDestinationPath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationDirName As String = Me.IOClient.Paths.GetFileName(remoteDestinationPath)
+            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            Dim RemoteDestinationDirName As String = Me.ItemName(remoteDestinationPath)
 
             If ParentRemoteDestinationDir.DirectoryExists(RemoteDestinationDirName) Then
                 Throw New Data.DirectoryAlreadyExistsException(remoteDestinationPath)
             ElseIf ParentRemoteSourceDirName = ParentRemoteDestinationDirName Then
                 'rename the directory
                 FoundSourceDirItem.Rename(RemoteDestinationDirName)
+            ElseIf FoundSourceDirItem.Name = RemoteDestinationDirName Then
+                'move the directory, keep dir name
+                FoundSourceDirItem.Move(ParentRemoteDestinationDir)
             Else
-                'move the directory
-                Throw New NotImplementedException()
-            End If
+                'move the directory + rename dir
+                'CenterDevice doesn't provide a 1-stop-process -> workaround required with 2 steps
 
-            Throw New NotImplementedException()
-            'Me.ResetParentDirectoryCache(FoundSourceDirItem)
-            'Me.ResetParentDirectoryCache(ParentRemoteDestinationDir)
+                'FOLLOWING CODE FOR 3-STOPS-SHOP
+                Dim GuidDirName As String = Guid.NewGuid.ToString()
+                Dim GuidRemotePath1 As String = Me.CombinePath(ParentRemoteSourceDirName, GuidDirName)
+                Dim GuidRemotePath2 As String = Me.CombinePath(ParentRemoteDestinationDirName, GuidDirName)
+                FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
+                Try
+                    FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
+                Catch ex As Exception
+                    'Rollback transaction: rename directory back to origin dir name
+                    FoundSourceDirItem.Rename(Me.ItemName(remoteSourcePath)) 'Rename in source dir to temp name
+                    Throw New DirectoryActionFailedException("move", remoteSourcePath, remoteDestinationPath)
+                End Try
+                FoundSourceDirItem.Rename(RemoteDestinationDirName) 'Rename in destination dir to final name
+
+                'FOLLOWING CODE FOR 2-STOPS-SHOP
+                'Dim Trial1RemotePath As String = Me.CombinePath(ParentRemoteDestinationDirName, FoundSourceDirItem.Name)
+                'Select Case Me.RemoteItemExistsAs(Trial1RemotePath)
+                '    Case DmsResourceItem.FoundItemType.Collection, DmsResourceItem.FoundItemType.Folder
+                '        'FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
+                '        'FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
+                '    Case Else
+                '        Dim Trial2RemotePath As String = Me.CombinePath(ParentRemoteSourceDirName, RemoteDestinationDirName)
+                '        Select Case Me.RemoteItemExistsAs(Trial2RemotePath)
+                '            Case DmsResourceItem.FoundItemType.Collection, DmsResourceItem.FoundItemType.Folder
+                '                'FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
+                '                'FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
+                '            Case Else
+                '                Dim GuidDirName As String = Guid.NewGuid.ToString()
+                '                Dim GuidRemotePath1 As String = Me.CombinePath(ParentRemoteSourceDirName, GuidDirName)
+                '                Dim GuidRemotePath2 As String = Me.CombinePath(ParentRemoteDestinationDirName, GuidDirName)
+                '                FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
+                '                FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
+                '                FoundSourceDirItem.Rename(RemoteDestinationDirName) 'Rename in destination dir to final name
+                '        End Select
+                'End Select
+            End If
         End Sub
 
+        Private Function FindUploadLinkForCollection(collectionID As String) As CenterDevice.Rest.Clients.Link.UploadLink
+            If collectionID <> Nothing AndAlso AllUploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(collectionID) Then
+                Return AllUploadLinks.UploadLinksList.Find(Function(item) item.Collection = collectionID)
+            Else
+                Return Nothing
+            End If
+        End Function
+
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+            Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
             Try
                 ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
                 Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
             End Try
-            Dim RemoteFileName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
-            If ParentRemoteDir.FileExists(RemoteFileName) Then
+            Dim RemoteFileName As String = Me.ItemName(remoteFilePath)
+            If remoteFilePath.EndsWith(Me.DirectorySeparator) = False AndAlso ParentRemoteDir.FileExists(RemoteFileName) Then
                 Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.GetFile(RemoteFileName)
                 If FoundFileItem IsNot Nothing Then
                     FoundFileItem.Delete()
                 End If
                 ParentRemoteDir.ResetFilesCache()
             Else
-                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo = ParentRemoteDir.GetDirectory(RemoteFileName)
+                Dim FoundDirItem As CenterDevice.IO.DirectoryInfo
+                Try
+                    FoundDirItem = ParentRemoteDir.GetDirectory(RemoteFileName)
+                Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                    Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(remoteFilePath, ex)
+                End Try
                 If FoundDirItem.Type = CenterDevice.IO.DirectoryInfo.DirectoryType.Collection Then
                     Dim RelatedUploadLink As CenterDevice.Rest.Clients.Link.UploadLink = FindUploadLinkForCollection(FoundDirItem.CollectionID)
                     If RelatedUploadLink IsNot Nothing Then
@@ -384,14 +484,6 @@ Namespace Providers
                 ParentRemoteDir.ResetDirectoriesCache()
             End If
         End Sub
-
-        Private Function FindUploadLinkForCollection(collectionID As String) As CenterDevice.Rest.Clients.Link.UploadLink
-            If collectionID <> Nothing AndAlso AllUploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(collectionID) Then
-                Return AllUploadLinks.UploadLinksList.Find(Function(item) item.Collection = collectionID)
-            Else
-                Return Nothing
-            End If
-        End Function
 
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Select Case remoteItem.ItemType
@@ -417,41 +509,11 @@ Namespace Providers
             Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
-        ''' <summary>
-        ''' Reset cache of parent directory
-        ''' </summary>
-        ''' <param name="remoteItem"></param>
-        Protected Sub ResetParentDirectoryCache(remoteItem As DmsResourceItem)
-            Dim IsFileItem As Boolean
-            Select Case remoteItem.ItemType
-                Case DmsResourceItem.ItemTypes.Root
-                    Throw New DmsUserErrorMessageException("Root folder can't be deleted")
-                Case DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder
-                Case DmsResourceItem.ItemTypes.File
-                    IsFileItem = True
-                Case Else
-                    Throw New NotImplementedException(remoteItem.ItemType.ToString)
-            End Select
-
-            Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteItem.FullName)
-            Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
-            Try
-                ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
-            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
-                Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(ParentRemoteDirName, ex)
-            End Try
-            If IsFileItem Then
-                ParentRemoteDir.ResetFilesCache()
-            Else
-                ParentRemoteDir.ResetDirectoriesCache()
-            End If
-        End Sub
-
         Public Overrides Sub CreateFolder(remoteFilePath As String)
             Dim ioExceptionMessage As String = "CreateFolder failed: " & remoteFilePath
             Try
-                Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteFilePath)
-                Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteFilePath)
+                Dim NewChildDirName As String = Me.ItemName(remoteFilePath)
+                Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
                 Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
                     ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
@@ -476,8 +538,8 @@ Namespace Providers
         Public Overrides Sub CreateDirectory(remoteDirectoryName As String)
             Dim ioExceptionMessage As String = "CreateDirectory failed: " & remoteDirectoryName
             Try
-                Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteDirectoryName)
-                Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteDirectoryName)
+                Dim NewChildDirName As String = Me.ItemName(remoteDirectoryName)
+                Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteDirectoryName)
                 Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
                     ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)
@@ -502,13 +564,13 @@ Namespace Providers
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
             Dim ioExceptionMessage As String = "CreateCollection failed: " & remoteCollectionName
             Try
-                Dim NewChildDirName As String = Me.IOClient.Paths.GetFileName(remoteCollectionName)
-                Dim ParentRemoteDirName As String = Me.IOClient.Paths.GetDirectoryName(remoteCollectionName)
+                Dim NewChildDirName As String = Me.ItemName(remoteCollectionName)
+                Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteCollectionName)
                 If ParentRemoteDirName <> Nothing Then
                     'if this situation wouldn't be catched, then otherwise creation of collection in another parent directory would lead
                     'to a new collection below root directory (instead of the expected parent directory)
                     '=> considered as a bug in CenterDevice API / CenterDevice architecture
-                    Throw New NotSupportedException("Collections must be located in root folder only")
+                    Throw New NotSupportedException("Collections """ & remoteCollectionName & """ must be located in root folder only, but is in """ & ParentRemoteDirName & """")
                 End If
                 Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try

@@ -311,7 +311,7 @@ Imports CompuMaster.Dms.Providers
     }
     Public Overridable ReadOnly Property CopyDirTestExpectedTargetFile As String() = New String() {
         "sub-copy1/sub2/sub3/copy-source-test-file.tmp",
-        "{NOT-SUPPORTED:ArgumentException}",
+        "{NOT-SUPPORTED:System.ArgumentException}",
         "sub-copy3/sub3/copy-source-test-file.tmp",
         "sub-copy4/sub3/copy-source-test-file.tmp"
     }
@@ -332,7 +332,7 @@ Imports CompuMaster.Dms.Providers
     }
     Public Overridable ReadOnly Property MoveDirTestExpectedTargetFile As String() = New String() {
         "sub-move1/sub2/sub3/move-source-test-file.tmp",
-        "{NOT-SUPPORTED:ArgumentException}",
+        "{NOT-SUPPORTED:System.ArgumentException}",
         "sub-move3/sub3/move-source-test-file.tmp",
         "sub-move4/sub3/move-source-test-file.tmp"
     }
@@ -387,7 +387,7 @@ Imports CompuMaster.Dms.Providers
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
         Assert.AreEqual("folder1/folder2/folder3/folder4", DmsProvider.ParentDirectoryPath("folder1/folder2/folder3/folder4/folder5"))
         Assert.AreEqual("/folder1/folder2/folder3/folder4", DmsProvider.ParentDirectoryPath("/folder1/folder2/folder3/folder4/folder5"))
-        Assert.AreEqual("/folder1", DmsProvider.ParentDirectoryPath("/folder1/"))
+        Assert.AreEqual("", DmsProvider.ParentDirectoryPath("/folder1/"))
         Assert.AreEqual("", DmsProvider.ParentDirectoryPath("/file1"))
         Assert.AreEqual("", DmsProvider.ParentDirectoryPath("file1"))
         Assert.AreEqual(Nothing, DmsProvider.ParentDirectoryPath("/"))
@@ -398,11 +398,10 @@ Imports CompuMaster.Dms.Providers
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
         Assert.AreEqual("folder4", DmsProvider.ItemName("folder1/folder2/folder3/folder4"))
         Assert.AreEqual("folder4", DmsProvider.ItemName("/folder1/folder2/folder3/folder4"))
+        Assert.AreEqual("folder1", DmsProvider.ItemName("/folder1/"))
         Assert.AreEqual("file1", DmsProvider.ItemName("/file1"))
         Assert.AreEqual("file1", DmsProvider.ItemName("file1"))
-        Assert.Catch(Of ArgumentException)(Sub()
-                                               DmsProvider.ItemName("/")
-                                           End Sub)
+        Assert.AreEqual("", DmsProvider.ItemName("/"))
         Assert.Catch(Of ArgumentException)(Sub()
                                                DmsProvider.ItemName("")
                                            End Sub)
@@ -634,9 +633,15 @@ Imports CompuMaster.Dms.Providers
             Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Collection, TriState.True)
 
             '2nd step: create a remote collection with multiple sub directories that is expected to fail because parent directory doesn't exist
-            Assert.Catch(Of CompuMaster.Dms.Data.DirectoryNotFoundException)(Sub()
-                                                                                 DmsProvider.CreateCollection(DmsProvider.CombinePath(RemotePath, "with", "a", "deep", "folder", "structure"))
-                                                                             End Sub)
+            If DmsProvider.SupportsCollections Then
+                Assert.Catch(Of NotSupportedException)(Sub()
+                                                           DmsProvider.CreateCollection(DmsProvider.CombinePath(RemotePath, "with", "a", "deep", "folder", "structure"))
+                                                       End Sub)
+            Else
+                Assert.Catch(Of CompuMaster.Dms.Data.DirectoryNotFoundException)(Sub()
+                                                                                     DmsProvider.CreateCollection(DmsProvider.CombinePath(RemotePath, "with", "a", "deep", "folder", "structure"))
+                                                                                 End Sub)
+            End If
 
             '3nd step: create a remote collection with multiple sub directories that is expected to fail because collections are supported at very first directory level, only
             DmsProvider.CreateCollection(RemotePath)
@@ -1036,8 +1041,10 @@ Imports CompuMaster.Dms.Providers
             dmsProvider.Copy(RemotePathSource, RemotePathTarget, False, True)
             AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
             AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
+        Catch ex As NotImplementedException
+            Throw New IgnoreException(ex.ToString)
         Catch ex As Exception
-            Assert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.Name & "}", "Catched exception type must match with expected result")
+            Assert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.FullName & "}", "Catched exception type must match with expected result" & System.Environment.NewLine & ex.ToString)
         End Try
 
         '3rd step: copy again and fail because of trial to overwrite: not yet implemented to handle what happens if destination already exists (partially)!
@@ -1188,7 +1195,6 @@ Imports CompuMaster.Dms.Providers
 
             'Cleanup
             RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
-
         End If
 
     End Sub
@@ -1218,11 +1224,18 @@ Imports CompuMaster.Dms.Providers
 
         Try
             dmsProvider.Move(RemotePathSource, RemotePathTarget, False, True)
+            AssertRemoteDirectoryNotExists(dmsProvider, RemotePathSource, True)
             AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
             AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
             AssertRemoteFileNotExists(dmsProvider, RemotePathExpectedMovedSourceNotExistingAnyMore, False)
+        Catch ex As DirectoryNotFoundException
+            Assert.AreEqual(RemotePathExpectedTarget, "{NOT-FOUND:" & ex.RemotePath & "}", "Catched exception type must match with expected result")
+        Catch ex As DirectoryActionFailedException
+            Throw New IgnoreException(ex.ToString)
+        Catch ex As NotImplementedException
+            Throw New IgnoreException(ex.ToString)
         Catch ex As Exception
-            Assert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.Name & "}", "Catched exception type must match with expected result")
+            Assert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.FullName & "}", "Catched exception type must match with expected result" & System.Environment.NewLine & ex.ToString)
         End Try
 
         '3rd step: move again and fail because of trial to overwrite: not yet implemented to handle what happens if destination already exists (partially)!
@@ -1257,7 +1270,13 @@ Imports CompuMaster.Dms.Providers
         AssertRemoteFileExists(dmsProvider, RemoteFilePathSource)
 
         '2nd step: move remote file on remote storage
-        dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, True)
+        Try
+            dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, True)
+        Catch ex As FileActionFailedException
+            Throw New IgnoreException(ex.ToString)
+        Catch ex As NotImplementedException
+            Throw New IgnoreException(ex.ToString)
+        End Try
         AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
         AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, False)
 
@@ -1307,7 +1326,9 @@ Imports CompuMaster.Dms.Providers
         'Cleanup
         Try
             dmsProvider.DeleteRemoteItem(remoteFilePath)
-        Catch ex As RessourceNotFoundException
+        Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
+            'ignore
+        Catch ex As CompuMaster.Dms.Data.RessourceNotFoundException
             'ignore
         End Try
         Dim Item As DmsResourceItem
@@ -1343,6 +1364,8 @@ Imports CompuMaster.Dms.Providers
         'Cleanup
         Try
             dmsProvider.DeleteRemoteItem(remoteDirectoryPath)
+        Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
+            'ignore
         Catch ex As RessourceNotFoundException
             'ignore
         End Try

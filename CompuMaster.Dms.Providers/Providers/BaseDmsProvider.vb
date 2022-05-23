@@ -157,6 +157,22 @@ Namespace Providers
         ''' <summary>
         ''' Reset file system cache and force refresh on next access
         ''' </summary>
+        ''' <param name="remoteItem">A directory which might contain lists of children items</param>
+        ''' <param name="searchType"></param>
+        Public Sub ResetCachesForRemoteItems(remoteItem As DmsResourceItem, searchType As SearchItemType)
+            Select Case remoteItem.ItemType
+                Case DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Root
+
+                Case DmsResourceItem.ItemTypes.File
+                    Throw New NotSupportedException("Files don't contain directory caches")
+                Case Else
+                    Throw New NotImplementedException
+            End Select
+        End Sub
+
+        ''' <summary>
+        ''' Reset file system cache and force refresh on next access
+        ''' </summary>
         ''' <param name="remoteFolderPath"></param>
         ''' <param name="searchType"></param>
         Public MustOverride Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
@@ -415,11 +431,15 @@ Namespace Providers
         Public Sub Copy(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
             Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Dim ParentDirPathDestination As String = Me.ParentDirectoryPath(remoteDestinationPath)
             Select Case FoundRemoteSourceItem
                 Case DmsResourceItem.FoundItemResult.File
                     Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Files)
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
                     Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Folders)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Collections)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -436,11 +456,15 @@ Namespace Providers
         Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
             Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
             Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Dim ParentDirPathDestination As String = Me.ParentDirectoryPath(remoteDestinationPath)
             Select Case FoundRemoteSourceItem
                 Case DmsResourceItem.FoundItemResult.File
                     Await Me.CopyFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Files)
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
                     Await Me.CopyDirectoryItemAsync(remoteSourcePath, remoteDestinationPath)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Folders)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Collections)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -567,6 +591,17 @@ Namespace Providers
         End Sub
 
         ''' <summary>
+        ''' Move a remote DMS item (overwriting forbidden, destination directory must exist)
+        ''' </summary>
+        ''' <param name="remoteSource"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Sub Move(remoteSource As DmsResourceItem, remoteDestinationPath As String)
+            Me.Move(remoteSource, remoteDestinationPath, False, False)
+        End Sub
+
+        ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
         ''' <param name="remoteSourcePath"></param>
@@ -576,11 +611,47 @@ Namespace Providers
         Public Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSourcePath)
             Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Dim ParentDirPathSource As String = Me.ParentDirectoryPath(remoteSourcePath)
+            Dim ParentDirPathDestination As String = Me.ParentDirectoryPath(remoteDestinationPath)
             Select Case FoundRemoteSourceItem
                 Case DmsResourceItem.FoundItemResult.File
                     Me.MoveFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
+                    Me.ResetCachesForRemoteItems(ParentDirPathSource, SearchItemType.Files)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Files)
                 Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
                     Me.MoveDirectoryItem(remoteSourcePath, remoteDestinationPath)
+                    Me.ResetCachesForRemoteItems(ParentDirPathSource, SearchItemType.Folders)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Folders)
+                    Me.ResetCachesForRemoteItems(ParentDirPathSource, SearchItemType.Collections)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Collections)
+                Case Else
+                    Throw New NotImplementedException
+            End Select
+        End Sub
+
+        ''' <summary>
+        ''' Move a remote DMS item
+        ''' </summary>
+        ''' <param name="remoteSource"></param>
+        ''' <param name="remoteDestinationPath"></param>
+        ''' <exception cref="FileAlreadyExistsException" />
+        ''' <exception cref="DirectoryAlreadyExistsException" />
+        Public Sub Move(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
+            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Me.RemoteItemExistsUniquelyAs(remoteSource.FullName)
+            Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSource.FullName, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Dim ParentDirPathSource As String = Me.ParentDirectoryPath(remoteSource.FullName)
+            Dim ParentDirPathDestination As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            Select Case FoundRemoteSourceItem
+                Case DmsResourceItem.FoundItemResult.File
+                    Me.MoveFileItem(remoteSource.FullName, remoteDestinationPath, allowOverwrite)
+                    Me.ResetCachesForRemoteItems(ParentDirPathSource, SearchItemType.Files)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Files)
+                Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
+                    Me.MoveDirectoryItem(remoteSource.FullName, remoteDestinationPath)
+                    Me.ResetCachesForRemoteItems(ParentDirPathSource, SearchItemType.Folders)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Folders)
+                    Me.ResetCachesForRemoteItems(ParentDirPathSource, SearchItemType.Collections)
+                    Me.ResetCachesForRemoteItems(ParentDirPathDestination, SearchItemType.Collections)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -771,7 +842,7 @@ Namespace Providers
             ElseIf absolutePath.Contains(Me.DirectorySeparator) = False Then
                 Return ""
             ElseIf absolutePath.EndsWith(Me.DirectorySeparator) Then
-                Return absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator, absolutePath.Length - 1))
+                Return ParentDirectoryPath(absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator, absolutePath.Length - 1)))
             Else
                 Return absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator))
             End If
@@ -785,8 +856,10 @@ Namespace Providers
         Public Overridable Function ItemName(absolutePath As String) As String
             If absolutePath = Nothing Then
                 Throw New ArgumentNullException(NameOf(absolutePath))
-            ElseIf absolutePath = Me.DirectorySeparator OrElse absolutePath.EndsWith(Me.DirectorySeparator) Then
-                Throw New ArgumentException("Must not end with a directory separator char", NameOf(absolutePath))
+            ElseIf absolutePath = Me.DirectorySeparator Then
+                Return ""
+            ElseIf absolutePath.EndsWith(Me.DirectorySeparator) Then
+                Return ItemName(absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator, absolutePath.Length - 1)))
             Else
                 Dim ParentPath As String = Me.ParentDirectoryPath(absolutePath)
                 Dim Result As String = absolutePath.Substring(ParentPath.Length)
