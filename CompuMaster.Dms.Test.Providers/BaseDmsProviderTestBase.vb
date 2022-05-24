@@ -239,7 +239,24 @@ Imports CompuMaster.Dms.Providers
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Item As DmsResourceItem
 
+        Assert.Catch(Of System.ArgumentNullException)(Sub()
+                                                          DmsProvider.ListRemoteItem(Nothing)
+                                                      End Sub)
         Item = DmsProvider.ListRemoteItem(DmsProvider.BrowseInRootFolderName)
+        System.Console.WriteLine(Item)
+        Assert.NotNull(Item)
+        Assert.AreEqual(DmsResourceItem.ItemTypes.Root, Item.ItemType)
+        Assert.AreEqual("", Item.Folder)
+        Assert.AreEqual("", Item.Name)
+
+        Item = DmsProvider.ListRemoteItem(DmsProvider.DirectorySeparator)
+        System.Console.WriteLine(Item)
+        Assert.NotNull(Item)
+        Assert.AreEqual(DmsResourceItem.ItemTypes.Root, Item.ItemType)
+        Assert.AreEqual("", Item.Folder)
+        Assert.AreEqual("", Item.Name)
+
+        Item = DmsProvider.ListRemoteItem("")
         System.Console.WriteLine(Item)
         Assert.NotNull(Item)
         Assert.AreEqual(DmsResourceItem.ItemTypes.Root, Item.ItemType)
@@ -402,8 +419,9 @@ Imports CompuMaster.Dms.Providers
         Assert.AreEqual("file1", DmsProvider.ItemName("/file1"))
         Assert.AreEqual("file1", DmsProvider.ItemName("file1"))
         Assert.AreEqual("", DmsProvider.ItemName("/"))
+        Assert.AreEqual("", DmsProvider.ItemName(""))
         Assert.Catch(Of ArgumentException)(Sub()
-                                               DmsProvider.ItemName("")
+                                               DmsProvider.ItemName(Nothing)
                                            End Sub)
     End Sub
 

@@ -854,9 +854,9 @@ Namespace Providers
         ''' <param name="absolutePath"></param>
         ''' <returns></returns>
         Public Overridable Function ItemName(absolutePath As String) As String
-            If absolutePath = Nothing Then
+            If absolutePath Is Nothing Then
                 Throw New ArgumentNullException(NameOf(absolutePath))
-            ElseIf absolutePath = Me.DirectorySeparator Then
+            ElseIf absolutePath = Nothing OrElse absolutePath = Me.DirectorySeparator Then
                 Return ""
             ElseIf absolutePath.EndsWith(Me.DirectorySeparator) Then
                 Return ItemName(absolutePath.Substring(0, absolutePath.LastIndexOf(Me.DirectorySeparator, absolutePath.Length - 1)))

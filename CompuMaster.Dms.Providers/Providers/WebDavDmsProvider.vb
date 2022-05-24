@@ -92,9 +92,12 @@ Namespace Providers
         End Sub
 
         Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
+            If remotePath Is Nothing Then
+                Throw New ArgumentNullException(NameOf(remotePath))
+            End If
             Dim PropfindParams As New Global.WebDav.PropfindParameters With {
-                  .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceOnly
-              }
+          .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceOnly
+      }
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, PropfindParams)
             PropfindTask.Wait()
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
