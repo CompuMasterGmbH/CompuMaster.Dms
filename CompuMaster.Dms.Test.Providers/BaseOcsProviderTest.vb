@@ -3,24 +3,23 @@ Option Strict On
 
 Imports NUnit.Framework
 
-Public Class WebDavProviderTest
+Public MustInherit Class BaseOcsProviderTest
     Inherits BaseLoginProfileProviderTest
 
-    Public Overrides ReadOnly Property TestedProvider As Dms.Providers.BaseDmsProvider.DmsProviders = Dms.Providers.BaseDmsProvider.DmsProviders.WebDAV
+    ''FOR FUTURE IMPLEMENTATION OF OcsProviderTest:
+    'Protected Overrides Function CreateLoginProfile() As DmsLoginProfile
+    '    Dim Settings As New OcsSettings
+    '    Dim username As String = Settings.InputLine("username")
+    '    Dim serverurl As String = Settings.InputLine("server url")
+    '    Dim password As String = Settings.InputLine("password")
 
-    Protected Overrides Function CreateLoginProfile() As DmsLoginProfile
-        Dim Settings As New WebDavSettings
-        Dim username As String = Settings.InputLine("username")
-        Dim serverurl As String = Settings.InputLine("server url")
-        Dim password As String = Settings.InputLine("password")
-
-        Return New DmsLoginProfile() With {
-                            .DmsProvider = Me.TestedProvider,
-                            .BaseUrl = serverurl,
-                            .Username = username,
-                            .Password = password
-                            }
-    End Function
+    '    Return New DmsLoginProfile() With {
+    '                        .DmsProvider = CompuMaster.Dms.Providers.BaseDmsProvider.DmsProviders.OCS,
+    '                        .BaseUrl = serverurl,
+    '                        .Username = username,
+    '                        .Password = password
+    '                        }
+    'End Function
 
     Protected Overrides ReadOnly Property IgnoreSslErrors As Boolean
         Get

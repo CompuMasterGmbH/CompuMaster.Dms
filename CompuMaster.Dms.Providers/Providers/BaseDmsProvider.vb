@@ -14,11 +14,20 @@ Namespace Providers
             <System.ComponentModel.Description("URL (manueller Transfer)")>
             ManualUrl = -1
             None = 0
-            <System.ComponentModel.Description("WebDAV (OwnCloud, NextCloud, etc.)")>
+            <System.ComponentModel.Description("WebDAV")>
             WebDAV = 1
+            ''' <summary>
+            ''' OCS v1.7, see https://www.freedesktop.org/wiki/Specifications/open-collaboration-services-1.7/
+            ''' </summary>
+            <System.ComponentModel.Description("Open Collaboration Service (OCS)")>
+            OCS = 2
             <System.ComponentModel.Description("Scopevisio Teamwork")>
             Scopevisio = 20
             CenterDevice = 21
+            <System.ComponentModel.Description("OwnCloud")>
+            OwnCloud = 2001
+            <System.ComponentModel.Description("NextCloud")>
+            NextCloud = 2002
         End Enum
 
         ''' <summary>

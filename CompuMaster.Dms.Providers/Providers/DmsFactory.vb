@@ -26,6 +26,12 @@ Namespace Providers
                     Return New ScopevisioTeamworkDmsProvider
                 Case Providers.BaseDmsProvider.DmsProviders.WebDAV
                     Return New WebDavDmsProvider
+                Case Providers.BaseDmsProvider.DmsProviders.OCS
+                    Return New OcsDmsProvider
+                Case Providers.BaseDmsProvider.DmsProviders.OwnCloud
+                    Return New OwnCloudDmsProvider
+                Case Providers.BaseDmsProvider.DmsProviders.NextCloud
+                    Return New NextCloudDmsProvider
                 Case Else
                     Throw New NotImplementedException("Not yet implemented DMS provider: " & provider.ToString)
             End Select

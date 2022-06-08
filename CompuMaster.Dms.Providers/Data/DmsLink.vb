@@ -37,7 +37,16 @@ Namespace Data
             Me.FillLinkDetails = fillLinkDetailsMethod
         End Sub
 
+        ''' <summary>
+        ''' The ID of a link
+        ''' </summary>
+        ''' <returns></returns>
         Public Property ID As String
+
+        ''' <summary>
+        ''' The name of a link (if present/available)
+        ''' </summary>
+        ''' <returns></returns>
         Public Property Name As String
 
         Public DmsProvider As BaseDmsProvider
@@ -82,12 +91,19 @@ Namespace Data
             Return Me.MemberwiseClone
         End Function
 
+        ''' <summary>
+        ''' Requery all properties from server
+        ''' </summary>
         Public Sub Refresh()
             If Me.ID <> Nothing AndAlso Me.DmsProvider IsNot Nothing AndAlso Me.FillLinkDetails IsNot Nothing Then
                 Me.FillLinkDetails(Me.DmsProvider, Me.ID, Me)
             End If
         End Sub
 
+        ''' <summary>
+        ''' The name or ID of the link with list of allowed actions
+        ''' </summary>
+        ''' <returns></returns>
         Public Overrides Function ToString() As String
             If Me.Name = Nothing Then
                 Return Me.ID & " (" & String.Join("/", Me.AllowedActions.ToArray) & ")"

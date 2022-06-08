@@ -4,36 +4,22 @@ Option Strict On
 Imports NUnit.Framework
 
 Public Class ScopevisioTeamworkProviderTest
-    Inherits BaseDmsProviderTestBase
+    Inherits BaseLoginProfileProviderTest
 
-    Private Function CreateLoginProfile() As DmsLoginProfile
+    Public Overrides ReadOnly Property TestedProvider As CompuMaster.Dms.Providers.BaseDmsProvider.DmsProviders = Dms.Providers.BaseDmsProvider.DmsProviders.Scopevisio
+
+    Protected Overrides Function CreateLoginProfile() As DmsLoginProfile
         Dim Settings As New ScopevisioTeamworkSettings
         Dim username As String = Settings.InputLine("username")
         Dim customerno As String = Settings.InputLine("customer no.")
         Dim password As String = Settings.InputLine("password")
 
         Return New DmsLoginProfile() With {
-                            .DmsProvider = CompuMaster.Dms.Providers.BaseDmsProvider.DmsProviders.Scopevisio,
+                            .DmsProvider = Me.TestedProvider,
                             .CustomerInstance = customerno,
                             .Username = username,
                             .Password = password
                             }
-    End Function
-
-    Protected Overrides Function UninitializedDmsProvider() As Dms.Providers.BaseDmsProvider
-        Static Result As Dms.Providers.BaseDmsProvider
-        If Result Is Nothing Then
-            Result = Dms.Providers.CreateDmsProviderInstance(Me.CreateLoginProfile.DmsProvider)
-        End If
-        Return Result
-    End Function
-
-    Protected Overrides Function LoggedInDmsProvider() As Dms.Providers.BaseDmsProvider
-        Static Result As Dms.Providers.BaseDmsProvider
-        If Result Is Nothing Then
-            Result = Dms.Providers.CreateAuthorizedDmsProviderInstance(Me.CreateLoginProfile)
-        End If
-        Return Result
     End Function
 
     Protected Overrides ReadOnly Property IgnoreSslErrors As Boolean
