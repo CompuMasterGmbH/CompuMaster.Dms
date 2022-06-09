@@ -934,6 +934,8 @@ Imports CompuMaster.Dms.Providers
             Case BaseDmsProvider.DmsProviders.CenterDevice, BaseDmsProvider.DmsProviders.Scopevisio
                 Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
                 Assert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID).Id)
+                Assert.IsNull(CenterDeviceProvider._AllUploadLinks)
+                Assert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID).Id)
             Case BaseDmsProvider.DmsProviders.OCS, BaseDmsProvider.DmsProviders.OwnCloud, BaseDmsProvider.DmsProviders.NextCloud
                 Dim OcsProvider As CompuMaster.Dms.Providers.OcsDmsProvider = CType(DmsProvider, CompuMaster.Dms.Providers.OcsDmsProvider)
             Case Else
