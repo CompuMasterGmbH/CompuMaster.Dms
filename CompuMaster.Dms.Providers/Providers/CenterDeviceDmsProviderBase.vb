@@ -611,7 +611,7 @@ Namespace Providers
             End Get
         End Property
 
-        Private _AllUploadLinks As CenterDevice.Rest.Clients.Link.UploadLinks
+        Friend _AllUploadLinks As CenterDevice.Rest.Clients.Link.UploadLinks
         Private Function AllUploadLinks() As CenterDevice.Rest.Clients.Link.UploadLinks
             If _AllUploadLinks Is Nothing Then
                 _AllUploadLinks = Me.IOClient.ApiClient.UploadLinks.GetAllUploadLinks(Me.IOClient.CurrentAuthenticationContextUserID)
@@ -907,6 +907,7 @@ Namespace Providers
                     _AllUploadLinks = Nothing 'Reset cache
                     Dim Result As DmsLink
                     Result = New DmsLink(dmsResource, CreatedUploadLink.Id, Me, AddressOf DelegatedFillUploadLinkDetails)
+                    dmsResource.ExtendedInfosLinks.Add(Result) 'Update current DmsResourceItem
                     Return Result
                 Else
                     'Create view/download link
@@ -931,6 +932,8 @@ Namespace Providers
                     End Select
                     Dim Result As DmsLink
                     Result = New DmsLink(dmsResource, CreatedLink.Id, Me, AddressOf DelegatedFillLinkDetails)
+                    dmsResource.ExtendedInfosLinks.Add(Result) 'Update current DmsResourceItem
+                    Me.IOClient.RootDirectory.OpenDirectoryPath(dmsResource.FullName).ParentDirectory.ResetDirectoriesCache()
                     Return Result
                 End If
             Catch ex As ForbiddenException

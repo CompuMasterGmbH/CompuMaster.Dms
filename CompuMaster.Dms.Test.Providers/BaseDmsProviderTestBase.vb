@@ -874,8 +874,6 @@ Imports CompuMaster.Dms.Providers
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         If DmsProvider.SupportsSharingSetup = False Then Assert.Ignore("Sharing setup not supported by provider")
 
-        Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
-
         Me.CreateRemoteTestFolderIfNotExisting(RemoteTestFolderName, DirectoryTypes.Collection)
         Dim RemoteDirItem As CompuMaster.Dms.Data.DmsResourceItem = DmsProvider.ListRemoteItem(RemoteTestFolderName)
         Assert.NotNull(RemoteDirItem.FullName)
@@ -892,23 +890,45 @@ Imports CompuMaster.Dms.Providers
             .Name = "UnitTest_UploadLinkShare_" & RemoteTestFolderName
             }
 
-        ShareLink = CenterDeviceProvider.CreateLink(RemoteDirItem, ShareLink)
+        ShareLink = DmsProvider.CreateLink(RemoteDirItem, ShareLink)
 
         Assert.NotNull(ShareLink.ID)
         Assert.IsNotEmpty(ShareLink.ID)
-        Assert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID).Id)
+        Select Case DmsProvider.DmsProviderID
+            Case BaseDmsProvider.DmsProviders.CenterDevice, BaseDmsProvider.DmsProviders.Scopevisio
+                Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+                Assert.IsNull(CenterDeviceProvider._AllUploadLinks)
+                Assert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID).Id)
+            Case Else
+                Throw New NotImplementedException
+        End Select
+        Dim RefreshedRemoteDirItem As CompuMaster.Dms.Data.DmsResourceItem = DmsProvider.ListRemoteItem(RemoteTestFolderName)
+        Assert.AreEqual(True, RefreshedRemoteDirItem.ExtendedInfosHasLinks)
+        Assert.AreEqual(1, RefreshedRemoteDirItem.ExtendedInfosLinks.Count)
+        Assert.AreEqual(ShareLink.AllowedActions, RefreshedRemoteDirItem.ExtendedInfosLinks(0).AllowedActions)
 
-        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryTypes.Collection, True)
+        'Remove link again
+        Me.RemoveRemoteTestFolder(RemoteTestFolderName, If(DmsProvider.SupportsCollections, DirectoryTypes.Collection, DirectoryTypes.Folder), True)
 
-        Assert.Catch(Of CenterDevice.Rest.Exceptions.NotFoundException)(Sub()
-                                                                            CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID)
-                                                                        End Sub)
-
-        Dim AllUploadLinks = CenterDeviceProvider.IOClient.ApiClient.UploadLinks.GetAllUploadLinks(CenterDeviceProvider.IOClient.CurrentAuthenticationContextUserID)
-        Dim FoundUploadLink As CenterDevice.Rest.Clients.Link.UploadLink = AllUploadLinks.UploadLinksList.Find(Function(item As CenterDevice.Rest.Clients.Link.UploadLink) As Boolean
-                                                                                                                   Return item.Id = ShareLink.ID
-                                                                                                               End Function)
-        Assert.IsNull(FoundUploadLink)
+        'Test removal of link
+        Select Case DmsProvider.DmsProviderID
+            Case BaseDmsProvider.DmsProviders.CenterDevice, BaseDmsProvider.DmsProviders.Scopevisio
+                Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+                'Re-check with re-querying from server
+                Assert.Catch(Of CenterDevice.Rest.Exceptions.NotFoundException)(
+                    Sub()
+                        CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID)
+                    End Sub)
+                'Re-check with full list of upload links
+                Dim AllUploadLinks = CenterDeviceProvider.IOClient.ApiClient.UploadLinks.GetAllUploadLinks(CenterDeviceProvider.IOClient.CurrentAuthenticationContextUserID)
+                Dim FoundUploadLink As CenterDevice.Rest.Clients.Link.UploadLink = AllUploadLinks.UploadLinksList.Find(
+                    Function(item As CenterDevice.Rest.Clients.Link.UploadLink) As Boolean
+                        Return item.Id = ShareLink.ID
+                    End Function)
+                Assert.IsNull(FoundUploadLink)
+            Case Else
+                Throw New NotImplementedException
+        End Select
 
     End Sub
 
