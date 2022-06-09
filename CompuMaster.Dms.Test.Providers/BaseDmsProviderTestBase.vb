@@ -1080,7 +1080,7 @@ Imports CompuMaster.Dms.Providers
             AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
             AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
         Catch ex As NotImplementedException
-            Throw New IgnoreException(ex.ToString)
+            Throw New IgnoreException("Implementation required" & System.Environment.NewLine & ex.ToString, ex)
         Catch ex As Exception
             Assert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.FullName & "}", "Catched exception type must match with expected result" & System.Environment.NewLine & ex.ToString)
         End Try
@@ -1311,9 +1311,14 @@ Imports CompuMaster.Dms.Providers
         Try
             dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, True)
         Catch ex As FileActionFailedException
-            Throw New IgnoreException(ex.ToString)
+            Select Case dmsProvider.DmsProviderID
+                Case BaseDmsProvider.DmsProviders.CenterDevice, BaseDmsProvider.DmsProviders.Scopevisio
+                    Throw New IgnoreException("Move action failed - CenterDevice implementation to be completed" & System.Environment.NewLine & ex.ToString, ex)
+                Case Else
+                    Throw
+            End Select
         Catch ex As NotImplementedException
-            Throw New IgnoreException(ex.ToString)
+            Throw New IgnoreException("Implementation required" & System.Environment.NewLine & ex.ToString, ex)
         End Try
         AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
         AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, False)
