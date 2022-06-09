@@ -930,10 +930,11 @@ Namespace Providers
                         Case Else
                             Throw New NotImplementedException("Invalid item type: " & dmsResource.ItemType)
                     End Select
+                    'Refresh caches + update current DmsResourceItem
+                    Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(dmsResource)
                     Dim Result As DmsLink
                     Result = New DmsLink(dmsResource, CreatedLink.Id, Me, AddressOf DelegatedFillLinkDetails)
                     dmsResource.ExtendedInfosLinks.Add(Result) 'Update current DmsResourceItem
-                    Me.IOClient.RootDirectory.OpenDirectoryPath(dmsResource.FullName).ParentDirectory.ResetDirectoriesCache()
                     Return Result
                 End If
             Catch ex As ForbiddenException
@@ -959,6 +960,10 @@ Namespace Providers
             End If
         End Function
 
+        Private Sub ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(modifiedDmsResourceItem As DmsResourceItem)
+            Me.ResetParentDirectoryCache(modifiedDmsResourceItem)
+        End Sub
+
         Private Overloads Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareBase, listOfAddedGroups As List(Of String), listOfAddedUsers As List(Of String))
             Dim Response As SharingResponse
             Select Case shareInfo.ParentDmsResourceItem.ItemType
@@ -982,6 +987,7 @@ Namespace Providers
             If Response?.FailedGroups?.Count = 0 AndAlso Response?.FailedUsers?.Count = 0 Then
                 Throw New InvalidOperationException("Failure deleting sharing")
             End If
+            Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(dmsResource)
         End Sub
 
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
@@ -1026,6 +1032,7 @@ Namespace Providers
                         .MaxDownloads = ConvertNarrowingToNullableInt32(shareInfo.MaxDownloads)
                     }
                     Me.IOClient.ApiClient.Link.UpdateLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID, AccessControl)
+                    Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(shareInfo.ParentDmsResourceItem)
                 End If
             Catch ex As ForbiddenException
                 Throw New Data.DmsUserErrorMessageException(ex.ErrorResponse.Message)
@@ -1054,6 +1061,7 @@ Namespace Providers
             Else
                 'Delete view/download link            
                 Me.IOClient.ApiClient.Link.DeleteLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID)
+                Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(shareInfo.ParentDmsResourceItem)
             End If
         End Sub
 
@@ -1080,6 +1088,7 @@ Namespace Providers
             If Response?.FailedGroups?.Count = 0 AndAlso Response?.FailedUsers?.Count = 0 Then
                 Throw New InvalidOperationException("Failure deleting sharing")
             End If
+            Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(shareInfo.ParentDmsResourceItem)
         End Sub
 
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForGroup)
