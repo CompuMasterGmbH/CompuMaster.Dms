@@ -10,6 +10,19 @@ Imports InfoBox
 
 Public Class DmsBrowser
 
+    <Obsolete("WARNING: Forbidden except for VisualStudio Designer, please use overloaded constructor")>
+    <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+    Public Sub New()
+        MyBase.New()
+
+        If Not Me.IsDesignMode Then
+            Throw New ArgumentException("Constructor requires arguments, use another constructor overload")
+        End If
+
+        ' Dieser Aufruf ist für den Designer erforderlich.
+        InitializeComponent()
+    End Sub
+
     ''' <summary>
     ''' A browser for DMS systems
     ''' </summary>
@@ -50,6 +63,12 @@ Public Class DmsBrowser
         Me.LocalDefaultFolderDownloads = localDefaultFolderDownloads
         Me.LocalDefaultFolderUploads = localDefaultFolderUploads
     End Sub
+
+    Private ReadOnly Property IsDesignMode As Boolean
+        Get
+            Return Me.DesignMode OrElse System.ComponentModel.LicenseManager.UsageMode = LicenseUsageMode.Runtime
+        End Get
+    End Property
 
     Public Property DmsProfile As CompuMaster.Dms.Data.IDmsLoginProfile
 
@@ -208,6 +227,7 @@ Public Class DmsBrowser
     Public Property LocalParentMustFolder As String
 
     Private Sub BrowseDmsFolders_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        If Me.IsDesignMode Then Return 'no loading in design mode
         If Me.LocalDefaultFolderDownloads = Nothing Then LocalDefaultFolderDownloads = Me.LocalParentMustFolder
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
         Try
