@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>CompuMaster.Dms</RootNamespace>
-    <TargetFrameworks>netstandard2.0;net48;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net48;net6.0</TargetFrameworks>
     <PackageIcon>logo_64x64.png</PackageIcon>
     <PackageIconUrl />
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
