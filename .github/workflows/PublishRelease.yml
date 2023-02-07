@@ -35,6 +35,9 @@ jobs:
         runs-on: windows-latest
         #if: false # always skip job
 
+        env:
+          VersionPrefix: ${{  github.ref_name }}
+
         steps:
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: Checkout
