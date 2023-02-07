@@ -10,14 +10,13 @@ Imports InfoBox
 
 Public Class DmsBrowser
 
-    <Obsolete("WARNING: Forbidden except for VisualStudio Designer, please use overloaded constructor")>
+    ''' <summary>
+    ''' A browser for DMS systems
+    ''' </summary>
+    ''' <remarks>Intended for designer only; please use another constructor overload</remarks>
     <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
     Public Sub New()
         MyBase.New()
-
-        If Not Me.IsDesignMode Then
-            Throw New ArgumentException("Constructor requires arguments, use another constructor overload")
-        End If
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
@@ -66,7 +65,7 @@ Public Class DmsBrowser
 
     Private ReadOnly Property IsDesignMode As Boolean
         Get
-            Return Me.DesignMode OrElse System.ComponentModel.LicenseManager.UsageMode = LicenseUsageMode.Runtime
+            Return Me.DesignMode OrElse System.ComponentModel.LicenseManager.UsageMode = LicenseUsageMode.Runtime OrElse Me.DmsProfile Is Nothing
         End Get
     End Property
 
