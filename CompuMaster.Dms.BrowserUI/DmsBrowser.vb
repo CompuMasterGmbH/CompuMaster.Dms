@@ -13,6 +13,18 @@ Public Class DmsBrowser
     ''' <summary>
     ''' A browser for DMS systems
     ''' </summary>
+    ''' <remarks>Intended for designer only; please use another constructor overload</remarks>
+    <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+    Public Sub New()
+        MyBase.New()
+
+        ' Dieser Aufruf ist für den Designer erforderlich.
+        InitializeComponent()
+    End Sub
+
+    ''' <summary>
+    ''' A browser for DMS systems
+    ''' </summary>
     ''' <param name="dmsProfile"></param>
     ''' <param name="formTitle">The form title</param>
     ''' <param name="formIcon">The form icon</param>
@@ -50,6 +62,12 @@ Public Class DmsBrowser
         Me.LocalDefaultFolderDownloads = localDefaultFolderDownloads
         Me.LocalDefaultFolderUploads = localDefaultFolderUploads
     End Sub
+
+    Private ReadOnly Property IsDesignMode As Boolean
+        Get
+            Return Me.DesignMode OrElse System.ComponentModel.LicenseManager.UsageMode = LicenseUsageMode.Runtime OrElse Me.DmsProfile Is Nothing
+        End Get
+    End Property
 
     Public Property DmsProfile As CompuMaster.Dms.Data.IDmsLoginProfile
 
@@ -208,6 +226,7 @@ Public Class DmsBrowser
     Public Property LocalParentMustFolder As String
 
     Private Sub BrowseDmsFolders_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        If Me.IsDesignMode Then Return 'no loading in design mode
         If Me.LocalDefaultFolderDownloads = Nothing Then LocalDefaultFolderDownloads = Me.LocalParentMustFolder
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
         Try

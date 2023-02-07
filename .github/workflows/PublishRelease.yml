@@ -35,6 +35,9 @@ jobs:
         runs-on: windows-latest
         #if: false # always skip job
 
+        env:
+          VersionPrefix: ${{  github.ref_name }}
+
         steps:
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: Checkout
@@ -43,7 +46,7 @@ jobs:
             - name: Setup .NET Core
               uses: actions/setup-dotnet@v1
               with:
-                dotnet-version: 5.0.x
+                dotnet-version: 6.0.x
 
             - name: Install dependencies
               run: dotnet restore
