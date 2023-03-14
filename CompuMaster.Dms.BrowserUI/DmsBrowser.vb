@@ -65,7 +65,18 @@ Public Class DmsBrowser
 
     Private ReadOnly Property IsDesignMode As Boolean
         Get
-            Return Me.DesignMode OrElse System.ComponentModel.LicenseManager.UsageMode = LicenseUsageMode.Runtime OrElse Me.DmsProfile Is Nothing
+            If Me.DesignMode Then
+                Return True
+            ElseIf System.ComponentModel.LicenseManager.UsageMode = LicenseUsageMode.Designtime Then
+                Return True
+                'ElseIf System.Reflection.Assembly.GetEntryAssembly Is Nothing Then
+                '    'Visual Studio IDE, sometimes causing reload timer to run !?!
+                '    Return True
+            ElseIf Me.DmsProfile Is Nothing Then
+                Return True
+            Else
+                Return False
+            End If
         End Get
     End Property
 
