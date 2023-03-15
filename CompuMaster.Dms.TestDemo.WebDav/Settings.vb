@@ -39,4 +39,15 @@
         End If
     End Function
 
+    Public Shared Function IsBufferedByFile(fieldName As String) As Boolean
+        Return System.IO.File.Exists(BufferFilePath(fieldName))
+    End Function
+
+    Public Shared Sub RemoveBufferFile(fieldName As String)
+        Dim BufferFile As String = BufferFilePath(fieldName)
+        If System.IO.File.Exists(BufferFile) Then
+            System.IO.File.Delete(BufferFile)
+        End If
+    End Sub
+
 End Class
