@@ -40,7 +40,7 @@ Partial Class LoginForm
         Me.Cancel = New System.Windows.Forms.Button()
         Me.CustomerNoTextBox = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.Label2 = New System.Windows.Forms.Label()
+        Me.CheckboxPersistLoginCredentialsToDisk = New System.Windows.Forms.CheckBox()
         Me.StartPathTextBox = New System.Windows.Forms.TextBox()
         Me.Label3 = New System.Windows.Forms.Label()
         CType(Me.LogoPictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -132,15 +132,14 @@ Partial Class LoginForm
         Me.Label1.Text = "&Scopevisio Customer No."
         Me.Label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
-        'Label2
+        'CheckboxPersistLoginCredentialsToDisk
         '
-        Me.Label2.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.Label2.Location = New System.Drawing.Point(171, 232)
-        Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(375, 23)
-        Me.Label2.TabIndex = 7
-        Me.Label2.Text = "NOTE: Credentials are persisted to disk (plain text in temp directory)"
-        Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.CheckboxPersistLoginCredentialsToDisk.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.CheckboxPersistLoginCredentialsToDisk.Location = New System.Drawing.Point(171, 232)
+        Me.CheckboxPersistLoginCredentialsToDisk.Name = "CheckboxPersistLoginCredentialsToDisk"
+        Me.CheckboxPersistLoginCredentialsToDisk.Size = New System.Drawing.Size(375, 23)
+        Me.CheckboxPersistLoginCredentialsToDisk.TabIndex = 7
+        Me.CheckboxPersistLoginCredentialsToDisk.Text = "Save credentials to disk (plain text in temp directory)"
         '
         'StartPathTextBox
         '
@@ -169,7 +168,7 @@ Partial Class LoginForm
         Me.ClientSize = New System.Drawing.Size(767, 264)
         Me.Controls.Add(Me.StartPathTextBox)
         Me.Controls.Add(Me.Label3)
-        Me.Controls.Add(Me.Label2)
+        Me.Controls.Add(Me.CheckboxPersistLoginCredentialsToDisk)
         Me.Controls.Add(Me.CustomerNoTextBox)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Cancel)
@@ -194,7 +193,7 @@ Partial Class LoginForm
 
     Friend WithEvents CustomerNoTextBox As Windows.Forms.TextBox
     Friend WithEvents Label1 As Windows.Forms.Label
-    Friend WithEvents Label2 As Windows.Forms.Label
+    Friend WithEvents CheckboxPersistLoginCredentialsToDisk As Windows.Forms.CheckBox
     Friend WithEvents StartPathTextBox As Windows.Forms.TextBox
     Friend WithEvents Label3 As Windows.Forms.Label
 End Class

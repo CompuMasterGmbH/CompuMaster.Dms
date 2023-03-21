@@ -8,13 +8,24 @@ Public Class LoginForm
         Me.PasswordTextBox.Text = Settings.InputFromBufferFile("Password")
         Me.CustomerNoTextBox.Text = Settings.InputFromBufferFile("Customer")
         Me.StartPathTextBox.Text = If(Settings.InputFromBufferFile("StartPath") <> Nothing, Settings.InputFromBufferFile("StartPath"), "/")
+        If Settings.IsBufferedByFile("Username") OrElse Settings.IsBufferedByFile("Password") OrElse Settings.IsBufferedByFile("ServerAddress") Then
+            Me.CheckboxPersistLoginCredentialsToDisk.Checked = True
+        Else
+            Me.CheckboxPersistLoginCredentialsToDisk.Checked = False
+        End If
     End Sub
 
     Private Sub LoginForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
-        Settings.PersistInputValue("Username", Me.UsernameTextBox.Text)
-        Settings.PersistInputValue("Password", Me.PasswordTextBox.Text)
-        Settings.PersistInputValue("Customer", Me.CustomerNoTextBox.Text)
-        Settings.PersistInputValue("StartPath", Me.StartPathTextBox.Text)
+        If Me.CheckboxPersistLoginCredentialsToDisk.Checked Then
+            Settings.PersistInputValue("Username", Me.UsernameTextBox.Text)
+            Settings.PersistInputValue("Password", Me.PasswordTextBox.Text)
+            Settings.PersistInputValue("Customer", Me.CustomerNoTextBox.Text)
+            Settings.PersistInputValue("StartPath", Me.StartPathTextBox.Text)
+        Else
+            Settings.RemoveBufferFile("Username")
+        Settings.RemoveBufferFile("Password")
+        Settings.RemoveBufferFile("ServerAddress")
+        End If
     End Sub
 
     Private Sub OK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OK.Click

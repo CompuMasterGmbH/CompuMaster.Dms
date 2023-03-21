@@ -40,7 +40,7 @@ Partial Class LoginForm
         Me.Cancel = New System.Windows.Forms.Button()
         Me.ServerAddress = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.Label2 = New System.Windows.Forms.Label()
+        Me.CheckboxPersistLoginCredentialsToDisk = New System.Windows.Forms.CheckBox()
         CType(Me.LogoPictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -127,16 +127,15 @@ Partial Class LoginForm
         Me.Label1.Text = "&WebDAV Server URL"
         Me.Label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
-        'Label2
+        'CheckboxPersistLoginCredentialsToDisk
         '
-        Me.Label2.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
+        Me.CheckboxPersistLoginCredentialsToDisk.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.Label2.Location = New System.Drawing.Point(171, 145)
-        Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(443, 48)
-        Me.Label2.TabIndex = 7
-        Me.Label2.Text = "NOTE: Credentials are persisted to disk (plain text in temp directory)"
-        Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.CheckboxPersistLoginCredentialsToDisk.Location = New System.Drawing.Point(171, 145)
+        Me.CheckboxPersistLoginCredentialsToDisk.Name = "CheckboxPersistLoginCredentialsToDisk"
+        Me.CheckboxPersistLoginCredentialsToDisk.Size = New System.Drawing.Size(443, 48)
+        Me.CheckboxPersistLoginCredentialsToDisk.TabIndex = 7
+        Me.CheckboxPersistLoginCredentialsToDisk.Text = "Save credentials to disk (plain text in temp directory)"
         '
         'LoginForm
         '
@@ -145,7 +144,7 @@ Partial Class LoginForm
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.Cancel
         Me.ClientSize = New System.Drawing.Size(824, 191)
-        Me.Controls.Add(Me.Label2)
+        Me.Controls.Add(Me.CheckboxPersistLoginCredentialsToDisk)
         Me.Controls.Add(Me.ServerAddress)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Cancel)
@@ -170,5 +169,5 @@ Partial Class LoginForm
 
     Friend WithEvents ServerAddress As Windows.Forms.TextBox
     Friend WithEvents Label1 As Windows.Forms.Label
-    Friend WithEvents Label2 As Windows.Forms.Label
+    Friend WithEvents CheckboxPersistLoginCredentialsToDisk As Windows.Forms.CheckBox
 End Class
