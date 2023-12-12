@@ -25,12 +25,32 @@ Namespace Providers
             End Get
         End Property
 
-        Protected Friend OcsClient As CompuMaster.Ocs.Client
+        Protected Friend OcsClient As CompuMaster.Ocs.OcsClient
 
         Public Overloads Sub Authorize(loginCredentials As OcsLoginCredentials)
+            'Authorize for OCS API part
+            OcsClient = New CompuMaster.Ocs.OcsClient(loginCredentials.BaseUrl, loginCredentials.Username, loginCredentials.Password)
+            Try
+                _AuthorizedUserEMailAddress = OcsClient.GetUserAttributes(OcsClient.AuthorizedUserID).EMail
+            Catch ex As CompuMaster.Ocs.Exceptions.OcsResponseException
+                If ex.HttpStatusCode = 401 Then
+                    Throw New CompuMaster.Dms.Data.DmsUserAuthenticationException("Authentification failed via OCS API with HTTP status code " & ex.HttpStatusCode & " and OCS status code " & ex.OcsStatusCode & " (" & ex.OcsStatusText & ")", ex)
+                Else
+                    Throw New CompuMaster.Dms.Data.DmsUserErrorMessageException("Authentification failure via OCS API with HTTP status code " & ex.HttpStatusCode & " and OCS status code " & ex.OcsStatusCode & " (" & ex.OcsStatusText & ")", ex)
+                End If
+            Catch ex As CompuMaster.Ocs.Exceptions.ResponseError
+                If ex.HttpStatusCode = 401 Then
+                    Throw New CompuMaster.Dms.Data.DmsUserAuthenticationException("Authentification failed via OCS API with HTTP status code " & ex.HttpStatusCode, ex)
+                Else
+                    Throw New CompuMaster.Dms.Data.DmsUserErrorMessageException("Authentification failure via OCS API with HTTP status code " & ex.HttpStatusCode, ex)
+                End If
+            Catch ex As Exception
+                Throw New CompuMaster.Dms.Data.DmsUserErrorMessageException("Authentification failure via OCS API", ex)
+            End Try
+            'Authorize for WebDAV part
             Dim WebDavCredentials As New WebDavLoginCredentials() With
                 {
-                .BaseUrl = loginCredentials.BaseUrl,
+                .BaseUrl = OcsClient.WebDavBaseUrl,
                 .DmsProvider = loginCredentials.DmsProvider,
                 .CustomerInstance = loginCredentials.CustomerInstance,
                 .EncryptionProvider = loginCredentials.EncryptionProvider,
@@ -38,26 +58,6 @@ Namespace Providers
                 .Password = loginCredentials.Password
                 }
             MyBase.Authorize(WebDavCredentials)
-            OcsClient = New CompuMaster.Ocs.Client(loginCredentials.BaseUrl, loginCredentials.Username, loginCredentials.Password)
-            Try
-                If OcsClient.Exists(Me.BrowseInRootFolderName) Then
-                    Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(Me.BrowseInRootFolderName)
-                End If
-                'Catch ex As CompuMaster.Ocs.Exceptions.OCSResponseError
-                '    If ex.StatusCode = "401" Then
-                '        Throw New CompuMaster.Dms.Data.DmsUserAuthenticationException("Authentification failed via OCS API with status code")
-                '    Else
-                '        Throw New CompuMaster.Dms.Data.DmsUserErrorMessageException("Access to root directory failed via OCS API with status code " & ex.StatusCode)
-                '    End If
-            Catch ex As CompuMaster.Ocs.Exceptions.ResponseError
-                If ex.StatusCode = "401" Then
-                    Throw New CompuMaster.Dms.Data.DmsUserAuthenticationException("Authentification failed via OCS API with status code")
-                Else
-                    Throw New CompuMaster.Dms.Data.DmsUserErrorMessageException("Access to root directory failed via OCS API with status code " & ex.StatusCode)
-                End If
-            Catch ex As Exception
-                Throw New CompuMaster.Dms.Data.DmsUserErrorMessageException("Access to root directory failed via OCS API")
-            End Try
         End Sub
 
         Public Overrides Function CreateNewCredentialsInstance() As BaseDmsLoginCredentials
@@ -78,40 +78,62 @@ Namespace Providers
             End Get
         End Property
 
+        Private Function OcsPermissionSet(shareInfo As DmsShareBase) As CompuMaster.Ocs.Core.OcsPermission
+            Dim Result As CompuMaster.Ocs.Core.OcsPermission
+            If shareInfo.AllowDelete Then Result = Result Or Ocs.Core.OcsPermission.Delete
+            If shareInfo.AllowDownload Then Result = Result Or Ocs.Core.OcsPermission.Read
+            If shareInfo.AllowEdit Then Result = Result Or Ocs.Core.OcsPermission.Update
+            If shareInfo.AllowShare Then Result = Result Or Ocs.Core.OcsPermission.Share
+            If shareInfo.AllowUpload Then Result = Result Or Ocs.Core.OcsPermission.Create
+            If shareInfo.AllowView Then Result = Result Or Ocs.Core.OcsPermission.Read
+            Return Result
+        End Function
+
         Public Overrides Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
-            Throw New NotImplementedException()
+            'Throw New NotImplementedException("TODO in following line: argument clarification of: public_upload")
+            Dim CreatedLink As Ocs.Types.PublicShare = Me.OcsClient.ShareWithLink(dmsResource.FullName, Me.OcsPermissionSet(shareInfo), shareInfo.Password, public_upload:=Ocs.Core.OcsBoolParam.None)
+            Dim Result As New DmsLink(dmsResource, CreatedLink.ShareId.ToString, Me, Nothing)
+            Result.WebUrl = CreatedLink.Url
+            Result.ID = CreatedLink.ShareId.ToString
+            Return Result
         End Function
 
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
-            Throw New NotImplementedException()
+            Dim CreatedShare As Ocs.Types.GroupShare = Me.OcsClient.ShareWithGroup(dmsResource.FullName, shareInfo.Group.Name, Me.OcsPermissionSet(shareInfo))
+            shareInfo.ID = CreatedShare.ShareId.ToString
+            shareInfo.ParentDmsResourceItem.ExtendedInfosGroupSharings.Add(shareInfo)
         End Sub
 
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser)
-            Throw New NotImplementedException()
+            'Throw New NotImplementedException("TODO in following line: argument clarification of: remoteUser")
+            Dim CreatedShare As Ocs.Types.UserShare = Me.OcsClient.ShareWithUser(dmsResource.FullName, shareInfo.User.Name, Me.OcsPermissionSet(shareInfo), remoteUser:=Ocs.Core.OcsBoolParam.None)
+            shareInfo.ID = CreatedShare.ShareId.ToString
+            shareInfo.ParentDmsResourceItem.ExtendedInfosUserSharings.Add(shareInfo)
         End Sub
 
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
-            Throw New NotImplementedException()
+            'Throw New NotImplementedException("TODO in following line: argument clarification of: public_upload")
+            Me.OcsClient.UpdateShare(Integer.Parse(shareInfo.ID), Me.OcsPermissionSet(shareInfo), shareInfo.Password, public_upload:=Ocs.Core.OcsBoolParam.None)
         End Sub
 
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForGroup)
-            Throw New NotImplementedException()
+            Me.OcsClient.UpdateShare(Integer.Parse(shareInfo.ID), Me.OcsPermissionSet(shareInfo))
         End Sub
 
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForUser)
-            Throw New NotImplementedException()
+            Me.OcsClient.UpdateShare(Integer.Parse(shareInfo.ID), Me.OcsPermissionSet(shareInfo))
         End Sub
 
         Public Overrides Sub DeleteLink(shareInfo As DmsLink)
-            Throw New NotImplementedException()
+            Me.OcsClient.DeleteShare(Integer.Parse(shareInfo.ID))
         End Sub
 
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForGroup)
-            Throw New NotImplementedException()
+            Me.OcsClient.DeleteShare(Integer.Parse(shareInfo.ID))
         End Sub
 
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForUser)
-            Throw New NotImplementedException()
+            Me.OcsClient.DeleteShare(Integer.Parse(shareInfo.ID))
         End Sub
 
         Public Overrides Function GetAllGroups() As List(Of DmsGroup)
@@ -120,7 +142,8 @@ Namespace Providers
             For MyCounter As Integer = 0 To QueriedGroups.Count - 1
                 Result.Add(New DmsGroup() With
                            {
-                           .ID = QueriedGroups(MyCounter)
+                           .ID = QueriedGroups(MyCounter),
+                           .Provider = Me
                            })
             Next
             Return Result
@@ -133,7 +156,8 @@ Namespace Providers
                 Result.Add(New DmsUser() With
                            {
                            .ID = QueriedUsers(MyCounter),
-                           .EMailAddress = QueriedUsers(MyCounter)
+                           .EMailAddress = QueriedUsers(MyCounter),
+                           .Provider = Me
                            })
             Next
             Return Result
@@ -141,9 +165,46 @@ Namespace Providers
 
         Public Overrides ReadOnly Property CurrentContextUserID As String
             Get
-                Return Me._AuthorizedUser
+                Return Me._AuthorizedUserID
             End Get
         End Property
+
+        Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
+            Return MyBase.ListAllRemoteItems(remoteFolderPath, searchType)
+        End Function
+
+        Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
+            Dim Result As DmsResourceItem = MyBase.ListRemoteItem(remotePath)
+            If Result IsNot Nothing Then
+                Result.FillSharingInfos = Sub()
+                                              Dim ShareInfos As List(Of CompuMaster.Ocs.Types.Share) = Me.OcsClient.GetShares(PathWithLeadingSlash(remotePath), Ocs.Core.OcsBoolParam.None, Ocs.Core.OcsBoolParam.False)
+                                              FillDmsResourceItemShareData(Result, ShareInfos)
+                                          End Sub
+            End If
+            Return Result
+        End Function
+
+        Sub FillDmsResourceItemShareData(item As DmsResourceItem, ocsShareData As List(Of CompuMaster.Ocs.Types.Share))
+            item.ExtendedInfosUserSharings = New List(Of CompuMaster.Dms.Data.DmsShareForUser)
+            item.ExtendedInfosGroupSharings = New List(Of CompuMaster.Dms.Data.DmsShareForGroup)
+            item.ExtendedInfosLinks = New List(Of CompuMaster.Dms.Data.DmsLink)
+            For Each ShareInfo As CompuMaster.Ocs.Types.Share In ocsShareData
+                Throw New NotImplementedException("ShareInfo from CompuMaster.Ocs.Types.Share")
+                If GetType(CompuMaster.Dms.Data.DmsShareForUser).IsInstanceOfType(ShareInfo) Then
+                    ShareInfo.AdvancedProperties
+                    item.ExtendedInfosUserSharings.Add(New CompuMaster.Dms.Data.DmsShareForUser(item, ShareInfo.AdvancedProperties.ShareWithUserID, ...))
+                End If
+            Next
+        End Sub
+
+        Private Shared Function PathWithLeadingSlash(remotePath As String) As String
+            If remotePath <> Nothing Then
+                Return "/" & remotePath
+            Else
+                Return remotePath
+            End If
+
+        End Function
 
         '''' <summary>
         '''' Check for successful run of a task

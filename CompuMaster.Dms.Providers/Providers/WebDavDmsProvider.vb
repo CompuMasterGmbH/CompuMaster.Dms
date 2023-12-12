@@ -64,7 +64,7 @@ Namespace Providers
             .Credentials = New System.Net.NetworkCredential(loginCredentials.Username, loginCredentials.Password)
             }
             Me.WebDavClient = New Global.WebDav.WebDavClient(ClientParams)
-            Me._AuthorizedUser = loginCredentials.Username
+            Me._AuthorizedUserID = loginCredentials.Username
             If Url.EndsWith("/") Then
                 Me.CustomWebApiUrl = Url
             Else
@@ -85,7 +85,14 @@ Namespace Providers
             End If
         End Sub
 
-        Protected _AuthorizedUser As String
+        ''' <summary>
+        ''' The user ID (user name) of the authorization context
+        ''' </summary>
+        Protected _AuthorizedUserID As String
+        ''' <summary>
+        ''' The email address of the authorized user
+        ''' </summary>
+        Protected _AuthorizedUserEMailAddress As String
 
         Public Overrides Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
             'no caches present, so nothing to do here
@@ -530,7 +537,7 @@ Namespace Providers
 
         Public Overrides ReadOnly Property CurrentContextUserID As String
             Get
-                Return Me._AuthorizedUser
+                Return Me._AuthorizedUserID
             End Get
         End Property
 

@@ -15,6 +15,12 @@ Namespace Data
             Me.Group = group
         End Sub
 
+        ''' <summary>
+        ''' The ID of a share
+        ''' </summary>
+        ''' <returns></returns>
+        Public Property ID As String
+
         Public Property Group As DmsGroup
 
         Protected Overrides Sub Initialize()

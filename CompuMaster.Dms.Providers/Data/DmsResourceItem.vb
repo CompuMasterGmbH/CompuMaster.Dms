@@ -196,64 +196,155 @@ Namespace Data
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosLastModificationUser As DmsUser
-        Public Property ExtendedInfosLinks As List(Of DmsLink)
         Public Property ExtendedInfosLocks As List(Of String)
         Public Property ExtendedInfosLockedByUser As DmsUser
         Public Property ExtendedInfosArchivedDateLocalTime As Date?
         Public Property ExtendedInfosVersion As String
         Public Property ExtendedInfosVersionDateLocalTime As Date?
+
+        Private _ExtendedInfosIsShared As Boolean?
         ''' <summary>
         ''' The remote item is shared by links or shared for users/groups
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosIsShared As Boolean
+            Get
+                If _ExtendedInfosIsShared.HasValue = False AndAlso FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                ElseIf _ExtendedInfosIsShared.HasValue = False Then
+                    Return Me.ExtendedInfosHasGroupSharings OrElse Me.ExtendedInfosHasHiddenGroupSharings OrElse Me.ExtendedInfosHasUserSharings OrElse Me.ExtendedInfosHasHiddenUserSharings OrElse Me.ExtendedInfosHasLinks
+                End If
+                Return _ExtendedInfosIsShared.Value
+            End Get
+            Set(value As Boolean)
+                _ExtendedInfosIsShared = value
+            End Set
+        End Property
+
         Public Property ExtendedInfosIsPublicCollection As Boolean
+
         Public Property ExtendedInfosIsAuditing As Boolean
+
         ''' <summary>
         ''' The remote item (collection) has got some smart components, e.g. is a query on remote file system
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosIsIntelligent As Boolean
+
+        Private _ExtendedInfosHasGroupSharings As Boolean?
         ''' <summary>
         ''' The remote item is shared for groups
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosHasGroupSharings As Boolean
+            Get
+                If _ExtendedInfosHasGroupSharings.HasValue = False AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosHasGroupSharings.Value
+            End Get
+            Set(value As Boolean)
+                _ExtendedInfosHasGroupSharings = value
+            End Set
+        End Property
+
+        Private _ExtendedInfosHasHiddenGroupSharings As Boolean?
         ''' <summary>
         ''' The remote item is shared for groups which are not visible to the current user
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosHasHiddenGroupSharings As Boolean
+            Get
+                If _ExtendedInfosHasHiddenGroupSharings.HasValue = False AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosHasHiddenGroupSharings.Value
+            End Get
+            Set(value As Boolean)
+                _ExtendedInfosHasHiddenGroupSharings = value
+            End Set
+        End Property
+
+        Private _ExtendedInfosGroupSharings As List(Of DmsShareForGroup)
         ''' <summary>
         ''' The sharing entries for groups
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosGroupSharings As List(Of DmsShareForGroup)
+            Get
+                If _ExtendedInfosGroupSharings Is Nothing AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosGroupSharings
+            End Get
+            Set(value As List(Of DmsShareForGroup))
+                _ExtendedInfosGroupSharings = value
+            End Set
+        End Property
+
+        Private _ExtendedInfosHasUserSharings As Boolean?
         ''' <summary>
         ''' The remote item is shared for users
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosHasUserSharings As Boolean
+            Get
+                If _ExtendedInfosHasUserSharings.HasValue = False AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosHasUserSharings.Value
+            End Get
+            Set(value As Boolean)
+                _ExtendedInfosHasUserSharings = value
+            End Set
+        End Property
+
+        Private _ExtendedInfosHasHiddenUserSharings As Boolean?
         ''' <summary>
         ''' The remote item is shared for users which are not visible to the current user
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosHasHiddenUserSharings As Boolean
+            Get
+                If _ExtendedInfosHasHiddenUserSharings.HasValue = False AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosHasHiddenUserSharings.Value
+            End Get
+            Set(value As Boolean)
+                _ExtendedInfosHasHiddenUserSharings = value
+            End Set
+        End Property
+
+        Private _ExtendedInfosUserSharings As List(Of DmsShareForUser)
         ''' <summary>
         ''' The sharing entries for users
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosUserSharings As List(Of DmsShareForUser)
+            Get
+                If _ExtendedInfosUserSharings Is Nothing AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosUserSharings
+            End Get
+            Set(value As List(Of DmsShareForUser))
+                _ExtendedInfosUserSharings = value
+            End Set
+        End Property
+
         ''' <summary>
         ''' References by other folders to this remote item
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosReferencedFromFolderIDs As List(Of String)
+
         ''' <summary>
         ''' References by other collections to this remote item
         ''' </summary>
         ''' <returns></returns>
         Public Property ExtendedInfosReferencedFromCollectionIDs As List(Of String)
+
         ''' <summary>
         ''' The remote item is shared by links
         ''' </summary>
@@ -267,6 +358,34 @@ Namespace Data
                 End If
             End Get
         End Property
+
+        Private _ExtendedInfosLinks As List(Of DmsLink)
+        ''' <summary>
+        ''' Link sharings
+        ''' </summary>
+        ''' <returns></returns>
+        Public Property ExtendedInfosLinks As List(Of DmsLink)
+            Get
+                If _ExtendedInfosLinks Is Nothing AndAlso Me.FillSharingInfos IsNot Nothing Then
+                    Me.FillSharingInfos(Me)
+                End If
+                Return _ExtendedInfosLinks
+            End Get
+            Set(value As List(Of DmsLink))
+                _ExtendedInfosLinks = value
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Fill sharing data just-in-time from server
+        ''' </summary>
+        Friend FillSharingInfos As InitialFillSharingInfos
+
+        ''' <summary>
+        ''' Fill sharing data just-in-time from server
+        ''' </summary>
+        ''' <param name="item"></param>
+        Friend Delegate Sub InitialFillSharingInfos(item As DmsResourceItem)
 
         ''' <summary>
         ''' The type of the remote item

@@ -15,6 +15,12 @@ Namespace Data
             Me.User = user
         End Sub
 
+        ''' <summary>
+        ''' The ID of a share
+        ''' </summary>
+        ''' <returns></returns>
+        Public Property ID As String
+
         Public Property User As DmsUser
 
         Protected Overrides Sub Initialize()

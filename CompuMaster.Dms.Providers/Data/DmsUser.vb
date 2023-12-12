@@ -28,6 +28,10 @@ Namespace Data
         Public GetName As GetDisplayNameFromId
         Public Delegate Function GetDisplayNameFromId(provider As BaseDmsProvider, id As String) As String
 
+        ''' <summary>
+        ''' The user name or ID
+        ''' </summary>
+        ''' <returns></returns>
         Public ReadOnly Property DisplayName As String
             Get
                 If Me.Name <> Nothing Then
