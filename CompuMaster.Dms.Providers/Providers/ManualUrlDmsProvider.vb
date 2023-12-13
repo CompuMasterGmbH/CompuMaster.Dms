@@ -9,6 +9,7 @@ Namespace Providers
     Public Class ManualUrlDmsProvider
         Inherits BaseDmsProvider
 
+#Disable Warning BC42356 ' In dieser asynchronen Methode fehlten die "Await"-Operatoren, sie wird daher synchron ausgeführt.
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
                 Return DmsProviders.ManualUrl
@@ -228,6 +229,7 @@ Namespace Providers
         Protected Overrides Function CustomizedWebApiUrl(loginCredentials As BaseDmsLoginCredentials) As String
             Throw New NotSupportedException
         End Function
+#Enable Warning BC42356 ' In dieser asynchronen Methode fehlten die "Await"-Operatoren, sie wird daher synchron ausgeführt.
 
     End Class
 

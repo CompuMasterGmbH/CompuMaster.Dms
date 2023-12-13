@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>CompuMaster.Dms.TestDemo.ScopevisioTeamwork</RootNamespace>
-    <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
+    <TargetFrameworks>net7.0-windows;net48</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputType>WinExe</OutputType>
     <StartupObject>CompuMaster.Dms.TestDemo.ScopevisioTeamwork.LoginForm</StartupObject>

@@ -35,7 +35,7 @@ Imports NUnit.Framework
 
         If Not String.IsNullOrWhiteSpace(DefaultValue) Then Return DefaultValue
         Throw New InvalidOperationException("Missing persisted input for field """ & fieldName & """, use environment variable " & EnvVarName & " or write to disk by code with method PersistInputValue()" & vbCrLf &
-                                            "Ex. run following customized batch to create local temp-files-cache for credentials (works on WKSxxxx workstations only):" & vbCrLf &
+                                            "Ex. run following customized batch to create local temp-files-cache for credentials at " & BufferFile & " (works on WKSxxxx workstations only):" & vbCrLf &
                                             PersitingScriptForRequiredEnvironmentVariables())
     End Function
 
