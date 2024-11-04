@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <RootNamespace>CompuMaster.Dms.BrowserUI</RootNamespace>
-    <TargetFrameworks>net7.0-windows;net48</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
     <Configurations>Debug;Release;CI_CD</Configurations>
     <Authors>Jochen Wezel</Authors>
     <Company>CompuMaster GmbH</Company>
-    <Copyright>2019-2023 CompuMaster GmbH</Copyright>
+    <Copyright>2019-2024 CompuMaster GmbH</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>logo_64x64.png</PackageIcon>
     <PackageIconUrl />
@@ -34,30 +34,12 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <NoWarn />
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-    <NoWarn />
-    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|netstandard2.0|AnyCPU'">
-    <NoWarn />
-    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0-windows|AnyCPU'">
-    <DocumentationFile>CompuMaster.Dms.BrowserUI.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0-windows|AnyCPU'">
-    <DocumentationFile>CompuMaster.Dms.BrowserUI.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net5.0-windows|AnyCPU'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net8.0-windows'">
     <DocumentationFile>CompuMaster.Dms.BrowserUI.xml</DocumentationFile>
   </PropertyGroup>
 

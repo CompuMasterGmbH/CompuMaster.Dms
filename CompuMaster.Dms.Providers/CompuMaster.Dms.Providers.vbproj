@@ -13,7 +13,7 @@
     <AssemblyName>CompuMaster.Dms.Providers</AssemblyName>
     <OptionStrict>On</OptionStrict>
     <Configurations>Debug;Release;CI_CD</Configurations>
-    <Copyright>2019-2023 CompuMaster GmbH</Copyright>
+    <Copyright>2019-2024 CompuMaster GmbH</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

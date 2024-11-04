@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>CompuMaster.Dms.TestDemo.ScopevisioTeamwork</RootNamespace>
-    <TargetFrameworks>net7.0-windows;net48</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputType>WinExe</OutputType>
     <StartupObject>CompuMaster.Dms.TestDemo.ScopevisioTeamwork.LoginForm</StartupObject>
@@ -13,26 +13,26 @@
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-		<OutputPath>bin\Debug\</OutputPath>
+		<OutputPath>bin\Net48_Debug\</OutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-		<OutputPath>bin\Release\</OutputPath>
+		<OutputPath>bin\Net48_Release\</OutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net48|AnyCPU'">
-		<OutputPath>bin\CI_CD\</OutputPath>
+		<OutputPath>bin\Net48_CI_CD\</OutputPath>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0-windows|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows|AnyCPU'">
 		<OutputPath>bin\Debug\</OutputPath>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0-windows|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows|AnyCPU'">
 		<OutputPath>bin\Release\</OutputPath>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net5.0-windows|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net8.0-windows|AnyCPU'">
 		<OutputPath>bin\CI_CD\</OutputPath>
 	</PropertyGroup>
 

@@ -43,6 +43,6 @@ Imports NUnit.Framework
                 "SET " & EnvironmentVariable("USERNAME") & "=xy@abc.login" & vbCrLf &
                 "SET " & EnvironmentVariable("CUSTOMERNO") & "=1234567" & vbCrLf &
                 "SET " & EnvironmentVariable("PASSWORD") & "=xxxxxxx(encode with leading ^-char )" & vbCrLf &
-                "dotnet test --filter ""FullyQualifiedName=" & Me.GetType.FullName & "." & NameOf(PersistInputValue) & """ --framework net5.0"
+                "dotnet test --filter ""FullyQualifiedName=" & Me.GetType.FullName & "." & NameOf(PersistInputValue) & """ --framework net8.0"
     End Function
 End Class

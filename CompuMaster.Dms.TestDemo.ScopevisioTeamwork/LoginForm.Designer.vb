@@ -191,9 +191,9 @@ Partial Class LoginForm
 
     End Sub
 
-    Friend WithEvents CustomerNoTextBox As Windows.Forms.TextBox
-    Friend WithEvents Label1 As Windows.Forms.Label
-    Friend WithEvents CheckboxPersistLoginCredentialsToDisk As Windows.Forms.CheckBox
-    Friend WithEvents StartPathTextBox As Windows.Forms.TextBox
-    Friend WithEvents Label3 As Windows.Forms.Label
+    Friend WithEvents CustomerNoTextBox As System.Windows.Forms.TextBox
+    Friend WithEvents Label1 As System.Windows.Forms.Label
+    Friend WithEvents CheckboxPersistLoginCredentialsToDisk As System.Windows.Forms.CheckBox
+    Friend WithEvents StartPathTextBox As System.Windows.Forms.TextBox
+    Friend WithEvents Label3 As System.Windows.Forms.Label
 End Class
