@@ -6,7 +6,8 @@ Imports CompuMaster.Dms
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 
-<NonParallelizable> Public MustInherit Class BaseDmsProviderTestBase
+<Parallelizable(ParallelScope.Fixtures)>
+Public MustInherit Class BaseDmsProviderTestBase
 
     Protected Overridable ReadOnly Property IgnoreSslErrors As Boolean = False
 
@@ -1354,7 +1355,7 @@ Imports CompuMaster.Dms.Providers
         If deleteRemoteFileBeforeTest AndAlso Item IsNot Nothing Then
             'JIT-cleanup
             dmsProvider.DeleteRemoteItem(Item, DmsResourceItem.ItemTypes.File)
-            Item = dmsProvider.ListRemoteItem(RemoteFilePath)
+            Item = dmsProvider.ListRemoteItem(remoteFilePath)
         End If
         Assert.IsNull(Item, "Remote file must not exist: " & remoteFilePath)
         Assert.IsFalse(dmsProvider.RemoteItemExists(remoteFilePath), "Remote file must not exist: " & remoteFilePath)
