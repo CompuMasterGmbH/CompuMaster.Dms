@@ -74,12 +74,12 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Setup .NET Core
-              uses: actions/setup-dotnet@v1
+              uses: actions/setup-dotnet@v4
               with:
-                 dotnet-version: 7.0.x
+                 dotnet-version: 8.0.x
 
             - name: Dir Listing (Win)
               if: startsWith(matrix.os, 'windows')
@@ -100,7 +100,7 @@ jobs:
               run: dotnet build --configuration=${{env.BUILD_CONFIGURATION}} --no-restore
 
             - name: Run Unit Tests
-              run: dotnet test --framework net7.0 --results-directory test-results --logger junit --configuration=${{env.BUILD_CONFIGURATION}} --no-restore
+              run: dotnet test --framework net8.0 --results-directory test-results --logger junit --configuration=${{env.BUILD_CONFIGURATION}} --no-restore
 
             - name: Dir Listing (Win) test-results
               if: startsWith(matrix.os, 'windows')
@@ -115,7 +115,7 @@ jobs:
             #  if: always() #&& startsWith(matrix.os, 'ubuntu') #&& github.event_name != 'pull_request'
 
             - name: Unit Test Results (Linux)
-              uses: EnricoMi/publish-unit-test-result-action@v1
+              uses: EnricoMi/publish-unit-test-result-action@v2
               if: always() && startsWith(matrix.os, 'ubuntu')
               with:
                 github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -126,7 +126,7 @@ jobs:
                 report_individual_runs: true
       
             - name: Unit Test Results (Win/Mac)
-              uses: EnricoMi/publish-unit-test-result-action/composite@v1
+              uses: EnricoMi/publish-unit-test-result-action/composite@v2
               if: always() && (!(startsWith(matrix.os, 'ubuntu'))) 
               with:
                 github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -137,7 +137,7 @@ jobs:
                 report_individual_runs: true
       
             - name: Publish Unit Test Results
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               if: always()
               with:
                 name: NUnit Test Results ${{ matrix.os }}

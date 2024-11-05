@@ -1,6 +1,8 @@
 Imports NUnit.Framework
 
-<TestFixture> Public Class ToolsTest
+<TestFixture>
+<Parallelizable(ParallelScope.All)>
+Public Class ToolsTest
 
     <Test> Public Sub ByteSizeToUIDisplayText()
         Dim CurCulture As System.Globalization.CultureInfo = System.Globalization.CultureInfo.CurrentCulture

@@ -167,7 +167,7 @@ Partial Class LoginForm
 
     End Sub
 
-    Friend WithEvents ServerAddress As Windows.Forms.TextBox
-    Friend WithEvents Label1 As Windows.Forms.Label
-    Friend WithEvents CheckboxPersistLoginCredentialsToDisk As Windows.Forms.CheckBox
+    Friend WithEvents ServerAddress As System.Windows.Forms.TextBox
+    Friend WithEvents Label1 As System.Windows.Forms.Label
+    Friend WithEvents CheckboxPersistLoginCredentialsToDisk As System.Windows.Forms.CheckBox
 End Class

@@ -43,6 +43,6 @@ Imports NUnit.Framework
                 "SET " & EnvironmentVariable("SERVERURL") & "=https://cloud.server.url/" & vbCrLf &
                 "SET " & EnvironmentVariable("USERNAME") & "=xy@abc.login" & vbCrLf &
                 "SET " & EnvironmentVariable("PASSWORD") & "=xxxxxxx(encode with leading ^-char )" & vbCrLf &
-                "dotnet test --filter ""FullyQualifiedName=" & Me.GetType.FullName & "." & NameOf(PersistInputValue) & """ --framework net5.0"
+                "dotnet test --filter ""FullyQualifiedName=" & Me.GetType.FullName & "." & NameOf(PersistInputValue) & """ --framework net8.0"
     End Function
 End Class
