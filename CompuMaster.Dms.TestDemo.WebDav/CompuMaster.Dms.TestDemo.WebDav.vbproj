@@ -49,4 +49,8 @@
     <Folder Include="My Project\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+  </ItemGroup>
+
 </Project>
