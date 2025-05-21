@@ -680,8 +680,10 @@ Public Class DmsBrowser
                         Dim TargetFile As String = f.FileName
                         Me.DmsProvider.DownloadFile(SelectedFiles(0).FullName, TargetFile, SelectedFiles(0).LastModificationOnLocalTime)
                         System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
-                    Else
+                    ElseIf Me.LocalParentMustFolder <> Nothing Then
                         System.Windows.Forms.MessageBox.Show(Me, "Bereitstellung außerhalb des Ordners """ & Me.LocalParentMustFolder & """ ist nicht unterstützt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    Else
+                        'just okay
                     End If
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, "Vorgang durch Benutzer abgebrochen", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
@@ -731,8 +733,10 @@ Public Class DmsBrowser
                             End If
                         Next
                         System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
-                    Else
+                    ElseIf Me.LocalParentMustFolder <> Nothing Then
                         System.Windows.Forms.MessageBox.Show(Me, "Bereitstellung außerhalb des Ordners """ & Me.LocalParentMustFolder & """ ist nicht unterstützt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    Else
+                        'just okay
                     End If
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, "Vorgang durch Benutzer abgebrochen", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
