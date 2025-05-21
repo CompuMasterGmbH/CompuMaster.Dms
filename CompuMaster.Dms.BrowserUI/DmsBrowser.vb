@@ -676,7 +676,7 @@ Public Class DmsBrowser
                 f.Filter = "Alle Dateien (*.*)|*.*"
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
-                    If f.FileName.StartsWith(Me.LocalParentMustFolder) Then
+                    If Me.LocalParentMustFolder <> Nothing AndAlso f.FileName.StartsWith(Me.LocalParentMustFolder) Then
                         Dim TargetFile As String = f.FileName
                         Me.DmsProvider.DownloadFile(SelectedFiles(0).FullName, TargetFile, SelectedFiles(0).LastModificationOnLocalTime)
                         System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
@@ -694,7 +694,7 @@ Public Class DmsBrowser
                 f.ShowNewFolderButton = True
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
-                    If f.SelectedPath.StartsWith(Me.LocalParentMustFolder) Then
+                    If Me.LocalParentMustFolder <> Nothing AndAlso f.SelectedPath.StartsWith(Me.LocalParentMustFolder) Then
                         'Overwrite pre-checks
                         Dim OverwriteWarning As New System.Text.StringBuilder()
                         For MyCounter As Integer = 0 To SelectedFiles.Count - 1
