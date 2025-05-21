@@ -231,7 +231,7 @@ Public Class DmsBrowser
     Public Property LocalDefaultFolderUploads As String
 
     ''' <summary>
-    ''' Files must be downloaded into a folder below of this folder (usually the customer base directory)
+    ''' Files must be downloaded into a folder below of this folder (e.g. a customer base directory)
     ''' </summary>
     ''' <returns></returns>
     Public Property LocalParentMustFolder As String

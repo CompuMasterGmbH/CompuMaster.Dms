@@ -1,4 +1,4 @@
-name: Publish/Upload dotnet package on release
+﻿name: Publish/Upload dotnet package on release
 
 # PLEASE NOTE: PUBLISHING/DEPLOYMENT
 # Release is to be created manually at GitHub releases management page
@@ -102,6 +102,9 @@ jobs:
 
             - name: PushNuget CompuMaster.Dms.Providers + CompuMaster.Dms.BrowserUI
               run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate 
+
+            - name: Push symbols to NuGet
+              run: dotnet nuget push *.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
 
             - name: Publish Package Artifacts
               uses: actions/upload-artifact@v4
