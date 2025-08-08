@@ -622,6 +622,7 @@ Public Class DmsBrowser
 
     Private Sub ToolStripButtonUploadFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonUploadFile.Click
         Try
+            If Me.LocalDefaultFolderUploads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderUploads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderUploads)
             Dim DialogUserResult As DialogResult = DialogResult.None
             Dim f As New System.Windows.Forms.OpenFileDialog
             f.CheckFileExists = False
@@ -664,6 +665,7 @@ Public Class DmsBrowser
             If SelectedFiles.Count = 0 Then
                 System.Windows.Forms.MessageBox.Show(Me, "Keine Datei(en) ausgewählt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             ElseIf SelectedFiles.Count = 1 Then
+                If Me.LocalDefaultFolderDownloads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderDownloads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderDownloads)
                 Dim DialogUserResult As DialogResult = DialogResult.None
                 Dim f As New System.Windows.Forms.SaveFileDialog
                 f.CheckFileExists = False
@@ -687,6 +689,7 @@ Public Class DmsBrowser
                     System.Windows.Forms.MessageBox.Show(Me, "Vorgang durch Benutzer abgebrochen", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
             Else
+                If Me.LocalDefaultFolderDownloads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderDownloads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderDownloads)
                 Dim DialogUserResult As DialogResult = DialogResult.None
                 Dim f As New System.Windows.Forms.FolderBrowserDialog
                 f.SelectedPath = Me.LocalDefaultFolderDownloads
