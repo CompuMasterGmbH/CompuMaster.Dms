@@ -123,26 +123,6 @@ Namespace Providers
         End Function
 
         ''' <summary>
-        ''' Async alternative to <see cref="RemoteItemExists"/>
-        ''' </summary>
-        ''' <param name="remotePath"></param>
-        Public Overridable Async Function RemoteItemExistsAsync(remotePath As String) As Task(Of Boolean)
-            Dim RemoteItem As DmsResourceItem = Await Me.ListRemoteItemAsync(remotePath)
-            Return RemoteItem IsNot Nothing
-        End Function
-
-        ''' <summary>
-        ''' Async alternative to <see cref="ListRemoteItem"/>
-        ''' Default implementation calls the synchronous implementation on a background task to preserve compatibility.
-        ''' </summary>
-        ''' <param name="remotePath"></param>
-        Public Overridable Async Function ListRemoteItemAsync(remotePath As String) As Task(Of DmsResourceItem)
-            Return Await Task.Run(Function()
-                                      Return Me.ListRemoteItem(remotePath)
-                                  End Function)
-        End Function
-
-        ''' <summary>
         ''' An existance check for a remote item
         ''' </summary>
         ''' <param name="remotePath"></param>
@@ -158,18 +138,6 @@ Namespace Providers
         End Function
 
         ''' <summary>
-        ''' Async alternative to <see cref="RemoteItemExistsAs"/>
-        ''' </summary>
-        Public Overridable Async Function RemoteItemExistsAsAsync(remotePath As String) As Task(Of DmsResourceItem.FoundItemType)
-            Dim RemoteItem As DmsResourceItem = Await Me.ListRemoteItemAsync(remotePath)
-            If RemoteItem Is Nothing Then
-                Return DmsResourceItem.FoundItemType.NotFound
-            Else
-                Return CType(CType(RemoteItem.ItemType, Byte), DmsResourceItem.FoundItemType)
-            End If
-        End Function
-
-        ''' <summary>
         ''' An existance check for a remote item (collissions with remote items under the very same name are checked)
         ''' </summary>
         ''' <param name="remotePath"></param>
@@ -177,20 +145,6 @@ Namespace Providers
         Public Overridable Function RemoteItemExistsUniquelyAs(remotePath As String) As DmsResourceItem.FoundItemResult
             Dim RemoteItem As DmsResourceItem
             RemoteItem = Me.ListRemoteItem(remotePath)
-            If RemoteItem Is Nothing Then
-                Return DmsResourceItem.FoundItemResult.NotFound
-            ElseIf RemoteItem.ExtendedInfosCollisionDetected Then
-                Return DmsResourceItem.FoundItemResult.WithNameCollisions
-            Else
-                Return CType(CType(RemoteItem.ItemType, Byte), DmsResourceItem.FoundItemResult)
-            End If
-        End Function
-
-        ''' <summary>
-        ''' Async alternative to <see cref="RemoteItemExistsUniquelyAs"/>
-        ''' </summary>
-        Public Overridable Async Function RemoteItemExistsUniquelyAsAsync(remotePath As String) As Task(Of DmsResourceItem.FoundItemResult)
-            Dim RemoteItem As DmsResourceItem = Await Me.ListRemoteItemAsync(remotePath)
             If RemoteItem Is Nothing Then
                 Return DmsResourceItem.FoundItemResult.NotFound
             ElseIf RemoteItem.ExtendedInfosCollisionDetected Then
@@ -217,31 +171,11 @@ Namespace Providers
         End Sub
 
         ''' <summary>
-        ''' Async alternative to <see cref="ResetCachesForRemoteItems"/>
-        ''' Default implementation runs the sync override in a background task.
-        ''' </summary>
-        Public Overridable Async Function ResetCachesForRemoteItemsAsync(remoteItem As DmsResourceItem, searchType As SearchItemType) As Task
-            Await Task.Run(Sub()
-                               Me.ResetCachesForRemoteItems(remoteItem, searchType)
-                           End Sub)
-        End Function
-
-        ''' <summary>
         ''' Reset file system cache and force refresh on next access
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>
         ''' <param name="searchType"></param>
         Public MustOverride Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
-
-        ''' <summary>
-        ''' Async alternative to <see cref="ResetCachesForRemoteItems(String,SearchItemType)"/>
-        ''' Default implementation calls synchronous override on background thread.
-        ''' </summary>
-        Public Overridable Async Function ResetCachesForRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType) As Task
-            Await Task.Run(Sub()
-                               Me.ResetCachesForRemoteItems(remoteFolderPath, searchType)
-                           End Sub)
-        End Function
 
         ''' <summary>
         ''' List all child items (files/folders/collections) for a remote path
@@ -252,16 +186,6 @@ Namespace Providers
         Public MustOverride Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
 
         ''' <summary>
-        ''' Async alternative to <see cref="ListAllRemoteItems"/>
-        ''' Default implementation calls synchronous override on background thread.
-        ''' </summary>
-        Public Overridable Async Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType) As Task(Of List(Of DmsResourceItem))
-            Return Await Task.Run(Function()
-                                      Return Me.ListAllRemoteItems(remoteFolderPath, searchType)
-                                  End Function)
-        End Function
-
-        ''' <summary>
         ''' List all child collections for a remote path
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>
@@ -269,19 +193,6 @@ Namespace Providers
         Public Overridable Function ListAllCollectionItems(remoteFolderPath As String) As List(Of DmsResourceItem)
             Dim Result As New List(Of DmsResourceItem)
             For Each Item In Me.ListAllRemoteItems(remoteFolderPath, SearchItemType.Collections)
-                If Item.ItemType = DmsResourceItem.ItemTypes.Collection Then
-                    Result.Add(Item)
-                End If
-            Next
-            Return Result
-        End Function
-
-        ''' <summary>
-        ''' Async alternative to <see cref="ListAllCollectionItems"/>
-        ''' </summary>
-        Public Overridable Async Function ListAllCollectionItemsAsync(remoteFolderPath As String) As Task(Of List(Of DmsResourceItem))
-            Dim Result As New List(Of DmsResourceItem)
-            For Each Item In Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.Collections)
                 If Item.ItemType = DmsResourceItem.ItemTypes.Collection Then
                     Result.Add(Item)
                 End If
@@ -305,19 +216,6 @@ Namespace Providers
         End Function
 
         ''' <summary>
-        ''' Async alternative to <see cref="ListAllFolderItems"/>
-        ''' </summary>
-        Public Overridable Async Function ListAllFolderItemsAsync(remoteFolderPath As String) As Task(Of List(Of DmsResourceItem))
-            Dim Result As New List(Of DmsResourceItem)
-            For Each Item In Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.Folders)
-                If Item.ItemType = DmsResourceItem.ItemTypes.Folder Then
-                    Result.Add(Item)
-                End If
-            Next
-            Return Result
-        End Function
-
-        ''' <summary>
         ''' List all child files for a remote path
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>
@@ -325,19 +223,6 @@ Namespace Providers
         Public Overridable Function ListAllFileItems(remoteFolderPath As String) As List(Of DmsResourceItem)
             Dim Result As New List(Of DmsResourceItem)
             For Each Item In Me.ListAllRemoteItems(remoteFolderPath, SearchItemType.Files)
-                If Item.ItemType = DmsResourceItem.ItemTypes.File Then
-                    Result.Add(Item)
-                End If
-            Next
-            Return Result
-        End Function
-
-        ''' <summary>
-        ''' Async alternative to <see cref="ListAllFileItems"/>
-        ''' </summary>
-        Public Overridable Async Function ListAllFileItemsAsync(remoteFolderPath As String) As Task(Of List(Of DmsResourceItem))
-            Dim Result As New List(Of DmsResourceItem)
-            For Each Item In Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.Files)
                 If Item.ItemType = DmsResourceItem.ItemTypes.File Then
                     Result.Add(Item)
                 End If
@@ -361,19 +246,6 @@ Namespace Providers
         End Function
 
         ''' <summary>
-        ''' Async alternative to <see cref="ListAllCollectionNames"/>
-        ''' </summary>
-        Public Overridable Async Function ListAllCollectionNamesAsync(remoteFolderPath As String) As Task(Of List(Of String))
-            Dim Result As New List(Of String)
-            For Each Item In Await Me.ListAllCollectionItemsAsync(remoteFolderPath)
-                If Item.ItemType = DmsResourceItem.ItemTypes.Collection Then
-                    Result.Add(Item.Name)
-                End If
-            Next
-            Return Result
-        End Function
-
-        ''' <summary>
         ''' List all child folder names for a remote path
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>
@@ -389,19 +261,6 @@ Namespace Providers
         End Function
 
         ''' <summary>
-        ''' Async alternative to <see cref="ListAllFolderNames"/>
-        ''' </summary>
-        Public Overridable Async Function ListAllFolderNamesAsync(remoteFolderPath As String) As Task(Of List(Of String))
-            Dim Result As New List(Of String)
-            For Each Item In Await Me.ListAllFolderItemsAsync(remoteFolderPath)
-                If Item.ItemType = DmsResourceItem.ItemTypes.Folder Then
-                    Result.Add(Item.Name)
-                End If
-            Next
-            Return Result
-        End Function
-
-        ''' <summary>
         ''' List all child file names for a remote path
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>
@@ -409,19 +268,6 @@ Namespace Providers
         Public Overridable Function ListAllFileNames(remoteFolderPath As String) As List(Of String)
             Dim Result As New List(Of String)
             For Each Item In Me.ListAllFileItems(remoteFolderPath)
-                If Item.ItemType = DmsResourceItem.ItemTypes.File Then
-                    Result.Add(Item.Name)
-                End If
-            Next
-            Return Result
-        End Function
-
-        ''' <summary>
-        ''' Async alternative to <see cref="ListAllFileNames"/>
-        ''' </summary>
-        Public Overridable Async Function ListAllFileNamesAsync(remoteFolderPath As String) As Task(Of List(Of String))
-            Dim Result As New List(Of String)
-            For Each Item In Await Me.ListAllFileItemsAsync(remoteFolderPath)
                 If Item.ItemType = DmsResourceItem.ItemTypes.File Then
                     Result.Add(Item.Name)
                 End If
@@ -784,37 +630,6 @@ Namespace Providers
         End Sub
 
         ''' <summary>
-        ''' Async alternative to Move
-        ''' </summary>
-        Public Async Function MoveAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
-            Await Me.MoveAsync(remoteSourcePath, remoteDestinationPath, False, False)
-        End Function
-
-        ''' <summary>
-        ''' Async alternative to Move
-        ''' </summary>
-        Public Overridable Async Function MoveAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
-            Dim FoundRemoteSourceItem As DmsResourceItem.FoundItemResult = Await Me.RemoteItemExistsUniquelyAsAsync(remoteSourcePath)
-            Me.CopyMoveArgumentsCheck(FoundRemoteSourceItem, remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
-            Dim ParentDirPathSource As String = Me.ParentDirectoryPath(remoteSourcePath)
-            Dim ParentDirPathDestination As String = Me.ParentDirectoryPath(remoteDestinationPath)
-            Select Case FoundRemoteSourceItem
-                Case DmsResourceItem.FoundItemResult.File
-                    Await Me.MoveFileItemAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite)
-                    Await Me.ResetCachesForRemoteItemsAsync(ParentDirPathSource, SearchItemType.Files)
-                    Await Me.ResetCachesForRemoteItemsAsync(ParentDirPathDestination, SearchItemType.Files)
-                Case DmsResourceItem.FoundItemResult.Folder, DmsResourceItem.FoundItemResult.Collection
-                    Await Me.MoveDirectoryItemAsync(remoteSourcePath, remoteDestinationPath)
-                    Await Me.ResetCachesForRemoteItemsAsync(ParentDirPathSource, SearchItemType.Folders)
-                    Await Me.ResetCachesForRemoteItemsAsync(ParentDirPathDestination, SearchItemType.Folders)
-                    Await Me.ResetCachesForRemoteItemsAsync(ParentDirPathSource, SearchItemType.Collections)
-                    Await Me.ResetCachesForRemoteItemsAsync(ParentDirPathDestination, SearchItemType.Collections)
-                Case Else
-                    Throw New NotImplementedException
-            End Select
-        End Function
-
-        ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
         ''' <param name="remoteSource"></param>
@@ -849,13 +664,6 @@ Namespace Providers
         ''' <param name="remoteDestinationPath"></param>
         ''' <param name="allowOverwrite"></param>
         Protected MustOverride Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
-        ''' <summary>
-        ''' Async alternative to MoveFileItem. Default implementation calls synchronous override on background thread.
-        ''' </summary>
-        Protected Overridable Async Function MoveFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
-            Await Task.Run(Sub()
-                               Me.MoveFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
-                           End Sub)
 
         ''' <summary>
         ''' Move a remote DMS item
@@ -863,14 +671,6 @@ Namespace Providers
         ''' <param name="remoteSourcePath"></param>
         ''' <param name="remoteDestinationPath"></param>
         Protected MustOverride Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
-
-        ''' <summary>
-        ''' Async alternative to MoveDirectoryItem. Default implementation calls synchronous override on background thread.
-        ''' </summary>
-        Protected Overridable Async Function MoveDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
-            Await Task.Run(Sub()
-                               Me.MoveDirectoryItem(remoteSourcePath, remoteDestinationPath)
-                           End Sub)
 
         ''' <summary>
         ''' Delete a remote item (folder, collection or file)
