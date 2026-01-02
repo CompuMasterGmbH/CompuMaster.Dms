@@ -1,6 +1,7 @@
 ﻿Option Explicit On
 Option Strict On
 
+Imports System.Net.Http
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 Imports CompuMaster.Scopevisio.OpenApi
@@ -55,13 +56,22 @@ Namespace Providers
         End Function
 
         Public Overloads Sub Authorize(loginCredentials As ScopevisioLoginCredentials)
+            Me.Authorize(loginCredentials, False)
+        End Sub
+        Public Overloads Sub Authorize(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean)
             Try
                 Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration With {
-                .Username = loginCredentials.Username,
-                .Password = loginCredentials.Password,
-                .ClientNumber = loginCredentials.ClientNumber,
-                .OrganisationName = loginCredentials.OrganisationName
-            }
+                    .Username = loginCredentials.Username,
+                    .Password = loginCredentials.Password,
+                    .ClientNumber = loginCredentials.ClientNumber,
+                    .OrganisationName = loginCredentials.OrganisationName
+                }
+                If ignoreSslErrors Then
+                    Dim Handler As New System.Net.Http.HttpClientHandler() With {
+                        .ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True
+                        }
+                    OpenScopeConfig.HttpClient = New System.Net.Http.HttpClient(Handler)
+                End If
                 Dim OpenScopeClient As New CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient(OpenScopeConfig)
                 OpenScopeClient.AuthorizeWithUserCredentials()
                 Me.IOClient = New CompuMaster.Scopevisio.Teamwork.TeamworkIOClient(OpenScopeClient)
@@ -93,7 +103,7 @@ Namespace Providers
             Credentials.Username = dmsProfile.UserName
             Credentials.ClientNumber = dmsProfile.CustomerInstance
             Credentials.Password = dmsProfile.Password
-            Me.Authorize(Credentials)
+            Me.Authorize(Credentials, dmsProfile.IgnoreSslErrors)
         End Sub
 
     End Class
