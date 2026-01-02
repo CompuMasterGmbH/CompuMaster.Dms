@@ -1,8 +1,13 @@
 ﻿Option Explicit On
 Option Strict On
 
+Imports System.Net
+Imports System.Net.Http
+Imports System.Runtime.ConstrainedExecution
+Imports System.Security.Claims
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
+Imports WebDav
 
 Namespace Providers
 
@@ -56,14 +61,64 @@ Namespace Providers
         ''' <returns></returns>
         Public Property CustomWebApiUrl As String
 
+        Private Shared Function CreateHttpClient(ignoreSslErrors As Boolean, ByVal params As WebDavClientParams) As System.Net.Http.HttpClient
+            Dim Handler As HttpClientHandler
+            If ignoreSslErrors = True Then
+                Handler = New HttpClientHandler() With {
+                    .ServerCertificateCustomValidationCallback = Function(message, cert, chain, errors) True
+                    }
+            Else
+                Handler = New HttpClientHandler()
+            End If
+            Return CreateConfiguredHttpClient(Handler, params)
+        End Function
+
+        Private Shared Function CreateConfiguredHttpClient(httpHandler As HttpClientHandler, ByVal params As WebDavClientParams) As System.Net.Http.HttpClient
+            With httpHandler
+                .AutomaticDecompression = DecompressionMethods.Deflate Or DecompressionMethods.GZip
+                .PreAuthenticate = params.PreAuthenticate
+                .UseDefaultCredentials = params.UseDefaultCredentials
+                .UseProxy = params.UseProxy
+            End With
+
+            If params.Credentials IsNot Nothing Then
+                httpHandler.Credentials = params.Credentials
+                httpHandler.UseDefaultCredentials = False
+            End If
+
+            If params.Proxy IsNot Nothing Then
+                httpHandler.Proxy = params.Proxy
+            End If
+
+            Dim httpClient = New HttpClient(httpHandler, True) With {
+                .BaseAddress = params.BaseAddress
+            }
+
+            If params.Timeout.HasValue Then
+                httpClient.Timeout = params.Timeout.Value
+            End If
+
+            For Each header In params.DefaultRequestHeaders
+                httpClient.DefaultRequestHeaders.Add(header.Key, header.Value)
+            Next
+
+            Return httpClient
+        End Function
+
         Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials)
+            Me.Authorize(loginCredentials, False)
+        End Sub
+
+        Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials, ignoreSslErrors As Boolean)
             Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
             Dim ClientParams As New Global.WebDav.WebDavClientParams() With
             {
             .BaseAddress = New System.Uri(Url),
             .Credentials = New System.Net.NetworkCredential(loginCredentials.Username, loginCredentials.Password)
             }
-            Me.WebDavClient = New Global.WebDav.WebDavClient(ClientParams)
+            Dim HttpClient = CreateHttpClient(True, ClientParams)
+            Me.WebDavClient = New Global.WebDav.WebDavClient(HttpClient) 'uses copy of method ConfiguredHttpClient from WebDavClient 
+            'Me.WebDavClient = New Global.WebDav.WebDavClient(ClientParams) 'uses internal method ConfiguredHttpClient from WebDavClient
             Me._AuthorizedUser = loginCredentials.Username
             If Url.EndsWith("/") Then
                 Me.CustomWebApiUrl = Url
@@ -468,7 +523,7 @@ Namespace Providers
             Credentials.BaseUrl = dmsProfile.ServerAddress
             Credentials.Username = dmsProfile.UserName
             Credentials.Password = dmsProfile.Password
-            Me.Authorize(Credentials)
+            Me.Authorize(Credentials, dmsProfile.IgnoreSslErrors)
         End Sub
 
         Public Overrides ReadOnly Property SupportsCollections As Boolean
