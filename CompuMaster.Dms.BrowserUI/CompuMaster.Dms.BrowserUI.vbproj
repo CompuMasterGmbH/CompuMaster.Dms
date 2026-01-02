@@ -6,7 +6,7 @@
     <Configurations>Debug;Release;CI_CD</Configurations>
     <Authors>Jochen Wezel</Authors>
     <Company>CompuMaster GmbH</Company>
-    <Copyright>2019-2025 CompuMaster GmbH</Copyright>
+    <Copyright>2019-2026 CompuMaster GmbH</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>logo_64x64.png</PackageIcon>
     <PackageIconUrl />
