@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36109.1 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "CompuMaster.Dms.BrowserUI", "CompuMaster.Dms.BrowserUI\CompuMaster.Dms.BrowserUI.vbproj", "{3D119625-347A-4505-9219-5DB67F8D8C4E}"
 EndProject
@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\BuildAndTest.yml = .github\workflows\BuildAndTest.yml
 		.github\workflows\PublishRelease.yml = .github\workflows\PublishRelease.yml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
