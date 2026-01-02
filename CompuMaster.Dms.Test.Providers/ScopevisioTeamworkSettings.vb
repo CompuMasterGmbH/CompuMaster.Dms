@@ -1,5 +1,6 @@
 ﻿Imports System.Text
 Imports NUnit.Framework
+Imports NUnit.Framework.Legacy
 
 <TestFixture> Public NotInheritable Class ScopevisioTeamworkSettings
     Inherits SettingsBase
@@ -33,9 +34,9 @@ Imports NUnit.Framework
             System.Console.WriteLine("- Password=")
         End If
 
-        Assert.NotNull(username, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
-        Assert.NotNull(customerno, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
-        Assert.NotNull(password, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
+        ClassicAssert.NotNull(username, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
+        ClassicAssert.NotNull(customerno, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
+        ClassicAssert.NotNull(password, "User credentials not found in environment or buffer files (run Sample app for creating buffer files in temp directory!)")
     End Sub
 
     Public Overrides Function PersitingScriptForRequiredEnvironmentVariables() As String
