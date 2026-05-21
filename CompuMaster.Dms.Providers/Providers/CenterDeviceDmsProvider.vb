@@ -52,7 +52,7 @@ Namespace Providers
             Return Me.WebApiDefaultUrl
         End Function
 
-        Public Overloads Sub Authorize(loginCredentials As CenterDeviceLoginCredentials)
+        Public Overloads Sub Authorize(loginCredentials As CenterDeviceLoginCredentials, ignoreSslErrors As Boolean)
             'Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
             'Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration()
             'OpenScopeConfig.Username = loginCredentials.Username
@@ -77,7 +77,7 @@ Namespace Providers
             Credentials.Username = dmsProfile.UserName
             Credentials.ClientNumber = dmsProfile.CustomerInstance
             Credentials.Password = dmsProfile.Password
-            Me.Authorize(Credentials)
+            Me.Authorize(Credentials, dmsProfile.IgnoreSslErrors)
         End Sub
 
     End Class

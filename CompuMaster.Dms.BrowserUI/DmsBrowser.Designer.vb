@@ -217,17 +217,15 @@ Partial Class DmsBrowser
         'ImageListFileIcons
         '
         Me.ImageListFileIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
-        Me.ImageListFileIcons.ImageStream = CType(resources.GetObject("ImageListFileIcons.ImageStream"), System.Windows.Forms.ImageListStreamer)
         Me.ImageListFileIcons.TransparentColor = System.Drawing.Color.Transparent
-        Me.ImageListFileIcons.Images.SetKeyName(0, "iconfinder_Home-ui-ux-mobile-web_4960719.png")
-        Me.ImageListFileIcons.Images.SetKeyName(1, "iconfinder_bookmark-ui-ux-mobile-web_4960727.png")
-        Me.ImageListFileIcons.Images.SetKeyName(2, "iconfinder_Folder-ui-ux-mobile-web_4960713.png")
-        Me.ImageListFileIcons.Images.SetKeyName(3, "iconfinder_Home-ui-ux-mobile-web_4960719 - Shared.png")
-        Me.ImageListFileIcons.Images.SetKeyName(4, "iconfinder_bookmark-ui-ux-mobile-web_4960727 - Shared.png")
-        Me.ImageListFileIcons.Images.SetKeyName(5, "iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png")
-        Me.ImageListFileIcons.Images.SetKeyName(6, "iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706.png")
-        Me.ImageListFileIcons.Images.SetKeyName(7, "iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706 - Shared.p" &
-        "ng")
+        Me.ImageListFileIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719)
+        Me.ImageListFileIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719___Shared)
+        Me.ImageListFileIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727___Shared)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713___Shared)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Document_ui_ux_mobile_web_office_microsoftofficeico_4960706)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Document_ui_ux_mobile_web_office_microsoftofficeico_4960706)
         '
         'ButtonCreateNewFolder
         '

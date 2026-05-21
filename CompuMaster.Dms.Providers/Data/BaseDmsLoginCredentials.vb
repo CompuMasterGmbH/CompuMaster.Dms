@@ -9,18 +9,27 @@ Namespace Data
         Implements IDmsLoginProfile
 
         Public Property DmsProvider As BaseDmsProvider.DmsProviders
+
         ''' <summary>
         ''' An optional server address
         ''' </summary>
         ''' <returns></returns>
         Public Overridable Property BaseUrl As String
+
         ''' <summary>
         ''' An optional customer reference
         ''' </summary>
         ''' <returns></returns>
         Public Overridable Property CustomerInstance As String
+
         Public Property Username As String
         Public Property Password As String
+
+        ''' <summary>
+        ''' Ignore SSL handshake errors for this DMS server
+        ''' </summary>
+        ''' <returns></returns>
+        Public Property IgnoreSslErrors As Boolean
 
         Public Property EncryptionProvider As Byte
 
@@ -57,6 +66,12 @@ Namespace Data
         Private ReadOnly Property IDmsLoginProfile_ServerAddress As String Implements IDmsLoginProfile.ServerAddress
             Get
                 Return Me.BaseUrl
+            End Get
+        End Property
+
+        Private ReadOnly Property IDmsLoginProfile_IgnoreSslErrors As Boolean Implements IDmsLoginProfile.IgnoreSslErrors
+            Get
+                Return Me.IgnoreSslErrors
             End Get
         End Property
 
