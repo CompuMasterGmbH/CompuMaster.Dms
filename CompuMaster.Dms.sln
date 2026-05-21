@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CompuMaster.Dms.Test.BrowserUI", "CompuMaster.Dms.Test.BrowserUI\CompuMaster.Dms.Test.BrowserUI.vbproj", "{DAF9936E-C2F3-4A98-B96C-254A812DE355}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CI_CD|Any CPU = CI_CD|Any CPU
@@ -54,6 +56,12 @@ Global
 		{7A029CE2-55EF-43EE-BADA-A961A6064B8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A029CE2-55EF-43EE-BADA-A961A6064B8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A029CE2-55EF-43EE-BADA-A961A6064B8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAF9936E-C2F3-4A98-B96C-254A812DE355}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{DAF9936E-C2F3-4A98-B96C-254A812DE355}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{DAF9936E-C2F3-4A98-B96C-254A812DE355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAF9936E-C2F3-4A98-B96C-254A812DE355}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAF9936E-C2F3-4A98-B96C-254A812DE355}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAF9936E-C2F3-4A98-B96C-254A812DE355}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
