@@ -1,7 +1,6 @@
 Imports System.Reflection
 Imports System.Threading
 Imports System.Windows.Forms
-Imports CompuMaster.Dms.BrowserUI
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
@@ -11,7 +10,7 @@ Public Class DmsBrowserSmokeTest
 
     <Test>
     Public Sub ConstructorInitializesFileIconImageListWithoutSerializedImageStream()
-        Using browser As New DmsBrowser()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
             Dim imageList As ImageList = GetImageListFileIcons(browser)
 
             ClassicAssert.AreEqual(8, imageList.Images.Count)
@@ -26,8 +25,8 @@ Public Class DmsBrowserSmokeTest
         End Using
     End Sub
 
-    Private Shared Function GetImageListFileIcons(browser As DmsBrowser) As ImageList
-        Dim fieldInfo As FieldInfo = GetType(DmsBrowser).GetField("_ImageListFileIcons", BindingFlags.Instance Or BindingFlags.NonPublic)
+    Private Shared Function GetImageListFileIcons(browser As Global.CompuMaster.Dms.BrowserUI.DmsBrowser) As ImageList
+        Dim fieldInfo As FieldInfo = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetField("_ImageListFileIcons", BindingFlags.Instance Or BindingFlags.NonPublic)
         ClassicAssert.IsNotNull(fieldInfo)
         Return CType(fieldInfo.GetValue(browser), ImageList)
     End Function
