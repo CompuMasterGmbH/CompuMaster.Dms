@@ -230,6 +230,20 @@ Namespace Providers
             If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
         End Sub
 
+        ''' <inheritdoc/>
+        Public Overrides Sub DownloadFile(remoteFile As DmsResourceItem, localFilePath As String)
+            If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            If String.IsNullOrEmpty(remoteFile.ExtendedInfosFileID) Then
+                MyBase.DownloadFile(remoteFile, localFilePath)
+                Return
+            End If
+
+            Dim FoundFileItem As New CenterDevice.IO.FileInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Document.GetDocumentMetadata(Me.IOClient.CurrentAuthenticationContextUserID, remoteFile.ExtendedInfosFileID))
+            FoundFileItem.Download(localFilePath)
+            If remoteFile.LastModificationOnLocalTime.HasValue AndAlso remoteFile.LastModificationOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, remoteFile.LastModificationOnLocalTime.Value)
+        End Sub
+
         Protected Enum RessourceNotFoundHandling As Byte
             ReturnWithNullIfItemOrParentDirectoryIsNotFound = 0
             ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound = 1

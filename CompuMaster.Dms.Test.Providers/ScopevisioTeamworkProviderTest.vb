@@ -1,7 +1,9 @@
 ﻿Option Explicit On
 Option Strict On
 
+Imports System.IO
 Imports NUnit.Framework
+Imports NUnit.Framework.Legacy
 
 Public Class ScopevisioTeamworkProviderTest
     Inherits BaseDmsProviderTestBase
@@ -80,5 +82,55 @@ Public Class ScopevisioTeamworkProviderTest
     Public Overrides ReadOnly Property UploadTestFilesAndCleanupAgainBinary As KeyValuePair(Of String, Byte())() = New KeyValuePair(Of String, Byte())() {
         New KeyValuePair(Of String, Byte())("upload.binary.test", New Byte() {40, 50, 60, 10, 13, 35, 45, 55})
         }
+
+    ''' <summary>
+    ''' Verifies that downloads of duplicate Scopevisio file names return the content belonging to the selected file ID.
+    ''' </summary>
+    <Test>
+    Public Sub DownloadDuplicateFileNamesBySelectedResourceId()
+        Const FileName As String = "duplicate-download-content.test"
+        Dim olderContent As Byte() = {1, 3, 5, 7, 9}
+        Dim newerContent As Byte() = {2, 4, 6, 8, 10, 12, 14}
+        Dim Provider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = DirectCast(Me.LoggedInDmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+        Dim RemoteDirectory = Provider.IOClient.RootDirectory.OpenDirectoryPath(TestDirNameSub2)
+
+        DeleteDuplicateDownloadTestFiles(Provider, FileName)
+        Try
+            RemoteDirectory.UploadAndCreateNewFile(Function() New MemoryStream(olderContent, writable:=False), FileName)
+            RemoteDirectory.ResetFilesCache()
+            Dim OlderFile = Provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Single(Function(Item) Item.Name = FileName)
+
+            RemoteDirectory.UploadAndCreateNewFile(Function() New MemoryStream(newerContent, writable:=False), FileName)
+            RemoteDirectory.ResetFilesCache()
+            Dim DuplicateFiles = Provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Where(Function(Item) Item.Name = FileName).ToList()
+            Dim NewerFile = DuplicateFiles.Single(Function(Item) Item.ExtendedInfosFileID <> OlderFile.ExtendedInfosFileID)
+
+            ClassicAssert.AreEqual(2, DuplicateFiles.Count)
+            ClassicAssert.AreEqual(OlderFile.FullName, NewerFile.FullName)
+            ClassicAssert.AreNotEqual(OlderFile.ExtendedInfosFileID, NewerFile.ExtendedInfosFileID)
+
+            Dim NewerDownloadPath As String = Path.GetTempFileName()
+            Dim OlderDownloadPath As String = Path.GetTempFileName()
+            Try
+                Provider.DownloadFile(NewerFile, NewerDownloadPath)
+                Provider.DownloadFile(OlderFile, OlderDownloadPath)
+
+                CollectionAssert.AreEqual(newerContent, File.ReadAllBytes(NewerDownloadPath))
+                CollectionAssert.AreEqual(olderContent, File.ReadAllBytes(OlderDownloadPath))
+            Finally
+                File.Delete(NewerDownloadPath)
+                File.Delete(OlderDownloadPath)
+            End Try
+        Finally
+            DeleteDuplicateDownloadTestFiles(Provider, FileName)
+        End Try
+    End Sub
+
+    Private Sub DeleteDuplicateDownloadTestFiles(provider As CompuMaster.Dms.Providers.BaseDmsProvider, fileName As String)
+        Dim ExistingFiles = provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Where(Function(Item) Item.Name = fileName).ToList()
+        For Each ExistingFile In ExistingFiles
+            provider.DeleteRemoteItem(ExistingFile)
+        Next
+    End Sub
 
 End Class
