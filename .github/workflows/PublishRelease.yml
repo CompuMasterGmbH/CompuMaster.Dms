@@ -2,7 +2,7 @@
 
 # PLEASE NOTE: PUBLISHING/DEPLOYMENT
 # Release is to be created manually at GitHub releases management page
-# - release name usually contains "v1.2.3"
+# - release tag and name usually contain a valid NuGet version without a leading "v", for example "2026.08.12.0"
 # After creating a GitHub release, following actions will automatically run:
 # 1. NuGet package (version as defined in VS.Net project property "package version")
 # 2. Attaching of compiled binaries to GitHub release
