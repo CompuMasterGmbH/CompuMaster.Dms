@@ -397,6 +397,17 @@ Namespace Providers
         ''' <param name="lastModificationDateOnLocalTime"></param>
         Public MustOverride Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
 
+        ''' <summary>
+        ''' Downloads a remote DMS file identified by its resource metadata.
+        ''' </summary>
+        ''' <param name="remoteFile">The remote file to download.</param>
+        ''' <param name="localFilePath">The local destination path.</param>
+        Public Overridable Sub DownloadFile(remoteFile As DmsResourceItem, localFilePath As String)
+            If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            Me.DownloadFile(remoteFile.FullName, localFilePath, remoteFile.LastModificationOnLocalTime)
+        End Sub
+
 
         ''' <summary>
         ''' Copy a remote DMS item (overwriting forbidden, destination directory must exist)
