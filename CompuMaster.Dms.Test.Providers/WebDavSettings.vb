@@ -7,13 +7,13 @@ Imports NUnit.Framework.Legacy
 
     Public Overrides ReadOnly Property AppTitleInBufferFile As String
         Get
-            Return "OwnCloudWebDav.Test"
+            Return "WebDav.Test"
         End Get
     End Property
 
     Public Overrides ReadOnly Property AppTitleInEnvironmentVariable As String
         Get
-            Return "CMOWNCLOUD"
+            Return "WEBDAV"
         End Get
     End Property
 
