@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <RootNamespace>CompuMaster.Dms.TestDemo.Nextcloud</RootNamespace>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>CompuMaster.Dms.TestDemo.Nextcloud.LoginForm</StartupObject>
+    <ApplicationIcon>..\CompuMaster.Dms.TestDemo.WebDav\favicon.ico</ApplicationIcon>
+    <MyType>WindowsFormsWithCustomSubMain</MyType>
+    <Configurations>Debug;Release;CI_CD</Configurations>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <DefineConstants>$(DefineConstants),NEXTCLOUD_DEMO=-1</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
+    <OutputPath>bin\Net48_Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
+    <OutputPath>bin\Net48_Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net48|AnyCPU'">
+    <OutputPath>bin\Net48_CI_CD\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='CI_CD|net8.0-windows|AnyCPU'">
+    <OutputPath>bin\CI_CD\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\LoginForm.vb" Link="LoginForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\LoginForm.Designer.vb" Link="LoginForm.Designer.vb">
+      <DependentUpon>LoginForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\Settings.vb" Link="Settings.vb" />
+    <EmbeddedResource Include="..\CompuMaster.Dms.TestDemo.WebDav\LoginForm.resx" Link="LoginForm.resx">
+      <DependentUpon>LoginForm.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CompuMaster.Dms.BrowserUI\CompuMaster.Dms.BrowserUI.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+  </ItemGroup>
+
+</Project>

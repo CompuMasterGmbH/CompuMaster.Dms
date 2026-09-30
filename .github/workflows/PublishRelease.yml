@@ -28,6 +28,8 @@ env:
   BUILD_OUTPUT_BASEDIR2: CompuMaster.Dms.BrowserUI/bin
   BUILD_OUTPUT_BASEDIR3: CompuMaster.Dms.TestDemo.ScopevisioTeamwork/bin
   BUILD_OUTPUT_BASEDIR4: CompuMaster.Dms.TestDemo.WebDav/bin
+  BUILD_OUTPUT_BASEDIR5: CompuMaster.Dms.TestDemo.OwnCloudClassic/bin
+  BUILD_OUTPUT_BASEDIR6: CompuMaster.Dms.TestDemo.Nextcloud/bin
 
 
 jobs:
@@ -66,6 +68,12 @@ jobs:
             - name: Pack binaries CompuMaster.Dms.TestDemo.WebDav
               run: Compress-Archive -DestinationPath bin-webdav.zip ${{env.BUILD_OUTPUT_BASEDIR4}}/${{env.BUILD_CONFIGURATION}}
 
+            - name: Pack binaries CompuMaster.Dms.TestDemo.OwnCloudClassic
+              run: Compress-Archive -DestinationPath bin-owncloud-classic.zip ${{env.BUILD_OUTPUT_BASEDIR5}}/${{env.BUILD_CONFIGURATION}}
+
+            - name: Pack binaries CompuMaster.Dms.TestDemo.Nextcloud
+              run: Compress-Archive -DestinationPath bin-nextcloud.zip ${{env.BUILD_OUTPUT_BASEDIR6}}/${{env.BUILD_CONFIGURATION}}
+
             - name: Publish binaries CompuMaster.Dms.Providers
               uses: softprops/action-gh-release@v1
               with:
@@ -91,6 +99,20 @@ jobs:
               uses: softprops/action-gh-release@v1
               with:
                 files: "bin-webdav.zip"
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish binaries CompuMaster.Dms.TestDemo.OwnCloudClassic
+              uses: softprops/action-gh-release@v1
+              with:
+                files: "bin-owncloud-classic.zip"
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish binaries CompuMaster.Dms.TestDemo.Nextcloud
+              uses: softprops/action-gh-release@v1
+              with:
+                files: "bin-nextcloud.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

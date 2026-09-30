@@ -4,11 +4,11 @@ Imports System.Windows.Forms
 Public Class LoginForm
 
     Private Sub Form_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
-        Me.UsernameTextBox.Text = Settings.InputFromBufferFile("Username")
-        Me.PasswordTextBox.Text = Settings.InputFromBufferFile("Password")
-        Me.CustomerNoTextBox.Text = Settings.InputFromBufferFile("Customer")
-        Me.StartPathTextBox.Text = If(Settings.InputFromBufferFile("StartPath") <> Nothing, Settings.InputFromBufferFile("StartPath"), "/")
-        If Settings.IsBufferedByFile("Username") OrElse Settings.IsBufferedByFile("Password") OrElse Settings.IsBufferedByFile("ServerAddress") Then
+        Me.UsernameTextBox.Text = Settings.InputFromBufferFile("username")
+        Me.PasswordTextBox.Text = Settings.InputFromBufferFile("password")
+        Me.CustomerNoTextBox.Text = Settings.InputFromBufferFile("customer no.")
+        Me.StartPathTextBox.Text = If(Settings.InputFromBufferFile("start path") <> Nothing, Settings.InputFromBufferFile("start path"), "/")
+        If Settings.IsBufferedByFile("username") OrElse Settings.IsBufferedByFile("password") OrElse Settings.IsBufferedByFile("customer no.") Then
             Me.CheckboxPersistLoginCredentialsToDisk.Checked = True
         Else
             Me.CheckboxPersistLoginCredentialsToDisk.Checked = False
@@ -17,14 +17,15 @@ Public Class LoginForm
 
     Private Sub LoginForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Me.CheckboxPersistLoginCredentialsToDisk.Checked Then
-            Settings.PersistInputValue("Username", Me.UsernameTextBox.Text)
-            Settings.PersistInputValue("Password", Me.PasswordTextBox.Text)
-            Settings.PersistInputValue("Customer", Me.CustomerNoTextBox.Text)
-            Settings.PersistInputValue("StartPath", Me.StartPathTextBox.Text)
+            Settings.PersistInputValue("username", Me.UsernameTextBox.Text)
+            Settings.PersistInputValue("password", Me.PasswordTextBox.Text)
+            Settings.PersistInputValue("customer no.", Me.CustomerNoTextBox.Text)
+            Settings.PersistInputValue("start path", Me.StartPathTextBox.Text)
         Else
-            Settings.RemoveBufferFile("Username")
-        Settings.RemoveBufferFile("Password")
-        Settings.RemoveBufferFile("ServerAddress")
+            Settings.RemoveBufferFile("username")
+            Settings.RemoveBufferFile("password")
+            Settings.RemoveBufferFile("customer no.")
+            Settings.RemoveBufferFile("start path")
         End If
     End Sub
 

@@ -1,6 +1,7 @@
 ﻿Public NotInheritable Class Settings
 
-    Private Const AppTitle As String = "SampleScopevisioTeamwork"
+    Private Const AppTitle As String = "Scopevisio.Teamwork.Test"
+    Private Const EnvironmentPrefix As String = "SCOPEVISIOTEAMWORK"
 
     Private Shared Function BufferFilePath(ByVal fieldName As String) As String
         Dim HashedFieldName As String
@@ -27,7 +28,7 @@
     Public Shared Function InputFromBufferFile(ByVal fieldName As String) As String
         Dim BufferFile As String = BufferFilePath(fieldName)
 
-        Dim EnvVarName As String = "TEST_" & fieldName.Replace(" ", "").Replace(".", "").ToUpperInvariant()
+        Dim EnvVarName As String = "TEST_" & EnvironmentPrefix & "_" & fieldName.Replace(" ", "").Replace(".", "").ToUpperInvariant()
         If Not String.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable(EnvVarName)) Then
             Return System.Environment.GetEnvironmentVariable(EnvVarName)
         End If
