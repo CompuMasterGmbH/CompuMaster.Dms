@@ -23,7 +23,7 @@
     <StartupObject></StartupObject>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <Description>Implementation of browser dialogs for System.Windows.Form</Description>
-    <NeutralLanguage>de</NeutralLanguage>
+    <NeutralLanguage>en</NeutralLanguage>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
 
