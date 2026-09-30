@@ -59,6 +59,7 @@ Namespace Providers
             Me.Authorize(loginCredentials, False)
         End Sub
         Public Overloads Sub Authorize(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean)
+            Dim IsTokenRequest As Boolean = False
             Try
                 Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration With {
                     .Username = loginCredentials.Username,
@@ -73,20 +74,26 @@ Namespace Providers
                     OpenScopeConfig.HttpClient = New System.Net.Http.HttpClient(Handler)
                 End If
                 Dim OpenScopeClient As New CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient(OpenScopeConfig)
+                IsTokenRequest = True
                 OpenScopeClient.AuthorizeWithUserCredentials()
+                IsTokenRequest = False
                 Me.IOClient = New CompuMaster.Scopevisio.Teamwork.TeamworkIOClient(OpenScopeClient)
             Catch ex As CompuMaster.Scopevisio.OpenApi.Client.ApiException
-                If ex.ErrorCode = 401 AndAlso ex.ErrorContent IsNot Nothing AndAlso ex.ErrorContent.GetType Is GetType(String) AndAlso CType(ex.ErrorContent, String).ToLowerInvariant.Contains("""message"":""bad credentials""") Then
-                    Throw New Data.DmsSystemErrorException("Bad Scopevisio user credentials")
-                ElseIf ex.ErrorCode = 403 AndAlso ex.ErrorContent IsNot Nothing AndAlso ex.ErrorContent.GetType Is GetType(String) AndAlso CType(ex.ErrorContent, String).ToLowerInvariant.Contains("""message"":""no organisation found.""") Then
-                    Throw New Data.DmsSystemErrorException("No organisation found, usually Scopevisio user authorizations are required: Rechteprofil Kontakte – alle Rechte oder CRM – alle Rechte")
-                ElseIf ex.ErrorCode = 403 AndAlso ex.ErrorContent IsNot Nothing AndAlso ex.ErrorContent.GetType Is GetType(String) AndAlso CType(ex.ErrorContent, String).ToLowerInvariant.Contains("""message"":""customer is deleted""") Then
-                    Throw New Data.DmsSystemErrorException("DMS-Instanz des Kunden wurde gelöscht")
-                Else
-                    Throw New Data.DmsSystemErrorException(ex.Message)
-                End If
+                Throw CreateAuthorizationException(ex.ErrorCode, ex.ErrorContent, ex, IsTokenRequest)
             End Try
         End Sub
+
+        Friend Shared Function CreateAuthorizationException(errorCode As Integer, errorContent As Object, originalException As Exception, isTokenRequest As Boolean) As Exception
+            If isTokenRequest AndAlso errorCode = 401 Then
+                Return New Data.DmsUserAuthenticationException("Scopevisio user authentication failed.", originalException)
+            ElseIf errorCode = 403 AndAlso errorContent IsNot Nothing AndAlso errorContent.GetType Is GetType(String) AndAlso CType(errorContent, String).ToLowerInvariant.Contains("""message"":""no organisation found.""") Then
+                Return New Data.DmsSystemErrorException("No organisation found, usually Scopevisio user authorizations are required: Rechteprofil Kontakte – alle Rechte oder CRM – alle Rechte", originalException)
+            ElseIf errorCode = 403 AndAlso errorContent IsNot Nothing AndAlso errorContent.GetType Is GetType(String) AndAlso CType(errorContent, String).ToLowerInvariant.Contains("""message"":""customer is deleted""") Then
+                Return New Data.DmsSystemErrorException("DMS-Instanz des Kunden wurde gelöscht", originalException)
+            Else
+                Return New Data.DmsSystemErrorException(originalException.Message, originalException)
+            End If
+        End Function
 
         Public ReadOnly Property ApplicationContext As CompuMaster.Scopevisio.OpenApi.Model.AccountInfo
             Get

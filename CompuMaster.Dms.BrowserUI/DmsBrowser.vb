@@ -371,16 +371,7 @@ Public Class DmsBrowser
                     SubCollections = Me.DmsProvider.ListAllCollectionItems(ParentData.DmsResourceItem.FullName)
                 End If
                 For Each collection As DmsResourceItem In SubCollections
-                    Dim n As New TreeNode(collection.Name)
-                    n.Tag = New NodeTagData(collection)
-                    If collection.ExtendedInfosHasGroupSharings OrElse collection.ExtendedInfosHasUserSharings OrElse collection.ExtendedInfosIsShared Then
-                        n.ImageIndex = 4
-                        n.SelectedImageIndex = 4
-                    Else
-                        n.ImageIndex = 1
-                        n.SelectedImageIndex = 1
-                    End If
-                    Me.RootNode.Nodes.Add(n)
+                    Me.RootNode.Nodes.Add(CreateDirectoryTreeNode(collection))
                 Next
                 If SubCollections.Count = 0 Then
                     ParentData.HasFolders = TriState.False
@@ -403,19 +394,38 @@ Public Class DmsBrowser
                 End If
             End If
             For Each folder As DmsResourceItem In SubFolders
-                Dim n As New TreeNode(folder.Name)
-                n.Tag = New NodeTagData(folder)
-                If folder.ExtendedInfosHasGroupSharings OrElse folder.ExtendedInfosHasUserSharings Then
-                    n.ImageIndex = 5
-                    n.SelectedImageIndex = 5
-                Else
-                    n.ImageIndex = 2
-                    n.SelectedImageIndex = 2
-                End If
-                parentNode.Nodes.Add(n)
+                parentNode.Nodes.Add(CreateDirectoryTreeNode(folder))
             Next
         End If
     End Sub
+
+    Friend Shared Function CreateDirectoryTreeNode(directory As DmsResourceItem) As TreeNode
+        If directory Is Nothing Then Throw New ArgumentNullException(NameOf(directory))
+
+        Dim imageIndex As Integer
+        Select Case directory.ItemType
+            Case DmsResourceItem.ItemTypes.Collection
+                If directory.ExtendedInfosHasGroupSharings OrElse directory.ExtendedInfosHasUserSharings OrElse directory.ExtendedInfosIsShared Then
+                    imageIndex = 4
+                Else
+                    imageIndex = 1
+                End If
+            Case DmsResourceItem.ItemTypes.Folder
+                If directory.ExtendedInfosHasGroupSharings OrElse directory.ExtendedInfosHasUserSharings Then
+                    imageIndex = 5
+                Else
+                    imageIndex = 2
+                End If
+            Case Else
+                Throw New ArgumentException("A collection or folder is required.", NameOf(directory))
+        End Select
+
+        Return New TreeNode(directory.Name) With {
+            .Tag = New NodeTagData(directory),
+            .ImageIndex = imageIndex,
+            .SelectedImageIndex = imageIndex
+        }
+    End Function
 
     Private Sub SelectFolderPath(path As String)
         If path = Nothing Then
@@ -506,8 +516,7 @@ Public Class DmsBrowser
             Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem?.FullName, NewFolderName)
             Me.DmsProvider.CreateDirectory(NewFolderPath)
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
-            Dim n As New TreeNode(Folder.Name)
-            n.Tag = New NodeTagData(Folder)
+            Dim n As TreeNode = CreateDirectoryTreeNode(Folder)
             Me.TreeViewDmsFolders.SelectedNode.Nodes.Add(n)
             Me.TreeViewDmsFolders.SelectedNode = n
             n.TreeView.Focus()
