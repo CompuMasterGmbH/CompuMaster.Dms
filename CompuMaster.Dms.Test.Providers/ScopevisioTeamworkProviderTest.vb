@@ -146,10 +146,126 @@ Public Class ScopevisioTeamworkProviderTest
     End Sub
 
     Private Sub DeleteDuplicateDownloadTestFiles(provider As CompuMaster.Dms.Providers.BaseDmsProvider, fileName As String)
-        Dim ExistingFiles = provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Where(Function(Item) Item.Name = fileName).ToList()
+        DeleteTestFiles(provider, TestDirNameSub2, fileName)
+    End Sub
+
+    ''' <summary>
+    ''' Verifies that copy and move use the selected CenterDevice file ID when several files share the same path.
+    ''' </summary>
+    <Test>
+    Public Sub CopyAndMoveDuplicateFileNamesBySelectedResourceId()
+        Dim Provider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = DirectCast(Me.LoggedInDmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+        Dim TestSuffix As String = Guid.NewGuid().ToString("N")
+        Dim DuplicateName As String = "duplicate-actions-" & TestSuffix & ".test"
+        Dim CopyTargetName As String = "duplicate-copy-" & TestSuffix & ".test"
+        Dim MoveTargetName As String = "duplicate-move-" & TestSuffix & ".test"
+        Dim OlderContent As Byte() = {11, 13, 17, 19}
+        Dim NewerContent As Byte() = {23, 29, 31, 37, 41}
+        Dim SourceDirectory = Provider.IOClient.RootDirectory.OpenDirectoryPath(TestDirNameSub2)
+        Dim CopyTargetPath As String = Provider.CombinePath(TestDirNameSub1, CopyTargetName)
+        Dim MoveTargetPath As String = Provider.CombinePath(TestDirNameSub1, MoveTargetName)
+
+        DeleteTestFiles(Provider, TestDirNameSub2, DuplicateName)
+        DeleteTestFiles(Provider, TestDirNameSub1, CopyTargetName, MoveTargetName)
+        Try
+            SourceDirectory.UploadAndCreateNewFile(Function() New MemoryStream(OlderContent, writable:=False), DuplicateName)
+            SourceDirectory.ResetFilesCache()
+            Dim OlderFile = Provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Single(Function(Item) Item.Name = DuplicateName)
+
+            SourceDirectory.UploadAndCreateNewFile(Function() New MemoryStream(NewerContent, writable:=False), DuplicateName)
+            SourceDirectory.ResetFilesCache()
+            Dim DuplicateFiles = Provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Where(Function(Item) Item.Name = DuplicateName).ToList()
+            Dim NewerFile = DuplicateFiles.Single(Function(Item) Item.ExtendedInfosFileID <> OlderFile.ExtendedInfosFileID)
+
+            Provider.Copy(OlderFile, CopyTargetPath, False, False)
+            Provider.Move(NewerFile, MoveTargetPath, False, False)
+
+            Dim RemainingSourceFiles = Provider.ListAllRemoteItems(TestDirNameSub2, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Where(Function(Item) Item.Name = DuplicateName).ToList()
+            ClassicAssert.AreEqual(1, RemainingSourceFiles.Count)
+            ClassicAssert.AreEqual(OlderFile.ExtendedInfosFileID, RemainingSourceFiles(0).ExtendedInfosFileID)
+
+            Dim CopyDownloadPath As String = Path.GetTempFileName()
+            Dim MoveDownloadPath As String = Path.GetTempFileName()
+            Try
+                Provider.DownloadFile(Provider.ListRemoteItem(CopyTargetPath), CopyDownloadPath)
+                Provider.DownloadFile(Provider.ListRemoteItem(MoveTargetPath), MoveDownloadPath)
+                CollectionAssert.AreEqual(OlderContent, File.ReadAllBytes(CopyDownloadPath))
+                CollectionAssert.AreEqual(NewerContent, File.ReadAllBytes(MoveDownloadPath))
+            Finally
+                File.Delete(CopyDownloadPath)
+                File.Delete(MoveDownloadPath)
+            End Try
+        Finally
+            DeleteTestFiles(Provider, TestDirNameSub2, DuplicateName)
+            DeleteTestFiles(Provider, TestDirNameSub1, CopyTargetName, MoveTargetName)
+        End Try
+    End Sub
+
+    Private Shared Sub DeleteTestFiles(provider As CompuMaster.Dms.Providers.BaseDmsProvider, directoryPath As String, ParamArray fileNames As String())
+        Dim ExistingFiles = provider.ListAllRemoteItems(directoryPath, CompuMaster.Dms.Providers.BaseDmsProvider.SearchItemType.Files).Where(Function(Item) fileNames.Contains(Item.Name)).ToList()
         For Each ExistingFile In ExistingFiles
             provider.DeleteRemoteItem(ExistingFile)
         Next
+    End Sub
+
+    ''' <summary>
+    ''' Verifies that a CenterDevice collection can be renamed in the root without being treated as a regular movable folder.
+    ''' </summary>
+    <Test>
+    Public Sub RenameCollectionInRoot()
+        Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim TestSuffix As String = Guid.NewGuid().ToString("N")
+        Dim SourceName As String = "ZZZ_UnitTests_CM.Dms_CollectionMove_" & TestSuffix & "_Source"
+        Dim DestinationName As String = "ZZZ_UnitTests_CM.Dms_CollectionMove_" & TestSuffix & "_Target"
+
+        DeleteTestCollectionIfExisting(Provider, SourceName)
+        DeleteTestCollectionIfExisting(Provider, DestinationName)
+        ClassicAssert.IsFalse(Provider.RemoteItemExists(SourceName))
+        ClassicAssert.IsFalse(Provider.RemoteItemExists(DestinationName))
+
+        Try
+            Provider.CreateCollection(SourceName)
+            Dim Source As Dms.Data.DmsResourceItem = Provider.ListRemoteItem(SourceName)
+            ClassicAssert.IsNotNull(Source)
+            ClassicAssert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, Source.ItemType)
+
+            Provider.Move(Source, DestinationName, False, False)
+
+            ClassicAssert.IsFalse(Provider.RemoteItemExists(SourceName))
+            Dim Destination As Dms.Data.DmsResourceItem = Provider.ListRemoteItem(DestinationName)
+            ClassicAssert.IsNotNull(Destination)
+            ClassicAssert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, Destination.ItemType)
+            ClassicAssert.AreEqual(Source.ExtendedInfosCollectionID, Destination.ExtendedInfosCollectionID)
+        Finally
+            DeleteTestCollectionIfExisting(Provider, SourceName)
+            DeleteTestCollectionIfExisting(Provider, DestinationName)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Verifies that collections aren't exposed as regular copyable directory trees.
+    ''' </summary>
+    <Test>
+    Public Sub CopyCollectionIsNotSupported()
+        Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        Dim DestinationName As String = "ZZZ_UnitTests_CM.Dms_CollectionCopy_" & Guid.NewGuid().ToString("N")
+        DeleteTestCollectionIfExisting(Provider, DestinationName)
+        ClassicAssert.IsFalse(Provider.RemoteItemExists(DestinationName))
+
+        Try
+            Dim Source As Dms.Data.DmsResourceItem = Provider.ListRemoteItem(TestDirName)
+            ClassicAssert.IsNotNull(Source)
+            ClassicAssert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, Source.ItemType)
+            ClassicAssert.Throws(Of NotSupportedException)(Sub() Provider.Copy(Source, DestinationName, False, False))
+            ClassicAssert.IsFalse(Provider.RemoteItemExists(DestinationName))
+        Finally
+            DeleteTestCollectionIfExisting(Provider, DestinationName)
+        End Try
+    End Sub
+
+    Private Shared Sub DeleteTestCollectionIfExisting(provider As Dms.Providers.BaseDmsProvider, collectionName As String)
+        Dim ExistingItem As Dms.Data.DmsResourceItem = provider.ListRemoteItem(collectionName)
+        If ExistingItem IsNot Nothing Then provider.DeleteRemoteItem(ExistingItem, Dms.Data.DmsResourceItem.ItemTypes.Collection)
     End Sub
 
 End Class
