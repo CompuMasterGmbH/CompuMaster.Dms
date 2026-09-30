@@ -680,7 +680,7 @@ Public Class DmsBrowser
                 If DialogUserResult = DialogResult.OK Then
                     If Me.LocalParentMustFolder = Nothing OrElse f.FileName.StartsWith(Me.LocalParentMustFolder) Then
                         Dim TargetFile As String = f.FileName
-                        Me.DmsProvider.DownloadFile(SelectedFiles(0).FullName, TargetFile, SelectedFiles(0).LastModificationOnLocalTime)
+                        DownloadFile(Me.DmsProvider, SelectedFiles(0), TargetFile)
                         System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
                         System.Windows.Forms.MessageBox.Show(Me, "Bereitstellung außerhalb des Ordners """ & Me.LocalParentMustFolder & """ ist nicht unterstützt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
@@ -727,10 +727,10 @@ Public Class DmsBrowser
                             Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
                             If System.IO.File.Exists(TargetFile) Then
                                 If OverwriteLocalFiles Then
-                                    Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                                    DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile)
                                 End If
                             Else
-                                Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                                DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile)
                             End If
                         Next
                         System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
@@ -1178,7 +1178,7 @@ Public Class DmsBrowser
                                                                        System.IO.Path.GetRandomFileName,
                                                                        System.IO.Path.GetFileNameWithoutExtension(SelectedFiles(MyCounter).Name),
                                                                        System.IO.Path.GetExtension(SelectedFiles(MyCounter).Name))
-                    Me.DmsProvider.DownloadFile(SelectedFiles(MyCounter).FullName, TargetFile.FilePath, SelectedFiles(MyCounter).LastModificationOnLocalTime)
+                    DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile.FilePath)
                     System.IO.File.SetAttributes(TargetFile.FilePath, System.IO.FileAttributes.ReadOnly Or System.IO.FileAttributes.Temporary)
                     OpenDownloadedFileItem.Invoke(TargetFile)
                 Next
@@ -1196,6 +1196,10 @@ Public Class DmsBrowser
     ''' <param name="localTemporaryFile">The remote file downloaded into a temporary file on local disk</param>
     ''' <returns>Process of started file</returns>
     Public Delegate Function OpenDownloadedFileAction(localTemporaryFile As CompuMaster.IO.TemporaryFile) As System.Diagnostics.Process
+
+    Friend Shared Sub DownloadFile(provider As BaseDmsProvider, remoteFile As DmsResourceItem, localFilePath As String)
+        provider.DownloadFile(remoteFile, localFilePath)
+    End Sub
 
     Public Property OpenDownloadedFileItem As OpenDownloadedFileAction = AddressOf _OpenDownloadedFile_Default
 
