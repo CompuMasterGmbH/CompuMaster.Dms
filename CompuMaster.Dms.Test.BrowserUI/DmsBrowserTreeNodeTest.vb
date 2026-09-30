@@ -25,6 +25,21 @@ Public Class DmsBrowserTreeNodeTest
         ClassicAssert.AreEqual(expectedImageIndex, node.SelectedImageIndex)
     End Sub
 
+    <TestCase(DmsResourceItem.ItemTypes.Collection, 4)>
+    <TestCase(DmsResourceItem.ItemTypes.Folder, 5)>
+    Public Sub DirectoryNodeShowsSharingIconForExternalLink(itemType As DmsResourceItem.ItemTypes, expectedImageIndex As Integer)
+        Dim directory As New DmsResourceItem With {
+            .ItemType = itemType,
+            .Name = "Shared directory"
+        }
+        directory.ExtendedInfosLinks = New List(Of DmsLink) From {New DmsLink(directory, Nothing)}
+
+        Dim node As TreeNode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.CreateDirectoryTreeNode(directory)
+
+        ClassicAssert.AreEqual(expectedImageIndex, node.ImageIndex)
+        ClassicAssert.AreEqual(expectedImageIndex, node.SelectedImageIndex)
+    End Sub
+
     <Test>
     Public Sub SwitchingSelectionPreservesCollectionAndFolderIcons()
         Dim collectionNode As TreeNode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.CreateDirectoryTreeNode(
