@@ -24,6 +24,8 @@ The provider-specific sharing tests that use fake clients remain isolated tests 
 
 Ordinary builds and isolated tests do not need remote credentials. To run one of the remote WebDAV partitions locally, set the same provider-specific environment variables listed above and select exactly that server category. The Nextcloud partition reads `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, and `TEST_CMNEXTCLOUD_PASSWORD`; the OwnCloud partition reads the corresponding `TEST_CMOWNCLOUD_*` variables. The `TEST_WEBDAV_*` namespace is intentionally not used by either partition and remains available for a future generic WebDAV test server.
 
+`TEST_CMNEXTCLOUD_SERVERURL` may contain either the Nextcloud instance URL or the complete user WebDAV URL. An instance URL is resolved to `/remote.php/dav/files/{username}/`; an already complete `/remote.php/dav/files/.../` or legacy `/remote.php/webdav/` URL is used unchanged. Nextcloud recommends an app password when the account uses two-factor authentication or an external authentication provider.
+
 Run remote tests locally only after establishing an exclusive window with CI and other users of that physical server. Select one partition explicitly, for example `dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --filter "TestCategory=NextcloudWebDav"`. Never run all remote partitions locally as a general verification step.
 
 ## Resource-lock boundaries

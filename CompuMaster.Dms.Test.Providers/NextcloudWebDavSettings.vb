@@ -16,6 +16,43 @@ Imports NUnit.Framework.Legacy
         End Get
     End Property
 
+    Friend Overrides Function NormalizeServerUrl(serverUrl As String, username As String) As String
+        Dim ParsedServerUrl As Uri = Nothing
+        If Not Uri.TryCreate(serverUrl, UriKind.Absolute, ParsedServerUrl) OrElse
+           (ParsedServerUrl.Scheme <> Uri.UriSchemeHttp AndAlso ParsedServerUrl.Scheme <> Uri.UriSchemeHttps) Then
+            Throw New InvalidOperationException("The Nextcloud server URL must be an absolute HTTP or HTTPS URL.")
+        End If
+
+        Dim ServerUrlBuilder As New UriBuilder(ParsedServerUrl) With {
+            .Query = String.Empty,
+            .Fragment = String.Empty
+        }
+        Dim ServerPath As String = ServerUrlBuilder.Path.TrimEnd("/"c)
+
+        If ServerPath.IndexOf("/remote.php/dav/files/", StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+           ServerPath.EndsWith("/remote.php/webdav", StringComparison.OrdinalIgnoreCase) Then
+            Return serverUrl
+        End If
+
+        If ServerPath.EndsWith("/remote.php/dav", StringComparison.OrdinalIgnoreCase) Then
+            ServerPath &= "/files/" & Uri.EscapeDataString(username)
+        Else
+            ServerPath &= "/remote.php/dav/files/" & Uri.EscapeDataString(username)
+        End If
+
+        ServerUrlBuilder.Path = ServerPath & "/"
+        Return ServerUrlBuilder.Uri.AbsoluteUri
+    End Function
+
+    <TestCase("https://cloud.example.com/", "test-user", "https://cloud.example.com/remote.php/dav/files/test-user/")>
+    <TestCase("https://cloud.example.com/nextcloud", "test-user", "https://cloud.example.com/nextcloud/remote.php/dav/files/test-user/")>
+    <TestCase("https://cloud.example.com/remote.php/dav", "user@example.com", "https://cloud.example.com/remote.php/dav/files/user%40example.com/")>
+    <TestCase("https://cloud.example.com/remote.php/dav/files/test-user/", "test-user", "https://cloud.example.com/remote.php/dav/files/test-user/")>
+    <TestCase("https://cloud.example.com/remote.php/webdav/", "test-user", "https://cloud.example.com/remote.php/webdav/")>
+    Public Sub NormalizesNextcloudWebDavUrl(serverUrl As String, username As String, expectedUrl As String)
+        ClassicAssert.AreEqual(expectedUrl, NormalizeServerUrl(serverUrl, username))
+    End Sub
+
     <Test, Explicit("Run only to persist login credentials on dev workstation")>
     Public Overrides Sub PersistInputValue()
         Dim username As String = InputLine("username")
