@@ -6,7 +6,8 @@ Public NotInheritable Class TestPartitioningTest
 
     Private Shared ReadOnly RemoteServerCategories As String() = {
         "ScopevisioTeamwork",
-        "OwnCloudWebDav"
+        "OwnCloudWebDav",
+        "NextcloudWebDav"
     }
 
     <Test>

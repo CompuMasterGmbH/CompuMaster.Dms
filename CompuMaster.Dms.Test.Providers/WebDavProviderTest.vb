@@ -3,12 +3,16 @@ Option Strict On
 
 Imports NUnit.Framework
 
-<TestFixture, Category("RemoteDms"), Category("OwnCloudWebDav")>
-Public Class WebDavProviderTest
+Public MustInherit Class WebDavProviderTestBase
     Inherits BaseDmsProviderTestBase
 
+    Private UninitializedProvider As Dms.Providers.BaseDmsProvider
+    Private AuthorizedProvider As Dms.Providers.BaseDmsProvider
+
+    Protected MustOverride Function CreateSettings() As SettingsBase
+
     Private Function CreateLoginProfile() As DmsLoginProfile
-        Dim Settings As New WebDavSettings
+        Dim Settings As SettingsBase = CreateSettings()
         Dim username As String = Settings.InputLine("username")
         Dim serverurl As String = Settings.InputLine("server url")
         Dim password As String = Settings.InputLine("password")
@@ -22,19 +26,17 @@ Public Class WebDavProviderTest
     End Function
 
     Protected Overrides Function UninitializedDmsProvider() As Dms.Providers.BaseDmsProvider
-        Static Result As Dms.Providers.BaseDmsProvider
-        If Result Is Nothing Then
-            Result = Dms.Providers.CreateDmsProviderInstance(Me.CreateLoginProfile.DmsProvider)
+        If UninitializedProvider Is Nothing Then
+            UninitializedProvider = Dms.Providers.CreateDmsProviderInstance(Me.CreateLoginProfile.DmsProvider)
         End If
-        Return Result
+        Return UninitializedProvider
     End Function
 
     Protected Overrides Function LoggedInDmsProvider() As Dms.Providers.BaseDmsProvider
-        Static Result As Dms.Providers.BaseDmsProvider
-        If Result Is Nothing Then
-            Result = Dms.Providers.CreateAuthorizedDmsProviderInstance(Me.CreateLoginProfile)
+        If AuthorizedProvider Is Nothing Then
+            AuthorizedProvider = Dms.Providers.CreateAuthorizedDmsProviderInstance(Me.CreateLoginProfile)
         End If
-        Return Result
+        Return AuthorizedProvider
     End Function
 
     Protected Overrides ReadOnly Property IgnoreSslErrors As Boolean
@@ -82,4 +84,13 @@ Public Class WebDavProviderTest
         New KeyValuePair(Of String, Byte())("upload.binary.test", New Byte() {40, 50, 60, 10, 13, 35, 45, 55})
         }
 
+End Class
+
+<TestFixture, Category("RemoteDms"), Category("OwnCloudWebDav")>
+Public NotInheritable Class WebDavProviderTest
+    Inherits WebDavProviderTestBase
+
+    Protected Overrides Function CreateSettings() As SettingsBase
+        Return New WebDavSettings
+    End Function
 End Class
