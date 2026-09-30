@@ -10,6 +10,11 @@ Imports InfoBox
 
 Public Class DmsBrowser
 
+    Private Const DefaultDpi As Integer = 96
+    Private Const MaximumImageListDimension As Integer = 256
+    Private Const TreeIconLogicalSize As Integer = 24
+    Private Const FileIconLogicalSize As Integer = 32
+
     ''' <summary>
     ''' A browser for DMS systems
     ''' </summary>
@@ -20,6 +25,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
+        ConfigureIconImageListsForDpi()
         ApplyLocalizedText()
     End Sub
 
@@ -47,6 +53,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
+        ConfigureIconImageListsForDpi()
         ApplyLocalizedText()
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
@@ -268,6 +275,48 @@ Public Class DmsBrowser
             Return _FileIcons
         End Get
     End Property
+
+    Private Sub ConfigureIconImageListsForDpi()
+        Dim treeIconSize As Integer = ScaleLogicalPixels(TreeIconLogicalSize, Me.DeviceDpi)
+        Dim fileIconSize As Integer = ScaleLogicalPixels(FileIconLogicalSize, Me.DeviceDpi)
+
+        ConfigureTreeIconImageList(treeIconSize)
+        ConfigureFileIconImageList(fileIconSize)
+        Me.TreeViewDmsFolders.ItemHeight = Math.Max(treeIconSize, Me.TreeViewDmsFolders.Font.Height + ScaleLogicalPixels(4, Me.DeviceDpi))
+    End Sub
+
+    Private Shared Function ScaleLogicalPixels(logicalPixels As Integer, deviceDpi As Integer) As Integer
+        Return Math.Min(MaximumImageListDimension, CInt(Math.Round(CDbl(logicalPixels) * CDbl(deviceDpi) / DefaultDpi, MidpointRounding.AwayFromZero)))
+    End Function
+
+    Private Sub ConfigureTreeIconImageList(iconSize As Integer)
+        ConfigureImageList(Me.ImageListTreeIcons, iconSize)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719___Shared)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727___Shared)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713___Shared)
+    End Sub
+
+    Private Sub ConfigureFileIconImageList(iconSize As Integer)
+        ConfigureImageList(Me.ImageListFileIcons, iconSize)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719)
+        Me.ImageListFileIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719___Shared)
+        Me.ImageListFileIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727___Shared)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713___Shared)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Document_ui_ux_mobile_web_office_microsoftofficeico_4960706)
+        Me.ImageListFileIcons.Images.Add("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Document_ui_ux_mobile_web_office_microsoftofficeico_4960706)
+    End Sub
+
+    Private Shared Sub ConfigureImageList(imageList As ImageList, iconSize As Integer)
+        imageList.Images.Clear()
+        imageList.ColorDepth = ColorDepth.Depth32Bit
+        imageList.ImageSize = New Size(iconSize, iconSize)
+        imageList.TransparentColor = Color.Transparent
+    End Sub
 
     ''' <summary>
     ''' When starting downloads, automatically open this local folder

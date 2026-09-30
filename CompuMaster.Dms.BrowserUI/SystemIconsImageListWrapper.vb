@@ -1,13 +1,14 @@
 ﻿Imports System
-Imports System.Runtime
 Imports Microsoft.Win32
 Imports System.Windows.Forms
 Imports System.Drawing
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports System.Drawing.Drawing2D
+Imports System.Drawing.Imaging
 
 Friend NotInheritable Class SystemIconsImageListWrapper
+
+    Private Const NumberOfIconsToExtract As UInteger = 1UI
 
     Public Sub New()
         Me.SIImageList = New ImageList()
@@ -36,7 +37,9 @@ Friend NotInheritable Class SystemIconsImageListWrapper
                     If Me.ExtensionSIImageListIndexZuordnung.ContainsKey(isShared & "|" & extension) Then
                         Me.ExtensionSIImageListIndexZuordnung.TryGetValue(isShared & "|" & extension, RValue)
                     Else
-                        Me.SIImageList.Images.Add(Me.GetIconForFileExtension(extension, isShared))
+                        Using icon As Icon = Me.GetIconForFileExtension(extension, isShared)
+                            Me.SIImageList.Images.Add(icon)
+                        End Using
                         Me.ExtensionSIImageListIndexZuordnung.Add(isShared & "|" & extension, Me.SIImageList.Images.Count - 1)
                         Me.ExtensionSIImageListIndexZuordnung.TryGetValue(isShared & "|" & extension, RValue)
                     End If
@@ -61,13 +64,13 @@ Friend NotInheritable Class SystemIconsImageListWrapper
 
     Private Function GetIconForFileExtension(ByVal extension As String, isShared As Boolean) As Icon
 #Disable Warning CA1820 ' Test for empty strings using string length
-        If extension = "" OrElse extension = "." Then Return ImageToIcon(Me.SIImageList.Images(Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex)))
+        If extension = "" OrElse extension = "." Then Return ImageToIcon(Me.SIImageList.Images(Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex)), Me.SIImageList.ImageSize)
 #Enable Warning CA1820 ' Test for empty strings using string length
         Dim QryRS As KeyValuePair(Of String, Integer) = Me.GetIconPathForExtension(extension, isShared)
         If Not String.IsNullOrEmpty(QryRS.Key) Then
             Return Me.GetIconFromDLL(QryRS.Key, QryRS.Value, isShared)
         Else
-            Return ImageToIcon(Me.SIImageList.Images(Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex)))
+            Return ImageToIcon(Me.SIImageList.Images(Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex)), Me.SIImageList.ImageSize)
         End If
     End Function
 
@@ -92,16 +95,38 @@ Friend NotInheritable Class SystemIconsImageListWrapper
     End Function
 
     Private Function GetIconFromDLL(ByVal pathToDLL As String, ByVal iconIndex As Integer, isShared As Boolean) As Icon
-        Dim EigenesProzessHandle As IntPtr = Process.GetCurrentProcess().Handle
-        Dim DLLIconPointer As IntPtr = ExtractIcon(EigenesProzessHandle, pathToDLL, iconIndex)
-        Dim Result As Icon = Icon.FromHandle(DLLIconPointer)
+        Dim Result As Icon = ExtractIconAtSize(pathToDLL, iconIndex, Me.SIImageList.ImageSize)
+        If Result Is Nothing Then
+            Return ImageToIcon(Me.SIImageList.Images(Tools.IIf(Of Integer)(isShared, Me.DefaultSharedIconIndex, Me.DefaultIconIndex)), Me.SIImageList.ImageSize)
+        End If
         If isShared Then
-            Result = OverlaySharedIcon(Result)
+            Using Result
+                Return OverlaySharedIcon(Result)
+            End Using
         End If
         Return Result
     End Function
 
-    <DllImport("shell32.dll", CharSet:=CharSet.Unicode)> Private Shared Function ExtractIcon(ByVal hInst As IntPtr, ByVal lpszExeFileName As String, ByVal nIconIndex As Integer) As IntPtr
+    Private Shared Function ExtractIconAtSize(pathToDLL As String, iconIndex As Integer, iconSize As Size) As Icon
+        Dim iconHandles(0) As IntPtr
+        Dim iconIdentifiers(0) As UInteger
+        Dim expandedPath As String = Environment.ExpandEnvironmentVariables(pathToDLL.Trim().Trim(""""c))
+        Dim extractedIconCount As UInteger = PrivateExtractIcons(expandedPath, iconIndex, iconSize.Width, iconSize.Height, iconHandles, iconIdentifiers, NumberOfIconsToExtract, 0UI)
+        If extractedIconCount = 0UI OrElse extractedIconCount = UInteger.MaxValue OrElse iconHandles(0) = IntPtr.Zero Then Return Nothing
+
+        Try
+            Return CType(Icon.FromHandle(iconHandles(0)).Clone(), Icon)
+        Finally
+            DestroyIcon(iconHandles(0))
+        End Try
+    End Function
+
+    <DllImport("user32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
+    Private Shared Function PrivateExtractIcons(ByVal szFileName As String, ByVal nIconIndex As Integer, ByVal cxIcon As Integer, ByVal cyIcon As Integer, <Out> ByVal phicon As IntPtr(), <Out> ByVal piconid As UInteger(), ByVal nIcons As UInteger, ByVal flags As UInteger) As UInteger
+    End Function
+
+    <DllImport("user32.dll", SetLastError:=True)>
+    Private Shared Function DestroyIcon(ByVal hIcon As IntPtr) As Boolean
     End Function
 
 #Disable Warning IDE0060 ' Nicht verwendete Parameter entfernen
@@ -113,36 +138,44 @@ Friend NotInheritable Class SystemIconsImageListWrapper
     Private Function OverlaySharedIcon(source As Icon) As Icon
 #Enable Warning IDE0060 ' Nicht verwendete Parameter entfernen
         'WORKAROUND: until fully implemented, just return the default shared icon
-        Return ImageToIcon(Me.SIImageList.Images(Me.DefaultSharedIconIndex))
+        Return ImageToIcon(Me.SIImageList.Images(Me.DefaultSharedIconIndex), Me.SIImageList.ImageSize)
     End Function
 
-    Private Shared Function ImageToIcon(ByVal img As Image) As Icon
-        Dim size As Integer = 24
+    Private Shared Function ImageToIcon(ByVal img As Image, targetSize As Size) As Icon
+        Using square As New Bitmap(targetSize.Width, targetSize.Height, PixelFormat.Format32bppArgb)
+            Using g As Graphics = Graphics.FromImage(square)
+                Dim x As Integer
+                Dim y As Integer
+                Dim w As Integer
+                Dim h As Integer
+                Dim r As Single = CSng(img.Width) / CSng(img.Height)
 
-        Using square As New Bitmap(size, size)
-            Dim g As Graphics = Graphics.FromImage(square)
-            Dim x As Integer
-            Dim y As Integer
-            Dim w As Integer
-            Dim h As Integer
-            Dim r As Single = CSng(img.Width) / CSng(img.Height)
+                If r > 1 Then
+                    w = targetSize.Width
+                    h = CInt((CSng(targetSize.Width) / r))
+                    x = 0
+                    y = CType((targetSize.Height - h) / 2, Integer)
+                Else
+                    w = CInt((CSng(targetSize.Height) * r))
+                    h = targetSize.Height
+                    y = 0
+                    x = CType((targetSize.Width - w) / 2, Integer)
+                End If
 
-            If r > 1 Then
-                w = size
-                h = CInt((CSng(size) / r))
-                x = 0
-                y = CType((size - h) / 2, Integer)
-            Else
-                w = CInt((CSng(size) * r))
-                h = size
-                y = 0
-                x = CType((size - w) / 2, Integer)
-            End If
+                g.Clear(Color.Transparent)
+                g.CompositingQuality = CompositingQuality.HighQuality
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality
+                g.SmoothingMode = SmoothingMode.HighQuality
+                g.DrawImage(img, x, y, w, h)
+            End Using
 
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic
-            g.DrawImage(img, x, y, w, h)
-            g.Flush()
-            Return Icon.FromHandle(square.GetHicon())
+            Dim iconHandle As IntPtr = square.GetHicon()
+            Try
+                Return CType(Icon.FromHandle(iconHandle).Clone(), Icon)
+            Finally
+                DestroyIcon(iconHandle)
+            End Try
         End Using
     End Function
 

@@ -40,6 +40,7 @@ Partial Class DmsBrowser
         Me.ToolStripFolderContextButtonRefreshFilesList = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripFolderContextButtonProperties = New System.Windows.Forms.ToolStripButton()
         Me.ImageListFileIcons = New System.Windows.Forms.ImageList(Me.components)
+        Me.ImageListTreeIcons = New System.Windows.Forms.ImageList(Me.components)
         Me.ButtonCreateNewFolder = New System.Windows.Forms.Button()
         Me.SplitContainer = New System.Windows.Forms.SplitContainer()
         Me.ListViewDmsFiles = New System.Windows.Forms.ListView()
@@ -126,7 +127,7 @@ Partial Class DmsBrowser
         Me.TreeViewDmsFolders.ContextMenuStrip = Me.ContextMenuStripFolder
         Me.TreeViewDmsFolders.Dock = System.Windows.Forms.DockStyle.Fill
         Me.TreeViewDmsFolders.ImageIndex = 2
-        Me.TreeViewDmsFolders.ImageList = Me.ImageListFileIcons
+        Me.TreeViewDmsFolders.ImageList = Me.ImageListTreeIcons
         Me.TreeViewDmsFolders.Indent = 27
         Me.TreeViewDmsFolders.ItemHeight = 24
         Me.TreeViewDmsFolders.LabelEdit = True
@@ -217,6 +218,7 @@ Partial Class DmsBrowser
         'ImageListFileIcons
         '
         Me.ImageListFileIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+        Me.ImageListFileIcons.ImageSize = New System.Drawing.Size(32, 32)
         Me.ImageListFileIcons.TransparentColor = System.Drawing.Color.Transparent
         Me.ImageListFileIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719)
         Me.ImageListFileIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727)
@@ -226,6 +228,18 @@ Partial Class DmsBrowser
         Me.ImageListFileIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713___Shared)
         Me.ImageListFileIcons.Images.Add("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Document_ui_ux_mobile_web_office_microsoftofficeico_4960706)
         Me.ImageListFileIcons.Images.Add("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Document_ui_ux_mobile_web_office_microsoftofficeico_4960706)
+        '
+        'ImageListTreeIcons
+        '
+        Me.ImageListTreeIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+        Me.ImageListTreeIcons.ImageSize = New System.Drawing.Size(24, 24)
+        Me.ImageListTreeIcons.TransparentColor = System.Drawing.Color.Transparent
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719___Shared)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727___Shared)
+        Me.ImageListTreeIcons.Images.Add("iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_4960713___Shared)
         '
         'ButtonCreateNewFolder
         '
@@ -657,6 +671,7 @@ Partial Class DmsBrowser
     Friend WithEvents ColumnHeaderSize As ColumnHeader
     Friend WithEvents ColumnHeaderLastModifiedOn As ColumnHeader
     Friend WithEvents ImageListFileIcons As ImageList
+    Friend WithEvents ImageListTreeIcons As ImageList
     Friend WithEvents ButtonShowFiles As CheckBox
     Friend WithEvents ToolStripFileActions As ToolStrip
     Friend WithEvents ToolStripButtonUploadFile As ToolStripButton
