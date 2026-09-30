@@ -25,7 +25,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
-        ConfigureIconImageListsForDpi()
+        ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
     End Sub
 
@@ -53,7 +53,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
-        ConfigureIconImageListsForDpi()
+        ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
@@ -276,13 +276,24 @@ Public Class DmsBrowser
         End Get
     End Property
 
-    Private Sub ConfigureIconImageListsForDpi()
-        Dim treeIconSize As Integer = ScaleLogicalPixels(TreeIconLogicalSize, Me.DeviceDpi)
-        Dim fileIconSize As Integer = ScaleLogicalPixels(FileIconLogicalSize, Me.DeviceDpi)
+    Private Sub ConfigureIconImageListsForDpi(deviceDpi As Integer)
+        Dim treeIconSize As Integer = ScaleLogicalPixels(TreeIconLogicalSize, deviceDpi)
+        Dim fileIconSize As Integer = ScaleLogicalPixels(FileIconLogicalSize, deviceDpi)
+        Dim treeIconSizeChanged As Boolean = Me.ImageListTreeIcons.ImageSize <> New Size(treeIconSize, treeIconSize)
+        Dim fileIconSizeChanged As Boolean = Me.ImageListFileIcons.ImageSize <> New Size(fileIconSize, fileIconSize)
 
-        ConfigureTreeIconImageList(treeIconSize)
-        ConfigureFileIconImageList(fileIconSize)
-        Me.TreeViewDmsFolders.ItemHeight = Math.Max(treeIconSize, Me.TreeViewDmsFolders.Font.Height + ScaleLogicalPixels(4, Me.DeviceDpi))
+        If treeIconSizeChanged Then ConfigureTreeIconImageList(treeIconSize)
+        If fileIconSizeChanged Then
+            Me._FileIcons = Nothing
+            ConfigureFileIconImageList(fileIconSize)
+            RefreshCurrentFileIconIndices()
+        End If
+        Me.TreeViewDmsFolders.ItemHeight = Math.Max(treeIconSize, Me.TreeViewDmsFolders.Font.Height + ScaleLogicalPixels(4, deviceDpi))
+    End Sub
+
+    Protected Overrides Sub OnDpiChanged(e As DpiChangedEventArgs)
+        MyBase.OnDpiChanged(e)
+        ConfigureIconImageListsForDpi(e.DeviceDpiNew)
     End Sub
 
     Private Shared Function ScaleLogicalPixels(logicalPixels As Integer, deviceDpi As Integer) As Integer
@@ -317,6 +328,28 @@ Public Class DmsBrowser
         imageList.ImageSize = New Size(iconSize, iconSize)
         imageList.TransparentColor = Color.Transparent
     End Sub
+
+    Private Sub RefreshCurrentFileIconIndices()
+        Me.ListViewDmsFiles.BeginUpdate()
+        Try
+            For Each item As ListViewItem In Me.ListViewDmsFiles.Items
+                Dim file As DmsResourceItem = TryCast(item.Tag, DmsResourceItem)
+                If file IsNot Nothing Then
+                    item.ImageIndex = Me.FileIcons.GetSIImageListIndexForFileExtension(GetFileExtension(file.Name), file.ExtendedInfosIsShared)
+                End If
+            Next
+        Finally
+            Me.ListViewDmsFiles.EndUpdate()
+        End Try
+    End Sub
+
+    Private Shared Function GetFileExtension(fileName As String) As String
+        Try
+            Return System.IO.Path.GetExtension(fileName)
+        Catch ex As Exception
+            Return ""
+        End Try
+    End Function
 
     ''' <summary>
     ''' When starting downloads, automatically open this local folder
@@ -657,12 +690,7 @@ Public Class DmsBrowser
             Me.ListViewDmsFiles.Tag = Files
             Dim AllFileNameHashes As List(Of Integer) = Files.ConvertAll(Of Integer)(Function(file) file.Name.GetHashCode)
             For Each file As DmsResourceItem In Files
-                Dim FileExtension As String
-                Try
-                    FileExtension = System.IO.Path.GetExtension(file.Name)
-                Catch ex As Exception
-                    FileExtension = ""
-                End Try
+                Dim FileExtension As String = GetFileExtension(file.Name)
                 Dim Item As New ListViewItem(file.Name, Me.FileIcons.GetSIImageListIndexForFileExtension(FileExtension, file.ExtendedInfosIsShared))
                 Item.Tag = file
                 Dim SubItems As ListViewItem.ListViewSubItem() = New ListViewItem.ListViewSubItem() {

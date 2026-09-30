@@ -52,19 +52,40 @@ Public Class DmsBrowserSmokeTest
     Public Sub SharedFileExtensionIconUsesConfiguredImageSize()
         Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
             Dim imageList As ImageList = GetImageListFileIcons(browser)
-            Dim fileIconsProperty As PropertyInfo = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetProperty("FileIcons", BindingFlags.Instance Or BindingFlags.NonPublic)
-            ClassicAssert.IsNotNull(fileIconsProperty)
-            Dim fileIcons As Object = fileIconsProperty.GetValue(browser)
-            Dim getIconIndexMethod As MethodInfo = fileIcons.GetType().GetMethod("GetSIImageListIndexForFileExtension", BindingFlags.Instance Or BindingFlags.Public)
-            ClassicAssert.IsNotNull(getIconIndexMethod)
+            Dim fileIcons As Object = GetFileIcons(browser)
 
-            Dim iconIndex As Integer = CInt(getIconIndexMethod.Invoke(fileIcons, New Object() {".txt", True}))
-            Dim repeatedIconIndex As Integer = CInt(getIconIndexMethod.Invoke(fileIcons, New Object() {".txt", True}))
+            Dim iconIndex As Integer = GetFileIconIndex(fileIcons, ".txt", True)
+            Dim repeatedIconIndex As Integer = GetFileIconIndex(fileIcons, ".txt", True)
 
             ClassicAssert.GreaterOrEqual(iconIndex, 8)
             ClassicAssert.AreEqual(iconIndex, repeatedIconIndex)
             ClassicAssert.AreEqual(imageList.ImageSize, imageList.Images(iconIndex).Size)
             ClassicAssert.AreEqual(imageList.ImageSize, imageList.Images(7).Size)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub DpiReconfigurationRebuildsIconCacheAndExistingItemIndices()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+            Dim imageList As ImageList = GetImageListFileIcons(browser)
+            Dim fileList As ListView = GetControlField(Of ListView)(browser, "_ListViewDmsFiles")
+            Dim originalFileIcons As Object = GetFileIcons(browser)
+            Dim originalIconIndex As Integer = GetFileIconIndex(originalFileIcons, ".txt", True)
+            Dim file As New Global.CompuMaster.Dms.Data.DmsResourceItem With {
+                .Name = "document.txt",
+                .ExtendedInfosIsShared = True
+            }
+            Dim item As New ListViewItem(file.Name, originalIconIndex) With {.Tag = file}
+            fileList.Items.Add(item)
+
+            ConfigureIconImageListsForDpi(browser, 144)
+
+            Dim reconfiguredFileIcons As Object = GetFileIcons(browser)
+            Dim reconfiguredIconIndex As Integer = GetFileIconIndex(reconfiguredFileIcons, ".txt", True)
+            ClassicAssert.AreEqual(New Drawing.Size(48, 48), imageList.ImageSize)
+            ClassicAssert.AreNotSame(originalFileIcons, reconfiguredFileIcons)
+            ClassicAssert.AreEqual(reconfiguredIconIndex, item.ImageIndex)
+            ClassicAssert.AreEqual(imageList.ImageSize, imageList.Images(item.ImageIndex).Size)
         End Using
     End Sub
 
@@ -77,6 +98,24 @@ Public Class DmsBrowserSmokeTest
         ClassicAssert.IsNotNull(fieldInfo)
         Return CType(fieldInfo.GetValue(browser), T)
     End Function
+
+    Private Shared Function GetFileIcons(browser As Global.CompuMaster.Dms.BrowserUI.DmsBrowser) As Object
+        Dim fileIconsProperty As PropertyInfo = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetProperty("FileIcons", BindingFlags.Instance Or BindingFlags.NonPublic)
+        ClassicAssert.IsNotNull(fileIconsProperty)
+        Return fileIconsProperty.GetValue(browser)
+    End Function
+
+    Private Shared Function GetFileIconIndex(fileIcons As Object, extension As String, isShared As Boolean) As Integer
+        Dim getIconIndexMethod As MethodInfo = fileIcons.GetType().GetMethod("GetSIImageListIndexForFileExtension", BindingFlags.Instance Or BindingFlags.Public)
+        ClassicAssert.IsNotNull(getIconIndexMethod)
+        Return CInt(getIconIndexMethod.Invoke(fileIcons, New Object() {extension, isShared}))
+    End Function
+
+    Private Shared Sub ConfigureIconImageListsForDpi(browser As Global.CompuMaster.Dms.BrowserUI.DmsBrowser, deviceDpi As Integer)
+        Dim configureMethod As MethodInfo = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetMethod("ConfigureIconImageListsForDpi", BindingFlags.Instance Or BindingFlags.NonPublic)
+        ClassicAssert.IsNotNull(configureMethod)
+        configureMethod.Invoke(browser, New Object() {deviceDpi})
+    End Sub
 
     Private Shared Function ScaleLogicalPixels(logicalPixels As Integer, deviceDpi As Integer) As Integer
         Return Math.Min(MaximumImageListDimension, CInt(Math.Round(CDbl(logicalPixels) * CDbl(deviceDpi) / DefaultDpi, MidpointRounding.AwayFromZero)))
