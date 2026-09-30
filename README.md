@@ -1,4 +1,4 @@
-# CompuMaster.Dms
+﻿# CompuMaster.Dms
 DMS Browser component for Scopevisio Teamwork, CenterDevice, WebDAV (e.g. NextCloud, OwnCloud)
 
 [![Github Release](https://img.shields.io/github/release/CompuMasterGmbH/CompuMaster.Dms.svg?maxAge=2592000&label=GitHub%20Release)](https://github.com/CompuMasterGmbH/CompuMaster.Dms/releases) 
@@ -25,6 +25,12 @@ There are following main modules for your use:
   * provide several levels of allowed actions depending on required action context (manage folder structure only without viewing files, view and edit folder structure and files, or view everything without editing, etc.)
 * CompuMaster.Dms.TestDemo.WebDav – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with a WebDAV server (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 * CompuMaster.Dms.TestDemo.ScopevisioTeamwork – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with Scopevisio Teamwork (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
+
+### WebDAV sharing capabilities
+
+The WebDAV provider keeps generic WebDAV servers provider-neutral. For recognized Nextcloud and ownCloud personal-file endpoints, it probes the Open Collaboration Services (OCS) API and enables user, group, and public-link sharing only when that probe succeeds. OCS permission bits are mapped without silently changing their meaning; view and download remain coupled because the classic OCS bit field cannot represent modern Nextcloud download restrictions separately. Server policies such as maximum link-name length remain server-validated because they differ between products and deployments.
+
+ownCloud Infinite Scale personal-file compatibility endpoints can use the OCS adapter. Space endpoints (`/dav/spaces/<space-id>`) remain regular WebDAV endpoints because their sharing model uses LibreGraph roles and item identifiers; a future LibreGraph adapter can add that capability without changing the common DMS sharing API.
 
 ## Screenshots
 

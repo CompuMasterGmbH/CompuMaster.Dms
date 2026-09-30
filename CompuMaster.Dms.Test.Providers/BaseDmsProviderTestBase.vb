@@ -875,12 +875,16 @@ Public MustInherit Class BaseDmsProviderTestBase
 
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         If DmsProvider.SupportsSharingSetup = False Then ClassicAssert.Ignore("Sharing setup not supported by provider")
+        Dim DirectoryType As DirectoryTypes = If(DmsProvider.SupportsCollections, DirectoryTypes.Collection, DirectoryTypes.Folder)
 
-        Me.CreateRemoteTestFolderIfNotExisting(RemoteTestFolderName, DirectoryTypes.Collection)
+        'Cleanup existing data from previous runs before start
+        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryType, False)
+
+        Me.CreateRemoteTestFolderIfNotExisting(RemoteTestFolderName, DirectoryType)
         Dim RemoteDirItem As CompuMaster.Dms.Data.DmsResourceItem = DmsProvider.ListRemoteItem(RemoteTestFolderName)
         ClassicAssert.NotNull(RemoteDirItem.FullName)
         ClassicAssert.IsNotEmpty(RemoteDirItem.FullName)
-        ClassicAssert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, RemoteDirItem.ItemType)
+        ClassicAssert.AreEqual(If(DmsProvider.SupportsCollections, Dms.Data.DmsResourceItem.ItemTypes.Collection, Dms.Data.DmsResourceItem.ItemTypes.Folder), RemoteDirItem.ItemType)
         ClassicAssert.AreEqual(RemoteTestFolderName, RemoteDirItem.FullName)
 
         Dim ShareLink As New Data.DmsLink(RemoteDirItem, DmsProvider) With
@@ -889,7 +893,7 @@ Public MustInherit Class BaseDmsProviderTestBase
             .MaxUploads = 4000,
             .MaxBytes = Integer.MaxValue,
             .Password = Guid.NewGuid.ToString("n"),
-            .Name = "UnitTest_UploadLinkShare_" & RemoteTestFolderName
+            .Name = "UnitTest_UploadLink"
             }
 
         ShareLink = DmsProvider.CreateLink(RemoteDirItem, ShareLink)
@@ -901,6 +905,8 @@ Public MustInherit Class BaseDmsProviderTestBase
                 Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
                 ClassicAssert.IsNull(CenterDeviceProvider._AllUploadLinks)
                 ClassicAssert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetUploadLink(ShareLink.ID).Id)
+            Case BaseDmsProvider.DmsProviders.WebDAV
+                ClassicAssert.IsNotEmpty(ShareLink.WebUrl)
             Case Else
                 Throw New NotImplementedException
         End Select
@@ -910,7 +916,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         ClassicAssert.AreEqual(ShareLink.AllowedActions, RefreshedRemoteDirItem.ExtendedInfosLinks(0).AllowedActions)
 
         'Remove link again
-        Me.RemoveRemoteTestFolder(RemoteTestFolderName, If(DmsProvider.SupportsCollections, DirectoryTypes.Collection, DirectoryTypes.Folder), True)
+        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryType, True)
 
         'Test removal of link
         Select Case DmsProvider.DmsProviderID
@@ -928,6 +934,8 @@ Public MustInherit Class BaseDmsProviderTestBase
                         Return item.Id = ShareLink.ID
                     End Function)
                 ClassicAssert.IsNull(FoundUploadLink)
+            Case BaseDmsProvider.DmsProviders.WebDAV
+                'Deleting the shared WebDAV resource also removes its OCS share.
             Case Else
                 Throw New NotImplementedException
         End Select
@@ -939,17 +947,16 @@ Public MustInherit Class BaseDmsProviderTestBase
 
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         If DmsProvider.SupportsSharingSetup = False Then ClassicAssert.Ignore("Sharing setup not supported by provider")
-
-        Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+        Dim DirectoryType As DirectoryTypes = If(DmsProvider.SupportsCollections, DirectoryTypes.Collection, DirectoryTypes.Folder)
 
         'Cleanup existing data from previous runs before start
-        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryTypes.Collection, False)
+        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryType, False)
 
-        Me.CreateRemoteTestFolderIfNotExisting(RemoteTestFolderName, DirectoryTypes.Collection)
+        Me.CreateRemoteTestFolderIfNotExisting(RemoteTestFolderName, DirectoryType)
         Dim RemoteDirItem As CompuMaster.Dms.Data.DmsResourceItem = DmsProvider.ListRemoteItem(RemoteTestFolderName)
         ClassicAssert.NotNull(RemoteDirItem.FullName)
         ClassicAssert.IsNotEmpty(RemoteDirItem.FullName)
-        ClassicAssert.AreEqual(Dms.Data.DmsResourceItem.ItemTypes.Collection, RemoteDirItem.ItemType)
+        ClassicAssert.AreEqual(If(DmsProvider.SupportsCollections, Dms.Data.DmsResourceItem.ItemTypes.Collection, Dms.Data.DmsResourceItem.ItemTypes.Folder), RemoteDirItem.ItemType)
         ClassicAssert.AreEqual(RemoteTestFolderName, RemoteDirItem.FullName)
 
         Dim ShareLink As New Data.DmsLink(RemoteDirItem, DmsProvider) With
@@ -961,17 +968,28 @@ Public MustInherit Class BaseDmsProviderTestBase
             .Password = Guid.NewGuid.ToString("n")
             }
 
-        ShareLink = CenterDeviceProvider.CreateLink(RemoteDirItem, ShareLink)
+        ShareLink = DmsProvider.CreateLink(RemoteDirItem, ShareLink)
 
         ClassicAssert.NotNull(ShareLink.ID)
         ClassicAssert.IsNotEmpty(ShareLink.ID)
-        ClassicAssert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetLink(ShareLink.ID).Id)
+        Select Case DmsProvider.DmsProviderID
+            Case BaseDmsProvider.DmsProviders.CenterDevice, BaseDmsProvider.DmsProviders.Scopevisio
+                Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+                ClassicAssert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetLink(ShareLink.ID).Id)
+            Case BaseDmsProvider.DmsProviders.WebDAV
+                ClassicAssert.IsNotEmpty(ShareLink.WebUrl)
+            Case Else
+                Throw New NotImplementedException
+        End Select
 
-        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryTypes.Collection, True)
+        Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryType, True)
 
-        ClassicAssert.Catch(Of CenterDevice.Rest.Exceptions.NotFoundException)(Sub()
-                                                                                   CenterDeviceProvider.IOClient.GetLink(ShareLink.ID)
-                                                                               End Sub)
+        If DmsProvider.DmsProviderID = BaseDmsProvider.DmsProviders.CenterDevice OrElse DmsProvider.DmsProviderID = BaseDmsProvider.DmsProviders.Scopevisio Then
+            Dim CenterDeviceProvider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = CType(DmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+            ClassicAssert.Catch(Of CenterDevice.Rest.Exceptions.NotFoundException)(Sub()
+                                                                                       CenterDeviceProvider.IOClient.GetLink(ShareLink.ID)
+                                                                                   End Sub)
+        End If
 
     End Sub
 
