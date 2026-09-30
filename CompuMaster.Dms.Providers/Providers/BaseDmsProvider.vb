@@ -186,6 +186,21 @@ Namespace Providers
         Public MustOverride Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
 
         ''' <summary>
+        ''' Lists all direct child directories for a remote path.
+        ''' </summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <returns>All direct child folders and collections.</returns>
+        Public Overridable Function ListAllDirectoryItems(remoteFolderPath As String) As List(Of DmsResourceItem)
+            Dim Result As New List(Of DmsResourceItem)
+            For Each Item As DmsResourceItem In Me.ListAllRemoteItems(remoteFolderPath, SearchItemType.AllItems)
+                If Item.ItemType = DmsResourceItem.ItemTypes.Folder OrElse Item.ItemType = DmsResourceItem.ItemTypes.Collection Then
+                    Result.Add(Item)
+                End If
+            Next
+            Return Result
+        End Function
+
+        ''' <summary>
         ''' List all child collections for a remote path
         ''' </summary>
         ''' <param name="remoteFolderPath"></param>

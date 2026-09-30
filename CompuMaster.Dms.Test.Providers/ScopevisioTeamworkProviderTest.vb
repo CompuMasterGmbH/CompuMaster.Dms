@@ -84,6 +84,24 @@ Public Class ScopevisioTeamworkProviderTest
         }
 
     ''' <summary>
+    ''' Verifies that Scopevisio reports child-folder metadata for both nested and empty folders.
+    ''' </summary>
+    <Test>
+    Public Sub DirectoryListingIncludesKnownChildFolderFlags()
+        Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+
+        ClassicAssert.IsEmpty(Provider.ListAllFolderNames(TestDirNameSub2), "The test leaf folder must have no child folders.")
+
+        Dim CollectionChildren = Provider.ListAllDirectoryItems(TestDirName)
+        Dim Folder = CollectionChildren.Single(Function(Item) Item.Name = "Folder")
+        ClassicAssert.AreEqual(True, Folder.HasChildDirectories)
+
+        Dim FolderChildren = Provider.ListAllDirectoryItems(TestDirNameSub1)
+        Dim SubFolder = FolderChildren.Single(Function(Item) Item.Name = "Sub")
+        ClassicAssert.AreEqual(False, SubFolder.HasChildDirectories)
+    End Sub
+
+    ''' <summary>
     ''' Verifies that downloads of duplicate Scopevisio file names return the content belonging to the selected file ID.
     ''' </summary>
     <Test>
