@@ -181,6 +181,46 @@ Public Class DmsLinkShareSetup
         Me._DmsUpdatedLinkDetails = Result
     End Sub
 
+    ''' <summary>
+    ''' Creates a link and reconciles provider-side model updates with the dialog model.
+    ''' </summary>
+    Friend Shared Function CreateLinkAndSynchronizeDmsItem(dmsProvider As BaseDmsProvider, dmsItem As DmsResourceItem, requestedLink As DmsLink) As DmsLink
+        If dmsProvider Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProvider))
+        If dmsItem Is Nothing Then Throw New ArgumentNullException(NameOf(dmsItem))
+        If requestedLink Is Nothing Then Throw New ArgumentNullException(NameOf(requestedLink))
+
+        Dim CreatedLink As DmsLink = dmsProvider.CreateLink(dmsItem, requestedLink)
+        If CreatedLink Is Nothing Then Throw New InvalidOperationException("The DMS provider returned no created link.")
+        If String.IsNullOrEmpty(CreatedLink.ID) Then Throw New InvalidOperationException("The DMS provider returned a created link without an ID.")
+
+        If dmsItem.ExtendedInfosLinks Is Nothing Then
+            dmsItem.ExtendedInfosLinks = New List(Of DmsLink)
+        End If
+
+        Dim MatchingLinkIndex As Integer = -1
+        For MyCounter As Integer = 0 To dmsItem.ExtendedInfosLinks.Count - 1
+            If String.Equals(dmsItem.ExtendedInfosLinks(MyCounter).ID, CreatedLink.ID, StringComparison.Ordinal) Then
+                MatchingLinkIndex = MyCounter
+                Exit For
+            End If
+        Next
+
+        If MatchingLinkIndex < 0 Then
+            dmsItem.ExtendedInfosLinks.Add(CreatedLink)
+            MatchingLinkIndex = dmsItem.ExtendedInfosLinks.Count - 1
+        Else
+            dmsItem.ExtendedInfosLinks(MatchingLinkIndex) = CreatedLink
+        End If
+
+        For MyCounter As Integer = dmsItem.ExtendedInfosLinks.Count - 1 To 0 Step -1
+            If MyCounter <> MatchingLinkIndex AndAlso String.Equals(dmsItem.ExtendedInfosLinks(MyCounter).ID, CreatedLink.ID, StringComparison.Ordinal) Then
+                dmsItem.ExtendedInfosLinks.RemoveAt(MyCounter)
+            End If
+        Next
+
+        Return CreatedLink
+    End Function
+
     Private Sub CheckBoxExpiryDate_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxExpiryDate.CheckedChanged
         Me.DateTimePickerExpiryDate.Enabled = Me.CheckBoxExpiryDate.Checked
     End Sub
@@ -231,7 +271,7 @@ Public Class DmsLinkShareSetup
             End Select
             Me.SaveControlDataIntoDmsLink()
             If Me._DialogMode = DialogModes.CreateLink Then
-                Me.DmsUpdatedLinkDetails.ID = Me.DmsProvider.CreateLink(Me.DmsItem, Me.DmsUpdatedLinkDetails).ID
+                Me._DmsUpdatedLinkDetails = CreateLinkAndSynchronizeDmsItem(Me.DmsProvider, Me.DmsItem, Me.DmsUpdatedLinkDetails)
             Else
                 Me.DmsProvider.UpdateLink(Me.DmsUpdatedLinkDetails)
             End If

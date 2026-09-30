@@ -215,7 +215,6 @@ Public Class DmsItemSharings
             LinkShareForm.DialogMode = DmsLinkShareSetup.DialogModes.CreateLink
             If LinkShareForm.ShowDialog(Me) = DialogResult.OK Then
                 LinkShareForm.DmsUpdatedLinkDetails.Refresh()
-                Me.DmsItem.ExtendedInfosLinks.Add(LinkShareForm.DmsUpdatedLinkDetails)
                 DmsItemSharings_Load(Nothing, Nothing)
             End If
         Catch ex As Data.DmsUserErrorMessageException
