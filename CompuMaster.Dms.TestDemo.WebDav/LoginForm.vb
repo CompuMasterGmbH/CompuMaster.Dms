@@ -4,25 +4,18 @@ Imports System.Windows.Forms
 Public Class LoginForm
 
     Private Sub Form_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
-        Me.UsernameTextBox.Text = Settings.InputFromBufferFile("Username")
-        Me.PasswordTextBox.Text = Settings.InputFromBufferFile("Password")
-        Me.ServerAddress.Text = Settings.InputFromBufferFile("ServerAddress")
-        If Settings.IsBufferedByFile("Username") OrElse Settings.IsBufferedByFile("Password") OrElse Settings.IsBufferedByFile("ServerAddress") Then
-            Me.CheckboxPersistLoginCredentialsToDisk.Checked = True
-        Else
-            Me.CheckboxPersistLoginCredentialsToDisk.Checked = False
-        End If
+        Me.Text = Settings.DemoTitle
+        Me.UsernameTextBox.Text = Settings.Username()
+        Me.PasswordTextBox.Text = Settings.Password()
+        Me.ServerAddress.Text = Settings.ServerUrl()
+        Me.CheckboxPersistLoginCredentialsToDisk.Checked = Settings.HasPersistedCredentials()
     End Sub
 
     Private Sub LoginForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Me.CheckboxPersistLoginCredentialsToDisk.Checked Then
-            Settings.PersistInputValue("Username", Me.UsernameTextBox.Text)
-            Settings.PersistInputValue("Password", Me.PasswordTextBox.Text)
-            Settings.PersistInputValue("ServerAddress", Me.ServerAddress.Text)
+            Settings.PersistCredentials(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.ServerAddress.Text)
         Else
-            Settings.RemoveBufferFile("Username")
-            Settings.RemoveBufferFile("Password")
-            Settings.RemoveBufferFile("ServerAddress")
+            Settings.RemovePersistedCredentials()
         End If
     End Sub
 
@@ -31,18 +24,18 @@ Public Class LoginForm
             Me.UseWaitCursor = True
             Me.Cursor = Cursors.WaitCursor
             Me.Refresh()
-            Dim b As New CompuMaster.Dms.BrowserUI.DmsBrowser(
+            Dim b As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(
             New DmsLoginProfile() With {
                     .DmsProvider = Providers.BaseDmsProvider.DmsProviders.WebDAV,
-                    .BaseUrl = Me.ServerAddress.Text,
+                    .BaseUrl = Settings.ResolveServerUrl(Me.ServerAddress.Text, Me.UsernameTextBox.Text),
                     .Username = Me.UsernameTextBox.Text,
                     .Password = Me.PasswordTextBox.Text
                 },
-                "DMS Browser DEMO for WebDAV", Me.Icon,
+                Settings.DemoTitle, Me.Icon,
                 "", "",
-                BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
-                BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
-                BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
+                Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
+                Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
+                Global.CompuMaster.Dms.BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
                 "", "", ""
             )
             Me.Cursor = Cursors.Default

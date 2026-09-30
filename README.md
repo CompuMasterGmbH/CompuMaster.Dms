@@ -24,9 +24,12 @@ There are following main modules for your use:
   * setup user sharings and link sharings (if supported by the underlying provider)
   * provide several levels of allowed actions depending on required action context (manage folder structure only without viewing files, view and edit folder structure and files, or view everything without editing, etc.)
 * CompuMaster.Dms.TestDemo.WebDav – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with a WebDAV server (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
+* CompuMaster.Dms.TestDemo.OwnCloudClassic – A dedicated ownCloud Classic demo using its own local credential store.
+* CompuMaster.Dms.TestDemo.Nextcloud – A dedicated Nextcloud demo using its own local credential store and accepting either the instance URL or a complete WebDAV URL.
 * CompuMaster.Dms.TestDemo.ScopevisioTeamwork – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with Scopevisio Teamwork (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 
 Development and remote integration-test guidance is documented in [TESTING.md](TESTING.md).
+See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between demo applications, environment variables, and local integration-test credential stores.
 
 ## Screenshots
 
