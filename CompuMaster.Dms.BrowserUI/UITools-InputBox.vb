@@ -75,7 +75,7 @@ Partial Friend Class UITools
         Dim buttonSize As Size = New Size(MulDiv(50, CInt(dialogUnits.Width), 4), MulDiv(14, CInt(dialogUnits.Height), 8))
         Dim bbOk As System.Windows.Forms.Button = New System.Windows.Forms.Button With {
             .Parent = form,
-            .Text = "OK",
+            .Text = UiStrings.GetText("ActionOkay"),
             .DialogResult = DialogResult.OK
         }
         form.AcceptButton = bbOk
@@ -83,7 +83,7 @@ Partial Friend Class UITools
         bbOk.Size = buttonSize
         Dim bbCancel As New System.Windows.Forms.Button()
         bbCancel.Parent = form
-        bbCancel.Text = "Cancel"
+        bbCancel.Text = UiStrings.GetText("ActionCancel")
         bbCancel.DialogResult = DialogResult.Cancel
         form.CancelButton = bbCancel
         bbCancel.Location = New Point(MulDiv(92, dialogUnits.Width, 4), buttonTop)

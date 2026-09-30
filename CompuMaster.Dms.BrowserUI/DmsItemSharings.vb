@@ -4,6 +4,33 @@ Imports CompuMaster.Dms.Providers
 
 Public Class DmsItemSharings
 
+    Public Sub New()
+        InitializeComponent()
+        ApplyLocalizedText()
+    End Sub
+
+    Private Sub ApplyLocalizedText()
+        Me.Text = UiStrings.GetText("SharingsTitle")
+        Me.ButtonCancel.Text = UiStrings.GetText("ActionClose")
+        Me.GroupBoxInternalSharings.Text = UiStrings.GetText("InternalSharings")
+        Me.ColumnHeaderType.Text = UiStrings.GetText("ColumnType")
+        Me.ColumnHeaderName.Text = UiStrings.GetText("ColumnName")
+        Me.ColumnHeaderAuthorizations.Text = UiStrings.GetText("ColumnAuthorizations")
+        Me.ToolStripButtonInternalSharingsAddGroup.Text = UiStrings.GetText("ActionAddGroup")
+        Me.ToolStripButtonInternalSharingsAddUser.Text = UiStrings.GetText("ActionAddUser")
+        Me.ToolStripButtonInternalSharingsEdit.Text = UiStrings.GetText("ActionEdit")
+        Me.ToolStripButtonInternalSharingsDelete.Text = UiStrings.GetText("ActionDelete")
+        Me.GroupBoxExternalSharings.Text = UiStrings.GetText("ExternalSharings")
+        Me.ColumnHeaderDisplayName.Text = UiStrings.GetText("ColumnName")
+        Me.ColumnHeaderAuths.Text = UiStrings.GetText("ColumnAuthorizations")
+        Me.ColumnHeaderLimitations.Text = UiStrings.GetText("ColumnLimitations")
+        Me.ToolStripButtonExternalSharingsAdd.Text = UiStrings.GetText("ActionAdd")
+        Me.ToolStripButtonExternalSharingsEdit.Text = UiStrings.GetText("ActionEdit")
+        Me.ToolStripButtonExternalSharingsDelete.Text = UiStrings.GetText("ActionDelete")
+        Me.ToolStripButtonCopyLinkUrlToClipboard.Text = UiStrings.GetText("ActionCopyWebLink")
+        Me.LabelCurrentOwner.Text = UiStrings.GetText("CurrentOwner")
+    End Sub
+
     Public Property DmsItem As DmsResourceItem
     Public Property DmsProvider As BaseDmsProvider
 
@@ -31,6 +58,29 @@ Public Class DmsItemSharings
         Me.ListViewExternalSharings.Items.Add(ItemLine)
     End Sub
 
+    Private Shared Function LocalizedAllowedActions(sharing As DmsShareBase) As String
+        Dim actions As New List(Of String)
+        For Each action As String In sharing.AllowedActions()
+            Select Case action
+                Case "View"
+                    actions.Add(UiStrings.GetText("PermissionView"))
+                Case "Download"
+                    actions.Add(UiStrings.GetText("PermissionDownload"))
+                Case "Edit"
+                    actions.Add(UiStrings.GetText("PermissionEdit"))
+                Case "Upload"
+                    actions.Add(UiStrings.GetText("PermissionUpload"))
+                Case "Delete"
+                    actions.Add(UiStrings.GetText("PermissionDelete"))
+                Case "Share"
+                    actions.Add(UiStrings.GetText("PermissionShare"))
+                Case Else
+                    actions.Add(action)
+            End Select
+        Next
+        Return String.Join(", ", actions)
+    End Function
+
     Private Sub DmsItemSharings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.Text = Me.DmsProvider.Name & " - " & Me.DmsItem.FullName
         Me.LabelCurrentOwner.Text = String.Format(Me.LabelCurrentOwner.Text, Me.DmsItem.ExtendedInfosOwner.DisplayName)
@@ -38,34 +88,34 @@ Public Class DmsItemSharings
         'Add group sharings
         If Me.DmsItem.ExtendedInfosHasGroupSharings Then
             For Each Share As DmsShareForGroup In Me.DmsItem.ExtendedInfosGroupSharings
-                Me.AddSharingEntry(Share, "Group", Share.Group.DisplayName, Strings.Join(Share.AllowedActions.ToArray, ", "))
+                Me.AddSharingEntry(Share, UiStrings.GetText("EntityGroup"), Share.Group.DisplayName, LocalizedAllowedActions(Share))
             Next
         End If
         If Me.DmsItem.ExtendedInfosHasHiddenGroupSharings Then
-            Me.AddSharingEntry(Nothing, "Group", "{Hidden}", "Unknown")
+            Me.AddSharingEntry(Nothing, UiStrings.GetText("EntityGroup"), UiStrings.GetText("HiddenValue"), UiStrings.GetText("UnknownValue"))
         End If
         'Add user sharings
         If Me.DmsItem.ExtendedInfosHasUserSharings Then
             For Each Share As DmsShareForUser In Me.DmsItem.ExtendedInfosUserSharings
-                Me.AddSharingEntry(Share, "User", Share.User.DisplayName, Strings.Join(Share.AllowedActions.ToArray, ", "))
+                Me.AddSharingEntry(Share, UiStrings.GetText("EntityUser"), Share.User.DisplayName, LocalizedAllowedActions(Share))
             Next
         End If
         If Me.DmsItem.ExtendedInfosHasHiddenUserSharings Then
-            Me.AddSharingEntry(Nothing, "User", "{Hidden}", "Unknown")
+            Me.AddSharingEntry(Nothing, UiStrings.GetText("EntityUser"), UiStrings.GetText("HiddenValue"), UiStrings.GetText("UnknownValue"))
         End If
         'Add link sharings
         Me.ListViewExternalSharings.Items.Clear()
         If Me.DmsItem.ExtendedInfosLinks IsNot Nothing Then
             For Each LinkShare As DmsLink In Me.DmsItem.ExtendedInfosLinks
                 Dim Limitations As New List(Of String)
-                If Not LinkShare.Password = Nothing Then Limitations.Add("Password")
+                If Not LinkShare.Password = Nothing Then Limitations.Add(UiStrings.GetText("LimitationPassword"))
                 If LinkShare.ExpiryDateLocalTime.HasValue Then Limitations.Add(LinkShare.ExpiryDateLocalTime.Value.ToString("yyyy-MM-dd HH:mm:ss"))
                 If LinkShare.MaxBytes.HasValue Then Limitations.Add(Tools.ByteSizeToUIDisplayText(LinkShare.MaxBytes.Value))
-                If LinkShare.MaxDownloads.HasValue Then Limitations.Add("Downloads: " & LinkShare.MaxDownloads.Value)
-                If LinkShare.MaxUploads.HasValue Then Limitations.Add("Uploads: " & LinkShare.MaxUploads.Value)
+                If LinkShare.MaxDownloads.HasValue Then Limitations.Add(UiStrings.Format("LimitationDownloads", LinkShare.MaxDownloads.Value))
+                If LinkShare.MaxUploads.HasValue Then Limitations.Add(UiStrings.Format("LimitationUploads", LinkShare.MaxUploads.Value))
                 Dim DisplayName As String = LinkShare.Name
                 If DisplayName = Nothing Then DisplayName = LinkShare.ID
-                Me.AddLinkSharingEntry(LinkShare, DisplayName, Strings.Join(LinkShare.AllowedActions.ToArray, ", "), Strings.Join(Limitations.ToArray, ", "))
+                Me.AddLinkSharingEntry(LinkShare, DisplayName, LocalizedAllowedActions(LinkShare), Strings.Join(Limitations.ToArray, ", "))
             Next
         End If
         Me.ListViewInternalSharings.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize)
@@ -154,7 +204,7 @@ Public Class DmsItemSharings
     Private Sub ToolStripButtonInternalSharingsEdit_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsEdit.Click
         Try
             Dim CurrentSharing As DmsShareBase = Me.CurrentSelectedUserOrGroupSharing
-            If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException("Keine Benutzer-Freigabe ausgewählt")
+            If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("UserSharingRequired"))
             Dim StandardSharingSetupForm As DmsStandardShareSetup
             Select Case CurrentSharing.GetType
                 Case GetType(DmsShareForGroup)
@@ -183,7 +233,7 @@ Public Class DmsItemSharings
     Private Sub ToolStripButtonInternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsDelete.Click
         Try
             Dim CurrentSharing As DmsShareBase = Me.CurrentSelectedUserOrGroupSharing
-            If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException("Keine Benutzer-Freigabe ausgewählt")
+            If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("UserSharingRequired"))
             Select Case CurrentSharing.GetType
                 Case GetType(DmsShareForGroup)
                     Dim RemoveGroupSharing As DmsShareForGroup = CType(CurrentSharing, DmsShareForGroup)
@@ -235,7 +285,7 @@ Public Class DmsItemSharings
 
     Private Sub ToolStripButtonExternalSharingsEdit_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsEdit.Click
         Try
-            If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException("Keine Link-Freigabe ausgewählt")
+            If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("LinkSharingRequired"))
             Dim LinkShareForm As New DmsLinkShareSetup()
             LinkShareForm.DmsProvider = Me.DmsProvider
             LinkShareForm.DmsLinkDetails = Me.CurrentSelectedLink
@@ -300,7 +350,7 @@ Public Class DmsItemSharings
 
     Private Sub ToolStripButtonExternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsDelete.Click
         Try
-            If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException("Keine Link-Freigabe ausgewählt")
+            If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("LinkSharingRequired"))
             Dim RemoveLink As DmsLink = Me.CurrentSelectedLink
             If Not RemoveLink.ID = Nothing Then Me.DmsProvider.DeleteLink(RemoveLink)
             Me.ReplaceUpdatedLinkInDmsItem(RemoveLink.ID, Nothing)
@@ -314,7 +364,7 @@ Public Class DmsItemSharings
 
     Private Sub ToolStripButtonCopyLinkUrlToClipboard_Click(sender As Object, e As EventArgs) Handles ToolStripButtonCopyLinkUrlToClipboard.Click
         Try
-            If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException("Keine Link-Freigabe ausgewählt")
+            If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("LinkSharingRequired"))
             System.Windows.Forms.Clipboard.Clear()
             System.Windows.Forms.Clipboard.SetText(Me.CurrentSelectedLink.WebUrl)
         Catch ex As Data.DmsUserErrorMessageException

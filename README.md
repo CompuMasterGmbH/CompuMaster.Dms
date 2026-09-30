@@ -19,7 +19,7 @@ Also see: https://www.nuget.org/packages/CompuMaster.Dms.Providers and https://w
 
 There are following main modules for your use:
 * CompuMaster.Dms.Providers – The base library (compatible with .NET Standard/Core/Framework) for your own implementations to access your DMS systems (with build-in support for WebDAV (e.g. NextCloud, OwnCloud) and Scopevisio Teamwork (a flavored CenterDevice implementation)
-* CompuMaster.Dms.BrowserUI – An implementation (currently in German only, commits for additional languages welcome!) of all required forms and dialogs with System.Windows.Forms (requires .NET Framework 4.8 or .NET 5.0-Windows) to 
+* CompuMaster.Dms.BrowserUI – An implementation of all required forms and dialogs with System.Windows.Forms (requires .NET Framework 4.8 or .NET 5.0-Windows). The UI follows `CurrentUICulture`, provides neutral English resources and a German translation, and falls back to English for unsupported languages. Use it to
   * download and upload files 
   * setup user sharings and link sharings (if supported by the underlying provider)
   * provide several levels of allowed actions depending on required action context (manage folder structure only without viewing files, view and edit folder structure and files, or view everything without editing, etc.)

@@ -85,7 +85,7 @@ Partial Class DmsLinkShareSetup
         Me.CheckBoxAllowView.Name = "CheckBoxAllowView"
         Me.CheckBoxAllowView.Size = New System.Drawing.Size(75, 19)
         Me.CheckBoxAllowView.TabIndex = 11
-        Me.CheckBoxAllowView.Text = "Anzeigen"
+        Me.CheckBoxAllowView.Text = "View"
         Me.CheckBoxAllowView.UseVisualStyleBackColor = True
         '
         'GroupBoxAuthorizations
@@ -104,7 +104,7 @@ Partial Class DmsLinkShareSetup
         Me.GroupBoxAuthorizations.Size = New System.Drawing.Size(126, 180)
         Me.GroupBoxAuthorizations.TabIndex = 10
         Me.GroupBoxAuthorizations.TabStop = False
-        Me.GroupBoxAuthorizations.Text = "Berechtigungen"
+        Me.GroupBoxAuthorizations.Text = "Permissions"
         '
         'CheckBoxAllowShare
         '
@@ -114,7 +114,7 @@ Partial Class DmsLinkShareSetup
         Me.CheckBoxAllowShare.Name = "CheckBoxAllowShare"
         Me.CheckBoxAllowShare.Size = New System.Drawing.Size(56, 19)
         Me.CheckBoxAllowShare.TabIndex = 16
-        Me.CheckBoxAllowShare.Text = "Teilen"
+        Me.CheckBoxAllowShare.Text = "Share"
         Me.CheckBoxAllowShare.UseVisualStyleBackColor = True
         '
         'CheckBoxAllowDelete
@@ -125,7 +125,7 @@ Partial Class DmsLinkShareSetup
         Me.CheckBoxAllowDelete.Name = "CheckBoxAllowDelete"
         Me.CheckBoxAllowDelete.Size = New System.Drawing.Size(70, 19)
         Me.CheckBoxAllowDelete.TabIndex = 15
-        Me.CheckBoxAllowDelete.Text = "Löschen"
+        Me.CheckBoxAllowDelete.Text = "Delete"
         Me.CheckBoxAllowDelete.UseVisualStyleBackColor = True
         '
         'CheckBoxAllowUpload
@@ -158,7 +158,7 @@ Partial Class DmsLinkShareSetup
         Me.CheckBoxAllowEdit.Name = "CheckBoxAllowEdit"
         Me.CheckBoxAllowEdit.Size = New System.Drawing.Size(82, 19)
         Me.CheckBoxAllowEdit.TabIndex = 12
-        Me.CheckBoxAllowEdit.Text = "Bearbeiten"
+        Me.CheckBoxAllowEdit.Text = "Edit"
         Me.CheckBoxAllowEdit.UseVisualStyleBackColor = True
         '
         'ButtonCancel
@@ -169,7 +169,7 @@ Partial Class DmsLinkShareSetup
         Me.ButtonCancel.Name = "ButtonCancel"
         Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
         Me.ButtonCancel.TabIndex = 41
-        Me.ButtonCancel.Text = "&Abbrechen"
+        Me.ButtonCancel.Text = "&Cancel"
         Me.ButtonCancel.UseVisualStyleBackColor = True
         '
         'ButtonSave
@@ -180,7 +180,7 @@ Partial Class DmsLinkShareSetup
         Me.ButtonSave.Name = "ButtonSave"
         Me.ButtonSave.Size = New System.Drawing.Size(88, 27)
         Me.ButtonSave.TabIndex = 40
-        Me.ButtonSave.Text = "&Speichern"
+        Me.ButtonSave.Text = "&Save"
         Me.ButtonSave.UseVisualStyleBackColor = True
         '
         'Label1
@@ -229,7 +229,7 @@ Partial Class DmsLinkShareSetup
         Me.GroupBoxGeneral.Size = New System.Drawing.Size(502, 204)
         Me.GroupBoxGeneral.TabIndex = 0
         Me.GroupBoxGeneral.TabStop = False
-        Me.GroupBoxGeneral.Text = "Allgemeine Einstellungen"
+        Me.GroupBoxGeneral.Text = "General settings"
         '
         'TextBoxName
         '
@@ -299,7 +299,7 @@ Partial Class DmsLinkShareSetup
         Me.Label8.Name = "Label8"
         Me.Label8.Size = New System.Drawing.Size(54, 15)
         Me.Label8.TabIndex = 29
-        Me.Label8.Text = "Passwort"
+        Me.Label8.Text = "Password"
         '
         'Label7
         '
@@ -311,7 +311,7 @@ Partial Class DmsLinkShareSetup
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(83, 15)
         Me.Label7.TabIndex = 27
-        Me.Label7.Text = "Ablauf-Datum"
+        Me.Label7.Text = "Expiry date"
         '
         'TextBoxDownloadUrl
         '
@@ -529,7 +529,7 @@ Partial Class DmsLinkShareSetup
         Me.GroupBox1.Size = New System.Drawing.Size(312, 147)
         Me.GroupBox1.TabIndex = 30
         Me.GroupBox1.TabStop = False
-        Me.GroupBox1.Text = "Statistiken"
+        Me.GroupBox1.Text = "Statistics"
         '
         'TextBoxNumberOfViews
         '
@@ -552,7 +552,7 @@ Partial Class DmsLinkShareSetup
         Me.Label13.Name = "Label13"
         Me.Label13.Size = New System.Drawing.Size(76, 15)
         Me.Label13.TabIndex = 34
-        Me.Label13.Text = "Anzahl Views"
+        Me.Label13.Text = "Views"
         '
         'TextBoxNumberOfBytes
         '
@@ -575,7 +575,7 @@ Partial Class DmsLinkShareSetup
         Me.Label9.Name = "Label9"
         Me.Label9.Size = New System.Drawing.Size(74, 15)
         Me.Label9.TabIndex = 29
-        Me.Label9.Text = "Anzahl Bytes"
+        Me.Label9.Text = "Bytes"
         '
         'TextBoxNumberOfUploads
         '
@@ -598,7 +598,7 @@ Partial Class DmsLinkShareSetup
         Me.Label10.Name = "Label10"
         Me.Label10.Size = New System.Drawing.Size(89, 15)
         Me.Label10.TabIndex = 27
-        Me.Label10.Text = "Anzahl Uploads"
+        Me.Label10.Text = "Uploads"
         '
         'TextBoxNumberOfDownloads
         '
@@ -621,7 +621,7 @@ Partial Class DmsLinkShareSetup
         Me.Label11.Name = "Label11"
         Me.Label11.Size = New System.Drawing.Size(105, 15)
         Me.Label11.TabIndex = 25
-        Me.Label11.Text = "Anzahl Downloads"
+        Me.Label11.Text = "Downloads"
         '
         'DmsLinkShareSetup
         '
@@ -638,7 +638,7 @@ Partial Class DmsLinkShareSetup
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.Name = "DmsLinkShareSetup"
-        Me.Text = "DMS Externe Links Einstellungen"
+        Me.Text = "DMS external link settings"
         Me.GroupBoxAuthorizations.ResumeLayout(False)
         Me.GroupBoxAuthorizations.PerformLayout()
         Me.GroupBoxGeneral.ResumeLayout(False)

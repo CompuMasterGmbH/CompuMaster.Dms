@@ -4,6 +4,41 @@ Imports CompuMaster.Dms.Providers
 
 Public Class DmsLinkShareSetup
 
+    Public Sub New()
+        InitializeComponent()
+        ApplyLocalizedText()
+    End Sub
+
+    Private Sub ApplyLocalizedText()
+        Me.Text = UiStrings.GetText("LinkSetupTitle")
+        Me.CheckBoxAllowView.Text = UiStrings.GetText("PermissionView")
+        Me.CheckBoxAllowShare.Text = UiStrings.GetText("PermissionShare")
+        Me.CheckBoxAllowDelete.Text = UiStrings.GetText("PermissionDelete")
+        Me.CheckBoxAllowUpload.Text = UiStrings.GetText("PermissionUpload")
+        Me.CheckBoxAllowDownload.Text = UiStrings.GetText("PermissionDownload")
+        Me.CheckBoxAllowEdit.Text = UiStrings.GetText("PermissionEdit")
+        Me.GroupBoxAuthorizations.Text = UiStrings.GetText("Permissions")
+        Me.ButtonCancel.Text = UiStrings.GetText("ActionCancel")
+        Me.ButtonSave.Text = UiStrings.GetText("ActionSave")
+        Me.Label1.Text = UiStrings.GetText("LabelId")
+        Me.GroupBoxGeneral.Text = UiStrings.GetText("GeneralSettings")
+        Me.Label12.Text = UiStrings.GetText("LabelName")
+        Me.Label8.Text = UiStrings.GetText("LabelPassword")
+        Me.Label7.Text = UiStrings.GetText("LabelExpiryDate")
+        Me.Label3.Text = UiStrings.GetText("LabelDownloadLink")
+        Me.Label2.Text = UiStrings.GetText("LabelWebLink")
+        Me.GroupBoxExtended.Text = UiStrings.GetText("Limits")
+        Me.Label14.Text = UiStrings.GetText("LabelMaxViews")
+        Me.Label6.Text = UiStrings.GetText("LabelMaxBytes")
+        Me.Label5.Text = UiStrings.GetText("LabelMaxUploads")
+        Me.Label4.Text = UiStrings.GetText("LabelMaxDownloads")
+        Me.GroupBox1.Text = UiStrings.GetText("Statistics")
+        Me.Label13.Text = UiStrings.GetText("LabelNumberViews")
+        Me.Label9.Text = UiStrings.GetText("LabelNumberBytes")
+        Me.Label10.Text = UiStrings.GetText("LabelNumberUploads")
+        Me.Label11.Text = UiStrings.GetText("LabelNumberDownloads")
+    End Sub
+
     Public Property DmsLinkDetails As DmsLink
     Public Property DmsProvider As Providers.BaseDmsProvider
     ''' <summary>
@@ -218,13 +253,13 @@ Public Class DmsLinkShareSetup
             Select Case Me.DmsProvider.GetType.Name
                 Case "ScopevisioTeamworkDmsProvider"
                     If Me.CheckBoxAllowDownload.Checked And Not Me.CheckBoxAllowView.Checked Then
-                        Throw New DmsUserInputInvalidException("Required authorization setup for View if Download selected")
+                        Throw New DmsUserInputInvalidException(UiStrings.GetText("ViewRequiredForDownload"))
                     End If
                     If Not (Me.CheckBoxAllowView.Checked Xor Me.CheckBoxAllowUpload.Checked) Then
-                        Throw New DmsUserInputInvalidException("Required authorization setup for either View or Upload")
+                        Throw New DmsUserInputInvalidException(UiStrings.GetText("ViewOrUploadRequired"))
                     End If
                     If Me.CheckBoxAllowUpload.Checked AndAlso Me.TextBoxName.Text = Nothing Then
-                        Throw New DmsUserInputMissingException("Name required for upload links")
+                        Throw New DmsUserInputMissingException(UiStrings.GetText("UploadLinkNameRequired"))
                     End If
                 Case Else
                     Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)

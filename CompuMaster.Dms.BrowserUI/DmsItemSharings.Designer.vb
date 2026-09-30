@@ -61,7 +61,7 @@ Partial Class DmsItemSharings
         Me.ButtonCancel.Name = "ButtonCancel"
         Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
         Me.ButtonCancel.TabIndex = 30
-        Me.ButtonCancel.Text = "&Schließen"
+        Me.ButtonCancel.Text = "&Close"
         Me.ButtonCancel.UseVisualStyleBackColor = True
         '
         'GroupBoxInternalSharings
@@ -77,7 +77,7 @@ Partial Class DmsItemSharings
         Me.GroupBoxInternalSharings.Size = New System.Drawing.Size(632, 165)
         Me.GroupBoxInternalSharings.TabIndex = 10
         Me.GroupBoxInternalSharings.TabStop = False
-        Me.GroupBoxInternalSharings.Text = "Freigaben an interne Benutzer/Gruppen"
+        Me.GroupBoxInternalSharings.Text = "Sharings with internal users/groups"
         '
         'ListViewInternalSharings
         '
@@ -97,7 +97,7 @@ Partial Class DmsItemSharings
         '
         'ColumnHeaderType
         '
-        Me.ColumnHeaderType.Text = "Typ"
+        Me.ColumnHeaderType.Text = "Type"
         '
         'ColumnHeaderName
         '
@@ -106,7 +106,7 @@ Partial Class DmsItemSharings
         '
         'ColumnHeaderAuthorizations
         '
-        Me.ColumnHeaderAuthorizations.Text = "Berechtigungen"
+        Me.ColumnHeaderAuthorizations.Text = "Permissions"
         Me.ColumnHeaderAuthorizations.Width = 100
         '
         'ToolStripInternalSharings
@@ -125,7 +125,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonInternalSharingsAddGroup.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonInternalSharingsAddGroup.Name = "ToolStripButtonInternalSharingsAddGroup"
         Me.ToolStripButtonInternalSharingsAddGroup.Size = New System.Drawing.Size(132, 23)
-        Me.ToolStripButtonInternalSharingsAddGroup.Text = "&Gruppe hinzufügen"
+        Me.ToolStripButtonInternalSharingsAddGroup.Text = "Add &group"
         '
         'ToolStripButtonInternalSharingsAddUser
         '
@@ -133,7 +133,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonInternalSharingsAddUser.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonInternalSharingsAddUser.Name = "ToolStripButtonInternalSharingsAddUser"
         Me.ToolStripButtonInternalSharingsAddUser.Size = New System.Drawing.Size(139, 23)
-        Me.ToolStripButtonInternalSharingsAddUser.Text = "Benutzer hin&zufügen"
+        Me.ToolStripButtonInternalSharingsAddUser.Text = "Add &user"
         '
         'ToolStripButtonInternalSharingsEdit
         '
@@ -141,7 +141,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonInternalSharingsEdit.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonInternalSharingsEdit.Name = "ToolStripButtonInternalSharingsEdit"
         Me.ToolStripButtonInternalSharingsEdit.Size = New System.Drawing.Size(86, 23)
-        Me.ToolStripButtonInternalSharingsEdit.Text = "&Bearbeiten"
+        Me.ToolStripButtonInternalSharingsEdit.Text = "&Edit"
         '
         'ToolStripButtonInternalSharingsDelete
         '
@@ -149,7 +149,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonInternalSharingsDelete.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonInternalSharingsDelete.Name = "ToolStripButtonInternalSharingsDelete"
         Me.ToolStripButtonInternalSharingsDelete.Size = New System.Drawing.Size(74, 23)
-        Me.ToolStripButtonInternalSharingsDelete.Text = "&Löschen"
+        Me.ToolStripButtonInternalSharingsDelete.Text = "&Delete"
         '
         'GroupBoxExternalSharings
         '
@@ -164,7 +164,7 @@ Partial Class DmsItemSharings
         Me.GroupBoxExternalSharings.Size = New System.Drawing.Size(632, 149)
         Me.GroupBoxExternalSharings.TabIndex = 20
         Me.GroupBoxExternalSharings.TabStop = False
-        Me.GroupBoxExternalSharings.Text = "Freigaben an externe Benutzer via Link"
+        Me.GroupBoxExternalSharings.Text = "Sharings with external users via link"
         '
         'ListViewExternalSharings
         '
@@ -189,7 +189,7 @@ Partial Class DmsItemSharings
         '
         'ColumnHeaderAuths
         '
-        Me.ColumnHeaderAuths.Text = "Berechtigungen"
+        Me.ColumnHeaderAuths.Text = "Permissions"
         Me.ColumnHeaderAuths.Width = 100
         '
         'ColumnHeaderLimitations
@@ -213,7 +213,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonExternalSharingsAdd.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonExternalSharingsAdd.Name = "ToolStripButtonExternalSharingsAdd"
         Me.ToolStripButtonExternalSharingsAdd.Size = New System.Drawing.Size(92, 23)
-        Me.ToolStripButtonExternalSharingsAdd.Text = "&Hinzufügen"
+        Me.ToolStripButtonExternalSharingsAdd.Text = "&Add"
         '
         'ToolStripButtonExternalSharingsEdit
         '
@@ -221,7 +221,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonExternalSharingsEdit.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonExternalSharingsEdit.Name = "ToolStripButtonExternalSharingsEdit"
         Me.ToolStripButtonExternalSharingsEdit.Size = New System.Drawing.Size(86, 23)
-        Me.ToolStripButtonExternalSharingsEdit.Text = "&Bearbeiten"
+        Me.ToolStripButtonExternalSharingsEdit.Text = "&Edit"
         '
         'ToolStripButtonExternalSharingsDelete
         '
@@ -229,7 +229,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonExternalSharingsDelete.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonExternalSharingsDelete.Name = "ToolStripButtonExternalSharingsDelete"
         Me.ToolStripButtonExternalSharingsDelete.Size = New System.Drawing.Size(74, 23)
-        Me.ToolStripButtonExternalSharingsDelete.Text = "&Löschen"
+        Me.ToolStripButtonExternalSharingsDelete.Text = "&Delete"
         '
         'ToolStripButtonCopyLinkUrlToClipboard
         '
@@ -237,7 +237,7 @@ Partial Class DmsItemSharings
         Me.ToolStripButtonCopyLinkUrlToClipboard.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonCopyLinkUrlToClipboard.Name = "ToolStripButtonCopyLinkUrlToClipboard"
         Me.ToolStripButtonCopyLinkUrlToClipboard.Size = New System.Drawing.Size(130, 23)
-        Me.ToolStripButtonCopyLinkUrlToClipboard.Text = "Web-Link kopieren"
+        Me.ToolStripButtonCopyLinkUrlToClipboard.Text = "Copy web link"
         '
         'LabelCurrentOwner
         '
@@ -247,7 +247,7 @@ Partial Class DmsItemSharings
         Me.LabelCurrentOwner.Name = "LabelCurrentOwner"
         Me.LabelCurrentOwner.Size = New System.Drawing.Size(138, 15)
         Me.LabelCurrentOwner.TabIndex = 31
-        Me.LabelCurrentOwner.Text = "Aktueller Eigentümer: {0}"
+        Me.LabelCurrentOwner.Text = "Current owner: {0}"
         '
         'DmsItemSharings
         '
@@ -262,7 +262,7 @@ Partial Class DmsItemSharings
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.Name = "DmsItemSharings"
-        Me.Text = "DMS Freigabe-Einstellungen"
+        Me.Text = "DMS sharing settings"
         Me.GroupBoxInternalSharings.ResumeLayout(False)
         Me.GroupBoxInternalSharings.PerformLayout()
         Me.ToolStripInternalSharings.ResumeLayout(False)

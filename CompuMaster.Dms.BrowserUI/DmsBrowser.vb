@@ -20,6 +20,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
+        ApplyLocalizedText()
     End Sub
 
     Friend Sub New(dmsProvider As BaseDmsProvider)
@@ -46,6 +47,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
+        ApplyLocalizedText()
 
         ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
         Me.Text = formTitle
@@ -67,6 +69,47 @@ Public Class DmsBrowser
         End If
         Me.LocalDefaultFolderDownloads = localDefaultFolderDownloads
         Me.LocalDefaultFolderUploads = localDefaultFolderUploads
+    End Sub
+
+    Private Sub ApplyLocalizedText()
+        Me.Text = UiStrings.GetText("BrowseTitle")
+        Me.ButtonCancel.Text = UiStrings.GetText("ActionCancel")
+        Me.ButtonOkay.Text = UiStrings.GetText("ActionOkay")
+        Me.ButtonClose.Text = UiStrings.GetText("ActionClose")
+        Me.ButtonCreateNewFolder.Text = UiStrings.GetText("ActionCreateFolder")
+        Me.ButtonShowFiles.Text = UiStrings.GetText("ActionShowFiles")
+        Me.ColumnHeaderFileName.Text = UiStrings.GetText("ColumnName")
+        Me.ColumnHeaderSize.Text = UiStrings.GetText("ColumnSize")
+        Me.ColumnHeaderLastModifiedOn.Text = UiStrings.GetText("ColumnLastModification")
+        Me.ToolStripFolderContextButtonNewFolder.Text = UiStrings.GetText("ActionCreateFolder")
+        Me.ToolStripFolderContextButtonCopyFolder.Text = UiStrings.GetText("ActionCopy")
+        Me.ToolStripFolderContextButtonRenameFolder.Text = UiStrings.GetText("ActionRename")
+        Me.ToolStripFolderContextButtonMoveFolder.Text = UiStrings.GetText("ActionMove")
+        Me.ToolStripFolderContextButtonDeleteFolder.Text = UiStrings.GetText("ActionDelete")
+        Me.ToolStripFolderContextButtonShareFolder.Text = UiStrings.GetText("ActionSharings")
+        Me.ToolStripFolderContextButtonRefreshFilesList.Text = UiStrings.GetText("ActionRefreshFiles")
+        Me.ToolStripFolderContextButtonProperties.Text = UiStrings.GetText("ActionProperties")
+        Me.ToolStripFileContextButtonUploadFile.Text = UiStrings.GetText("ActionUpload")
+        Me.ToolStripFileContextButtonDownloadFile.Text = UiStrings.GetText("ActionDownload")
+        Me.ToolStripFileContextButtonOpenPreviewFile.Text = UiStrings.GetText("ActionOpen")
+        Me.ToolStripFileContextButtonCopyFile.Text = UiStrings.GetText("ActionCopy")
+        Me.ToolStripFileContextButtonRenameFile.Text = UiStrings.GetText("ActionRename")
+        Me.ToolStripFileContextButtonMoveFile.Text = UiStrings.GetText("ActionMove")
+        Me.ToolStripFileContextButtonDeleteFile.Text = UiStrings.GetText("ActionDelete")
+        Me.ToolStripFileContextButtonShareFile.Text = UiStrings.GetText("ActionSharings")
+        Me.ToolStripFileContextButtonProperties.Text = UiStrings.GetText("ActionProperties")
+        Me.ToolStripButtonUploadFile.Text = UiStrings.GetText("ActionUpload")
+        Me.ToolStripButtonDownloadFile.Text = UiStrings.GetText("ActionDownload")
+        Me.ToolStripButtonOpenFile.Text = UiStrings.GetText("ActionOpen")
+        Me.ToolStripButtonDeleteFile.Text = UiStrings.GetText("ActionDelete")
+        Me.ToolStripButtonCopyFile.Text = UiStrings.GetText("ActionCopy")
+        Me.ToolStripButtonRenameFile.Text = UiStrings.GetText("ActionRename")
+        Me.ToolStripButtonMoveFile.Text = UiStrings.GetText("ActionMove")
+        Me.ToolStripButtonSharingsFile.Text = UiStrings.GetText("ActionFileSharings")
+        Me.ToolStripButtonSharingsFolder.Text = UiStrings.GetText("ActionFolderSharings")
+        Me.ToolStripButtonPropertiesFile.Text = UiStrings.GetText("FileProperties")
+        Me.ToolStripButtonPropertiesFolder.Text = UiStrings.GetText("FolderProperties")
+        Me.ToolStripButtonRefreshFilesList.Text = UiStrings.GetText("ActionRefreshFiles")
     End Sub
 
     Private ReadOnly Property IsDesignMode As Boolean
@@ -251,15 +294,15 @@ Public Class DmsBrowser
         Try
             Me.LoadTree()
         Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
-            MessageBox.Show(Me, ex.Message, "DMS folder not found: " & ex.RemotePath, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(Me, ex.Message, UiStrings.Format("DmsFolderNotFound", ex.RemotePath), MessageBoxButtons.OK, MessageBoxIcon.Error)
             Me.DialogResult = DialogResult.Cancel
             Me.Close()
             Return
         Catch ex As Exception
             If System.Diagnostics.Debugger.IsAttached Then
-                MessageBox.Show(Me, ex.ToString, "Zugangsdaten ungültig, DMS-Server-Instanz-Fehler oder Netzwerkfehler", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                MessageBox.Show(Me, ex.ToString, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
             Else
-                MessageBox.Show(Me, ex.Message, "Zugangsdaten ungültig, DMS-Server-Instanz-Fehler oder Netzwerkfehler", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                MessageBox.Show(Me, ex.Message, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
             End If
             Me.DialogResult = DialogResult.Cancel
             Me.Close()
@@ -274,7 +317,7 @@ Public Class DmsBrowser
                     Me.ListViewDmsFiles.Select()
             End Select
         Catch ex As Exception
-            MessageBox.Show(Me, "Ungültiger Ordner: " & Me.SelectedFolder, "DMS Ordner nicht oder nicht mehr gültig", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show(Me, UiStrings.Format("InvalidFolderMessage", Me.SelectedFolder), UiStrings.GetText("InvalidFolderTitle"), MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub
 
@@ -499,7 +542,7 @@ Public Class DmsBrowser
 
     Private Sub ButtonCreateNewFolder_Click(sender As Object, e As EventArgs) Handles ButtonCreateNewFolder.Click
         Try
-            Dim NewFolderName As String = InputBox("Wie soll der neue Ordner unterhalb von """ & Me.SelectedFolderPath & """ heißen?", "Neuer Ordner")
+            Dim NewFolderName As String = InputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"))
             If NewFolderName = Nothing Then Return
             Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem?.FullName, NewFolderName)
             Me.DmsProvider.CreateDirectory(NewFolderPath)
@@ -583,7 +626,7 @@ Public Class DmsBrowser
                                              End Function).Count > 1 Then
                     Item.BackColor = Color.Red
                     Item.ForeColor = Color.White
-                    Item.ToolTipText = "Konflikt: Mehrere Dateien mit gleichem Dateinamen vorhanden"
+                    Item.ToolTipText = UiStrings.GetText("DuplicateFileNameConflict")
                 End If
                 Item.SubItems.AddRange(SubItems)
                 Me.ListViewDmsFiles.Items.Add(Item)
@@ -669,12 +712,12 @@ Public Class DmsBrowser
             Dim f As New System.Windows.Forms.OpenFileDialog
             f.CheckFileExists = False
             f.InitialDirectory = Me.LocalDefaultFolderUploads
-            f.Title = "Remote DMS - Datei-Upload"
+            f.Title = UiStrings.GetText("UploadTitle")
             f.AddExtension = False
             f.CheckFileExists = True
             f.CheckPathExists = True
             f.Multiselect = True
-            f.Filter = "Alle Dateien (*.*)|*.*"
+            f.Filter = UiStrings.GetText("AllFilesFilter")
             DialogUserResult = f.ShowDialog()
             If DialogUserResult = DialogResult.OK Then
                 If f.FileNames.Length > 0 Then
@@ -683,16 +726,16 @@ Public Class DmsBrowser
                             Dim TargetFile As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName, System.IO.Path.GetFileName(f.FileNames(MyCounter)))
                             Me.DmsProvider.UploadFile(TargetFile, f.FileNames(MyCounter))
                         Else
-                            System.Windows.Forms.MessageBox.Show(Me, "Datei nicht gefunden", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                            System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("FileNotFound"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                         End If
                     Next
-                    System.Windows.Forms.MessageBox.Show(Me, "Upload erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Me.RefreshFilesList()
                 Else
-                    System.Windows.Forms.MessageBox.Show(Me, "Keine Datei ausgewählt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFileSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
             Else
-                System.Windows.Forms.MessageBox.Show(Me, "Vorgang durch Benutzer abgebrochen", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("OperationCancelled"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -705,7 +748,7 @@ Public Class DmsBrowser
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then
-                System.Windows.Forms.MessageBox.Show(Me, "Keine Datei(en) ausgewählt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFilesSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             ElseIf SelectedFiles.Count = 1 Then
                 If Me.LocalDefaultFolderDownloads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderDownloads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderDownloads)
                 Dim DialogUserResult As DialogResult = DialogResult.None
@@ -713,29 +756,29 @@ Public Class DmsBrowser
                 f.CheckFileExists = False
                 f.InitialDirectory = Me.LocalDefaultFolderDownloads
                 f.FileName = SelectedFiles(0).Name
-                f.Title = "Remote DMS - Datei-Download"
+                f.Title = UiStrings.GetText("DownloadTitle")
                 f.AddExtension = False
                 f.CheckPathExists = True
                 f.OverwritePrompt = True
-                f.Filter = "Alle Dateien (*.*)|*.*"
+                f.Filter = UiStrings.GetText("AllFilesFilter")
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
                     If Me.LocalParentMustFolder = Nothing OrElse f.FileName.StartsWith(Me.LocalParentMustFolder) Then
                         Dim TargetFile As String = f.FileName
                         DownloadFile(Me.DmsProvider, SelectedFiles(0), TargetFile)
-                        System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
-                        System.Windows.Forms.MessageBox.Show(Me, "Bereitstellung außerhalb des Ordners """ & Me.LocalParentMustFolder & """ ist nicht unterstützt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                        System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     End If
                 Else
-                    System.Windows.Forms.MessageBox.Show(Me, "Vorgang durch Benutzer abgebrochen", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("OperationCancelled"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
             Else
                 If Me.LocalDefaultFolderDownloads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderDownloads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderDownloads)
                 Dim DialogUserResult As DialogResult = DialogResult.None
                 Dim f As New System.Windows.Forms.FolderBrowserDialog
                 f.SelectedPath = Me.LocalDefaultFolderDownloads
-                f.Description = "Remote DMS - Datei-Download"
+                f.Description = UiStrings.GetText("DownloadTitle")
                 f.ShowNewFolderButton = True
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
@@ -754,7 +797,7 @@ Public Class DmsBrowser
                         Next
                         Dim OverwriteLocalFiles As Boolean = False
                         If OverwriteWarning.Length <> 0 Then
-                            Select Case MessageBox.Show(Me, "Die folgenden Dateien existieren bereits. Sollen diese überschrieben werden?", "Download nach " & f.SelectedPath, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
+                            Select Case MessageBox.Show(Me, UiStrings.GetText("FilesAlreadyExist"), UiStrings.Format("DownloadToTitle", f.SelectedPath), MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
                                 Case DialogResult.Yes
                                     OverwriteLocalFiles = True
                                 Case DialogResult.No
@@ -775,12 +818,12 @@ Public Class DmsBrowser
                                 DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile)
                             End If
                         Next
-                        System.Windows.Forms.MessageBox.Show(Me, "Download erfolgreich", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
-                        System.Windows.Forms.MessageBox.Show(Me, "Bereitstellung außerhalb des Ordners """ & Me.LocalParentMustFolder & """ ist nicht unterstützt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                        System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     End If
                 Else
-                    System.Windows.Forms.MessageBox.Show(Me, "Vorgang durch Benutzer abgebrochen", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("OperationCancelled"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
             End If
         Catch ex As Data.DmsUserErrorMessageException
@@ -793,8 +836,8 @@ Public Class DmsBrowser
     Private Sub ToolStripButtonDeleteFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonDeleteFile.Click
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
-            If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException("No selected file")
-            If InfoBox.InformationBox.Show("Möchten Sie wirklich folgende Dateien löschen?" & System.Environment.NewLine & System.Environment.NewLine & Strings.Join(SelectedFiles.ConvertAll(Of String)(Function(item) item.Name).ToArray, System.Environment.NewLine), title:="Remote DMS - Löschen von Dateien", buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
+            If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFileSelected"))
+            If InfoBox.InformationBox.Show(UiStrings.GetText("DeleteFilesQuestion") & System.Environment.NewLine & System.Environment.NewLine & Strings.Join(SelectedFiles.ConvertAll(Of String)(Function(item) item.Name).ToArray, System.Environment.NewLine), title:=UiStrings.GetText("DeleteFilesTitle"), buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
                 For MyCounter As Integer = 0 To SelectedFiles.Count - 1
                     Me.DmsProvider.DeleteRemoteItem(SelectedFiles(MyCounter))
                 Next
@@ -844,7 +887,7 @@ Public Class DmsBrowser
 
     Private Sub ToolStripButtonSharingsFolder_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFolder.Click
         Try
-            If CurrentSelectedFolder() Is Nothing OrElse CurrentSelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New Data.DmsUserErrorMessageException("Sharing für Root-Ordner nicht unterstützt")
+            If CurrentSelectedFolder() Is Nothing OrElse CurrentSelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootSharingUnsupported"))
             Dim DmsShareForm As New DmsItemSharings()
             DmsShareForm.DmsItem = CurrentSelectedFolder()
             DmsShareForm.DmsProvider = Me.DmsProvider
@@ -859,7 +902,7 @@ Public Class DmsBrowser
     Private Sub ToolStripButtonSharingsFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFile.Click
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
-            If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException("No selected file")
+            If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFileSelected"))
             For MyCounter As Integer = 0 To SelectedFiles.Count - 1
                 Dim DmsShareForm As New DmsItemSharings()
                 DmsShareForm.DmsItem = SelectedFiles(MyCounter)
@@ -876,9 +919,9 @@ Public Class DmsBrowser
     Private Sub ToolStripButtonPropertiesFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonPropertiesFile.Click
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
-            If SelectedFiles.Count <> 1 Then Throw New DmsUserInputInvalidException("Es muss exakt 1 Eintrag ausgewählt sein")
+            If SelectedFiles.Count <> 1 Then Throw New DmsUserInputInvalidException(UiStrings.GetText("ExactlyOneItemRequired"))
             Dim SelectedFile As DmsResourceItem = SelectedFiles(0)
-            InfoBox.InformationBox.Show(Me.PropertiesDetails(SelectedFile), title:="Eigenschaften " & SelectedFile.Name, buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+            InfoBox.InformationBox.Show(Me.PropertiesDetails(SelectedFile), title:=UiStrings.Format("PropertiesTitle", SelectedFile.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As DmsUserInputInvalidException
@@ -889,32 +932,32 @@ Public Class DmsBrowser
     End Sub
 
     Private Function PropertiesDetails(dmsItem As DmsResourceItem) As String
-        Dim Message As String = "Full path: " & dmsItem.FullName & System.Environment.NewLine &
-                "Parent Folder: " & dmsItem.Folder & System.Environment.NewLine &
-                "Parent Collection: " & dmsItem.Collection & System.Environment.NewLine
+        Dim Message As String = UiStrings.GetText("PropertiesFullPath") & dmsItem.FullName & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesParentFolder") & dmsItem.Folder & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesParentCollection") & dmsItem.Collection & System.Environment.NewLine
         If dmsItem.ItemType = DmsResourceItem.ItemTypes.File Then
-            Message &= "Datei-Größe: " & dmsItem.ContentLength.ToString("#,##0") & " Bytes" & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesFileSize") & dmsItem.ContentLength.ToString("#,##0") & " Bytes" & System.Environment.NewLine
         End If
         Message &= System.Environment.NewLine &
-                "Details" & System.Environment.NewLine &
-                "Besitzer: " & dmsItem.ExtendedInfosOwner.ToString & System.Environment.NewLine &
-                "Versions-Nr.: " & dmsItem.ExtendedInfosVersion & System.Environment.NewLine
-        If dmsItem.ExtendedInfosVersionDateLocalTime.HasValue Then Message &= "Versions-Datum: " & dmsItem.ExtendedInfosVersionDateLocalTime & System.Environment.NewLine
-        If dmsItem.ExtendedInfosArchivedDateLocalTime.HasValue Then Message &= "Archivierungs-Datum: " & dmsItem.ExtendedInfosArchivedDateLocalTime & System.Environment.NewLine
+                UiStrings.GetText("PropertiesDetails") & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesOwner") & dmsItem.ExtendedInfosOwner.ToString & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesVersionNumber") & dmsItem.ExtendedInfosVersion & System.Environment.NewLine
+        If dmsItem.ExtendedInfosVersionDateLocalTime.HasValue Then Message &= UiStrings.GetText("PropertiesVersionDate") & dmsItem.ExtendedInfosVersionDateLocalTime & System.Environment.NewLine
+        If dmsItem.ExtendedInfosArchivedDateLocalTime.HasValue Then Message &= UiStrings.GetText("PropertiesArchivedDate") & dmsItem.ExtendedInfosArchivedDateLocalTime & System.Environment.NewLine
         If dmsItem.ExtendedInfosLockedByUser.ToString <> Nothing Then
-            Message &= "Gesperrt durch: " & dmsItem.ExtendedInfosLockedByUser.ToString & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesLockedBy") & dmsItem.ExtendedInfosLockedByUser.ToString & System.Environment.NewLine
         End If
         If dmsItem.ExtendedInfosLocks IsNot Nothing AndAlso dmsItem.ExtendedInfosLocks.Count <> 0 Then
-            Message &= "Sperrungen: " & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesLocks") & System.Environment.NewLine
             For Each Lock As String In dmsItem.ExtendedInfosLocks
                 Message &= "- " & Lock & System.Environment.NewLine
             Next
         End If
         If dmsItem.ExtendedInfosCollisionDetected Then
-            Message &= "WARNUNG: Kollission mit anderer Datei gleichen Namens erkannt" & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesCollisionWarning") & System.Environment.NewLine
         End If
         Message &= System.Environment.NewLine &
-                "Freigaben" & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesSharings") & System.Environment.NewLine &
                 "IsShared: " & dmsItem.ExtendedInfosIsShared.ToString & System.Environment.NewLine
         If dmsItem.ItemType = DmsResourceItem.ItemTypes.Collection Then
             Message &= "IsPublicCollection: " & dmsItem.ExtendedInfosIsPublicCollection.ToString & System.Environment.NewLine
@@ -956,8 +999,8 @@ Public Class DmsBrowser
             Next
         End If
         Message &= System.Environment.NewLine &
-                "Erweiterte Infos" & System.Environment.NewLine &
-                "Letzte Änderung: " & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesExtendedInformation") & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesLastModification") & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine &
                 "IsIntelligent: " & dmsItem.ExtendedInfosIsIntelligent.ToString & System.Environment.NewLine &
                 "IsAuditing: " & dmsItem.ExtendedInfosIsAuditing.ToString & System.Environment.NewLine &
                 "Hash/ETag: " & dmsItem.ProviderSpecificHashOrETag & System.Environment.NewLine &
@@ -967,13 +1010,13 @@ Public Class DmsBrowser
                 "Assigned Collection ID: " & dmsItem.ExtendedInfosAssignedCollectionID & System.Environment.NewLine &
                 "Assigned Folder ID: " & dmsItem.ExtendedInfosAssignedFolderID & System.Environment.NewLine
         If dmsItem.ExtendedInfosReferencedFromCollectionIDs IsNot Nothing Then
-            Message &= "Referenced from Collecton IDs" & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesReferencedCollectionIds") & System.Environment.NewLine
             For Each item As String In dmsItem.ExtendedInfosReferencedFromCollectionIDs
                 Message &= "- " & Me.LookupCollectionNameForUI(item, dmsItem) & System.Environment.NewLine
             Next
         End If
         If dmsItem.ExtendedInfosReferencedFromFolderIDs IsNot Nothing Then
-            Message &= "Referenced from Folder IDs" & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesReferencedFolderIds") & System.Environment.NewLine
             For Each item As String In dmsItem.ExtendedInfosReferencedFromFolderIDs
                 Message &= "- " & Me.LookupFolderNameForUI(item, dmsItem) & System.Environment.NewLine
             Next
@@ -1020,9 +1063,9 @@ Public Class DmsBrowser
         Try
             Dim SelectedFolder As DmsResourceItem = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem
             If SelectedFolder IsNot Nothing Then
-                InfoBox.InformationBox.Show(Me.PropertiesDetails(SelectedFolder), title:="Eigenschaften " & SelectedFolder.Name, buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                InfoBox.InformationBox.Show(Me.PropertiesDetails(SelectedFolder), title:=UiStrings.Format("PropertiesTitle", SelectedFolder.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             Else
-                InfoBox.InformationBox.Show("Root", title:="Eigenschaften /", buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                InfoBox.InformationBox.Show("Root", title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -1092,9 +1135,9 @@ Public Class DmsBrowser
         Try
             Dim SelectedFolderNode As TreeNode = Me.CurrentSelectedFolderNode
             Dim SelectedFolder As DmsResourceItem = Me.CurrentSelectedFolder
-            If SelectedFolderNode Is Nothing AndAlso SelectedFolder Is Nothing Then Throw New Data.DmsUserErrorMessageException("No selected folder")
-            If SelectedFolderNode IsNot Nothing AndAlso (SelectedFolder Is Nothing OrElse SelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root) Then Throw New Data.DmsUserErrorMessageException("Root folder can't be deleted")
-            If InfoBox.InformationBox.Show("Möchten Sie wirklich folgenden Ordner löschen?" & System.Environment.NewLine & System.Environment.NewLine & SelectedFolder.Name, title:="Remote DMS - Löschen von Ordnern", buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
+            If SelectedFolderNode Is Nothing AndAlso SelectedFolder Is Nothing Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFolderSelected"))
+            If SelectedFolderNode IsNot Nothing AndAlso (SelectedFolder Is Nothing OrElse SelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root) Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
+            If InfoBox.InformationBox.Show(UiStrings.GetText("DeleteFolderQuestion") & System.Environment.NewLine & System.Environment.NewLine & SelectedFolder.Name, title:=UiStrings.GetText("DeleteFolderTitle"), buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
                 Dim ParentFolderNode As TreeNode = Me.CurrentParentOfSelectedFolderNode
                 Dim ParentFolder As DmsResourceItem = Me.CurrentParentOfSelectedFolder
                 Me.DmsProvider.DeleteRemoteItem(SelectedFolder)
@@ -1215,7 +1258,7 @@ Public Class DmsBrowser
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then
-                System.Windows.Forms.MessageBox.Show(Me, "Keine Datei(en) ausgewählt", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFilesSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Else
                 For MyCounter As Integer = 0 To SelectedFiles.Count - 1
                     Dim TargetFile As New CompuMaster.IO.TemporaryFile(CompuMaster.IO.TemporaryFile.TempFileCleanupEvent.OnApplicationExit,

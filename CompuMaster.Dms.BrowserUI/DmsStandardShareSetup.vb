@@ -7,10 +7,12 @@ Public Class DmsStandardShareSetup
     <Obsolete("Use overloaded constructor")>
     Public Sub New()
         InitializeComponent()
+        ApplyLocalizedText()
     End Sub
 
     Public Sub New(userSharing As DmsShareForUser, dmsProvider As Providers.BaseDmsProvider, hideIDs As List(Of String))
         InitializeComponent()
+        ApplyLocalizedText()
         Me.DialogObjectMode = DialogObjectModes.UserSharing
         Me.DmsSharingDetails = userSharing
         If userSharing IsNot Nothing Then
@@ -22,6 +24,7 @@ Public Class DmsStandardShareSetup
 
     Public Sub New(groupSharing As DmsShareForGroup, dmsProvider As Providers.BaseDmsProvider, hideIDs As List(Of String))
         InitializeComponent()
+        ApplyLocalizedText()
         Me.DialogObjectMode = DialogObjectModes.GroupSharing
         Me.DmsSharingDetails = groupSharing
         If groupSharing IsNot Nothing Then
@@ -29,6 +32,21 @@ Public Class DmsStandardShareSetup
         End If
         Me.DmsProvider = dmsProvider
         Me.HideIDs = hideIDs
+    End Sub
+
+    Private Sub ApplyLocalizedText()
+        Me.Text = UiStrings.GetText("ShareSetupTitle")
+        Me.CheckBoxAllowView.Text = UiStrings.GetText("PermissionView")
+        Me.CheckBoxAllowShare.Text = UiStrings.GetText("PermissionShare")
+        Me.CheckBoxAllowDelete.Text = UiStrings.GetText("PermissionDelete")
+        Me.CheckBoxAllowUpload.Text = UiStrings.GetText("PermissionUpload")
+        Me.CheckBoxAllowDownload.Text = UiStrings.GetText("PermissionDownload")
+        Me.CheckBoxAllowEdit.Text = UiStrings.GetText("PermissionEdit")
+        Me.GroupBoxAuthorizations.Text = UiStrings.GetText("Permissions")
+        Me.ButtonCancel.Text = UiStrings.GetText("ActionCancel")
+        Me.ButtonSave.Text = UiStrings.GetText("ActionSave")
+        Me.GroupBoxGeneral.Text = UiStrings.GetText("GeneralSettings")
+        Me.LabelName.Text = UiStrings.GetText("LabelName")
     End Sub
 
     Public Property DmsSharingDetails As DmsShareBase
@@ -61,9 +79,9 @@ Public Class DmsStandardShareSetup
         Set(value As DialogObjectModes)
             Select Case value
                 Case DialogObjectModes.GroupSharing
-                    Me.LabelName.Text = "Name der Gruppe"
+                    Me.LabelName.Text = UiStrings.GetText("LabelGroupName")
                 Case DialogObjectModes.UserSharing
-                    Me.LabelName.Text = "Name des Benutzers"
+                    Me.LabelName.Text = UiStrings.GetText("LabelUserName")
                 Case Else
                     Throw New ArgumentOutOfRangeException(NameOf(value))
             End Select
@@ -199,7 +217,7 @@ Public Class DmsStandardShareSetup
 
     Private Sub SaveControlDataIntoDmsLink()
         If Me.ComboBoxUsersOrGroups.SelectedIndex < 0 Then
-            Throw New Data.DmsUserInputMissingException("Kein Berechtigungs-Objekt ausgewählt")
+            Throw New Data.DmsUserInputMissingException(UiStrings.GetText("AuthorizationObjectRequired"))
         End If
         Dim Result As DmsShareBase
         Dim SelectedId As String = CType(Me.ComboBoxUsersOrGroups.SelectedItem, KeyValuePair(Of String, String)).Key
@@ -253,7 +271,7 @@ Public Class DmsStandardShareSetup
             Select Case Me.DmsProvider.GetType.Name
                 Case "ScopevisioTeamworkDmsProvider"
                     If Me.CheckBoxAllowDownload.Checked And Not Me.CheckBoxAllowView.Checked Then
-                        Throw New DmsUserInputInvalidException("Required authorization setup for View if Download selected")
+                        Throw New DmsUserInputInvalidException(UiStrings.GetText("ViewRequiredForDownload"))
                     End If
                 Case Else
                     Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
