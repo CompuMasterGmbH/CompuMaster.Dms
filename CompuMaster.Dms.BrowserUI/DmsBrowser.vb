@@ -1035,18 +1035,23 @@ Public Class DmsBrowser
     End Sub
 
     Private Function TrySelectDestinationDirectory(ByRef directoryPath As String) As Boolean
-        Using picker As New DmsBrowser(Me.DmsProvider)
-            picker.DmsProfile = Me.DmsProfile
-            picker.Text = UiStrings.GetText("SelectDestinationFolder")
-            picker.InitialFolder = Me.InitialFolder
-            picker.SelectedFolder = Me.SelectedFolderPath()
-            picker.BrowseMode = BrowseModes.Folders
-            picker.AllowedActions = FileOrFolderActions.AllowSelectOnly
-            picker.DialogOperationModeInternal = DialogOperationModes.ReturnSelectedItems
+        Using picker As DmsBrowser = Me.CreateDestinationPicker()
             If picker.ShowDialog(Me) <> DialogResult.OK Then Return False
             directoryPath = If(picker.CurrentSelectedFolder()?.FullName, "")
             Return True
         End Using
+    End Function
+
+    Friend Function CreateDestinationPicker() As DmsBrowser
+        Dim picker As New DmsBrowser(Me.DmsProvider)
+        picker.DmsProfile = Me.DmsProfile
+        picker.Text = UiStrings.GetText("SelectDestinationFolder")
+        picker.InitialFolder = Me.InitialFolder
+        picker.SelectedFolder = Me.SelectedFolderPath()
+        picker.BrowseMode = BrowseModes.Folders
+        picker.AllowedActions = Me.AllowedActions And FileOrFolderActions.AllowCreateFolders
+        picker.DialogOperationModeInternal = DialogOperationModes.ReturnSelectedItems
+        Return picker
     End Function
 
     Private Function TryGetDestinationName(action As ResourceAction, source As DmsResourceItem, ByRef name As String) As Boolean

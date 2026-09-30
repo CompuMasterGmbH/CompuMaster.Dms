@@ -12,6 +12,25 @@ Imports NUnit.Framework.Legacy
 <Apartment(ApartmentState.STA)>
 Public Class DmsBrowserResourceActionTest
 
+    <TestCase(True)>
+    <TestCase(False)>
+    Public Sub DestinationPickerInheritsOnlyCreateFolderPermission(allowCreateFolders As Boolean)
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New RecordingProvider())
+            Dim actions As Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles
+            If allowCreateFolders Then actions = actions Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders
+            browser.AllowedActions = actions
+
+            Using picker As Global.CompuMaster.Dms.BrowserUI.DmsBrowser = browser.CreateDestinationPicker()
+                Dim expectedPickerActions As Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions =
+                    If(allowCreateFolders, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSelectOnly)
+                ClassicAssert.AreEqual(expectedPickerActions, picker.AllowedActions)
+                ClassicAssert.AreEqual(allowCreateFolders, picker.ButtonCreateNewFolder.Enabled)
+                ClassicAssert.IsFalse(picker.ToolStripButtonCopyFile.Visible)
+                ClassicAssert.IsFalse(picker.ToolStripFolderContextButtonMoveFolder.Visible)
+            End Using
+        End Using
+    End Sub
+
     <Test>
     Public Sub CopyUsesTheSelectedFileIdentityEvenWhenItsNameCollides()
         Dim provider As New RecordingProvider()
