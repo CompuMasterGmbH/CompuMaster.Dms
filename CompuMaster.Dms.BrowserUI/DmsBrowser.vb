@@ -13,7 +13,7 @@ Public Class DmsBrowser
     Private Const DefaultDpi As Integer = 96
     Private Const MaximumImageListDimension As Integer = 256
     Private Const TreeIconLogicalSize As Integer = 24
-    Private Const FileIconLogicalSize As Integer = 32
+    Private Const FileIconLogicalSize As Integer = 24
 
     ''' <summary>
     ''' A browser for DMS systems
