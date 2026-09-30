@@ -2,6 +2,7 @@
 Option Strict On
 
 Imports System.IO
+Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports CenterDevice.Rest.Clients.Common
 Imports CenterDevice.Rest.Clients.Groups
@@ -153,6 +154,33 @@ Namespace Providers
                         Result.Add(Me.CreateDmsResourceItem(Item))
                     Next
             End Select
+            Return Result
+        End Function
+
+        ''' <inheritdoc/>
+        Public Overrides Function ListAllDirectoryItems(remoteFolderPath As String) As List(Of DmsResourceItem)
+            Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
+            Dim Result As New List(Of DmsResourceItem)
+            If RemoteDir.IsRootDirectory Then
+                Dim SubFolders As CenterDevice.IO.DirectoryInfo() = RemoteDir.GetDirectories()
+                If SubFolders IsNot Nothing Then
+                    For Each SubFolder As CenterDevice.IO.DirectoryInfo In SubFolders
+                        Result.Add(Me.CreateDmsResourceItem(SubFolder))
+                    Next
+                End If
+            Else
+                'The IO client's folder listing omits has-subfolders. Request it with the
+                'other listing fields so leaf folders can be shown without a false expander.
+                Dim ParentFolderId As String = If(RemoteDir.CollectionID IsNot Nothing, CenterDevice.Rest.RestApiConstants.NONE, RemoteDir.FolderID)
+                Dim Folders = CenterDeviceFolderMetadataClient.Create(Me.IOClient.ApiClient).GetFoldersWithMetadata(
+                    Me.IOClient.CurrentAuthenticationContextUserID, RemoteDir.CollectionID, ParentFolderId)
+                For Each Folder In Folders
+                    Dim SubFolder As New CenterDevice.IO.DirectoryInfo(Me.IOClient, RemoteDir, Folder)
+                    Dim Item As DmsResourceItem = Me.CreateDmsResourceItem(SubFolder)
+                    Item.HasChildDirectories = Folder.HasSubFoldersMetadata
+                    Result.Add(Item)
+                Next
+            End If
             Return Result
         End Function
 
@@ -679,6 +707,7 @@ Namespace Providers
             Result.ExtendedInfosFolderID = res.FolderID
             Result.ExtendedInfosAssignedCollectionID = res.ParentDirectory?.AssociatedCollection?.CollectionID
             Result.ExtendedInfosAssignedFolderID = res.ParentDirectory?.FolderID
+            Result.HasChildDirectories = ReadHasChildDirectoriesMetadata(res)
             Result.ExtendedInfosOwner = New DmsUser() With {.ID = res.Owner, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
             Result.ExtendedInfosLinks = New List(Of DmsLink)
             If res.Link <> Nothing Then Result.ExtendedInfosLinks.Add(New DmsLink(Result, res.Link, Me, AddressOf CenterDeviceDmsProviderBase.DelegatedFillLinkDetails))
@@ -751,6 +780,27 @@ Namespace Providers
             Result.Collection = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.Collection))
             Result.FullName = Me.PathWithoutLeadingDirectorySeparator(Tools.NotNullOrEmptyStringValue(Result.FullName))
             Return Result
+        End Function
+
+        Private Shared Function ReadHasChildDirectoriesMetadata(res As CenterDevice.IO.DirectoryInfo) As Boolean?
+            'The IO wrapper keeps the server-provided flags on its response objects without exposing them publicly.
+            'Read them opportunistically and fall back to unknown when a future package version changes that shape.
+            Const InstanceFields As BindingFlags = BindingFlags.Instance Or BindingFlags.NonPublic
+            If res.CollectionID <> Nothing Then
+                Dim RestCollectionField As FieldInfo = GetType(CenterDevice.IO.DirectoryInfo).GetField("restCollection", InstanceFields)
+                Return ReadNullableBooleanProperty(RestCollectionField?.GetValue(res), "HasFolders")
+            Else
+                Dim RestFolderField As FieldInfo = GetType(CenterDevice.IO.DirectoryInfo).GetField("restFolder", InstanceFields)
+                Return ReadNullableBooleanProperty(RestFolderField?.GetValue(res), "HasSubFolders")
+            End If
+        End Function
+
+        Private Shared Function ReadNullableBooleanProperty(instance As Object, propertyName As String) As Boolean?
+            If instance Is Nothing Then Return Nothing
+            Const InstanceProperties As BindingFlags = BindingFlags.Instance Or BindingFlags.Public Or BindingFlags.NonPublic
+            Dim Value As Object = instance.GetType().GetProperty(propertyName, InstanceProperties)?.GetValue(instance)
+            If Value Is Nothing Then Return Nothing
+            Return CType(Value, Boolean?)
         End Function
 
         ''' <summary>

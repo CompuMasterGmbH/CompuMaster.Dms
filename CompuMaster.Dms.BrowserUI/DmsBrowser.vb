@@ -23,6 +23,12 @@ Public Class DmsBrowser
         ApplyLocalizedText()
     End Sub
 
+    Friend Sub New(dmsProvider As BaseDmsProvider)
+        Me.New()
+        If dmsProvider Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProvider))
+        Me._DmsProviderOverride = dmsProvider
+    End Sub
+
     ''' <summary>
     ''' A browser for DMS systems
     ''' </summary>
@@ -125,13 +131,15 @@ Public Class DmsBrowser
 
     Public Property DmsProfile As CompuMaster.Dms.Data.IDmsLoginProfile
 
+    Private _DmsProviderOverride As CompuMaster.Dms.Providers.BaseDmsProvider
     Public ReadOnly Property DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider
         Get
-            Static _DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider
-            If _DmsProvider Is Nothing Then
-                _DmsProvider = CompuMaster.Dms.Providers.CreateAuthorizedDmsProviderInstance(DmsProfile)
+            If Me._DmsProviderOverride IsNot Nothing Then Return Me._DmsProviderOverride
+            Static DmsProviderInstance As CompuMaster.Dms.Providers.BaseDmsProvider
+            If DmsProviderInstance Is Nothing Then
+                DmsProviderInstance = CompuMaster.Dms.Providers.CreateAuthorizedDmsProviderInstance(DmsProfile)
             End If
-            Return _DmsProvider
+            Return DmsProviderInstance
         End Get
     End Property
 
@@ -313,7 +321,7 @@ Public Class DmsBrowser
         End Try
     End Sub
 
-    Private Sub LoadTree()
+    Friend Sub LoadTree()
         Me.TreeViewDmsFolders.Nodes.Clear()
         If Me.InitialFolder <> Nothing Then
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(Me.InitialFolder)
@@ -334,7 +342,6 @@ Public Class DmsBrowser
             Me.RootNode.SelectedImageIndex = 0
         End If
         Me.AddTreeChildren(Me.RootNode)
-        Me.AddTreeGrandChildren(Me.RootNode)
         Me.TreeViewDmsFolders.Sort()
         Me.RootNode.Expand()
     End Sub
@@ -343,60 +350,84 @@ Public Class DmsBrowser
         Public Sub New(dmsResourceItem As DmsResourceItem)
             Me.DmsResourceItem = dmsResourceItem
         End Sub
-        Public HasFolders As TriState = TriState.UseDefault
+        Public ChildrenLoaded As Boolean
         Public DmsResourceItem As DmsResourceItem
     End Class
 
-    Private Sub AddTreeGrandChildren(grandParentNode As TreeNode)
-        If grandParentNode Is Nothing Then Return
-        For Each ChildNode As TreeNode In grandParentNode.Nodes
-            If ChildNode.Tag Is Nothing Then
-                ChildNode.BackColor = Color.Red
-            Else
-                Dim ChildData As NodeTagData = CType(ChildNode.Tag, NodeTagData)
-                Me.AddTreeChildren(ChildNode)
-            End If
-        Next
+    Private Shared Function HasKnownChildDirectories(item As DmsResourceItem) As Boolean?
+        If item Is Nothing Then Return Nothing
+        If item.ChildDirectoryCount.HasValue Then Return item.ChildDirectoryCount.Value > 0
+        Return item.HasChildDirectories
+    End Function
+
+    Private Shared Sub AddExpansionPlaceholderIfRequired(node As TreeNode)
+        Dim Item As DmsResourceItem = CType(node.Tag, NodeTagData).DmsResourceItem
+        Dim HasChildren As Boolean? = HasKnownChildDirectories(Item)
+        If Not HasChildren.HasValue OrElse HasChildren.Value Then
+            node.Nodes.Add(New TreeNode With {.Tag = Nothing})
+        End If
     End Sub
 
-    Private Sub AddTreeChildren(parentNode As TreeNode)
+    Private Sub AddDirectoryTreeNode(parentNode As TreeNode, item As DmsResourceItem)
+        Dim Node As TreeNode = CreateDirectoryTreeNode(item)
+        AddExpansionPlaceholderIfRequired(Node)
+        parentNode.Nodes.Add(Node)
+    End Sub
+
+    Friend Sub AddTreeChildren(parentNode As TreeNode)
         Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
-        If ParentData.HasFolders = TriState.UseDefault Then
-            'Search for collections
-            If Me.DmsProvider.SupportsCollections AndAlso (ParentData.DmsResourceItem Is Nothing OrElse ParentData.DmsResourceItem.ItemType = DmsResourceItem.ItemTypes.Collection) Then
-                Dim SubCollections As List(Of DmsResourceItem)
-                If ParentData.DmsResourceItem Is Nothing Then
-                    SubCollections = Me.DmsProvider.ListAllCollectionItems(Me.DmsProvider.BrowseInRootFolderName)
-                Else
-                    SubCollections = Me.DmsProvider.ListAllCollectionItems(ParentData.DmsResourceItem.FullName)
-                End If
-                For Each collection As DmsResourceItem In SubCollections
-                    Me.RootNode.Nodes.Add(CreateDirectoryTreeNode(collection))
-                Next
-                If SubCollections.Count = 0 Then
-                    ParentData.HasFolders = TriState.False
-                Else
-                    ParentData.HasFolders = TriState.True
-                End If
-            End If
-            'Search for folders
-            Dim SubFolders As List(Of DmsResourceItem)
-            If ParentData.DmsResourceItem Is Nothing Then
-                SubFolders = Me.DmsProvider.ListAllFolderItems(Me.DmsProvider.BrowseInRootFolderName)
-            Else
-                SubFolders = Me.DmsProvider.ListAllFolderItems(ParentData.DmsResourceItem.FullName)
-            End If
-            If ParentData.HasFolders <> TriState.True Then
-                If SubFolders.Count = 0 Then
-                    ParentData.HasFolders = TriState.False
-                Else
-                    ParentData.HasFolders = TriState.True
-                End If
-            End If
-            For Each folder As DmsResourceItem In SubFolders
-                parentNode.Nodes.Add(CreateDirectoryTreeNode(folder))
-            Next
+        If ParentData.ChildrenLoaded Then Return
+
+        Dim ParentPath As String = If(ParentData.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
+        Dim ChildDirectories As List(Of DmsResourceItem) = Me.DmsProvider.ListAllDirectoryItems(ParentPath)
+        parentNode.Nodes.Clear()
+        For Each ChildDirectory As DmsResourceItem In ChildDirectories
+            Dim CollectionAllowed As Boolean = ChildDirectory.ItemType <> DmsResourceItem.ItemTypes.Collection OrElse
+                (Me.DmsProvider.SupportsCollections AndAlso
+                 (ParentData.DmsResourceItem Is Nothing OrElse ParentData.DmsResourceItem.ItemType = DmsResourceItem.ItemTypes.Collection))
+            If CollectionAllowed Then Me.AddDirectoryTreeNode(parentNode, ChildDirectory)
+        Next
+        ParentData.ChildrenLoaded = True
+        UpdateChildDirectoryMetadata(parentNode)
+    End Sub
+
+    Private Shared Sub UpdateChildDirectoryMetadata(parentNode As TreeNode)
+        Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
+        If ParentData.DmsResourceItem IsNot Nothing Then
+            Dim ChildCount As Integer = parentNode.Nodes.Cast(Of TreeNode)().Count(Function(node) node.Tag IsNot Nothing)
+            ParentData.DmsResourceItem.ChildDirectoryCount = ChildCount
+            ParentData.DmsResourceItem.HasChildDirectories = ChildCount > 0
         End If
+    End Sub
+
+    Private Shared Sub RecordChildDirectoryCreated(parentNode As TreeNode)
+        Dim ParentItem As DmsResourceItem = CType(parentNode.Tag, NodeTagData).DmsResourceItem
+        If ParentItem Is Nothing Then Return
+        If ParentItem.ChildDirectoryCount.HasValue Then ParentItem.ChildDirectoryCount += 1
+        ParentItem.HasChildDirectories = True
+    End Sub
+
+    Private Shared Sub RecordChildDirectoryDeleted(parentNode As TreeNode)
+        Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
+        If ParentData.DmsResourceItem Is Nothing Then Return
+        If ParentData.ChildrenLoaded Then
+            UpdateChildDirectoryMetadata(parentNode)
+        ElseIf ParentData.DmsResourceItem.ChildDirectoryCount.HasValue Then
+            ParentData.DmsResourceItem.ChildDirectoryCount = Math.Max(0, ParentData.DmsResourceItem.ChildDirectoryCount.Value - 1)
+            ParentData.DmsResourceItem.HasChildDirectories = ParentData.DmsResourceItem.ChildDirectoryCount.Value > 0
+        Else
+            ParentData.DmsResourceItem.HasChildDirectories = Nothing
+        End If
+    End Sub
+
+    Friend Sub RefreshTreeNode(node As TreeNode)
+        Dim NodeData As NodeTagData = CType(node.Tag, NodeTagData)
+        Dim NodePath As String = If(NodeData.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
+        Me.DmsProvider.ResetCachesForRemoteItems(NodePath, BaseDmsProvider.SearchItemType.AllItems)
+        NodeData.ChildrenLoaded = False
+        node.Nodes.Clear()
+        Me.AddTreeChildren(node)
+        Me.TreeViewDmsFolders.Sort()
     End Sub
 
     Friend Shared Function CreateDirectoryTreeNode(directory As DmsResourceItem) As TreeNode
@@ -434,13 +465,13 @@ Public Class DmsBrowser
             Dim FolderHierarchy As New List(Of String)(path.Split(Me.DmsProvider.DirectorySeparator))
             Dim LastMatch As TreeNode = Me.RootNode
             For MyCounter As Integer = 0 To FolderHierarchy.Count - 1
+                Me.AddTreeChildren(LastMatch)
                 Dim NewMatch As TreeNode = Me.FindChildNode(LastMatch, FolderHierarchy(MyCounter))
                 If NewMatch Is Nothing Then
                     Exit For 'Path has been found partially, select as far as possible
                 Else
                     LastMatch = NewMatch
                 End If
-                Me.AddTreeGrandChildren(LastMatch)
             Next
             Me.TreeViewDmsFolders.SelectedNode = LastMatch
         End If
@@ -499,7 +530,7 @@ Public Class DmsBrowser
 
     Private Sub TreeViewDmsFolders_BeforeExpand(sender As Object, e As TreeViewCancelEventArgs) Handles TreeViewDmsFolders.BeforeExpand
         Try
-            Me.AddTreeGrandChildren(e.Node)
+            Me.AddTreeChildren(e.Node)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
@@ -516,8 +547,10 @@ Public Class DmsBrowser
             Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem?.FullName, NewFolderName)
             Me.DmsProvider.CreateDirectory(NewFolderPath)
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
-            Dim n As TreeNode = CreateDirectoryTreeNode(Folder)
-            Me.TreeViewDmsFolders.SelectedNode.Nodes.Add(n)
+            Dim ParentNode As TreeNode = Me.TreeViewDmsFolders.SelectedNode
+            Me.AddDirectoryTreeNode(ParentNode, Folder)
+            RecordChildDirectoryCreated(ParentNode)
+            Dim n As TreeNode = ParentNode.Nodes.Cast(Of TreeNode)().Single(Function(node) node.Tag IsNot Nothing AndAlso CType(node.Tag, NodeTagData).DmsResourceItem Is Folder)
             Me.TreeViewDmsFolders.SelectedNode = n
             n.TreeView.Focus()
         Catch ex As Exception
@@ -1045,6 +1078,7 @@ Public Class DmsBrowser
 
     Private Sub ToolStripButtonRefreshFilesList_Click(sender As Object, e As EventArgs) Handles ToolStripButtonRefreshFilesList.Click
         Try
+            If Me.TreeViewDmsFolders.SelectedNode IsNot Nothing Then Me.RefreshTreeNode(Me.TreeViewDmsFolders.SelectedNode)
             Me.RefreshFilesList()
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -1109,6 +1143,7 @@ Public Class DmsBrowser
                 Me.DmsProvider.DeleteRemoteItem(SelectedFolder)
                 If ParentFolderNode IsNot Nothing Then
                     ParentFolderNode.Nodes.Remove(CurrentSelectedFolderNode)
+                    RecordChildDirectoryDeleted(ParentFolderNode)
                 End If
             End If
         Catch ex As Data.DmsUserErrorMessageException
