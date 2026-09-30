@@ -218,7 +218,7 @@ Partial Class DmsBrowser
         'ImageListFileIcons
         '
         Me.ImageListFileIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
-        Me.ImageListFileIcons.ImageSize = New System.Drawing.Size(32, 32)
+        Me.ImageListFileIcons.ImageSize = New System.Drawing.Size(24, 24)
         Me.ImageListFileIcons.TransparentColor = System.Drawing.Color.Transparent
         Me.ImageListFileIcons.Images.Add("iconfinder_Home-ui-ux-mobile-web_4960719.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_Home_ui_ux_mobile_web_4960719)
         Me.ImageListFileIcons.Images.Add("iconfinder_bookmark-ui-ux-mobile-web_4960727.png", Global.CompuMaster.Dms.BrowserUI.My.Resources.Resources.iconfinder_bookmark_ui_ux_mobile_web_4960727)

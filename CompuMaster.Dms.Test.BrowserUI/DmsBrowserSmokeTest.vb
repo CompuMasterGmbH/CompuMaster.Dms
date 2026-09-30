@@ -35,7 +35,7 @@ Public Class DmsBrowserSmokeTest
             Dim treeImageList As ImageList = GetControlField(Of ImageList)(browser, "_ImageListTreeIcons")
             Dim fileList As ListView = GetControlField(Of ListView)(browser, "_ListViewDmsFiles")
             Dim folderTree As TreeView = GetControlField(Of TreeView)(browser, "_TreeViewDmsFolders")
-            Dim expectedFileIconSize As Integer = ScaleLogicalPixels(32, browser.DeviceDpi)
+            Dim expectedFileIconSize As Integer = ScaleLogicalPixels(24, browser.DeviceDpi)
             Dim expectedTreeIconSize As Integer = ScaleLogicalPixels(24, browser.DeviceDpi)
 
             ClassicAssert.AreEqual(New Drawing.Size(expectedFileIconSize, expectedFileIconSize), fileImageList.ImageSize)
@@ -82,7 +82,7 @@ Public Class DmsBrowserSmokeTest
 
             Dim reconfiguredFileIcons As Object = GetFileIcons(browser)
             Dim reconfiguredIconIndex As Integer = GetFileIconIndex(reconfiguredFileIcons, ".txt", True)
-            ClassicAssert.AreEqual(New Drawing.Size(48, 48), imageList.ImageSize)
+            ClassicAssert.AreEqual(New Drawing.Size(36, 36), imageList.ImageSize)
             ClassicAssert.AreNotSame(originalFileIcons, reconfiguredFileIcons)
             ClassicAssert.AreEqual(reconfiguredIconIndex, item.ImageIndex)
             ClassicAssert.AreEqual(imageList.ImageSize, imageList.Images(item.ImageIndex).Size)
