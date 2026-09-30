@@ -86,11 +86,20 @@ Public MustInherit Class WebDavProviderTestBase
 
 End Class
 
-<TestFixture, Category("RemoteDms"), Category("OwnCloudWebDav")>
+<TestFixture, Category("RemoteDms"), Category("GenericWebDav")>
 Public NotInheritable Class WebDavProviderTest
     Inherits WebDavProviderTestBase
 
     Protected Overrides Function CreateSettings() As SettingsBase
         Return New WebDavSettings
+    End Function
+End Class
+
+<TestFixture, Category("RemoteDms"), Category("OwnCloudWebDav")>
+Public NotInheritable Class OwnCloudWebDavProviderTest
+    Inherits WebDavProviderTestBase
+
+    Protected Overrides Function CreateSettings() As SettingsBase
+        Return New OwnCloudWebDavSettings
     End Function
 End Class

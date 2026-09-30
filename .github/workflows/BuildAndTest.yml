@@ -102,6 +102,10 @@ jobs:
             displayName: OwnCloud WebDAV
             category: OwnCloudWebDav
             lock: dms-test-server-owncloud-webdav
+          - id: generic-webdav
+            displayName: Generic WebDAV on OwnCloud
+            category: GenericWebDav
+            lock: dms-test-server-owncloud-webdav
           - id: nextcloud-webdav
             displayName: Nextcloud WebDAV
             category: NextcloudWebDav
@@ -114,6 +118,9 @@ jobs:
       TEST_CMOWNCLOUD_SERVERURL: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
       TEST_CMOWNCLOUD_USERNAME: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
       TEST_CMOWNCLOUD_PASSWORD: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
+      TEST_WEBDAV_SERVERURL: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
+      TEST_WEBDAV_USERNAME: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
+      TEST_WEBDAV_PASSWORD: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
       TEST_CMNEXTCLOUD_SERVERURL: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_SERVERURL || '' }}
       TEST_CMNEXTCLOUD_USERNAME: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_USERNAME || '' }}
       TEST_CMNEXTCLOUD_PASSWORD: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_PASSWORD || '' }}
