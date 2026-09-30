@@ -81,6 +81,18 @@
   <data name="LimitationUploads" xml:space="preserve"><value>Uploads: {0}</value></data>
   <data name="NewFolderPrompt" xml:space="preserve"><value>What should the new folder below &quot;{0}&quot; be called?</value></data>
   <data name="NewFolderTitle" xml:space="preserve"><value>New folder</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>Select destination folder</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>Name at destination</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>Enter the destination name for "{0}":</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>Enter a new name for "{0}":</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>Enter a name without a directory separator.</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>Source and destination are the same. Choose a different name or folder.</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>The file "{0}" already exists. Replace it?</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>The folder "{0}" already exists. Merge its contents with the source? Items found only in the destination will remain.</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>The browser root cannot be copied, renamed or moved.</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>The destination is outside the browser root.</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>{0} of {1} selected items were completed. The next item failed: {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>Stopped. {0} of {1} selected items were completed.</value></data>
   <data name="NoFileSelected" xml:space="preserve"><value>No file selected</value></data>
   <data name="NoFilesSelected" xml:space="preserve"><value>No files selected</value></data>
   <data name="NoFolderSelected" xml:space="preserve"><value>No folder selected</value></data>

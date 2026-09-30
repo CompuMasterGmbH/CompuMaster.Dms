@@ -43,6 +43,12 @@ Partial Friend Class UITools
         End If
     End Function
 
+    ''' <summary>Show an input dialog while distinguishing Cancel from an empty answer.</summary>
+    Public Shared Function TryInputBox(prompt As String, title As String, defaultResponse As String, ByRef response As String) As Boolean
+        response = defaultResponse
+        Return InputQuery(title, prompt, response)
+    End Function
+
     Private Shared Function InputQuery(ByVal caption As String, ByVal prompt As String, ByRef value As String) As Boolean
         Dim form As Form
         form = New Form()

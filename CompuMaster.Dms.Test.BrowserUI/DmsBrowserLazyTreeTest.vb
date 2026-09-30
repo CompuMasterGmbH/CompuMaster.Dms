@@ -72,6 +72,65 @@ Public Class DmsBrowserLazyTreeTest
     End Sub
 
     <Test>
+    Public Sub SelectedDirectoryReportsItsActualParentNode()
+        Dim Provider As New InMemoryDmsProvider
+        Provider.SetChildren("/", CreateDirectory("Parent", 0))
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.LoadTree()
+            Dim Root As TreeNode = GetFolderTree(Browser).Nodes(0)
+            GetFolderTree(Browser).SelectedNode = FindNode(Root, "Parent")
+
+            Dim Method = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetMethod("CurrentParentOfSelectedFolderNode", System.Reflection.BindingFlags.Instance Or System.Reflection.BindingFlags.NonPublic)
+            ClassicAssert.AreSame(Root, Method.Invoke(Browser, Nothing))
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub FileListRefreshToleratesMissingTreeSelection()
+        Dim Provider As New InMemoryDmsProvider
+        Provider.SetChildren("/")
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            Browser.LoadTree()
+            GetFolderTree(Browser).SelectedNode = Nothing
+
+            Assert.DoesNotThrow(Sub() InvokeInstanceMethod(Browser, "RefreshFilesList"))
+            ClassicAssert.AreEqual(0, Browser.ListViewDmsFiles.Items.Count)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub RefreshRestoresTheFolderShownInTheFileList()
+        Dim Provider As New InMemoryDmsProvider
+        Provider.SetChildren("/", CreateDirectory("Test-Temp", 0))
+        Provider.SetChildren("Test-Temp", New DmsResourceItem With {
+            .ItemType = DmsResourceItem.ItemTypes.File,
+            .Name = "example.txt",
+            .FullName = "Test-Temp/example.txt"
+        })
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            Browser.LoadTree()
+            Dim selectedNode As TreeNode = FindNode(GetFolderTree(Browser).Nodes(0), "Test-Temp")
+            GetFolderTree(Browser).SelectedNode = selectedNode
+            InvokeInstanceMethod(Browser, "TreeViewDmsFolders_AfterSelect", GetFolderTree(Browser), New TreeViewEventArgs(selectedNode))
+            ClassicAssert.AreEqual("Test-Temp", Browser.SelectedFolder)
+            ClassicAssert.AreEqual(1, Browser.ListViewDmsFiles.Items.Count)
+
+            GetFolderTree(Browser).SelectedNode = Nothing
+            Browser.SelectedFolder = Nothing
+            Browser.RefreshCurrentFolderAndFiles()
+
+            ClassicAssert.AreEqual("Test-Temp", Browser.SelectedFolder)
+            ClassicAssert.AreEqual("Test-Temp", GetFolderTree(Browser).SelectedNode.Text)
+            ClassicAssert.AreEqual(1, Browser.ListViewDmsFiles.Items.Count)
+        End Using
+    End Sub
+
+    <Test>
     Public Sub RefreshChangesOneChildToKnownZeroChildren()
         Dim Provider As New InMemoryDmsProvider
         Dim Parent As DmsResourceItem = CreateDirectory("Parent", 1)
