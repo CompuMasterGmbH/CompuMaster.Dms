@@ -34,6 +34,8 @@ Public Class DmsItemSharings
     Public Property DmsItem As DmsResourceItem
     Public Property DmsProvider As BaseDmsProvider
 
+    Friend Event SharingsChanged As EventHandler
+
     Private Sub ButtonCancel_Click(sender As Object, e As EventArgs) Handles ButtonCancel.Click
         Me.Close()
     End Sub
@@ -168,6 +170,7 @@ Public Class DmsItemSharings
                 Me.DmsItem.ExtendedInfosHasGroupSharings = True
                 Me.DmsItem.ExtendedInfosGroupSharings.Add(CreatedSharing)
                 DmsItemSharings_Load(Nothing, Nothing)
+                RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -193,6 +196,7 @@ Public Class DmsItemSharings
                 Me.DmsItem.ExtendedInfosHasUserSharings = True
                 Me.DmsItem.ExtendedInfosUserSharings.Add(CreatedSharing)
                 DmsItemSharings_Load(Nothing, Nothing)
+                RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -249,6 +253,7 @@ Public Class DmsItemSharings
                     Throw New NotImplementedException("Unknown derived class from DmsShareBase")
             End Select
             DmsItemSharings_Load(Nothing, Nothing)
+            RaiseEvent SharingsChanged(Me, EventArgs.Empty)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
@@ -266,6 +271,7 @@ Public Class DmsItemSharings
             If LinkShareForm.ShowDialog(Me) = DialogResult.OK Then
                 LinkShareForm.DmsUpdatedLinkDetails.Refresh()
                 DmsItemSharings_Load(Nothing, Nothing)
+                RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -354,6 +360,7 @@ Public Class DmsItemSharings
             If Not RemoveLink.ID = Nothing Then Me.DmsProvider.DeleteLink(RemoveLink)
             Me.ReplaceUpdatedLinkInDmsItem(RemoveLink.ID, Nothing)
             DmsItemSharings_Load(Nothing, Nothing)
+            RaiseEvent SharingsChanged(Me, EventArgs.Empty)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception

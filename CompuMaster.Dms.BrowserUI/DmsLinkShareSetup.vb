@@ -48,6 +48,7 @@ Public Class DmsLinkShareSetup
     Public Property DmsItem As DmsResourceItem
 
     Private _DmsUpdatedLinkDetails As DmsLink = Nothing
+    Private _LoadingControls As Boolean
     Public ReadOnly Property DmsUpdatedLinkDetails As DmsLink
         Get
             Return Me._DmsUpdatedLinkDetails
@@ -123,7 +124,12 @@ Public Class DmsLinkShareSetup
                 Me.TextBoxNumberOfDownloads.Enabled = False
                 Me.TextBoxNumberOfUploads.Enabled = False
             Case DialogModes.UpdateLink
-                Me.LoadDataIntoControls()
+                Me._LoadingControls = True
+                Try
+                    Me.LoadDataIntoControls()
+                Finally
+                    Me._LoadingControls = False
+                End Try
             Case Else
                 Throw New NullReferenceException(NameOf(Me.DialogMode))
         End Select
@@ -138,6 +144,8 @@ Public Class DmsLinkShareSetup
                 Me.TextBoxMaxUploads.Enabled = Me.CheckBoxAllowUpload.Checked
                 Me.CheckBoxMaxDownloads.Enabled = Me.CheckBoxAllowDownload.Checked
                 Me.TextBoxMaxDownloads.Enabled = Me.CheckBoxAllowDownload.Checked
+                Me.CheckBoxMaxBytes.Enabled = Me.CheckBoxAllowUpload.Checked
+                Me.TextBoxMaxBytes.Enabled = Me.CheckBoxAllowUpload.Checked
                 Me.CheckBoxMaxViews.Enabled = False
                 Me.TextBoxMaxViews.Enabled = False
                 Me.TextBoxDownloadUrl.Enabled = Me.CheckBoxAllowDownload.Checked AndAlso Me._DialogMode = DialogModes.UpdateLink
@@ -191,24 +199,24 @@ Public Class DmsLinkShareSetup
         Else
             Result.ExpiryDateLocalTime = Nothing
         End If
-        Result.Password = Me.TextBoxPassword.Text
+        Result.Password = If(Me.CheckBoxPassword.Checked, Me.TextBoxPassword.Text, Nothing)
         Result.AllowDelete = Me.CheckBoxAllowDelete.Checked
         Result.AllowDownload = Me.CheckBoxAllowDownload.Checked
         Result.AllowEdit = Me.CheckBoxAllowEdit.Checked
         Result.AllowUpload = Me.CheckBoxAllowUpload.Checked
         Result.AllowView = Me.CheckBoxAllowView.Checked
         Result.AllowShare = Me.CheckBoxAllowShare.Checked
-        If Me.CheckBoxMaxBytes.Checked AndAlso Not Me.TextBoxMaxBytes.Text = Nothing Then
+        If Me.CheckBoxAllowUpload.Checked AndAlso Me.CheckBoxMaxBytes.Checked AndAlso Not Me.TextBoxMaxBytes.Text = Nothing Then
             Result.MaxBytes = Long.Parse(Me.TextBoxMaxBytes.Text)
         Else
             Result.MaxBytes = Nothing
         End If
-        If Me.CheckBoxMaxDownloads.Checked AndAlso Not Me.TextBoxMaxDownloads.Text = Nothing Then
+        If Me.CheckBoxAllowDownload.Checked AndAlso Me.CheckBoxMaxDownloads.Checked AndAlso Not Me.TextBoxMaxDownloads.Text = Nothing Then
             Result.MaxDownloads = Integer.Parse(Me.TextBoxMaxDownloads.Text)
         Else
             Result.MaxDownloads = Nothing
         End If
-        If Me.CheckBoxMaxUploads.Checked AndAlso Not Me.TextBoxMaxUploads.Text = Nothing Then
+        If Me.CheckBoxAllowUpload.Checked AndAlso Me.CheckBoxMaxUploads.Checked AndAlso Not Me.TextBoxMaxUploads.Text = Nothing Then
             Result.MaxUploads = Integer.Parse(Me.TextBoxMaxUploads.Text)
         Else
             Result.MaxUploads = Nothing
@@ -265,15 +273,38 @@ Public Class DmsLinkShareSetup
     End Sub
 
     Private Sub CheckBoxMaxDownloads_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxMaxDownloads.CheckedChanged
-        Me.TextBoxMaxDownloads.Enabled = Me.CheckBoxMaxDownloads.Checked
+        Me.TextBoxMaxDownloads.Enabled = Me.CheckBoxAllowDownload.Checked AndAlso Me.CheckBoxMaxDownloads.Checked
     End Sub
 
     Private Sub CheckBoxMaxUploads_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxMaxUploads.CheckedChanged
-        Me.TextBoxMaxUploads.Enabled = Me.CheckBoxMaxUploads.Checked
+        Me.TextBoxMaxUploads.Enabled = Me.CheckBoxAllowUpload.Checked AndAlso Me.CheckBoxMaxUploads.Checked
     End Sub
 
     Private Sub CheckBoxMaxBytes_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxMaxBytes.CheckedChanged
-        Me.TextBoxMaxBytes.Enabled = Me.CheckBoxMaxBytes.Checked
+        Me.TextBoxMaxBytes.Enabled = Me.CheckBoxAllowUpload.Checked AndAlso Me.CheckBoxMaxBytes.Checked
+    End Sub
+
+    Private Sub DateTimePickerExpiryDate_ValueChanged(sender As Object, e As EventArgs) Handles DateTimePickerExpiryDate.ValueChanged
+        If Not Me._LoadingControls AndAlso Me.DateTimePickerExpiryDate.Enabled Then
+            Me.CheckBoxExpiryDate.Checked = True
+        End If
+    End Sub
+
+    Private Sub OptionalValue_TextChanged(sender As Object, e As EventArgs) Handles TextBoxPassword.TextChanged, TextBoxMaxViews.TextChanged, TextBoxMaxDownloads.TextChanged, TextBoxMaxUploads.TextChanged, TextBoxMaxBytes.TextChanged
+        Dim Input As TextBox = DirectCast(sender, TextBox)
+        If Me._LoadingControls OrElse Not Input.Enabled OrElse Input.TextLength = 0 Then Return
+
+        If Input Is Me.TextBoxPassword Then
+            Me.CheckBoxPassword.Checked = True
+        ElseIf Input Is Me.TextBoxMaxViews Then
+            Me.CheckBoxMaxViews.Checked = True
+        ElseIf Input Is Me.TextBoxMaxDownloads Then
+            Me.CheckBoxMaxDownloads.Checked = True
+        ElseIf Input Is Me.TextBoxMaxUploads Then
+            Me.CheckBoxMaxUploads.Checked = True
+        ElseIf Input Is Me.TextBoxMaxBytes Then
+            Me.CheckBoxMaxBytes.Checked = True
+        End If
     End Sub
 
     Private Sub CheckBoxAllowDownload_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxAllowDownload.CheckedChanged

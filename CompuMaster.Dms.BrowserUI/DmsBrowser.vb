@@ -328,7 +328,7 @@ Public Class DmsBrowser
             If Folder Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(Me.InitialFolder)
             Me.RootNode = Me.TreeViewDmsFolders.Nodes.Add("", Me.InitialFolder)
             Me.RootNode.Tag = New NodeTagData(Folder)
-            If Folder.ExtendedInfosHasGroupSharings OrElse Folder.ExtendedInfosHasUserSharings Then
+            If Folder.ExtendedInfosHasGroupSharings OrElse Folder.ExtendedInfosHasUserSharings OrElse Folder.ExtendedInfosIsShared OrElse Folder.ExtendedInfosHasLinks Then
                 Me.RootNode.ImageIndex = 3
                 Me.RootNode.SelectedImageIndex = 3
             Else
@@ -436,13 +436,13 @@ Public Class DmsBrowser
         Dim imageIndex As Integer
         Select Case directory.ItemType
             Case DmsResourceItem.ItemTypes.Collection
-                If directory.ExtendedInfosHasGroupSharings OrElse directory.ExtendedInfosHasUserSharings OrElse directory.ExtendedInfosIsShared Then
+                If directory.ExtendedInfosHasGroupSharings OrElse directory.ExtendedInfosHasUserSharings OrElse directory.ExtendedInfosIsShared OrElse directory.ExtendedInfosHasLinks Then
                     imageIndex = 4
                 Else
                     imageIndex = 1
                 End If
             Case DmsResourceItem.ItemTypes.Folder
-                If directory.ExtendedInfosHasGroupSharings OrElse directory.ExtendedInfosHasUserSharings Then
+                If directory.ExtendedInfosHasGroupSharings OrElse directory.ExtendedInfosHasUserSharings OrElse directory.ExtendedInfosIsShared OrElse directory.ExtendedInfosHasLinks Then
                     imageIndex = 5
                 Else
                     imageIndex = 2
@@ -891,7 +891,8 @@ Public Class DmsBrowser
             Dim DmsShareForm As New DmsItemSharings()
             DmsShareForm.DmsItem = CurrentSelectedFolder()
             DmsShareForm.DmsProvider = Me.DmsProvider
-            DmsShareForm.Show()
+            AddHandler DmsShareForm.SharingsChanged, AddressOf Me.DmsShareForm_SharingsChanged
+            DmsShareForm.Show(Me)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
@@ -907,13 +908,86 @@ Public Class DmsBrowser
                 Dim DmsShareForm As New DmsItemSharings()
                 DmsShareForm.DmsItem = SelectedFiles(MyCounter)
                 DmsShareForm.DmsProvider = Me.DmsProvider
-                DmsShareForm.Show()
+                AddHandler DmsShareForm.SharingsChanged, AddressOf Me.DmsShareForm_SharingsChanged
+                DmsShareForm.Show(Me)
             Next
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Private Sub DmsShareForm_SharingsChanged(sender As Object, e As EventArgs)
+        Me.RefreshSharingVisuals(DirectCast(sender, DmsItemSharings).DmsItem, Me.DmsProvider)
+    End Sub
+
+    Friend Sub RefreshSharingVisuals(ChangedItem As DmsResourceItem, provider As BaseDmsProvider)
+        Dim ParentPath As String = provider.ParentDirectoryPath(ChangedItem.FullName)
+        If ChangedItem.ItemType = DmsResourceItem.ItemTypes.File Then
+            provider.ResetCachesForRemoteItems(ParentPath, BaseDmsProvider.SearchItemType.Files)
+            Dim RefreshedFile As DmsResourceItem = provider.ListAllFileItems(ParentPath).Find(Function(item) SameSharingItem(item, ChangedItem))
+            If RefreshedFile Is Nothing Then Return
+            For Each FileItem As ListViewItem In Me.ListViewDmsFiles.Items
+                Dim ListedFile As DmsResourceItem = DirectCast(FileItem.Tag, DmsResourceItem)
+                If SameSharingItem(ListedFile, ChangedItem) Then
+                    ListedFile.ExtendedInfosIsShared = RefreshedFile.ExtendedInfosIsShared OrElse RefreshedFile.ExtendedInfosHasLinks
+                    FileItem.ImageIndex = Me.FileIcons.GetSIImageListIndexForFileExtension(System.IO.Path.GetExtension(ListedFile.Name), ListedFile.ExtendedInfosIsShared)
+                End If
+            Next
+            Return
+        End If
+
+        Dim RefreshedItem As DmsResourceItem
+        Select Case ChangedItem.ItemType
+            Case DmsResourceItem.ItemTypes.Collection
+                provider.ResetCachesForRemoteItems(ParentPath, BaseDmsProvider.SearchItemType.Collections)
+                RefreshedItem = provider.ListAllCollectionItems(ParentPath).Find(Function(item) SameSharingItem(item, ChangedItem))
+            Case DmsResourceItem.ItemTypes.Folder
+                provider.ResetCachesForRemoteItems(ParentPath, BaseDmsProvider.SearchItemType.Folders)
+                RefreshedItem = provider.ListAllFolderItems(ParentPath).Find(Function(item) SameSharingItem(item, ChangedItem))
+            Case Else
+                Return
+        End Select
+        If RefreshedItem Is Nothing Then Return
+
+        Me.UpdateSharingTreeIcons(Me.TreeViewDmsFolders.Nodes, ChangedItem, RefreshedItem)
+        If Me.TreeViewDmsFolders.SelectedNode IsNot Nothing Then Me.RefreshFilesList()
+    End Sub
+
+    Private Shared Function SameSharingItem(item As DmsResourceItem, changedItem As DmsResourceItem) As Boolean
+        If item.ItemType <> changedItem.ItemType Then Return False
+        Select Case changedItem.ItemType
+            Case DmsResourceItem.ItemTypes.File
+                If changedItem.ExtendedInfosFileID <> Nothing Then Return item.ExtendedInfosFileID = changedItem.ExtendedInfosFileID
+            Case DmsResourceItem.ItemTypes.Folder
+                If changedItem.ExtendedInfosFolderID <> Nothing Then Return item.ExtendedInfosFolderID = changedItem.ExtendedInfosFolderID
+            Case DmsResourceItem.ItemTypes.Collection
+                If changedItem.ExtendedInfosCollectionID <> Nothing Then Return item.ExtendedInfosCollectionID = changedItem.ExtendedInfosCollectionID
+        End Select
+        Return String.Equals(item.FullName, changedItem.FullName, StringComparison.Ordinal)
+    End Function
+
+    Private Sub UpdateSharingTreeIcons(nodes As TreeNodeCollection, changedItem As DmsResourceItem, refreshedItem As DmsResourceItem)
+        For Each node As TreeNode In nodes
+            Dim nodeData As NodeTagData = TryCast(node.Tag, NodeTagData)
+            If nodeData IsNot Nothing AndAlso nodeData.DmsResourceItem IsNot Nothing Then
+                Dim nodeItem As DmsResourceItem = nodeData.DmsResourceItem
+                If Object.ReferenceEquals(nodeItem, changedItem) OrElse SameSharingItem(nodeItem, changedItem) Then
+                    Dim IsShared As Boolean = refreshedItem.ExtendedInfosIsShared OrElse refreshedItem.ExtendedInfosHasLinks OrElse refreshedItem.ExtendedInfosHasGroupSharings OrElse refreshedItem.ExtendedInfosHasUserSharings
+                    nodeItem.ExtendedInfosIsShared = IsShared
+                    If node Is Me.RootNode Then
+                        node.ImageIndex = If(IsShared, 3, 0)
+                    ElseIf refreshedItem.ItemType = DmsResourceItem.ItemTypes.Collection Then
+                        node.ImageIndex = If(IsShared, 4, 1)
+                    Else
+                        node.ImageIndex = If(IsShared, 5, 2)
+                    End If
+                    node.SelectedImageIndex = node.ImageIndex
+                End If
+            End If
+            Me.UpdateSharingTreeIcons(node.Nodes, changedItem, refreshedItem)
+        Next
     End Sub
 
     Private Sub ToolStripButtonPropertiesFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonPropertiesFile.Click
