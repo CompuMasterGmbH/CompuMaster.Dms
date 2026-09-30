@@ -88,7 +88,7 @@ Public Class DmsLinkShareSetup
                     Me.CheckBoxAllowView.Enabled = True
                     Me.CheckBoxAllowDownload.Enabled = True
                     Me.CheckBoxAllowEdit.Enabled = False
-                    Me.CheckBoxAllowUpload.Enabled = True
+                    Me.CheckBoxAllowUpload.Enabled = Me.DmsItem IsNot Nothing AndAlso Me.DmsItem.ItemType = DmsResourceItem.ItemTypes.Collection
                     Me.CheckBoxAllowDelete.Enabled = False
                     Me.CheckBoxAllowShare.Enabled = False
                     Me.TextBoxNumberOfUploads.Text = "5000"
