@@ -12,6 +12,10 @@ Imports NUnit.Framework
 
     Public MustOverride Sub PersistInputValue()
 
+    Friend Overridable Function NormalizeServerUrl(serverUrl As String, username As String) As String
+        Return serverUrl
+    End Function
+
     Public Function InputLine(ByVal fieldName As String) As String
         Dim BufferFile As String = BufferFilePath(fieldName)
         Dim EnvVarName As String = EnvironmentVariable(fieldName.Replace(" ", "").Replace(".", "").ToUpperInvariant())

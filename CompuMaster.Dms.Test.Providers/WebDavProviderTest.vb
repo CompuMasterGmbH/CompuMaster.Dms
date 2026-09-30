@@ -14,7 +14,7 @@ Public MustInherit Class WebDavProviderTestBase
     Private Function CreateLoginProfile() As DmsLoginProfile
         Dim Settings As SettingsBase = CreateSettings()
         Dim username As String = Settings.InputLine("username")
-        Dim serverurl As String = Settings.InputLine("server url")
+        Dim serverurl As String = Settings.NormalizeServerUrl(Settings.InputLine("server url"), username)
         Dim password As String = Settings.InputLine("password")
 
         Return New DmsLoginProfile() With {
