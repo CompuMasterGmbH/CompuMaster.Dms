@@ -15,9 +15,9 @@ The currently configured remote systems are:
 | Test partition | Physical test server | NUnit category | Concurrency group | GitHub secrets |
 | --- | --- | --- | --- | --- |
 | Scopevisio Teamwork | Scopevisio Teamwork | `ScopevisioTeamwork` | `dms-test-server-scopevisio-teamwork` | `TEST_SCOPEVISIOTEAMWORK_USERNAME`, `TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO`, `TEST_SCOPEVISIOTEAMWORK_PASSWORD` |
-| Generic WebDAV | OwnCloud | `GenericWebDav` | `dms-test-server-owncloud-webdav` | `TEST_WEBDAV_SERVERURL`, `TEST_WEBDAV_USERNAME`, `TEST_WEBDAV_PASSWORD` (mapped from `TEST_CMOWNCLOUD_*` repository secrets) |
-| OwnCloud through WebDAV | OwnCloud | `OwnCloudWebDav` | `dms-test-server-owncloud-webdav` | `TEST_CMOWNCLOUD_SERVERURL`, `TEST_CMOWNCLOUD_USERNAME`, `TEST_CMOWNCLOUD_PASSWORD` |
-| Nextcloud through WebDAV | Nextcloud | `NextcloudWebDav` | `dms-test-server-nextcloud-webdav` | `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, `TEST_CMNEXTCLOUD_PASSWORD` |
+| Generic WebDAV | OwnCloud | `WebDav` | `dms-test-server-owncloud-webdav` | `TEST_WEBDAV_SERVERURL`, `TEST_WEBDAV_USERNAME`, `TEST_WEBDAV_PASSWORD` (mapped from `TEST_CMOWNCLOUD_*` repository secrets) |
+| OwnCloud through WebDAV | OwnCloud | `OwnCloud` | `dms-test-server-owncloud-webdav` | `TEST_CMOWNCLOUD_SERVERURL`, `TEST_CMOWNCLOUD_USERNAME`, `TEST_CMOWNCLOUD_PASSWORD` |
+| Nextcloud through WebDAV | Nextcloud | `Nextcloud` | `dms-test-server-nextcloud-webdav` | `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, `TEST_CMNEXTCLOUD_PASSWORD` |
 
 The provider-specific sharing tests that use fake clients remain isolated tests and do not require a server lock. If another physical remote test system is added later, add a distinct category, matrix entry, secret set, and concurrency group for that server. Never reuse a lock for distinct servers, and never let two entries that mutate the same server use different locks.
 
@@ -27,7 +27,7 @@ Ordinary builds and isolated tests do not need remote credentials. To run one of
 
 `TEST_CMNEXTCLOUD_SERVERURL` may contain either the Nextcloud instance URL or the complete user WebDAV URL. An instance URL is resolved to `/remote.php/dav/files/{username}/`; an already complete `/remote.php/dav/files/.../` or legacy `/remote.php/webdav/` URL is used unchanged. Nextcloud recommends an app password when the account uses two-factor authentication or an external authentication provider.
 
-Run remote tests locally only after establishing an exclusive window with CI and other users of that physical server. Select one partition explicitly, for example `dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --filter "TestCategory=NextcloudWebDav"`. Never run all remote partitions locally as a general verification step.
+Run remote tests locally only after establishing an exclusive window with CI and other users of that physical server. Select one partition explicitly, for example `dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --filter "TestCategory=Nextcloud"`. Never run all remote partitions locally as a general verification step.
 
 ## Resource-lock boundaries
 
