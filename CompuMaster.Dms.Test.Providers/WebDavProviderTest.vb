@@ -3,6 +3,7 @@ Option Strict On
 
 Imports NUnit.Framework
 
+<TestFixture, Category("RemoteDms"), Category("OwnCloudWebDav")>
 Public Class WebDavProviderTest
     Inherits BaseDmsProviderTestBase
 

@@ -26,6 +26,8 @@ There are following main modules for your use:
 * CompuMaster.Dms.TestDemo.WebDav – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with a WebDAV server (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 * CompuMaster.Dms.TestDemo.ScopevisioTeamwork – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with Scopevisio Teamwork (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 
+Development and remote integration-test guidance is documented in [TESTING.md](TESTING.md).
+
 ## Screenshots
 
 ### Login form, customized for WebDAV
