@@ -20,12 +20,32 @@ Friend NotInheritable Class SystemIconsImageListWrapper
         Me.ExtensionSIImageListIndexZuordnung = New Dictionary(Of String, Integer)()
         Me.DefaultIconIndex = defaultIconIndex
         Me.DefaultSharedIconIndex = defaultSharedIconIndex
+        Me.InitializeDefaultSharedIcon()
     End Sub
 
     Public Property SIImageList As ImageList
     Private ReadOnly ExtensionSIImageListIndexZuordnung As Dictionary(Of String, Integer)
     Private ReadOnly DefaultIconIndex As Integer = 0
     Private ReadOnly DefaultSharedIconIndex As Integer = 0
+
+    Private Sub InitializeDefaultSharedIcon()
+        If Me.SIImageList Is Nothing Then Return
+        If Me.DefaultIconIndex < 0 OrElse Me.DefaultIconIndex >= Me.SIImageList.Images.Count Then Return
+        If Me.DefaultSharedIconIndex < 0 OrElse Me.DefaultSharedIconIndex >= Me.SIImageList.Images.Count Then Return
+
+        Dim Key As String = Me.SIImageList.Images.Keys(Me.DefaultSharedIconIndex)
+        Using SourceIcon As Icon = ImageToIcon(Me.SIImageList.Images(Me.DefaultIconIndex), Me.SIImageList.ImageSize),
+            SharedIcon As Icon = Me.OverlaySharedIcon(SourceIcon)
+            Dim SharedImage As Bitmap = SharedIcon.ToBitmap()
+            If Me.DefaultSharedIconIndex = Me.SIImageList.Images.Count - 1 Then
+                Me.SIImageList.Images.RemoveAt(Me.DefaultSharedIconIndex)
+                Me.SIImageList.Images.Add(Key, SharedImage)
+            Else
+                Me.SIImageList.Images(Me.DefaultSharedIconIndex) = SharedImage
+                Me.SIImageList.Images.SetKeyName(Me.DefaultSharedIconIndex, Key)
+            End If
+        End Using
+    End Sub
 
     Public Function GetSIImageListIndexForFileExtension(ByVal extension As String, isShared As Boolean) As Integer
         Select Case System.Environment.OSVersion.Platform
@@ -129,7 +149,6 @@ Friend NotInheritable Class SystemIconsImageListWrapper
     Private Shared Function DestroyIcon(ByVal hIcon As IntPtr) As Boolean
     End Function
 
-#Disable Warning IDE0060 ' Nicht verwendete Parameter entfernen
     ' Integration contract for #13: the source icon already matches SIImageList.ImageSize.
     ' The shared overlay compositor must return that same size so ImageList does not rescale
     ' the finished composition. Pixel-designed overlay variants should be selected for the
@@ -140,9 +159,29 @@ Friend NotInheritable Class SystemIconsImageListWrapper
     ''' <param name="source"></param>
     ''' <returns></returns>
     Private Function OverlaySharedIcon(source As Icon) As Icon
-#Enable Warning IDE0060 ' Nicht verwendete Parameter entfernen
-        'WORKAROUND: until fully implemented, just return the default shared icon
-        Return ImageToIcon(Me.SIImageList.Images(Me.DefaultSharedIconIndex), Me.SIImageList.ImageSize)
+        Dim targetSize As Size = Me.SIImageList.ImageSize
+        Using Target As New Bitmap(targetSize.Width, targetSize.Height, PixelFormat.Format32bppArgb)
+            Using g As Graphics = Graphics.FromImage(Target)
+                g.Clear(Color.Transparent)
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic
+                g.SmoothingMode = SmoothingMode.AntiAlias
+                g.DrawIconUnstretched(source, New Rectangle(Point.Empty, targetSize))
+
+                Dim OverlaySize As Integer = Math.Max(1, Math.Min(targetSize.Width, targetSize.Height) \ 2)
+                Dim Padding As Integer = 3
+                Dim OverlayX As Integer = targetSize.Width - OverlaySize - Padding
+                Dim OverlayY As Integer = targetSize.Height - OverlaySize - Padding
+                Using BackplateBrush As New SolidBrush(Color.FromArgb(235, Color.White))
+                    g.FillEllipse(BackplateBrush, OverlayX - 2, OverlayY - 2, OverlaySize + 4, OverlaySize + 4)
+                End Using
+                Using BackplatePen As New Pen(Color.FromArgb(180, 160, 160, 160), 1.0F)
+                    g.DrawEllipse(BackplatePen, OverlayX - 2, OverlayY - 2, OverlaySize + 4, OverlaySize + 4)
+                End Using
+                g.DrawImage(My.Resources.Resources.sharing, OverlayX, OverlayY, OverlaySize, OverlaySize)
+                g.Flush()
+            End Using
+            Return ImageToIcon(Target, targetSize)
+        End Using
     End Function
 
     Private Shared Function ImageToIcon(ByVal img As Image, targetSize As Size) As Icon

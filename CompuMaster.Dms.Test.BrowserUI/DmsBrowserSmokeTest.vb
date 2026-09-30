@@ -14,6 +14,7 @@ Public Class DmsBrowserSmokeTest
     <Test>
     Public Sub ConstructorInitializesFileIconImageListWithoutSerializedImageStream()
         Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+            InitializeFileIconsWrapper(browser)
             Dim imageList As ImageList = GetImageListFileIcons(browser)
 
             ClassicAssert.AreEqual(8, imageList.Images.Count)
@@ -25,6 +26,24 @@ Public Class DmsBrowserSmokeTest
             ClassicAssert.AreEqual("iconfinder_Folder-ui-ux-mobile-web_4960713 - Shared.png", imageList.Images.Keys(5))
             ClassicAssert.AreEqual("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706.png", imageList.Images.Keys(6))
             ClassicAssert.AreEqual("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706 - Shared.png", imageList.Images.Keys(7))
+            ClassicAssert.IsFalse(AreImagesEqual(imageList.Images(6), imageList.Images(7)))
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub SharedExtensionIconIsAddedThroughWrapperPath()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+            Dim wrapper As Object = InitializeFileIconsWrapper(browser)
+            Dim imageList As ImageList = GetImageListFileIcons(browser)
+            Dim initialImageCount As Integer = imageList.Images.Count
+
+            Dim methodInfo As MethodInfo = wrapper.GetType().GetMethod("GetSIImageListIndexForFileExtension", BindingFlags.Instance Or BindingFlags.Public)
+            ClassicAssert.IsNotNull(methodInfo)
+
+            Dim sharedTextIconIndex As Integer = CInt(methodInfo.Invoke(wrapper, New Object() {".txt", True}))
+
+            ClassicAssert.GreaterOrEqual(sharedTextIconIndex, 0)
+            ClassicAssert.Greater(imageList.Images.Count, initialImageCount)
         End Using
     End Sub
 
@@ -119,6 +138,24 @@ Public Class DmsBrowserSmokeTest
 
     Private Shared Function ScaleLogicalPixels(logicalPixels As Integer, deviceDpi As Integer) As Integer
         Return Math.Min(MaximumImageListDimension, CInt(Math.Round(CDbl(logicalPixels) * CDbl(deviceDpi) / DefaultDpi, MidpointRounding.AwayFromZero)))
+    End Function
+
+    Private Shared Function InitializeFileIconsWrapper(browser As Global.CompuMaster.Dms.BrowserUI.DmsBrowser) As Object
+        Dim propertyInfo As PropertyInfo = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetProperty("FileIcons", BindingFlags.Instance Or BindingFlags.NonPublic)
+        ClassicAssert.IsNotNull(propertyInfo)
+        Return propertyInfo.GetValue(browser)
+    End Function
+
+    Private Shared Function AreImagesEqual(first As Drawing.Image, second As Drawing.Image) As Boolean
+        Using firstBitmap As New Drawing.Bitmap(first), secondBitmap As New Drawing.Bitmap(second)
+            If firstBitmap.Width <> secondBitmap.Width OrElse firstBitmap.Height <> secondBitmap.Height Then Return False
+            For x As Integer = 0 To firstBitmap.Width - 1
+                For y As Integer = 0 To firstBitmap.Height - 1
+                    If firstBitmap.GetPixel(x, y) <> secondBitmap.GetPixel(x, y) Then Return False
+                Next
+            Next
+            Return True
+        End Using
     End Function
 
 End Class
