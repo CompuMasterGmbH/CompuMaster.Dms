@@ -893,7 +893,7 @@ Public MustInherit Class BaseDmsProviderTestBase
             .MaxUploads = 4000,
             .MaxBytes = Integer.MaxValue,
             .Password = Guid.NewGuid.ToString("n"),
-            .Name = "UnitTest_UploadLinkShare_" & RemoteTestFolderName
+            .Name = "UnitTest_UploadLink"
             }
 
         ShareLink = DmsProvider.CreateLink(RemoteDirItem, ShareLink)
