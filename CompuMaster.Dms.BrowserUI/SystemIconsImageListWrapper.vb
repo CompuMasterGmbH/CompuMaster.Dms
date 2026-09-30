@@ -130,6 +130,10 @@ Friend NotInheritable Class SystemIconsImageListWrapper
     End Function
 
 #Disable Warning IDE0060 ' Nicht verwendete Parameter entfernen
+    ' Integration contract for #13: the source icon already matches SIImageList.ImageSize.
+    ' The shared overlay compositor must return that same size so ImageList does not rescale
+    ' the finished composition. Pixel-designed overlay variants should be selected for the
+    ' physical target size, with at most one high-quality resize as a fallback.
     ''' <summary>
     ''' Draw an overlay symbolizing a shared file item on top of the icon
     ''' </summary>
