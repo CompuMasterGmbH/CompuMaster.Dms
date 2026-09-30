@@ -5,6 +5,7 @@ Imports System.IO
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
+<TestFixture, Category("RemoteDms"), Category("ScopevisioTeamwork")>
 Public Class ScopevisioTeamworkProviderTest
     Inherits BaseDmsProviderTestBase
 
