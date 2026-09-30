@@ -102,14 +102,21 @@ jobs:
             displayName: OwnCloud WebDAV
             category: OwnCloudWebDav
             lock: dms-test-server-owncloud-webdav
+          - id: nextcloud-webdav
+            displayName: Nextcloud WebDAV
+            category: NextcloudWebDav
+            lock: dms-test-server-nextcloud-webdav
 
     env:
       TEST_SCOPEVISIOTEAMWORK_USERNAME: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_USERNAME || '' }}
       TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO || '' }}
       TEST_SCOPEVISIOTEAMWORK_PASSWORD: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_PASSWORD || '' }}
-      TEST_WEBDAV_SERVERURL: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
-      TEST_WEBDAV_USERNAME: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
-      TEST_WEBDAV_PASSWORD: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
+      TEST_CMOWNCLOUD_SERVERURL: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
+      TEST_CMOWNCLOUD_USERNAME: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
+      TEST_CMOWNCLOUD_PASSWORD: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
+      TEST_CMNEXTCLOUD_SERVERURL: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_SERVERURL || '' }}
+      TEST_CMNEXTCLOUD_USERNAME: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_USERNAME || '' }}
+      TEST_CMNEXTCLOUD_PASSWORD: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_PASSWORD || '' }}
 
     steps:
       - name: Checkout

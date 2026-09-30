@@ -16,8 +16,15 @@ The currently configured remote systems are:
 | --- | --- | --- | --- |
 | Scopevisio Teamwork | `ScopevisioTeamwork` | `dms-test-server-scopevisio-teamwork` | `TEST_SCOPEVISIOTEAMWORK_USERNAME`, `TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO`, `TEST_SCOPEVISIOTEAMWORK_PASSWORD` |
 | OwnCloud through WebDAV | `OwnCloudWebDav` | `dms-test-server-owncloud-webdav` | `TEST_CMOWNCLOUD_SERVERURL`, `TEST_CMOWNCLOUD_USERNAME`, `TEST_CMOWNCLOUD_PASSWORD` |
+| Nextcloud through WebDAV | `NextcloudWebDav` | `dms-test-server-nextcloud-webdav` | `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, `TEST_CMNEXTCLOUD_PASSWORD` |
 
-The Nextcloud, ownCloud, and ownCloud Infinite Scale sharing tests that use fake clients are isolated tests and do not require a server lock. If a physical Nextcloud or another remote test system is added later, add a distinct category, matrix entry, secret set, and concurrency group for that server. Never reuse a lock for distinct servers, and never let two entries that mutate the same server use different locks.
+The provider-specific sharing tests that use fake clients remain isolated tests and do not require a server lock. If another physical remote test system is added later, add a distinct category, matrix entry, secret set, and concurrency group for that server. Never reuse a lock for distinct servers, and never let two entries that mutate the same server use different locks.
+
+## Local remote-test credentials
+
+Ordinary builds and isolated tests do not need remote credentials. To run one of the remote WebDAV partitions locally, set the same provider-specific environment variables listed above and select exactly that server category. The Nextcloud partition reads `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, and `TEST_CMNEXTCLOUD_PASSWORD`; the OwnCloud partition reads the corresponding `TEST_CMOWNCLOUD_*` variables. The `TEST_WEBDAV_*` namespace is intentionally not used by either partition and remains available for a future generic WebDAV test server.
+
+Run remote tests locally only after establishing an exclusive window with CI and other users of that physical server. Select one partition explicitly, for example `dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --filter "TestCategory=NextcloudWebDav"`. Never run all remote partitions locally as a general verification step.
 
 ## Resource-lock boundaries
 
