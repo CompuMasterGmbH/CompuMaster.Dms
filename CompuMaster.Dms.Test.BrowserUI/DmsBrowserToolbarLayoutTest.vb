@@ -24,11 +24,12 @@ Public Class DmsBrowserToolbarLayoutTest
             Dim folderSharingToolbar As ToolStrip = GetFieldValue(Of ToolStrip)(browser, "ToolStripFolderShareActions")
             Dim propertiesToolbar As ToolStrip = GetFieldValue(Of ToolStrip)(browser, "ToolStripProperties")
 
-            browser.ClientSize = New Size(1500, 700)
             Dim widthWithoutSharingToolbars As Integer = fileActionsToolbar.Width + fileActionsToolbar.Margin.Horizontal + propertiesToolbar.Width + propertiesToolbar.Margin.Horizontal
             Dim widthWithSharingToolbars As Integer = widthWithoutSharingToolbars + fileSharingToolbar.Width + fileSharingToolbar.Margin.Horizontal + folderSharingToolbar.Width + folderSharingToolbar.Margin.Horizontal
             Dim targetFilePanelWidth As Integer = (widthWithoutSharingToolbars + widthWithSharingToolbars) \ 2
-            splitContainer.SplitterDistance = splitContainer.ClientSize.Width - splitContainer.SplitterWidth - targetFilePanelWidth
+            splitContainer.Anchor = AnchorStyles.None
+            splitContainer.Size = New Size(splitContainer.Panel1MinSize + splitContainer.SplitterWidth + targetFilePanelWidth, splitContainer.Height)
+            splitContainer.SplitterDistance = splitContainer.Panel1MinSize
             PerformFilePanelLayout(browser, splitContainer, toolbarHost)
             Dim heightWithSharingToolbars As Integer = toolbarHost.Height
 
