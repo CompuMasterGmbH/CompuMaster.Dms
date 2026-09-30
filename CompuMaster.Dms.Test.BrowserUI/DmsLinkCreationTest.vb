@@ -49,6 +49,32 @@ Public Class DmsLinkCreationTest
         ClassicAssert.AreEqual(1, RenderedExternalSharingRowCount(dmsItem, provider))
     End Sub
 
+    <TestCase(DmsResourceItem.ItemTypes.File, False)>
+    <TestCase(DmsResourceItem.ItemTypes.Folder, False)>
+    <TestCase(DmsResourceItem.ItemTypes.Collection, True)>
+    Public Sub ScopevisioUploadLinksAreOfferedOnlyForCollections(itemType As DmsResourceItem.ItemTypes, uploadSupported As Boolean)
+        Dim provider As New ScopevisioTeamworkDmsProvider(True)
+        Dim dmsItem As DmsResourceItem = CreateDmsItem()
+        dmsItem.ItemType = itemType
+
+        Using setupDialog As New Global.CompuMaster.Dms.BrowserUI.DmsLinkShareSetup()
+            setupDialog.DmsProvider = provider
+            setupDialog.DmsItem = dmsItem
+            setupDialog.DialogMode = Global.CompuMaster.Dms.BrowserUI.DmsLinkShareSetup.DialogModes.CreateLink
+            InvokePrivateMethod(setupDialog, "DmsLinkShare_Load")
+
+            ClassicAssert.AreEqual(uploadSupported, setupDialog.CheckBoxAllowUpload.Enabled)
+            ClassicAssert.IsFalse(setupDialog.CheckBoxAllowUpload.Checked)
+            ClassicAssert.IsTrue(setupDialog.CheckBoxAllowView.Enabled)
+            ClassicAssert.IsFalse(setupDialog.CheckBoxMaxBytes.Enabled)
+            If uploadSupported Then
+                setupDialog.CheckBoxAllowView.Checked = False
+                setupDialog.CheckBoxAllowUpload.Checked = True
+                ClassicAssert.IsTrue(setupDialog.CheckBoxMaxBytes.Enabled)
+            End If
+        End Using
+    End Sub
+
     <Test>
     Public Sub RepeatedCreationPreservesDistinctLinksAndReopeningDoesNotAccumulateRows()
         Dim provider As New ScopevisioTeamworkDmsProvider(True)
