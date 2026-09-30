@@ -130,6 +130,16 @@ Namespace Data
         ''' <returns></returns>
         Public Property ContentLength As Long
         ''' <summary>
+        ''' Gets or sets the known number of direct child directories, including folders and collections.
+        ''' </summary>
+        ''' <returns>The child directory count, or <see langword="Nothing"/> when the provider did not supply an exact count.</returns>
+        Public Property ChildDirectoryCount As Integer?
+        ''' <summary>
+        ''' Gets or sets whether the item has direct child directories, including folders and collections.
+        ''' </summary>
+        ''' <returns><see langword="Nothing"/> when the provider did not supply this metadata.</returns>
+        Public Property HasChildDirectories As Boolean?
+        ''' <summary>
         ''' This item represents a folder item
         ''' </summary>
         ''' <returns></returns>
