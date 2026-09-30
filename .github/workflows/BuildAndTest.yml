@@ -99,16 +99,16 @@ jobs:
             category: ScopevisioTeamwork
             lock: dms-test-server-scopevisio-teamwork
           - id: owncloud-webdav
-            displayName: OwnCloud WebDAV
-            category: OwnCloudWebDav
+            displayName: OwnCloud
+            category: OwnCloud
             lock: dms-test-server-owncloud-webdav
           - id: generic-webdav
-            displayName: Generic WebDAV on OwnCloud
-            category: GenericWebDav
+            displayName: WebDAV
+            category: WebDav
             lock: dms-test-server-owncloud-webdav
           - id: nextcloud-webdav
-            displayName: Nextcloud WebDAV
-            category: NextcloudWebDav
+            displayName: Nextcloud
+            category: Nextcloud
             lock: dms-test-server-nextcloud-webdav
 
     env:

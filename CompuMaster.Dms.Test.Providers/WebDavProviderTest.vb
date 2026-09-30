@@ -86,7 +86,7 @@ Public MustInherit Class WebDavProviderTestBase
 
 End Class
 
-<TestFixture, Category("RemoteDms"), Category("GenericWebDav")>
+<TestFixture, Category("RemoteDms"), Category("WebDav")>
 Public NotInheritable Class WebDavProviderTest
     Inherits WebDavProviderTestBase
 
@@ -95,7 +95,7 @@ Public NotInheritable Class WebDavProviderTest
     End Function
 End Class
 
-<TestFixture, Category("RemoteDms"), Category("OwnCloudWebDav")>
+<TestFixture, Category("RemoteDms"), Category("OwnCloud")>
 Public NotInheritable Class OwnCloudWebDavProviderTest
     Inherits WebDavProviderTestBase
 

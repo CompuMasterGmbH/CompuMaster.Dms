@@ -3,7 +3,7 @@ Option Strict On
 
 Imports NUnit.Framework
 
-<TestFixture, Category("RemoteDms"), Category("NextcloudWebDav")>
+<TestFixture, Category("RemoteDms"), Category("Nextcloud")>
 Public NotInheritable Class NextcloudWebDavProviderTest
     Inherits WebDavProviderTestBase
 

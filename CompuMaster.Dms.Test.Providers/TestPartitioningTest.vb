@@ -4,11 +4,11 @@ Imports NUnit.Framework
 <TestFixture>
 Public NotInheritable Class TestPartitioningTest
 
-    Private Shared ReadOnly RemoteServerCategories As String() = {
+    Private Shared ReadOnly RemotePartitionCategories As String() = {
         "ScopevisioTeamwork",
-        "GenericWebDav",
-        "OwnCloudWebDav",
-        "NextcloudWebDav"
+        "WebDav",
+        "OwnCloud",
+        "Nextcloud"
     }
 
     <Test>
@@ -28,7 +28,7 @@ Public NotInheritable Class TestPartitioningTest
                         ToArray()
 
                     Assert.That(Categories, Does.Contain("RemoteDms"), RemoteFixture.FullName & " must be excluded from lock-free test jobs.")
-                    Assert.That(Categories.Intersect(RemoteServerCategories).Count(), [Is].EqualTo(1), RemoteFixture.FullName & " must identify exactly one physical remote test server.")
+                    Assert.That(Categories.Intersect(RemotePartitionCategories).Count(), [Is].EqualTo(1), RemoteFixture.FullName & " must identify exactly one logical remote test partition.")
                 Next
             End Sub)
     End Sub
