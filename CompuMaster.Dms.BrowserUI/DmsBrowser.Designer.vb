@@ -397,6 +397,7 @@ Partial Class DmsBrowser
         '
         'FlowLayoutPanel1
         '
+        Me.FlowLayoutPanel1.AutoSize = True
         Me.FlowLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.FlowLayoutPanel1.Controls.Add(Me.ToolStripFileActions)
         Me.FlowLayoutPanel1.Controls.Add(Me.ToolStripFileShareActions)
@@ -412,7 +413,7 @@ Partial Class DmsBrowser
         'ToolStripFileActions
         '
         Me.ToolStripFileActions.Dock = System.Windows.Forms.DockStyle.None
-        Me.ToolStripFileActions.ImageScalingSize = New System.Drawing.Size(19, 19)
+        Me.ToolStripFileActions.ImageScalingSize = New System.Drawing.Size(16, 16)
         Me.ToolStripFileActions.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonUploadFile, Me.ToolStripButtonDownloadFile, Me.ToolStripButtonOpenFile, Me.ToolStripButtonDeleteFile, Me.ToolStripSeparatorBeforeCopyRenameMove, Me.ToolStripButtonCopyFile, Me.ToolStripButtonRenameFile, Me.ToolStripButtonMoveFile})
         Me.ToolStripFileActions.Location = New System.Drawing.Point(0, 0)
         Me.ToolStripFileActions.Name = "ToolStripFileActions"
@@ -484,7 +485,7 @@ Partial Class DmsBrowser
         'ToolStripFileShareActions
         '
         Me.ToolStripFileShareActions.Dock = System.Windows.Forms.DockStyle.None
-        Me.ToolStripFileShareActions.ImageScalingSize = New System.Drawing.Size(19, 19)
+        Me.ToolStripFileShareActions.ImageScalingSize = New System.Drawing.Size(16, 16)
         Me.ToolStripFileShareActions.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonSharingsFile})
         Me.ToolStripFileShareActions.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow
         Me.ToolStripFileShareActions.Location = New System.Drawing.Point(0, 26)
@@ -504,7 +505,7 @@ Partial Class DmsBrowser
         'ToolStripFolderShareActions
         '
         Me.ToolStripFolderShareActions.Dock = System.Windows.Forms.DockStyle.None
-        Me.ToolStripFolderShareActions.ImageScalingSize = New System.Drawing.Size(19, 19)
+        Me.ToolStripFolderShareActions.ImageScalingSize = New System.Drawing.Size(16, 16)
         Me.ToolStripFolderShareActions.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonSharingsFolder})
         Me.ToolStripFolderShareActions.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow
         Me.ToolStripFolderShareActions.Location = New System.Drawing.Point(145, 26)
@@ -524,7 +525,7 @@ Partial Class DmsBrowser
         'ToolStripProperties
         '
         Me.ToolStripProperties.Dock = System.Windows.Forms.DockStyle.None
-        Me.ToolStripProperties.ImageScalingSize = New System.Drawing.Size(19, 19)
+        Me.ToolStripProperties.ImageScalingSize = New System.Drawing.Size(16, 16)
         Me.ToolStripProperties.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripButtonPropertiesFile, Me.ToolStripButtonPropertiesFolder, Me.ToolStripButtonRefreshFilesList})
         Me.ToolStripProperties.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow
         Me.ToolStripProperties.Location = New System.Drawing.Point(0, 52)
