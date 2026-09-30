@@ -232,6 +232,7 @@ Public Class DmsBrowser
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonDeleteFile, ((value And FileOrFolderActions.AllowDeleteFiles) = FileOrFolderActions.AllowDeleteFiles), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonShareFile, Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonProperties, True, False)
+            Me.UpdateFileToolbarLayout()
         End Set
     End Property
 
@@ -260,6 +261,7 @@ Public Class DmsBrowser
                     Me.ToolStripButtonDeleteFile.Visible = True
                     Me.ButtonShowFiles.Checked = True
             End Select
+            Me.UpdateFileToolbarLayout()
         End Set
     End Property
 
