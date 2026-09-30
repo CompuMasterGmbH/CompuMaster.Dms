@@ -5,11 +5,11 @@ The demo applications can persist login data in provider-specific files below th
 | Demo application | Local test partition | Environment variables | Credential buffer |
 | --- | --- | --- | --- |
 | Scopevisio Teamwork | `ScopevisioTeamworkProviderTest` | `TEST_SCOPEVISIOTEAMWORK_USERNAME`, `TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO`, `TEST_SCOPEVISIOTEAMWORK_PASSWORD` | `Scopevisio.Teamwork.Test` |
-| Generic WebDAV | Future generic WebDAV partition | `TEST_WEBDAV_SERVERURL`, `TEST_WEBDAV_USERNAME`, `TEST_WEBDAV_PASSWORD` | `WebDav.Test` |
-| ownCloud Classic | `WebDavProviderTest` / `OwnCloudWebDav` | `TEST_CMOWNCLOUD_SERVERURL`, `TEST_CMOWNCLOUD_USERNAME`, `TEST_CMOWNCLOUD_PASSWORD` | `OwnCloudWebDav.Test` |
+| Generic WebDAV | `WebDavProviderTest` / `GenericWebDav` | `TEST_WEBDAV_SERVERURL`, `TEST_WEBDAV_USERNAME`, `TEST_WEBDAV_PASSWORD` | `WebDav.Test` |
+| ownCloud Classic | `OwnCloudWebDavProviderTest` / `OwnCloudWebDav` | `TEST_CMOWNCLOUD_SERVERURL`, `TEST_CMOWNCLOUD_USERNAME`, `TEST_CMOWNCLOUD_PASSWORD` | `OwnCloudWebDav.Test` |
 | Nextcloud | `NextcloudWebDavProviderTest` / `NextcloudWebDav` | `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, `TEST_CMNEXTCLOUD_PASSWORD` | `NextcloudWebDav.Test` |
 
-The namespaces are intentionally independent. Generic `TEST_WEBDAV_*` values are not used as a fallback for ownCloud or Nextcloud.
+The namespaces are intentionally independent. Generic `TEST_WEBDAV_*` values are not used as a fallback for ownCloud or Nextcloud. The generic WebDAV and ownCloud Classic partitions currently target the same physical ownCloud server, so CI explicitly maps the ownCloud repository secrets to the generic WebDAV variables as well. Both partitions must use the same exclusive server-resource lock.
 
 To persist credentials, start the matching demo, enter the connection details, select the option to persist login credentials, and close the login window. Passwords are masked in the UI but the existing local buffer mechanism stores values as plain text in the user's temporary directory. Clear the persistence option and close the demo to remove that demo's buffered values.
 
