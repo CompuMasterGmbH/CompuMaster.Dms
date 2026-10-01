@@ -1190,8 +1190,15 @@ Namespace Providers
         ''' <param name="userId">The provider-specific user ID.</param>
         ''' <returns>The trimmed display name, or an empty string when no name is available.</returns>
         Public Shared Function DelegatedGetDisplayName(provider As BaseDmsProvider, userId As String) As String
-            Dim displayName As String = CType(provider, CenterDeviceDmsProviderBase).IOClient.UserName(userId)
+            Dim displayName As String = CType(provider, CenterDeviceDmsProviderBase).LookupUserDisplayName(userId)
             Return If(displayName, String.Empty).Trim()
+        End Function
+
+        ''' <summary>Resolves a CenterDevice user's display name for this provider.</summary>
+        ''' <param name="userId">The provider-specific user ID.</param>
+        ''' <returns>The display name, or an empty string when no name is available.</returns>
+        Protected Overridable Function LookupUserDisplayName(userId As String) As String
+            Return Me.IOClient.UserName(userId)
         End Function
 
         ''' <summary>Resolves a CenterDevice user's display name through the legacy method.</summary>
