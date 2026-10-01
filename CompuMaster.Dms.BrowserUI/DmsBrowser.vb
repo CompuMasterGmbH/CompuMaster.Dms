@@ -1328,7 +1328,7 @@ Public Class DmsBrowser
         End Try
     End Sub
 
-    Private Function PropertiesDetails(dmsItem As DmsResourceItem) As String
+    Friend Function PropertiesDetails(dmsItem As DmsResourceItem) As String
         Dim Message As String = UiStrings.GetText("PropertiesFullPath") & dmsItem.FullName & System.Environment.NewLine &
                 UiStrings.GetText("PropertiesParentFolder") & dmsItem.Folder & System.Environment.NewLine &
                 UiStrings.GetText("PropertiesParentCollection") & dmsItem.Collection & System.Environment.NewLine
@@ -1397,8 +1397,12 @@ Public Class DmsBrowser
         End If
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesExtendedInformation") & System.Environment.NewLine &
-                UiStrings.GetText("PropertiesLastModification") & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine &
-                "IsIntelligent: " & dmsItem.ExtendedInfosIsIntelligent.ToString & System.Environment.NewLine &
+                UiStrings.GetText("PropertiesLastModification") & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine
+        If dmsItem.ItemType <> DmsResourceItem.ItemTypes.File Then
+            Dim HasChildren As Boolean? = HasKnownChildDirectories(dmsItem)
+            Message &= "HasChildDirectories: " & If(HasChildren.HasValue, HasChildren.Value.ToString(), "") & System.Environment.NewLine
+        End If
+        Message &= "IsIntelligent: " & dmsItem.ExtendedInfosIsIntelligent.ToString & System.Environment.NewLine &
                 "IsAuditing: " & dmsItem.ExtendedInfosIsAuditing.ToString & System.Environment.NewLine &
                 "Hash/ETag: " & dmsItem.ProviderSpecificHashOrETag & System.Environment.NewLine &
                 "File ID: " & dmsItem.ExtendedInfosFileID & System.Environment.NewLine &

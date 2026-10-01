@@ -13,6 +13,47 @@ Imports NUnit.Framework.Legacy
 Public Class DmsBrowserLazyTreeTest
 
     <Test>
+    Public Sub DirectoryPropertiesShowKnownChildStateWithoutFetchingChildren()
+        Dim Provider As New InMemoryDmsProvider
+        Dim Folder As DmsResourceItem = CreateDirectory("Folder", Nothing)
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: " & Environment.NewLine, Browser.PropertiesDetails(Folder))
+
+            Dim Collection As DmsResourceItem = CreateDirectory("Collection", Nothing, DmsResourceItem.ItemTypes.Collection)
+            Collection.HasChildDirectories = True
+            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Collection))
+
+            Folder.HasChildDirectories = False
+            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+
+            Folder.HasChildDirectories = True
+            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+
+            Folder.ChildDirectoryCount = 0
+            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+
+            Folder.ChildDirectoryCount = 2
+            Folder.HasChildDirectories = False
+            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+            ClassicAssert.AreEqual(0, Provider.DirectoryListingCount)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub FilePropertiesDoNotShowChildDirectoryState()
+        Dim File As New DmsResourceItem With {
+            .Name = "File.txt",
+            .FullName = "File.txt",
+            .ItemType = DmsResourceItem.ItemTypes.File
+        }
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New InMemoryDmsProvider)
+            ClassicAssert.IsFalse(Browser.PropertiesDetails(File).Contains("HasChildDirectories:"))
+        End Using
+    End Sub
+
+    <Test>
     Public Sub InitialLoadUsesMetadataWithoutListingEveryVisibleDirectory()
         Dim Provider As New InMemoryDmsProvider
         Dim BooleanEmpty As DmsResourceItem = CreateDirectory("BooleanEmpty", Nothing)
