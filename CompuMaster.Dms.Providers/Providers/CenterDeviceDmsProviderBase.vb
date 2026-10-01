@@ -952,6 +952,7 @@ Namespace Providers
         ''' <param name="provider">The CenterDevice provider instance.</param>
         ''' <param name="userId">The provider-specific user ID.</param>
         ''' <returns>The trimmed display name, or an empty string when no name is available.</returns>
+        <Obsolete("Use DelegatedGetDisplayName instead.", True), System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
         Public Shared Function DelegatedGetUserName(provider As BaseDmsProvider, userId As String) As String
             Return DelegatedGetDisplayName(provider, userId)
         End Function

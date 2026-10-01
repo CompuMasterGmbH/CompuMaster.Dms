@@ -302,7 +302,7 @@ Public Class DmsLinkCreationTest
             .ItemType = DmsResourceItem.ItemTypes.File,
             .Name = "document.pdf",
             .FullName = "documents/document.pdf",
-            .ExtendedInfosOwner = New DmsUser() With {.ID = "owner", .Name = "Owner"},
+            .ExtendedInfosOwner = New DmsUser() With {.ID = "owner", .DisplayName = "Owner"},
             .ExtendedInfosLinks = New List(Of DmsLink),
             .ExtendedInfosGroupSharings = New List(Of DmsShareForGroup),
             .ExtendedInfosUserSharings = New List(Of DmsShareForUser)
