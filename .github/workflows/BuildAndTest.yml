@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
@@ -38,15 +38,29 @@ jobs:
       - name: Run isolated tests
         run: dotnet test --framework net8.0 --results-directory test-results --logger junit --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --filter "TestCategory!=RemoteDms"
 
-      - name: Build demo applications and run BrowserUI smoke tests
+      - name: Build Scopevisio Teamwork demo
         if: startsWith(matrix.os, 'windows')
-        run: |
-          dotnet build CompuMaster.Dms.TestDemo.ScopevisioTeamwork/CompuMaster.Dms.TestDemo.ScopevisioTeamwork.vbproj --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
-          dotnet build CompuMaster.Dms.TestDemo.WebDav/CompuMaster.Dms.TestDemo.WebDav.vbproj --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
-          dotnet build CompuMaster.Dms.TestDemo.OwnCloudClassic/CompuMaster.Dms.TestDemo.OwnCloudClassic.vbproj --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
-          dotnet build CompuMaster.Dms.TestDemo.Nextcloud/CompuMaster.Dms.TestDemo.Nextcloud.vbproj --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
-          dotnet build CompuMaster.Dms.Test.BrowserUI/CompuMaster.Dms.Test.BrowserUI.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
-          dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/${{ env.BUILD_CONFIGURATION }}/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll
+        run: dotnet build CompuMaster.Dms.TestDemo.ScopevisioTeamwork/CompuMaster.Dms.TestDemo.ScopevisioTeamwork.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Build WebDAV demo
+        if: startsWith(matrix.os, 'windows')
+        run: dotnet build CompuMaster.Dms.TestDemo.WebDav/CompuMaster.Dms.TestDemo.WebDav.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Build OwnCloud Classic demo
+        if: startsWith(matrix.os, 'windows')
+        run: dotnet build CompuMaster.Dms.TestDemo.OwnCloudClassic/CompuMaster.Dms.TestDemo.OwnCloudClassic.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Build Nextcloud demo
+        if: startsWith(matrix.os, 'windows')
+        run: dotnet build CompuMaster.Dms.TestDemo.Nextcloud/CompuMaster.Dms.TestDemo.Nextcloud.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Build BrowserUI smoke tests
+        if: startsWith(matrix.os, 'windows')
+        run: dotnet build CompuMaster.Dms.Test.BrowserUI/CompuMaster.Dms.Test.BrowserUI.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Run BrowserUI smoke tests
+        if: startsWith(matrix.os, 'windows')
+        run: dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/${{ env.BUILD_CONFIGURATION }}/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll
 
       - name: Publish isolated test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -59,9 +73,20 @@ jobs:
           check_name: Isolated Test Results (${{ matrix.os }})
           report_individual_runs: true
 
-      - name: Publish isolated test results (Windows/macOS)
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
-        if: always() && !startsWith(matrix.os, 'ubuntu') && hashFiles('test-results/TestResults.xml') != ''
+      - name: Publish isolated test results (Windows)
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        if: always() && startsWith(matrix.os, 'windows') && hashFiles('test-results/TestResults.xml') != ''
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: test-results/TestResults.xml
+          check_run_annotations: all tests
+          comment_title: Isolated Test Statistics (${{ matrix.os }})
+          check_name: Isolated Test Results (${{ matrix.os }})
+          report_individual_runs: true
+
+      - name: Publish isolated test results (macOS)
+        uses: EnricoMi/publish-unit-test-result-action/macos@v2
+        if: always() && startsWith(matrix.os, 'macos') && hashFiles('test-results/TestResults.xml') != ''
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: test-results/TestResults.xml
@@ -71,7 +96,7 @@ jobs:
           report_individual_runs: true
 
       - name: Upload isolated test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: NUnit Isolated Test Results ${{ matrix.os }}
@@ -135,10 +160,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
@@ -164,9 +189,20 @@ jobs:
           check_name: ${{ matrix.server.displayName }} Test Results (${{ matrix.os }})
           report_individual_runs: true
 
-      - name: Publish integration test results (Windows/macOS)
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
-        if: always() && !startsWith(matrix.os, 'ubuntu') && hashFiles('test-results/TestResults.xml') != ''
+      - name: Publish integration test results (Windows)
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        if: always() && startsWith(matrix.os, 'windows') && hashFiles('test-results/TestResults.xml') != ''
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: test-results/TestResults.xml
+          check_run_annotations: all tests
+          comment_title: ${{ matrix.server.displayName }} Test Statistics (${{ matrix.os }})
+          check_name: ${{ matrix.server.displayName }} Test Results (${{ matrix.os }})
+          report_individual_runs: true
+
+      - name: Publish integration test results (macOS)
+        uses: EnricoMi/publish-unit-test-result-action/macos@v2
+        if: always() && startsWith(matrix.os, 'macos') && hashFiles('test-results/TestResults.xml') != ''
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: test-results/TestResults.xml
@@ -176,7 +212,7 @@ jobs:
           report_individual_runs: true
 
       - name: Upload integration test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: NUnit ${{ matrix.server.id }} Test Results ${{ matrix.os }}
