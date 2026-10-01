@@ -438,6 +438,7 @@ Public Class DmsBrowser
 
     Private Shared Function HasKnownChildDirectories(item As DmsResourceItem) As Boolean?
         If item Is Nothing Then Return Nothing
+        If item.ItemType = DmsResourceItem.ItemTypes.File Then Return False
         If item.ChildDirectoryCount.HasValue Then Return item.ChildDirectoryCount.Value > 0
         Return item.HasChildDirectories
     End Function
@@ -1337,89 +1338,87 @@ Public Class DmsBrowser
         End If
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesDetails") & System.Environment.NewLine &
-                UiStrings.GetText("PropertiesOwner") & dmsItem.ExtendedInfosOwner.ToString & System.Environment.NewLine &
-                UiStrings.GetText("PropertiesVersionNumber") & dmsItem.ExtendedInfosVersion & System.Environment.NewLine
-        If dmsItem.ExtendedInfosVersionDateLocalTime.HasValue Then Message &= UiStrings.GetText("PropertiesVersionDate") & dmsItem.ExtendedInfosVersionDateLocalTime & System.Environment.NewLine
-        If dmsItem.ExtendedInfosArchivedDateLocalTime.HasValue Then Message &= UiStrings.GetText("PropertiesArchivedDate") & dmsItem.ExtendedInfosArchivedDateLocalTime & System.Environment.NewLine
+                "- " & UiStrings.GetText("PropertiesOwner") & dmsItem.ExtendedInfosOwner.ToString & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesVersionNumber") & dmsItem.ExtendedInfosVersion & System.Environment.NewLine
+        If dmsItem.ExtendedInfosVersionDateLocalTime.HasValue Then Message &= "- " & UiStrings.GetText("PropertiesVersionDate") & dmsItem.ExtendedInfosVersionDateLocalTime & System.Environment.NewLine
+        If dmsItem.ExtendedInfosArchivedDateLocalTime.HasValue Then Message &= "- " & UiStrings.GetText("PropertiesArchivedDate") & dmsItem.ExtendedInfosArchivedDateLocalTime & System.Environment.NewLine
         If dmsItem.ExtendedInfosLockedByUser.ToString <> Nothing Then
-            Message &= UiStrings.GetText("PropertiesLockedBy") & dmsItem.ExtendedInfosLockedByUser.ToString & System.Environment.NewLine
+            Message &= "- " & UiStrings.GetText("PropertiesLockedBy") & dmsItem.ExtendedInfosLockedByUser.ToString & System.Environment.NewLine
         End If
         If dmsItem.ExtendedInfosLocks IsNot Nothing AndAlso dmsItem.ExtendedInfosLocks.Count <> 0 Then
-            Message &= UiStrings.GetText("PropertiesLocks") & System.Environment.NewLine
+            Message &= "- " & UiStrings.GetText("PropertiesLocks") & System.Environment.NewLine
             For Each Lock As String In dmsItem.ExtendedInfosLocks
-                Message &= "- " & Lock & System.Environment.NewLine
+                Message &= "  - " & Lock & System.Environment.NewLine
             Next
         End If
         If dmsItem.ExtendedInfosCollisionDetected Then
-            Message &= UiStrings.GetText("PropertiesCollisionWarning") & System.Environment.NewLine
+            Message &= "- " & UiStrings.GetText("PropertiesCollisionWarning") & System.Environment.NewLine
         End If
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesSharings") & System.Environment.NewLine &
-                "IsShared: " & dmsItem.ExtendedInfosIsShared.ToString & System.Environment.NewLine
+                "- IsShared: " & dmsItem.ExtendedInfosIsShared.ToString & System.Environment.NewLine
         If dmsItem.ItemType = DmsResourceItem.ItemTypes.Collection Then
-            Message &= "IsPublicCollection: " & dmsItem.ExtendedInfosIsPublicCollection.ToString & System.Environment.NewLine
+            Message &= "- IsPublicCollection: " & dmsItem.ExtendedInfosIsPublicCollection.ToString & System.Environment.NewLine
         End If
-        Message &= "HasHiddenGroupSharings: " & dmsItem.ExtendedInfosHasHiddenGroupSharings & System.Environment.NewLine &
-                "HasGroupSharings: " & dmsItem.ExtendedInfosHasGroupSharings & System.Environment.NewLine
+        Message &= "- HasHiddenGroupSharings: " & dmsItem.ExtendedInfosHasHiddenGroupSharings & System.Environment.NewLine &
+                "- HasGroupSharings: " & dmsItem.ExtendedInfosHasGroupSharings & System.Environment.NewLine
         If dmsItem.ExtendedInfosGroupSharings IsNot Nothing Then
             For Each Sharing As DmsShareForGroup In dmsItem.ExtendedInfosGroupSharings
-                Message &= "- " & Sharing.ToString & System.Environment.NewLine
+                Message &= "  - " & Sharing.ToString & System.Environment.NewLine
             Next
         End If
-        Message &= "HasHiddenUserSharings: " & dmsItem.ExtendedInfosHasHiddenUserSharings & System.Environment.NewLine &
-                "HasUserSharings: " & dmsItem.ExtendedInfosHasUserSharings & System.Environment.NewLine
+        Message &= "- HasHiddenUserSharings: " & dmsItem.ExtendedInfosHasHiddenUserSharings & System.Environment.NewLine &
+                "- HasUserSharings: " & dmsItem.ExtendedInfosHasUserSharings & System.Environment.NewLine
         If dmsItem.ExtendedInfosUserSharings IsNot Nothing Then
             For Each Sharing As DmsShareForUser In dmsItem.ExtendedInfosUserSharings
-                Message &= "- " & Sharing.ToString & System.Environment.NewLine
+                Message &= "  - " & Sharing.ToString & System.Environment.NewLine
             Next
         End If
         If dmsItem.ExtendedInfosLinks IsNot Nothing Then
             For Each ViewLink As DmsLink In dmsItem.ExtendedInfosLinks
                 If ViewLink.ID <> Nothing Then
                     ViewLink.Refresh()
-                    Message &= "Link: " & ViewLink.ID & System.Environment.NewLine &
-                "- WebUrl: " & ViewLink.WebUrl & System.Environment.NewLine &
-                "- DownloadUrl: " & ViewLink.DownloadUrl & System.Environment.NewLine &
-                "- Password: " & ViewLink.Password & System.Environment.NewLine &
-                "- ExpiresOn: " & ViewLink.ExpiryDateLocalTime & System.Environment.NewLine &
-                "- MaxDownloads: " & ViewLink.MaxDownloads & System.Environment.NewLine &
-                "- MaxBytes: " & ViewLink.MaxBytes & System.Environment.NewLine &
-                "- MaxUploads: " & ViewLink.MaxUploads & System.Environment.NewLine &
-                "- UploadsCount: " & ViewLink.UploadsCount & System.Environment.NewLine &
-                "- UploadedBytes: " & ViewLink.UploadedBytes & System.Environment.NewLine &
-                "- AllowView: " & ViewLink.AllowView & System.Environment.NewLine &
-                "- AllowDownload: " & ViewLink.AllowDownload & System.Environment.NewLine &
-                "- AllowUpload: " & ViewLink.AllowUpload & System.Environment.NewLine &
-                "- AllowEdit: " & ViewLink.AllowEdit & System.Environment.NewLine &
-                "- AllowDelete: " & ViewLink.AllowDelete & System.Environment.NewLine
+                    Message &= "- Link: " & ViewLink.ID & System.Environment.NewLine &
+                "  - WebUrl: " & ViewLink.WebUrl & System.Environment.NewLine &
+                "  - DownloadUrl: " & ViewLink.DownloadUrl & System.Environment.NewLine &
+                "  - Password: " & ViewLink.Password & System.Environment.NewLine &
+                "  - ExpiresOn: " & ViewLink.ExpiryDateLocalTime & System.Environment.NewLine &
+                "  - MaxDownloads: " & ViewLink.MaxDownloads & System.Environment.NewLine &
+                "  - MaxBytes: " & ViewLink.MaxBytes & System.Environment.NewLine &
+                "  - MaxUploads: " & ViewLink.MaxUploads & System.Environment.NewLine &
+                "  - UploadsCount: " & ViewLink.UploadsCount & System.Environment.NewLine &
+                "  - UploadedBytes: " & ViewLink.UploadedBytes & System.Environment.NewLine &
+                "  - AllowView: " & ViewLink.AllowView & System.Environment.NewLine &
+                "  - AllowDownload: " & ViewLink.AllowDownload & System.Environment.NewLine &
+                "  - AllowUpload: " & ViewLink.AllowUpload & System.Environment.NewLine &
+                "  - AllowEdit: " & ViewLink.AllowEdit & System.Environment.NewLine &
+                "  - AllowDelete: " & ViewLink.AllowDelete & System.Environment.NewLine
                 End If
             Next
         End If
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesExtendedInformation") & System.Environment.NewLine &
-                UiStrings.GetText("PropertiesLastModification") & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine
-        If dmsItem.ItemType <> DmsResourceItem.ItemTypes.File Then
-            Dim HasChildren As Boolean? = HasKnownChildDirectories(dmsItem)
-            Message &= "HasChildDirectories: " & If(HasChildren.HasValue, HasChildren.Value.ToString(), "") & System.Environment.NewLine
-        End If
-        Message &= "IsIntelligent: " & dmsItem.ExtendedInfosIsIntelligent.ToString & System.Environment.NewLine &
-                "IsAuditing: " & dmsItem.ExtendedInfosIsAuditing.ToString & System.Environment.NewLine &
-                "Hash/ETag: " & dmsItem.ProviderSpecificHashOrETag & System.Environment.NewLine &
-                "File ID: " & dmsItem.ExtendedInfosFileID & System.Environment.NewLine &
-                "Folder ID: " & dmsItem.ExtendedInfosFolderID & System.Environment.NewLine &
-                "Collection ID: " & dmsItem.ExtendedInfosCollectionID & System.Environment.NewLine &
-                "Assigned Collection ID: " & dmsItem.ExtendedInfosAssignedCollectionID & System.Environment.NewLine &
-                "Assigned Folder ID: " & dmsItem.ExtendedInfosAssignedFolderID & System.Environment.NewLine
+                "- " & UiStrings.GetText("PropertiesLastModification") & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine
+        Dim HasChildren As Boolean? = HasKnownChildDirectories(dmsItem)
+        Message &= "- HasChildDirectories: " & If(HasChildren.HasValue, HasChildren.Value.ToString(), "") & System.Environment.NewLine &
+                "- IsIntelligent: " & dmsItem.ExtendedInfosIsIntelligent.ToString & System.Environment.NewLine &
+                "- IsAuditing: " & dmsItem.ExtendedInfosIsAuditing.ToString & System.Environment.NewLine &
+                "- Hash/ETag: " & dmsItem.ProviderSpecificHashOrETag & System.Environment.NewLine &
+                "- File ID: " & dmsItem.ExtendedInfosFileID & System.Environment.NewLine &
+                "- Folder ID: " & dmsItem.ExtendedInfosFolderID & System.Environment.NewLine &
+                "- Collection ID: " & dmsItem.ExtendedInfosCollectionID & System.Environment.NewLine &
+                "- Assigned Collection ID: " & dmsItem.ExtendedInfosAssignedCollectionID & System.Environment.NewLine &
+                "- Assigned Folder ID: " & dmsItem.ExtendedInfosAssignedFolderID & System.Environment.NewLine
         If dmsItem.ExtendedInfosReferencedFromCollectionIDs IsNot Nothing Then
-            Message &= UiStrings.GetText("PropertiesReferencedCollectionIds") & System.Environment.NewLine
+            Message &= "- " & UiStrings.GetText("PropertiesReferencedCollectionIds") & System.Environment.NewLine
             For Each item As String In dmsItem.ExtendedInfosReferencedFromCollectionIDs
-                Message &= "- " & Me.LookupCollectionNameForUI(item, dmsItem) & System.Environment.NewLine
+                Message &= "  - " & Me.LookupCollectionNameForUI(item, dmsItem) & System.Environment.NewLine
             Next
         End If
         If dmsItem.ExtendedInfosReferencedFromFolderIDs IsNot Nothing Then
-            Message &= UiStrings.GetText("PropertiesReferencedFolderIds") & System.Environment.NewLine
+            Message &= "- " & UiStrings.GetText("PropertiesReferencedFolderIds") & System.Environment.NewLine
             For Each item As String In dmsItem.ExtendedInfosReferencedFromFolderIDs
-                Message &= "- " & Me.LookupFolderNameForUI(item, dmsItem) & System.Environment.NewLine
+                Message &= "  - " & Me.LookupFolderNameForUI(item, dmsItem) & System.Environment.NewLine
             Next
         End If
         Return Message
