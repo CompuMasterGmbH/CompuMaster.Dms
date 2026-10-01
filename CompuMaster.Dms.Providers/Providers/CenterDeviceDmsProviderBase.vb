@@ -339,12 +339,32 @@ Namespace Providers
 
         Private Function GetParentDirectory(remoteItem As DmsResourceItem) As CenterDevice.IO.DirectoryInfo
             If remoteItem.ExtendedInfosAssignedFolderID <> Nothing Then
-                Return New CenterDevice.IO.DirectoryInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Folder.GetFolder(Me.IOClient.CurrentAuthenticationContextUserID, remoteItem.ExtendedInfosAssignedFolderID, Nothing))
+                Return Me.GetFolderDirectoryById(remoteItem.ExtendedInfosAssignedFolderID, remoteItem.ExtendedInfosAssignedCollectionID, New HashSet(Of String)(StringComparer.Ordinal))
             ElseIf remoteItem.ExtendedInfosAssignedCollectionID <> Nothing Then
-                Return New CenterDevice.IO.DirectoryInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, remoteItem.ExtendedInfosAssignedCollectionID))
+                Return New CenterDevice.IO.DirectoryInfo(Me.IOClient, Me.IOClient.RootDirectory, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, remoteItem.ExtendedInfosAssignedCollectionID))
             Else
                 Return Me.IOClient.RootDirectory
             End If
+        End Function
+
+        Private Function GetFolderDirectoryById(folderId As String, expectedCollectionId As String, visitedFolderIds As HashSet(Of String)) As CenterDevice.IO.DirectoryInfo
+            If Not visitedFolderIds.Add(folderId) Then Throw New InvalidOperationException("A cycle was found in the CenterDevice folder hierarchy at folder ID " & folderId & ".")
+
+            Dim Folder = Me.IOClient.ApiClient.Folder.GetFolder(Me.IOClient.CurrentAuthenticationContextUserID, folderId, Nothing)
+            If Not String.IsNullOrEmpty(expectedCollectionId) AndAlso Not String.IsNullOrEmpty(Folder.Collection) AndAlso Not String.Equals(Folder.Collection, expectedCollectionId, StringComparison.Ordinal) Then
+                Throw New InvalidOperationException("Folder ID " & folderId & " no longer belongs to its expected CenterDevice collection.")
+            End If
+
+            Dim CollectionId As String = If(String.IsNullOrEmpty(Folder.Collection), expectedCollectionId, Folder.Collection)
+            Dim ParentDirectory As CenterDevice.IO.DirectoryInfo
+            If String.IsNullOrEmpty(Folder.Parent) OrElse String.Equals(Folder.Parent, CenterDevice.Rest.RestApiConstants.NONE, StringComparison.Ordinal) Then
+                If String.IsNullOrEmpty(CollectionId) Then Throw New InvalidOperationException("The collection of CenterDevice folder ID " & folderId & " is unknown.")
+                ParentDirectory = New CenterDevice.IO.DirectoryInfo(Me.IOClient, Me.IOClient.RootDirectory, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, CollectionId))
+            Else
+                ParentDirectory = Me.GetFolderDirectoryById(Folder.Parent, CollectionId, visitedFolderIds)
+            End If
+
+            Return New CenterDevice.IO.DirectoryInfo(Me.IOClient, ParentDirectory, Folder)
         End Function
 
         Private Function GetFileItem(remoteItem As DmsResourceItem) As CenterDevice.IO.FileInfo
