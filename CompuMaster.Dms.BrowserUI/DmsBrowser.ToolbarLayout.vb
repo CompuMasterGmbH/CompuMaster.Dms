@@ -29,10 +29,4 @@ Partial Public Class DmsBrowser
         Me.UpdateFileToolbarIconSize(Me.DeviceDpi)
     End Sub
 
-    ''' <inheritdoc/>
-    Protected Overrides Sub OnDpiChanged(e As DpiChangedEventArgs)
-        MyBase.OnDpiChanged(e)
-        Me.UpdateFileToolbarIconSize(e.DeviceDpiNew)
-    End Sub
-
 End Class

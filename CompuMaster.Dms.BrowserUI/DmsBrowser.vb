@@ -296,6 +296,7 @@ Public Class DmsBrowser
     Protected Overrides Sub OnDpiChanged(e As DpiChangedEventArgs)
         MyBase.OnDpiChanged(e)
         ConfigureIconImageListsForDpi(e.DeviceDpiNew)
+        Me.UpdateFileToolbarIconSize(e.DeviceDpiNew)
     End Sub
 
     Private Shared Function ScaleLogicalPixels(logicalPixels As Integer, deviceDpi As Integer) As Integer
