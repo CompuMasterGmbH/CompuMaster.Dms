@@ -2,6 +2,8 @@
 Option Strict On
 
 Imports CompuMaster.Dms.Data
+Imports System.Threading
+Imports System.Threading.Tasks
 
 Namespace Providers
 
@@ -9,6 +11,24 @@ Namespace Providers
     ''' A DMS provider instance
     ''' </summary>
     Public MustInherit Class BaseDmsProvider
+
+        Private Shared ReadOnly AmbientCancellation As New AsyncLocal(Of CancellationToken)
+
+        ''' <summary>Gets the cancellation token for the current asynchronous item operation.</summary>
+        ''' <returns>The token supplied by the caller, or CancellationToken.None.</returns>
+        Protected ReadOnly Property CurrentAsyncCancellationToken As CancellationToken
+            Get
+                Return AmbientCancellation.Value
+            End Get
+        End Property
+
+        ''' <summary>Indicates whether this provider implements native asynchronous remote I/O.</summary>
+        ''' <returns>True when remote requests can be awaited without occupying a worker thread.</returns>
+        Public Overridable ReadOnly Property SupportsAsynchronousIo As Boolean
+            Get
+                Return False
+            End Get
+        End Property
 
         Public Enum DmsProviders As Integer
             <System.ComponentModel.Description("URL (manueller Transfer)")>
@@ -321,6 +341,25 @@ Namespace Providers
         ''' <returns></returns>
         Public MustOverride Function FindFileById(id As String) As DmsResourceItem
 
+        ''' <summary>Finds a remote item without blocking the calling thread.</summary>
+        ''' <param name="remotePath">The remote path to inspect.</param>
+        ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
+        ''' <returns>The matching item, or Nothing when the path is absent.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        Public Overridable Function ListRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+        End Function
+
+        ''' <summary>Lists remote child items without blocking the calling thread.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="searchType">The child types to include.</param>
+        ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
+        ''' <returns>The matching child items.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        Public Overridable Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+        End Function
+
         ''' <summary>
         ''' Create a provider-specific credentials instance for further customization
         ''' </summary>
@@ -342,6 +381,16 @@ Namespace Providers
         ''' <param name="remoteFilePath"></param>
         ''' <param name="localFilePath"></param>
         Public MustOverride Sub UploadFile(remoteFilePath As String, localFilePath As String)
+
+        ''' <summary>Uploads a local file without blocking the calling thread.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="localFilePath">The local source path.</param>
+        ''' <param name="cancellationToken">Cancels the upload and any wait for service capacity.</param>
+        ''' <returns>A task that completes when the upload finishes.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        Public Overridable Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+        End Function
 
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
@@ -411,6 +460,17 @@ Namespace Providers
         ''' <param name="localFilePath"></param>
         ''' <param name="lastModificationDateOnLocalTime"></param>
         Public MustOverride Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
+
+        ''' <summary>Downloads a remote file without blocking the calling thread.</summary>
+        ''' <param name="remoteFilePath">The remote source path.</param>
+        ''' <param name="localFilePath">The local destination path.</param>
+        ''' <param name="lastModificationDateOnLocalTime">The optional local timestamp to apply.</param>
+        ''' <param name="cancellationToken">Cancels the download and any wait for service capacity.</param>
+        ''' <returns>A task that completes when the download finishes.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        Public Overridable Function DownloadFileAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+        End Function
 
         ''' <summary>
         ''' Downloads a remote DMS file identified by its resource metadata.
@@ -498,7 +558,31 @@ Namespace Providers
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
-            Await Me.CopyAsync(Me.ResolveUniqueSourceItem(remoteSourcePath), remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+            Await Me.CopyAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory, CancellationToken.None).ConfigureAwait(False)
+        End Function
+
+        ''' <summary>Copies a remote item asynchronously with cancellation when the provider supports native asynchronous I/O.</summary>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="allowOverwrite">Whether files may be replaced or directories merged.</param>
+        ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests for providers with native asynchronous I/O.</param>
+        ''' <returns>A task that completes after the copy and cache update.</returns>
+        Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, cancellationToken As CancellationToken) As Task
+            Dim previous As CancellationToken = AmbientCancellation.Value
+            AmbientCancellation.Value = cancellationToken
+            Try
+                cancellationToken.ThrowIfCancellationRequested()
+                Dim source As DmsResourceItem
+                If Me.SupportsAsynchronousIo Then
+                    source = Await Me.ResolveUniqueSourceItemAsync(remoteSourcePath).ConfigureAwait(False)
+                Else
+                    source = Me.ResolveUniqueSourceItem(remoteSourcePath)
+                End If
+                Await Me.CopyAsync(source, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory, cancellationToken).ConfigureAwait(False)
+            Finally
+                AmbientCancellation.Value = previous
+            End Try
         End Function
 
         ''' <summary>
@@ -509,9 +593,98 @@ Namespace Providers
         ''' <param name="allowOverwrite">True to replace files and merge directories, False to reject existing targets, or Nothing to use the provider default.</param>
         ''' <param name="allowCreationOfRemoteDirectory">True to create a missing destination parent directory.</param>
         Public Async Function CopyAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
-            Me.CopyMoveArgumentsCheck(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
-            Await Me.CopyItemAsync(remoteSource, remoteDestinationPath, allowOverwrite)
-            Me.ResetDestinationCaches(remoteSource, remoteDestinationPath)
+            Await Me.CopyAsync(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory, CancellationToken.None).ConfigureAwait(False)
+        End Function
+
+        ''' <summary>Copies a remote item asynchronously while retaining its provider identity.</summary>
+        ''' <param name="remoteSource">The source item.</param>
+        ''' <param name="remoteDestinationPath">The destination path.</param>
+        ''' <param name="allowOverwrite">Whether files may be replaced or directories merged.</param>
+        ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests for providers with native asynchronous I/O.</param>
+        ''' <returns>A task that completes after the copy and cache update.</returns>
+        Public Async Function CopyAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, cancellationToken As CancellationToken) As Task
+            Dim previous As CancellationToken = AmbientCancellation.Value
+            AmbientCancellation.Value = cancellationToken
+            Try
+                cancellationToken.ThrowIfCancellationRequested()
+                If Me.SupportsAsynchronousIo Then
+                    Await Me.CopyMoveArgumentsCheckAsync(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory).ConfigureAwait(False)
+                Else
+                    Me.CopyMoveArgumentsCheck(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory)
+                End If
+                Await Me.CopyItemAsync(remoteSource, remoteDestinationPath, allowOverwrite).ConfigureAwait(False)
+                Me.ResetDestinationCaches(remoteSource, remoteDestinationPath)
+            Finally
+                AmbientCancellation.Value = previous
+            End Try
+        End Function
+
+        Private Async Function CopyMoveArgumentsCheckAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
+            If remoteSource Is Nothing Then Throw New ArgumentNullException(NameOf(remoteSource))
+            If String.IsNullOrEmpty(remoteSource.FullName) Then Throw New ArgumentException("The source item must provide its full remote path.", NameOf(remoteSource))
+            If remoteDestinationPath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
+            If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException("Must be a path without trailing directory separator char: " & remoteDestinationPath, NameOf(remoteDestinationPath))
+            If remoteSource.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException("Root directory can't be the source of a copy or move action")
+            If String.Equals(remoteSource.FullName.TrimEnd(Me.DirectorySeparator), remoteDestinationPath.TrimEnd(Me.DirectorySeparator), StringComparison.Ordinal) Then Throw New ArgumentException("Source and destination paths must differ.", NameOf(remoteDestinationPath))
+            If remoteSource.ItemType = DmsResourceItem.ItemTypes.Folder OrElse remoteSource.ItemType = DmsResourceItem.ItemTypes.Collection Then
+                Dim prefix As String = remoteSource.FullName.TrimEnd(Me.DirectorySeparator) & Me.DirectorySeparator
+                If remoteDestinationPath.StartsWith(prefix, StringComparison.Ordinal) Then Throw New ArgumentException("A directory can't be copied or moved into itself.", NameOf(remoteDestinationPath))
+            End If
+
+            Dim destination = Await Me.ListRemoteItemAsync(remoteDestinationPath, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+            If destination IsNot Nothing Then
+                If destination.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteDestinationPath)
+                If destination.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException("Root directory can't be the target of a copy or move action")
+                Dim matching As Integer
+                For Each candidate In Await Me.ListAllRemoteItemsAsync(Me.ParentDirectoryPath(remoteDestinationPath), SearchItemType.AllItems, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                    If String.Equals(candidate.Name, Me.ItemName(remoteDestinationPath), StringComparison.Ordinal) Then matching += 1
+                Next
+                If matching > 1 Then Throw New RemotePathNotUniqueException(remoteDestinationPath)
+                If remoteSource.ItemType = DmsResourceItem.ItemTypes.File AndAlso destination.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
+                If remoteSource.ItemType <> DmsResourceItem.ItemTypes.File AndAlso destination.ItemType = DmsResourceItem.ItemTypes.File Then Throw New FileAlreadyExistsException(remoteDestinationPath)
+                If allowOverwrite.HasValue AndAlso Not allowOverwrite.Value Then
+                    If destination.ItemType = DmsResourceItem.ItemTypes.File Then Throw New FileAlreadyExistsException(remoteDestinationPath)
+                    Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
+                End If
+            End If
+
+            Dim parent As String = Me.ParentDirectoryPath(remoteDestinationPath)
+            If parent <> Nothing Then
+                Dim parentItem = Await Me.ListRemoteItemAsync(parent, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                If parentItem Is Nothing Then
+                    If Not allowCreationOfRemoteDirectory Then Throw New DirectoryNotFoundException(parent)
+                    Await Me.CreateFolderAsync(parent, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                ElseIf parentItem.ExtendedInfosCollisionDetected Then
+                    Throw New RemotePathNotUniqueException(parent)
+                ElseIf parentItem.ItemType = DmsResourceItem.ItemTypes.File Then
+                    Throw New FileAlreadyExistsException(parent)
+                ElseIf parentItem.ItemType <> DmsResourceItem.ItemTypes.Folder AndAlso parentItem.ItemType <> DmsResourceItem.ItemTypes.Collection Then
+                    Throw New NotSupportedException("Remote ressource with unsupported type: " & parent)
+                End If
+            ElseIf remoteSource.ItemType = DmsResourceItem.ItemTypes.File AndAlso Not Me.SupportsFilesInRootFolder Then
+                Throw New NotSupportedException("Files in root folder not supported by DMS provider")
+            End If
+            Select Case remoteSource.ItemType
+                Case DmsResourceItem.ItemTypes.File, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection
+                Case Else
+                    Throw New ArgumentOutOfRangeException(NameOf(remoteSource), "Unsupported source item type.")
+            End Select
+        End Function
+
+        Private Async Function ResolveUniqueSourceItemAsync(remoteSourcePath As String) As Task(Of DmsResourceItem)
+            If remoteSourcePath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteSourcePath))
+            Dim source = Await Me.ListRemoteItemAsync(remoteSourcePath, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+            If source Is Nothing Then Throw New RessourceNotFoundException(remoteSourcePath)
+            If source.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteSourcePath)
+            If source.ItemType <> DmsResourceItem.ItemTypes.Root Then
+                Dim matching As Integer
+                For Each candidate In Await Me.ListAllRemoteItemsAsync(Me.ParentDirectoryPath(remoteSourcePath), SearchItemType.AllItems, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                    If String.Equals(candidate.Name, Me.ItemName(remoteSourcePath), StringComparison.Ordinal) Then matching += 1
+                Next
+                If matching > 1 Then Throw New RemotePathNotUniqueException(remoteSourcePath)
+            End If
+            Return source
         End Function
 
         ''' <summary>
@@ -658,15 +831,40 @@ Namespace Providers
                 Case DmsResourceItem.ItemTypes.File
                     Await Me.CopyFileItemAsync(remoteSource.FullName, remoteDestinationPath, allowOverwrite)
                 Case DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection
-                    Dim DestinationItem As DmsResourceItem = Me.ListRemoteItem(remoteDestinationPath)
+                    Dim DestinationItem As DmsResourceItem
+                    If Me.SupportsAsynchronousIo Then
+                        DestinationItem = Await Me.ListRemoteItemAsync(remoteDestinationPath, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                    Else
+                        DestinationItem = Me.ListRemoteItem(remoteDestinationPath)
+                    End If
                     If DestinationItem IsNot Nothing AndAlso allowOverwrite = True Then
-                        Await Task.Run(Sub() Me.MergeDirectoryContents(remoteSource, remoteDestinationPath, False))
+                        If Me.SupportsAsynchronousIo Then
+                            Await Me.MergeDirectoryContentsAsync(remoteSource, remoteDestinationPath).ConfigureAwait(False)
+                        Else
+                            Await Task.Run(Sub() Me.MergeDirectoryContents(remoteSource, remoteDestinationPath, False)).ConfigureAwait(False)
+                        End If
                     Else
                         Await Me.CopyDirectoryItemAsync(remoteSource.FullName, remoteDestinationPath)
                     End If
                 Case Else
                     Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
             End Select
+        End Function
+
+        Private Async Function MergeDirectoryContentsAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, Optional moveItems As Boolean = False) As Task
+            Dim children = Await Me.ListAllRemoteItemsAsync(remoteSource.FullName, SearchItemType.AllItems, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+            Dim names As New HashSet(Of String)(StringComparer.Ordinal)
+            For Each child In children
+                If child.ExtendedInfosCollisionDetected OrElse Not names.Add(child.Name) Then Throw New RemotePathNotUniqueException(child.FullName)
+            Next
+            For Each child In children
+                If moveItems Then
+                    Await Me.MoveAsync(child, Me.CombinePath(remoteDestinationPath, child.Name), True, False, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                Else
+                    Await Me.CopyAsync(child, Me.CombinePath(remoteDestinationPath, child.Name), True, False, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+                End If
+            Next
+            If moveItems Then Await Me.DeleteRemoteItemAsync(remoteSource.FullName, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
         Private Sub MergeDirectoryContents(remoteSource As DmsResourceItem, remoteDestinationPath As String, moveItems As Boolean)
@@ -770,6 +968,110 @@ Namespace Providers
             Me.ResetMoveCaches(remoteSource, remoteDestinationPath)
         End Sub
 
+        ''' <summary>Moves a remote item asynchronously without overwriting an existing destination.</summary>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
+        Public Function MoveAsync(remoteSourcePath As String, remoteDestinationPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.MoveAsync(remoteSourcePath, remoteDestinationPath, False, False, cancellationToken)
+        End Function
+
+        ''' <summary>Moves a remote item asynchronously while retaining its provider identity.</summary>
+        ''' <param name="remoteSource">The source item.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
+        Public Function MoveAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.MoveAsync(remoteSource, remoteDestinationPath, False, False, cancellationToken)
+        End Function
+
+        ''' <summary>Moves a remote item asynchronously with destination options.</summary>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="allowOverwrite">Whether files may be replaced or directories merged.</param>
+        ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
+        Public Async Function MoveAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Not Me.SupportsAsynchronousIo Then Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+            Dim previous As CancellationToken = AmbientCancellation.Value
+            AmbientCancellation.Value = cancellationToken
+            Try
+                Dim source = Await Me.ResolveUniqueSourceItemAsync(remoteSourcePath).ConfigureAwait(False)
+                Await Me.MoveAsync(source, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory, cancellationToken).ConfigureAwait(False)
+            Finally
+                AmbientCancellation.Value = previous
+            End Try
+        End Function
+
+        ''' <summary>Moves a remote item asynchronously with destination options and provider identity.</summary>
+        ''' <param name="remoteSource">The source item.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="allowOverwrite">Whether files may be replaced or directories merged.</param>
+        ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
+        Public Async Function MoveAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Not Me.SupportsAsynchronousIo Then Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+            Dim previous As CancellationToken = AmbientCancellation.Value
+            AmbientCancellation.Value = cancellationToken
+            Try
+                cancellationToken.ThrowIfCancellationRequested()
+                Await Me.CopyMoveArgumentsCheckAsync(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory).ConfigureAwait(False)
+                Await Me.MoveItemAsync(remoteSource, remoteDestinationPath, allowOverwrite, cancellationToken).ConfigureAwait(False)
+                Me.ResetMoveCaches(remoteSource, remoteDestinationPath)
+            Finally
+                AmbientCancellation.Value = previous
+            End Try
+        End Function
+
+        ''' <summary>Moves an item asynchronously while retaining its provider identity.</summary>
+        ''' <param name="remoteSource">The source item.</param>
+        ''' <param name="remoteDestinationPath">The destination path.</param>
+        ''' <param name="allowOverwrite">Whether an existing destination may be replaced or merged.</param>
+        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        Protected Overridable Async Function MoveItemAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, cancellationToken As CancellationToken) As Task
+            If remoteSource.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteSource.FullName)
+            Select Case remoteSource.ItemType
+                Case DmsResourceItem.ItemTypes.File
+                    Await Me.MoveFileItemAsync(remoteSource.FullName, remoteDestinationPath, allowOverwrite, cancellationToken).ConfigureAwait(False)
+                Case DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection
+                    Dim destination = Await Me.ListRemoteItemAsync(remoteDestinationPath, cancellationToken).ConfigureAwait(False)
+                    If destination IsNot Nothing AndAlso allowOverwrite = True Then
+                        Await Me.MergeDirectoryContentsAsync(remoteSource, remoteDestinationPath, True).ConfigureAwait(False)
+                    Else
+                        Await Me.MoveDirectoryItemAsync(remoteSource.FullName, remoteDestinationPath, cancellationToken).ConfigureAwait(False)
+                    End If
+                Case Else
+                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+            End Select
+        End Function
+
+        ''' <summary>Moves a file asynchronously in a provider implementation.</summary>
+        ''' <param name="remoteSourcePath">The source path.</param>
+        ''' <param name="remoteDestinationPath">The destination path.</param>
+        ''' <param name="allowOverwrite">Whether an existing file may be replaced.</param>
+        ''' <param name="cancellationToken">Cancels the request.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        Protected Overridable Function MoveFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, cancellationToken As CancellationToken) As Task
+            Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+        End Function
+
+        ''' <summary>Moves a directory asynchronously in a provider implementation.</summary>
+        ''' <param name="remoteSourcePath">The source path.</param>
+        ''' <param name="remoteDestinationPath">The destination path.</param>
+        ''' <param name="cancellationToken">Cancels the request.</param>
+        ''' <returns>A task that completes after the move.</returns>
+        Protected Overridable Function MoveDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, cancellationToken As CancellationToken) As Task
+            Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+        End Function
+
         ''' <summary>
         ''' Moves an item while retaining provider-specific item identity. Providers should override this method when paths aren't unique identifiers.
         ''' </summary>
@@ -813,6 +1115,15 @@ Namespace Providers
         ''' </summary>
         ''' <param name="remotePath"></param>
         Public MustOverride Sub DeleteRemoteItem(remotePath As String)
+
+        ''' <summary>Deletes a remote item without blocking the calling thread.</summary>
+        ''' <param name="remotePath">The remote path to delete.</param>
+        ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
+        ''' <returns>A task that completes when deletion finishes.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        Public Overridable Function DeleteRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+        End Function
 
         ''' <summary>
         ''' Delete a remote item if its item type matches with the expected item type
@@ -876,6 +1187,15 @@ Namespace Providers
         ''' </summary>
         ''' <param name="remoteDirectoryPath"></param>
         Public MustOverride Sub CreateFolder(remoteDirectoryPath As String)
+
+        ''' <summary>Creates a remote folder without blocking the calling thread.</summary>
+        ''' <param name="remoteDirectoryPath">The path of the new folder.</param>
+        ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
+        ''' <returns>A task that completes when the folder is created.</returns>
+        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        Public Overridable Function CreateFolderAsync(remoteDirectoryPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+        End Function
 
         ''' <summary>
         ''' Create a new folder on remote DMS

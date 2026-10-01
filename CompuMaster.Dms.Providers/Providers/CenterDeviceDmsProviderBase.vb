@@ -422,8 +422,10 @@ Namespace Providers
         End Sub
 
         ''' <inheritdoc/>
+        ''' <inheritdoc/>
+        ''' <remarks>This compatibility path runs synchronous CenterDevice I/O on a worker thread; it does not provide native asynchronous I/O.</remarks>
         Protected Overrides Async Function CopyItemAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
-            Await Task.Run(Sub() Me.CopyItem(remoteSource, remoteDestinationPath, allowOverwrite))
+            Await Task.Run(Sub() Me.CopyItem(remoteSource, remoteDestinationPath, allowOverwrite)).ConfigureAwait(False)
         End Function
 
         ''' <inheritdoc/>
@@ -683,10 +685,9 @@ Namespace Providers
             Me.CopyItem(Source, remoteDestinationPath, allowOverwrite)
         End Sub
 
+        ''' <inheritdoc/>
         Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
-            Await Task.Run(Sub()
-                               CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
-                           End Sub)
+            Await Task.Run(Sub() CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
@@ -694,10 +695,9 @@ Namespace Providers
             Me.CopyItem(Source, remoteDestinationPath, False)
         End Sub
 
+        ''' <inheritdoc/>
         Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
-            Await Task.Run(Sub()
-                               CopyDirectoryItem(remoteSourcePath, remoteDestinationPath)
-                           End Sub)
+            Await Task.Run(Sub() CopyDirectoryItem(remoteSourcePath, remoteDestinationPath)).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)

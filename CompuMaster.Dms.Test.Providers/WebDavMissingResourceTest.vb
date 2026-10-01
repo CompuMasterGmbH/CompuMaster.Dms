@@ -35,6 +35,26 @@ Public Class WebDavMissingResourceTest
         ClassicAssert.AreEqual(404, CType(failure.InnerException, ResponseStatusCodeException).StatusCode)
     End Sub
 
+    <Test>
+    Public Sub AsyncListingDeletedDirectoryReportsItsPathAndHttpStatus()
+        Dim provider As WebDavDmsProvider = CreateProviderReturningNotFound()
+        Dim failure = Assert.ThrowsAsync(Of DirectoryNotFoundException)(
+            Async Function() Await provider.ListAllRemoteItemsAsync("gone", BaseDmsProvider.SearchItemType.Folders))
+        ClassicAssert.AreEqual("gone", failure.RemotePath)
+        ClassicAssert.AreEqual(404, CType(failure.InnerException, ResponseStatusCodeException).StatusCode)
+    End Sub
+
+    <Test>
+    Public Sub AsyncDownloadingDeletedFileReportsItsPathAndHttpStatus()
+        Dim provider As WebDavDmsProvider = CreateProviderReturningNotFound()
+        Dim failure = Assert.ThrowsAsync(Of CompuMaster.Dms.Data.FileNotFoundException)(
+            Async Function() As Task
+                Await provider.DownloadFileAsync("gone.txt", "unused.txt", Nothing)
+            End Function)
+        ClassicAssert.AreEqual("gone.txt", failure.RemotePath)
+        ClassicAssert.AreEqual(404, CType(failure.InnerException, ResponseStatusCodeException).StatusCode)
+    End Sub
+
     Private Shared Function CreateProviderReturningNotFound() As WebDavDmsProvider
         Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = "https://example.test/"}
         Dim client As New WebDav.WebDavClient(New HttpClient(New NotFoundHandler()))
