@@ -80,9 +80,8 @@ Public MustInherit Class BaseDmsProviderTestBase
         For Each MyItem As String In Items
             System.Console.WriteLine(MyItem)
         Next
-        If DmsProvider.SupportsFilesInRootFolder Then
-            ClassicAssert.NotZero(Items.Count)
-        Else
+        'Root-file support does not imply that this test server has permanent files in its root.
+        If Not DmsProvider.SupportsFilesInRootFolder Then
             ClassicAssert.Zero(Items.Count)
         End If
         System.Console.WriteLine("---")
@@ -186,9 +185,8 @@ Public MustInherit Class BaseDmsProviderTestBase
             ClassicAssert.AreEqual("", MyItem.Folder)
             ClassicAssert.AreEqual(DmsResourceItem.ItemTypes.File, MyItem.ItemType)
         Next
-        If DmsProvider.SupportsFilesInRootFolder Then
-            ClassicAssert.NotZero(Items.Count)
-        Else
+        'Root-file support does not imply that this test server has permanent files in its root.
+        If Not DmsProvider.SupportsFilesInRootFolder Then
             ClassicAssert.Zero(Items.Count)
         End If
         System.Console.WriteLine("---")
