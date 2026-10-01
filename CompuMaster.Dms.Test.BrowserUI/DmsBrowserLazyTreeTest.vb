@@ -202,6 +202,45 @@ Public Class DmsBrowserLazyTreeTest
         End Using
     End Sub
 
+    <Test>
+    Public Sub RootFilesAreListedWhenProviderSupportsThem()
+        Dim Provider As New InMemoryDmsProvider With {.RootPath = ""}
+        Dim RootFile As New DmsResourceItem With {
+            .Name = "root.txt",
+            .FullName = "root.txt",
+            .ItemType = DmsResourceItem.ItemTypes.File
+        }
+        Provider.SetChildren("", RootFile, CreateDirectory("Subfolder", 0))
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            Browser.LoadTree()
+            Browser.TreeViewDmsFolders.SelectedNode = GetFolderTree(Browser).Nodes(0)
+            InvokeInstanceMethod(Browser, "RefreshFilesList")
+
+            ClassicAssert.AreEqual(1, Browser.ListViewDmsFiles.Items.Count)
+            ClassicAssert.AreEqual("root.txt", Browser.ListViewDmsFiles.Items(0).Text)
+            ClassicAssert.IsNotEmpty(Provider.FileListingPaths)
+            ClassicAssert.IsTrue(Provider.FileListingPaths.All(Function(path) path = ""))
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub RootFilesAreNotRequestedWhenProviderDoesNotSupportThem()
+        Dim Provider As New InMemoryDmsProvider With {.RootPath = "", .SupportsRootFiles = False}
+        Provider.SetChildren("")
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            Browser.LoadTree()
+            Browser.TreeViewDmsFolders.SelectedNode = GetFolderTree(Browser).Nodes(0)
+            InvokeInstanceMethod(Browser, "RefreshFilesList")
+
+            ClassicAssert.AreEqual(0, Browser.ListViewDmsFiles.Items.Count)
+            ClassicAssert.AreEqual(0, Provider.FileListingPaths.Count)
+        End Using
+    End Sub
+
     Private Shared Function CreateDirectory(fullName As String, childCount As Integer?, Optional itemType As DmsResourceItem.ItemTypes = DmsResourceItem.ItemTypes.Folder) As DmsResourceItem
         Dim SeparatorPosition As Integer = fullName.LastIndexOf("/"c)
         Return New DmsResourceItem With {
@@ -239,10 +278,19 @@ Public Class DmsBrowserLazyTreeTest
         Private ReadOnly ChildrenByPath As New Dictionary(Of String, List(Of DmsResourceItem))(StringComparer.Ordinal)
 
         Public Property DirectoryListingCount As Integer
+        Public Property RootPath As String = "/"
+        Public Property SupportsRootFiles As Boolean = True
+        Public ReadOnly Property FileListingPaths As New List(Of String)
 
         Public Overrides ReadOnly Property BrowseInRootFolderName As String
             Get
-                Return "/"
+                Return Me.RootPath
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
+            Get
+                Return Me.SupportsRootFiles
             End Get
         End Property
 
@@ -258,6 +306,7 @@ Public Class DmsBrowserLazyTreeTest
 
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
             Me.DirectoryListingCount += 1
+            If searchType = SearchItemType.Files Then Me.FileListingPaths.Add(remoteFolderPath)
             Dim Children As List(Of DmsResourceItem) = Nothing
             If Not Me.ChildrenByPath.TryGetValue(remoteFolderPath, Children) Then Return New List(Of DmsResourceItem)
             Return New List(Of DmsResourceItem)(Children)
