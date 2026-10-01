@@ -686,6 +686,9 @@ Public Class DmsBrowser
             Dim currentFolderPath As String
             If CurrentFolder IsNot Nothing Then
                 currentFolderPath = CurrentFolder.DmsResourceItem?.FullName
+                If currentFolderPath Is Nothing AndAlso Me.DmsProvider.SupportsFilesInRootFolder Then
+                    currentFolderPath = Me.DmsProvider.BrowseInRootFolderName
+                End If
                 Me.LastFileListFolderPath = currentFolderPath
             Else
                 currentFolderPath = Me.LastFileListFolderPath
