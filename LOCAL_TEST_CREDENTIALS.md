@@ -9,7 +9,7 @@ The demo applications can persist login data in provider-specific files below th
 | ownCloud Classic | `OwnCloudWebDavProviderTest` / `OwnCloud` | `TEST_CMOWNCLOUD_SERVERURL`, `TEST_CMOWNCLOUD_USERNAME`, `TEST_CMOWNCLOUD_PASSWORD` | `OwnCloudWebDav.Test` |
 | Nextcloud | `NextcloudWebDavProviderTest` / `Nextcloud` | `TEST_CMNEXTCLOUD_SERVERURL`, `TEST_CMNEXTCLOUD_USERNAME`, `TEST_CMNEXTCLOUD_PASSWORD` | `NextcloudWebDav.Test` |
 
-The namespaces are intentionally independent. Generic `TEST_WEBDAV_*` values are not used as a fallback for ownCloud or Nextcloud. The generic WebDAV and ownCloud Classic partitions currently target the same physical ownCloud server, so CI explicitly maps the ownCloud repository secrets to the generic WebDAV variables as well. Both partitions must use the same exclusive server-resource lock.
+The namespaces are intentionally independent. Generic `TEST_WEBDAV_*` values are not used as a fallback for ownCloud or Nextcloud. WebDAV and ownCloud Classic use separate CI resource locks. If any `TEST_WEBDAV_*` repository secret is missing, CI omits the WebDAV jobs and continues with the other configured test servers.
 
 To persist credentials, start the matching demo, enter the connection details, select the option to persist login credentials, and close the login window. Passwords are masked in the UI but the existing local buffer mechanism stores values as plain text in the user's temporary directory. Clear the persistence option and close the demo to remove that demo's buffered values.
 
