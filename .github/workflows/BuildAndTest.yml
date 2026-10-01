@@ -77,8 +77,34 @@ jobs:
           name: NUnit Isolated Test Results ${{ matrix.os }}
           path: test-results/TestResults.xml
 
+  prepare-remote-test-matrix:
+    name: Prepare remote integration-test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    env:
+      TEST_WEBDAV_SERVERURL: ${{ secrets.TEST_WEBDAV_SERVERURL }}
+      TEST_WEBDAV_USERNAME: ${{ secrets.TEST_WEBDAV_USERNAME }}
+      TEST_WEBDAV_PASSWORD: ${{ secrets.TEST_WEBDAV_PASSWORD }}
+
+    steps:
+      - id: matrix
+        name: Select configured remote test servers
+        shell: bash
+        run: |
+          if [[ -n "$TEST_WEBDAV_SERVERURL" && -n "$TEST_WEBDAV_USERNAME" && -n "$TEST_WEBDAV_PASSWORD" ]]; then
+            matrix='{"os":["windows-latest","ubuntu-latest","macos-latest"],"server":[{"id":"scopevisio-teamwork","displayName":"Scopevisio Teamwork","category":"ScopevisioTeamwork","lock":"dms-test-server-scopevisio-teamwork"},{"id":"owncloud-webdav","displayName":"OwnCloud","category":"OwnCloud","lock":"dms-test-server-owncloud"},{"id":"generic-webdav","displayName":"WebDAV","category":"WebDav","lock":"dms-test-server-webdav"},{"id":"nextcloud-webdav","displayName":"Nextcloud","category":"Nextcloud","lock":"dms-test-server-nextcloud-webdav"}]}'
+          else
+            matrix='{"os":["windows-latest","ubuntu-latest","macos-latest"],"server":[{"id":"scopevisio-teamwork","displayName":"Scopevisio Teamwork","category":"ScopevisioTeamwork","lock":"dms-test-server-scopevisio-teamwork"},{"id":"owncloud-webdav","displayName":"OwnCloud","category":"OwnCloud","lock":"dms-test-server-owncloud"},{"id":"nextcloud-webdav","displayName":"Nextcloud","category":"Nextcloud","lock":"dms-test-server-nextcloud-webdav"}]}'
+            echo "::notice::Skipping WebDAV integration-test jobs because TEST_WEBDAV_SERVERURL, TEST_WEBDAV_USERNAME, and TEST_WEBDAV_PASSWORD are not all configured."
+          fi
+
+          printf 'matrix=%s\n' "$matrix" >> "$GITHUB_OUTPUT"
+
   remote-integration-tests:
     name: ${{ matrix.server.displayName }} integration tests (${{ matrix.os }})
+    needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
 
     # Every matrix entry identifies one physical remote server. Jobs for the same
@@ -91,25 +117,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        server:
-          - id: scopevisio-teamwork
-            displayName: Scopevisio Teamwork
-            category: ScopevisioTeamwork
-            lock: dms-test-server-scopevisio-teamwork
-          - id: owncloud-webdav
-            displayName: OwnCloud
-            category: OwnCloud
-            lock: dms-test-server-owncloud-webdav
-          - id: generic-webdav
-            displayName: WebDAV
-            category: WebDav
-            lock: dms-test-server-owncloud-webdav
-          - id: nextcloud-webdav
-            displayName: Nextcloud
-            category: Nextcloud
-            lock: dms-test-server-nextcloud-webdav
+      matrix: ${{ fromJSON(needs.prepare-remote-test-matrix.outputs.matrix) }}
 
     env:
       TEST_SCOPEVISIOTEAMWORK_USERNAME: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_USERNAME || '' }}
@@ -118,9 +126,9 @@ jobs:
       TEST_CMOWNCLOUD_SERVERURL: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
       TEST_CMOWNCLOUD_USERNAME: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
       TEST_CMOWNCLOUD_PASSWORD: ${{ matrix.server.id == 'owncloud-webdav' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
-      TEST_WEBDAV_SERVERURL: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
-      TEST_WEBDAV_USERNAME: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
-      TEST_WEBDAV_PASSWORD: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
+      TEST_WEBDAV_SERVERURL: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_WEBDAV_SERVERURL || '' }}
+      TEST_WEBDAV_USERNAME: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_WEBDAV_USERNAME || '' }}
+      TEST_WEBDAV_PASSWORD: ${{ matrix.server.id == 'generic-webdav' && secrets.TEST_WEBDAV_PASSWORD || '' }}
       TEST_CMNEXTCLOUD_SERVERURL: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_SERVERURL || '' }}
       TEST_CMNEXTCLOUD_USERNAME: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_USERNAME || '' }}
       TEST_CMNEXTCLOUD_PASSWORD: ${{ matrix.server.id == 'nextcloud-webdav' && secrets.TEST_CMNEXTCLOUD_PASSWORD || '' }}
