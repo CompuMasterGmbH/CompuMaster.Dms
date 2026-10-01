@@ -215,6 +215,64 @@ Public Class DmsBrowserLazyTreeTest
     End Sub
 
     <Test>
+    Public Sub ExternallyDeletedFolderIsRemovedWithItsCachedContents()
+        Dim provider As New InMemoryDmsProvider
+        Dim parentResource As DmsResourceItem = CreateDirectory("Parent", 1)
+        provider.SetChildren("/", parentResource)
+        provider.SetChildren("Parent", CreateDirectory("Parent/Deleted", 0))
+        provider.SetChildren("Parent/Deleted", New DmsResourceItem With {
+            .ItemType = DmsResourceItem.ItemTypes.File,
+            .Name = "stale.txt",
+            .FullName = "Parent/Deleted/stale.txt"
+        })
+
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(provider)
+            browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            browser.LoadTree()
+            Dim parent As TreeNode = FindNode(GetFolderTree(browser).Nodes(0), "Parent")
+            browser.AddTreeChildren(parent)
+            Dim deleted As TreeNode = FindNode(parent, "Deleted")
+            GetFolderTree(browser).SelectedNode = deleted
+            InvokeInstanceMethod(browser, "TreeViewDmsFolders_AfterSelect", GetFolderTree(browser), New TreeViewEventArgs(deleted))
+            ClassicAssert.AreEqual(1, browser.ListViewDmsFiles.Items.Count)
+
+            browser.RemoveMissingDirectory(deleted)
+
+            ClassicAssert.AreEqual(0, parent.Nodes.Count)
+            ClassicAssert.AreEqual(0, parentResource.ChildDirectoryCount.Value)
+            ClassicAssert.AreSame(parent, GetFolderTree(browser).SelectedNode)
+            ClassicAssert.AreEqual("Parent", browser.SelectedFolder)
+            ClassicAssert.AreEqual(0, browser.ListViewDmsFiles.Items.Count)
+            ClassicAssert.IsNull(browser.ListViewDmsFiles.Tag)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub ExternallyDeletedFileIsRemovedFromListAndCache()
+        Dim provider As New InMemoryDmsProvider
+        Dim stale As New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .Name = "stale.txt", .FullName = "Folder/stale.txt"}
+        Dim remaining As New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .Name = "remaining.txt", .FullName = "Folder/remaining.txt"}
+        provider.SetChildren("/", CreateDirectory("Folder", 0))
+        provider.SetChildren("Folder", stale, remaining)
+
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(provider)
+            browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            browser.LoadTree()
+            Dim selectedNode As TreeNode = FindNode(GetFolderTree(browser).Nodes(0), "Folder")
+            GetFolderTree(browser).SelectedNode = selectedNode
+            InvokeInstanceMethod(browser, "TreeViewDmsFolders_AfterSelect", GetFolderTree(browser), New TreeViewEventArgs(selectedNode))
+            ClassicAssert.AreEqual(2, browser.ListViewDmsFiles.Items.Count)
+
+            browser.RemoveMissingFile(stale.FullName)
+
+            ClassicAssert.AreEqual(1, browser.ListViewDmsFiles.Items.Count)
+            ClassicAssert.AreEqual("remaining.txt", browser.ListViewDmsFiles.Items(0).Text)
+            ClassicAssert.AreEqual(1, CType(browser.ListViewDmsFiles.Tag, List(Of DmsResourceItem)).Count)
+            ClassicAssert.AreSame(remaining, CType(browser.ListViewDmsFiles.Tag, List(Of DmsResourceItem))(0))
+        End Using
+    End Sub
+
+    <Test>
     Public Sub CreatingAndDeletingFirstChildUpdatesExpansionState()
         Dim Provider As New InMemoryDmsProvider
         Dim Parent As DmsResourceItem = CreateDirectory("Parent", 0)
