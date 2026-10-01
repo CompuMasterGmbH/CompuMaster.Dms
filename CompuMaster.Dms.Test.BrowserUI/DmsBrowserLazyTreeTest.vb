@@ -18,30 +18,30 @@ Public Class DmsBrowserLazyTreeTest
         Dim Folder As DmsResourceItem = CreateDirectory("Folder", Nothing)
 
         Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
-            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: " & Environment.NewLine, Browser.PropertiesDetails(Folder))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: " & Environment.NewLine, Browser.PropertiesDetails(Folder))
 
             Dim Collection As DmsResourceItem = CreateDirectory("Collection", Nothing, DmsResourceItem.ItemTypes.Collection)
             Collection.HasChildDirectories = True
-            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Collection))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Collection))
 
             Folder.HasChildDirectories = False
-            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(Folder))
 
             Folder.HasChildDirectories = True
-            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Folder))
 
             Folder.ChildDirectoryCount = 0
-            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(Folder))
 
             Folder.ChildDirectoryCount = 2
             Folder.HasChildDirectories = False
-            StringAssert.Contains(Environment.NewLine & "HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Folder))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: True" & Environment.NewLine, Browser.PropertiesDetails(Folder))
             ClassicAssert.AreEqual(0, Provider.DirectoryListingCount)
         End Using
     End Sub
 
     <Test>
-    Public Sub FilePropertiesDoNotShowChildDirectoryState()
+    Public Sub FilePropertiesShowFalseChildDirectoryState()
         Dim File As New DmsResourceItem With {
             .Name = "File.txt",
             .FullName = "File.txt",
@@ -49,7 +49,29 @@ Public Class DmsBrowserLazyTreeTest
         }
 
         Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New InMemoryDmsProvider)
-            ClassicAssert.IsFalse(Browser.PropertiesDetails(File).Contains("HasChildDirectories:"))
+            StringAssert.Contains(Environment.NewLine & "- HasChildDirectories: False" & Environment.NewLine, Browser.PropertiesDetails(File))
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub PropertiesIndentDynamicFieldsAndLinkDetails()
+        Dim Collection As DmsResourceItem = CreateDirectory("Collection", Nothing, DmsResourceItem.ItemTypes.Collection)
+        Collection.ExtendedInfosVersionDateLocalTime = New DateTime(2026, 1, 2)
+        Collection.ExtendedInfosLocks = New List(Of String) From {"sample-lock"}
+        Dim Link As New DmsLink(Collection, "sample-link", Nothing, Nothing) With {.WebUrl = "https://example.test/link"}
+        Collection.ExtendedInfosLinks = New List(Of DmsLink) From {Link}
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New InMemoryDmsProvider)
+            Dim PropertiesText As String = Browser.PropertiesDetails(Collection)
+            Dim NewLine As String = Environment.NewLine
+            StringAssert.Contains(Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesFullPath") & "Collection" & NewLine, PropertiesText)
+            StringAssert.Contains(Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesDetails") & NewLine & "- " & Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesOwner"), PropertiesText)
+            StringAssert.Contains(NewLine & "- " & Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesVersionDate"), PropertiesText)
+            StringAssert.Contains(NewLine & "- " & Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesLocks") & NewLine & "  - sample-lock", PropertiesText)
+            StringAssert.Contains(Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesSharings") & NewLine & "- IsShared: False", PropertiesText)
+            StringAssert.Contains(NewLine & "- IsPublicCollection: False", PropertiesText)
+            StringAssert.Contains(NewLine & "- Link: sample-link" & NewLine & "  - WebUrl: https://example.test/link", PropertiesText)
+            StringAssert.Contains(Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesExtendedInformation") & NewLine & "- " & Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("PropertiesLastModification"), PropertiesText)
         End Using
     End Sub
 
