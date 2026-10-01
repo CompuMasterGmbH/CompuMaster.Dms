@@ -4,7 +4,7 @@
 
 | Backend | Client used here | Native asynchronous transport | Current provider surface |
 | --- | --- | --- | --- |
-| WebDAV, including ownCloud and Nextcloud | [`WebDav.Client` 2.9.0](https://github.com/skazantsev/WebDavClient) | Its request methods return `Task` and request parameters accept `CancellationToken`. | Async listing, upload from a local file, download to a local file, copy, move, create folder, and delete. The synchronous API remains available. Browser UI file transfers and copy/move actions await the native methods for this provider. |
+| WebDAV, including ownCloud and Nextcloud | [`WebDav.Client` 2.9.0](https://github.com/skazantsev/WebDavClient) | Its request methods return `Task` and request parameters accept `CancellationToken`. | Async listing, upload from a local file, download to a local file, copy, move, create folder, and delete. Downloads stage into a temporary file so a failed transfer preserves an existing local target. The synchronous API remains available. Browser UI file transfers and copy/move actions await the native methods for this provider. |
 | Scopevisio Teamwork | `CompuMaster.CenterDevice.Rest` 2026.1.2.100 through `CompuMaster.Scopevisio.Teamwork` | The `CenterDevice.IO` and REST client methods exposed by this version are synchronous. | Existing synchronous API and legacy `CopyAsync` worker-thread fallback remain available. `SupportsAsynchronousIo` is `False`; newly introduced async operations report `NotSupportedException`. |
 | Direct CenterDevice | `CompuMaster.CenterDevice.Rest` 2026.1.2.100 | Same library limitation; its package README also says direct CenterDevice authentication is not supported. | No native async operations. |
 

@@ -523,14 +523,25 @@ Namespace Providers
         ''' <inheritdoc/>
         Public Overrides Async Function DownloadFileAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, Optional cancellationToken As CancellationToken = Nothing) As Task
             Dim parameters As New Global.WebDav.GetFileParameters With {.CancellationToken = cancellationToken}
-            Using response = Await Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
-                If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
-                If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
-                Using output As New System.IO.FileStream(localFilePath, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
-                    Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
+            Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
+            Try
+                Using response = Await Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
+                    If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
+                        Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
+                    End Using
                 End Using
-            End Using
-            If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
+                cancellationToken.ThrowIfCancellationRequested()
+                If System.IO.File.Exists(localFilePath) Then
+                    System.IO.File.Replace(temporaryPath, localFilePath, Nothing)
+                Else
+                    System.IO.File.Move(temporaryPath, localFilePath)
+                End If
+                If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
+            Finally
+                If System.IO.File.Exists(temporaryPath) Then System.IO.File.Delete(temporaryPath)
+            End Try
         End Function
 
         Public Overridable Sub DownloadProcessedFile(remoteFilePath As String, localFilePath As String)
