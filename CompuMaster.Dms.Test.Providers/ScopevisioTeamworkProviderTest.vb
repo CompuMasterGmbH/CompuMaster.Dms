@@ -103,6 +103,58 @@ Public Class ScopevisioTeamworkProviderTest
     End Sub
 
     ''' <summary>
+    ''' Verifies that an upload byte limit survives creation and update on the Scopevisio server.
+    ''' </summary>
+    <Test>
+    Public Sub UploadLinkMaxBytesPersistsAfterCreateAndUpdate()
+        Const CollectionName As String = "ZZZ_UnitTests_CM.Dms_MaxBytesLink"
+        Const InitialMaxBytes As Long = 1073741824L
+        Const UpdatedMaxBytes As Long = 3221225472L
+        Dim Provider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase =
+            DirectCast(Me.LoggedInDmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
+        Dim TestFailure As Exception = Nothing
+        Dim CleanupFailure As Exception = Nothing
+
+        Try
+            DeleteTestCollectionIfExisting(Provider, CollectionName)
+            ClassicAssert.IsFalse(Provider.CollectionExists(CollectionName), "The test-owned collection must be absent before creation.")
+
+            Provider.CreateCollection(CollectionName)
+            Dim Collection = Provider.ListRemoteItem(CollectionName)
+            ClassicAssert.IsNotNull(Collection)
+            Dim Link As New Dms.Data.DmsLink(Collection, Provider) With {
+                .AllowUpload = True,
+                .Name = "MaxBytes regression test",
+                .MaxBytes = InitialMaxBytes
+            }
+
+            Link = Provider.CreateLink(Collection, Link)
+            ClassicAssert.IsNotEmpty(Link.ID)
+            ClassicAssert.AreEqual(InitialMaxBytes, Provider.IOClient.GetUploadLink(Link.ID).MaxBytes)
+            ClassicAssert.AreEqual(InitialMaxBytes, Link.MaxBytes)
+
+            Link.MaxBytes = UpdatedMaxBytes
+            Provider.UpdateLink(Link)
+            ClassicAssert.AreEqual(UpdatedMaxBytes, Provider.IOClient.GetUploadLink(Link.ID).MaxBytes)
+        Catch ex As Exception
+            TestFailure = ex
+        Finally
+            Try
+                DeleteTestCollectionIfExisting(Provider, CollectionName)
+                ClassicAssert.IsFalse(Provider.CollectionExists(CollectionName), "The test-owned collection must be removed after the test.")
+            Catch ex As Exception
+                CleanupFailure = ex
+            End Try
+        End Try
+
+        If TestFailure IsNot Nothing AndAlso CleanupFailure IsNot Nothing Then
+            Throw New AggregateException("The upload-link test and cleanup both failed.", TestFailure, CleanupFailure)
+        End If
+        If TestFailure IsNot Nothing Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(TestFailure).Throw()
+        If CleanupFailure IsNot Nothing Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(CleanupFailure).Throw()
+    End Sub
+
+    ''' <summary>
     ''' Verifies that downloads of duplicate Scopevisio file names return the content belonging to the selected file ID.
     ''' </summary>
     <Test>

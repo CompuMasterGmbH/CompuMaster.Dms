@@ -885,7 +885,6 @@ Public MustInherit Class BaseDmsProviderTestBase
             {
             .AllowUpload = True,
             .MaxUploads = 4000,
-            .MaxBytes = Integer.MaxValue,
             .Password = Guid.NewGuid.ToString("n"),
             .Name = "UnitTest_UploadLinkShare_" & RemoteTestFolderName
             }
@@ -964,6 +963,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         ClassicAssert.NotNull(ShareLink.ID)
         ClassicAssert.IsNotEmpty(ShareLink.ID)
         ClassicAssert.AreEqual(ShareLink.ID, CenterDeviceProvider.IOClient.GetLink(ShareLink.ID).Id)
+        ClassicAssert.IsNull(ShareLink.MaxBytes)
 
         Me.RemoveRemoteTestFolder(RemoteTestFolderName, DirectoryTypes.Collection, True)
 

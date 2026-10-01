@@ -1207,6 +1207,8 @@ Namespace Providers
             Return CType(provider, CenterDeviceDmsProviderBase).IOClient.UserEMailAddress(userId)
         End Function
 
+        ''' <inheritdoc/>
+        ''' <remarks>Upload links target collections. Their <see cref="DmsLink.MaxBytes"/> limit must be a positive multiple of 1 GiB.</remarks>
         Public Overrides Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
             If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
             If shareInfo.AllowDelete Then Throw New NotSupportedException("AllowDelete not supported by provider")
@@ -1220,14 +1222,25 @@ Namespace Providers
                     If Not dmsResource.ItemType = DmsResourceItem.ItemTypes.Collection OrElse dmsResource.ExtendedInfosCollectionID = Nothing Then
                         Throw New NotSupportedException("Upload links supported only with collections")
                     End If
-                    Dim CreatedUploadLink As UploadLinkCreationResponse = Me.IOClient.ApiClient.UploadLinks.CreateCollectionLink(Me.IOClient.CurrentAuthenticationContextUserID, dmsResource.ExtendedInfosCollectionID,
-                                                                   Tools.NotNullOrEmptyStringValue(shareInfo.Name),
-                                                                   Nothing,
-                                                                   DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
-                                                                   ConvertNarrowingToNullableInt32(shareInfo.MaxUploads),
-                                                                   Tools.NotNullOrEmptyStringValue(shareInfo.Password),
-                                                                   Nothing
-                                                                   )
+                    ValidateUploadLinkMaxBytes(shareInfo.MaxBytes)
+                    Dim CreatedUploadLink As UploadLinkCreationResponse
+                    If shareInfo.MaxBytes.HasValue Then
+                        CreatedUploadLink = CenterDeviceUploadLinkBytesClient.Create(Me.IOClient.ApiClient).CreateCollectionLink(
+                            Me.IOClient.CurrentAuthenticationContextUserID, dmsResource.ExtendedInfosCollectionID,
+                            Tools.NotNullOrEmptyStringValue(shareInfo.Name),
+                            DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
+                            ConvertNarrowingToNullableInt32(shareInfo.MaxUploads),
+                            shareInfo.MaxBytes.Value,
+                            Tools.NotNullOrEmptyStringValue(shareInfo.Password))
+                    Else
+                        CreatedUploadLink = Me.IOClient.ApiClient.UploadLinks.CreateCollectionLink(Me.IOClient.CurrentAuthenticationContextUserID, dmsResource.ExtendedInfosCollectionID,
+                                                                       Tools.NotNullOrEmptyStringValue(shareInfo.Name),
+                                                                       Nothing,
+                                                                       DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
+                                                                       ConvertNarrowingToNullableInt32(shareInfo.MaxUploads),
+                                                                       Tools.NotNullOrEmptyStringValue(shareInfo.Password),
+                                                                       Nothing)
+                    End If
                     _AllUploadLinks = Nothing 'Reset cache
                     Dim Result As DmsLink
                     Result = New DmsLink(dmsResource, CreatedUploadLink.Id, Me, AddressOf DelegatedFillUploadLinkDetails)
@@ -1284,6 +1297,14 @@ Namespace Providers
             End If
         End Function
 
+        Friend Shared Sub ValidateUploadLinkMaxBytes(maxBytes As Long?)
+            'CenterDevice REST API v2.29, section 5.7.1: max-bytes is a positive multiple of 1 GiB.
+            Const Gibibyte As Long = 1073741824L
+            If maxBytes.HasValue AndAlso (maxBytes.Value <= 0 OrElse maxBytes.Value Mod Gibibyte <> 0) Then
+                Throw New ArgumentOutOfRangeException(NameOf(maxBytes), "Upload-link MaxBytes must be a positive multiple of 1 GiB (1073741824 bytes).")
+            End If
+        End Sub
+
         Private Sub ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(modifiedDmsResourceItem As DmsResourceItem)
             Me.ResetParentDirectoryCache(modifiedDmsResourceItem)
         End Sub
@@ -1326,6 +1347,8 @@ Namespace Providers
             Me.CreateSharing(dmsResource, shareInfo, ListOfAddedGroups, ListOfAddedUsers)
         End Sub
 
+        ''' <inheritdoc/>
+        ''' <remarks>Upload-link <see cref="DmsLink.MaxBytes"/> values must be positive multiples of 1 GiB.</remarks>
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
             If shareInfo.ID = Nothing Then Throw New InvalidOperationException("Update of link requires an ID in DmsLink")
             If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
@@ -1337,15 +1360,25 @@ Namespace Providers
             Try
                 If shareInfo.AllowUpload Then
                     'Update upload link
-                    Me.IOClient.ApiClient.UploadLink.UpdateLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID,
-                                                        CType(Nothing, String),
-                                                        Tools.NotNullOrEmptyStringValue(shareInfo.Name),
-                                                        Nothing,
-                                                        DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
-                                                        ConvertNarrowingToNullableInt32(shareInfo.MaxUploads),
-                                                        Tools.NotNullOrEmptyStringValue(shareInfo.Password),
-                                                        Nothing
-                                                        )
+                    ValidateUploadLinkMaxBytes(shareInfo.MaxBytes)
+                    If shareInfo.MaxBytes.HasValue Then
+                        CenterDeviceUploadLinkBytesClient.Create(Me.IOClient.ApiClient).UpdateLink(
+                            Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID,
+                            Tools.NotNullOrEmptyStringValue(shareInfo.Name),
+                            DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
+                            ConvertNarrowingToNullableInt32(shareInfo.MaxUploads),
+                            shareInfo.MaxBytes.Value,
+                            Tools.NotNullOrEmptyStringValue(shareInfo.Password))
+                    Else
+                        Me.IOClient.ApiClient.UploadLink.UpdateLink(Me.IOClient.CurrentAuthenticationContextUserID, shareInfo.ID,
+                                                            CType(Nothing, String),
+                                                            Tools.NotNullOrEmptyStringValue(shareInfo.Name),
+                                                            Nothing,
+                                                            DateTimeLocalToUtcTime(shareInfo.ExpiryDateLocalTime),
+                                                            ConvertNarrowingToNullableInt32(shareInfo.MaxUploads),
+                                                            Tools.NotNullOrEmptyStringValue(shareInfo.Password),
+                                                            Nothing)
+                    End If
                     _AllUploadLinks = Nothing 'Reset cache
                 Else
                     'Update view/download link
