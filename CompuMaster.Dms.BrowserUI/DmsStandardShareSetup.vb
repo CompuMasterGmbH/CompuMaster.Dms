@@ -227,7 +227,7 @@ Public Class DmsStandardShareSetup
                 Case DialogObjectModes.GroupSharing
                     Result = New DmsShareForGroup(Me.DmsItem, New DmsGroup() With {.ID = SelectedId, .Name = SelectedDisplayName}, False, False, False, False, False, False)
                 Case DialogObjectModes.UserSharing
-                    Result = New DmsShareForUser(Me.DmsItem, New DmsUser() With {.ID = SelectedId, .Name = SelectedDisplayName}, False, False, False, False, False, False)
+                    Result = New DmsShareForUser(Me.DmsItem, New DmsUser() With {.ID = SelectedId, .DisplayName = SelectedDisplayName}, False, False, False, False, False, False)
                 Case Else
                     Throw New NotImplementedException("DialogObjectMode not implemented for saving sharing")
             End Select
