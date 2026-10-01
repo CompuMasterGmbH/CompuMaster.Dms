@@ -41,6 +41,8 @@
   <data name="DeleteFilesTitle" xml:space="preserve"><value>Remote DMS - Löschen von Dateien</value></data>
   <data name="DeleteFolderQuestion" xml:space="preserve"><value>Möchten Sie wirklich folgenden Ordner löschen?</value></data>
   <data name="DeleteFolderTitle" xml:space="preserve"><value>Remote DMS - Löschen von Ordnern</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>Die Datei wurde außerhalb dieses Browsers gelöscht: {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>Der Ordner wurde außerhalb dieses Browsers gelöscht: {0}</value></data>
   <data name="DownloadSuccessful" xml:space="preserve"><value>Download erfolgreich</value></data>
   <data name="DownloadTitle" xml:space="preserve"><value>Remote DMS - Datei-Download</value></data>
   <data name="DownloadToTitle" xml:space="preserve"><value>Download nach {0}</value></data>

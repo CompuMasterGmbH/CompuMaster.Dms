@@ -607,6 +607,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Sub TreeViewDmsFolders_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles TreeViewDmsFolders.AfterSelect
+        If Me.SuppressSelectionRefresh Then Return
         Me.SelectedFolder = Me.SelectedFolderPath
         Me.RefreshFilesList()
     End Sub
@@ -614,6 +615,9 @@ Public Class DmsBrowser
     Private Sub TreeViewDmsFolders_BeforeExpand(sender As Object, e As TreeViewCancelEventArgs) Handles TreeViewDmsFolders.BeforeExpand
         Try
             Me.AddTreeChildren(e.Node)
+        Catch ex As Data.DirectoryNotFoundException
+            e.Cancel = True
+            Me.ShowMissingDirectory(e.Node, ex.RemotePath)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
@@ -651,6 +655,68 @@ Public Class DmsBrowser
     Private FilesSortOrderColumn As FilesListingColumn = FilesListingColumn.LastModified
     Private FilesSortOrderDirection As ListSortDirection = ListSortDirection.Descending
     Private LastFileListFolderPath As String
+    Private SuppressSelectionRefresh As Boolean
+
+    Friend Sub RemoveMissingDirectory(node As TreeNode)
+        Me.ListViewDmsFiles.Items.Clear()
+        Me.ListViewDmsFiles.Tag = Nothing
+        Me.LastFileListFolderPath = Nothing
+
+        If node Is Nothing Then Return
+        Dim parent As TreeNode = node.Parent
+        Me.SuppressSelectionRefresh = True
+        Try
+            If parent Is Nothing Then
+                Me.TreeViewDmsFolders.Nodes.Clear()
+                Me.RootNode = Nothing
+                Me.TreeViewDmsFolders.SelectedNode = Nothing
+            Else
+                node.Remove()
+                RecordChildDirectoryDeleted(parent)
+                Me.TreeViewDmsFolders.SelectedNode = parent
+            End If
+            Me.SelectedFolder = Me.SelectedFolderPath()
+        Finally
+            Me.SuppressSelectionRefresh = False
+        End Try
+    End Sub
+
+    Private Sub ShowMissingDirectory(node As TreeNode, remotePath As String)
+        Me.RemoveMissingDirectory(node)
+        MessageBox.Show(Me, UiStrings.Format("DeletedFolderMessage", remotePath), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
+    Private Function FindDirectoryNodeByPath(remotePath As String) As TreeNode
+        If Me.RootNode Is Nothing Then Return Nothing
+        Dim rootData As NodeTagData = TryCast(Me.RootNode.Tag, NodeTagData)
+        If rootData IsNot Nothing AndAlso rootData.DmsResourceItem Is Nothing AndAlso String.Equals(remotePath, Me.DmsProvider.BrowseInRootFolderName, StringComparison.Ordinal) Then Return Me.RootNode
+        Return FindDirectoryNodeByPath(Me.RootNode, remotePath)
+    End Function
+
+    Private Shared Function FindDirectoryNodeByPath(node As TreeNode, remotePath As String) As TreeNode
+        Dim data As NodeTagData = TryCast(node.Tag, NodeTagData)
+        If data IsNot Nothing AndAlso data.DmsResourceItem IsNot Nothing AndAlso String.Equals(data.DmsResourceItem.FullName, remotePath, StringComparison.Ordinal) Then Return node
+        For Each child As TreeNode In node.Nodes
+            Dim match As TreeNode = FindDirectoryNodeByPath(child, remotePath)
+            If match IsNot Nothing Then Return match
+        Next
+        Return Nothing
+    End Function
+
+    Friend Sub RemoveMissingFile(remotePath As String)
+        For Each item As ListViewItem In Me.ListViewDmsFiles.Items.Cast(Of ListViewItem)().ToArray()
+            Dim file As DmsResourceItem = TryCast(item.Tag, DmsResourceItem)
+            If file IsNot Nothing AndAlso String.Equals(file.FullName, remotePath, StringComparison.Ordinal) Then Me.ListViewDmsFiles.Items.Remove(item)
+        Next
+        Dim cachedFiles As List(Of DmsResourceItem) = TryCast(Me.ListViewDmsFiles.Tag, List(Of DmsResourceItem))
+        If cachedFiles IsNot Nothing Then cachedFiles.RemoveAll(Function(file) String.Equals(file.FullName, remotePath, StringComparison.Ordinal))
+    End Sub
+
+    Private Sub ShowMissingFile(remotePath As String)
+        Me.RemoveMissingFile(remotePath)
+        MessageBox.Show(Me, UiStrings.Format("DeletedFileMessage", remotePath), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
     Private Function ApplyFilesSortOrder(list As List(Of DmsResourceItem)) As List(Of DmsResourceItem)
         Select Case Me.FilesSortOrderDirection
             Case ListSortDirection.Descending
@@ -699,7 +765,12 @@ Public Class DmsBrowser
             Dim Files As List(Of DmsResourceItem)
             If currentFolderPath IsNot Nothing Then
                 Me.DmsProvider.ResetCachesForRemoteItems(currentFolderPath, Providers.BaseDmsProvider.SearchItemType.Files)
-                Files = Me.DmsProvider.ListAllFileItems(currentFolderPath)
+                Try
+                    Files = Me.DmsProvider.ListAllFileItems(currentFolderPath)
+                Catch ex As Data.DirectoryNotFoundException
+                    Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
+                    Return
+                End Try
             Else
                 Files = New List(Of DmsResourceItem)
             End If
@@ -923,6 +994,8 @@ Public Class DmsBrowser
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As Data.FileNotFoundException
+            Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
@@ -940,6 +1013,8 @@ Public Class DmsBrowser
             Me.RefreshFilesList()
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As Data.RessourceNotFoundException
+            Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
@@ -1102,6 +1177,28 @@ Public Class DmsBrowser
     End Function
 
     Private Sub ShowResourceActionError(ex As Exception)
+        If TypeOf ex Is Data.FileNotFoundException Then
+            Me.ShowMissingFile(CType(ex, Data.FileNotFoundException).RemotePath)
+            Return
+        ElseIf TypeOf ex Is Data.DirectoryNotFoundException Then
+            Dim missingPath As String = CType(ex, Data.DirectoryNotFoundException).RemotePath
+            Dim missingNode As TreeNode = Me.FindDirectoryNodeByPath(missingPath)
+            If missingNode IsNot Nothing Then
+                Me.ShowMissingDirectory(missingNode, missingPath)
+                Return
+            End If
+        ElseIf TypeOf ex Is Data.RessourceNotFoundException Then
+            Dim missingPath As String = CType(ex, Data.RessourceNotFoundException).RemotePath
+            If Me.CurrentSelectedFiles().Any(Function(file) String.Equals(file.FullName, missingPath, StringComparison.Ordinal)) Then
+                Me.ShowMissingFile(missingPath)
+                Return
+            End If
+            Dim missingNode As TreeNode = Me.FindDirectoryNodeByPath(missingPath)
+            If missingNode IsNot Nothing Then
+                Me.ShowMissingDirectory(missingNode, missingPath)
+                Return
+            End If
+        End If
         Dim message As String = If(System.Diagnostics.Debugger.IsAttached, ex.ToString(), ex.Message)
         MessageBox.Show(Me, message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
     End Sub
@@ -1391,6 +1488,8 @@ Public Class DmsBrowser
     Private Sub ToolStripButtonRefreshFilesList_Click(sender As Object, e As EventArgs) Handles ToolStripButtonRefreshFilesList.Click
         Try
             Me.RefreshCurrentFolderAndFiles()
+        Catch ex As Data.DirectoryNotFoundException
+            Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As DmsUserInputInvalidException
@@ -1458,6 +1557,8 @@ Public Class DmsBrowser
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As Data.RessourceNotFoundException
+            Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
@@ -1582,6 +1683,8 @@ Public Class DmsBrowser
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As Data.FileNotFoundException
+            Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try

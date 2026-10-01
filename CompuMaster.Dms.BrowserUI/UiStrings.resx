@@ -41,6 +41,8 @@
   <data name="DeleteFilesTitle" xml:space="preserve"><value>Remote DMS - Delete files</value></data>
   <data name="DeleteFolderQuestion" xml:space="preserve"><value>Do you really want to delete the following folder?</value></data>
   <data name="DeleteFolderTitle" xml:space="preserve"><value>Remote DMS - Delete folder</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>The file was deleted outside this browser: {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>The folder was deleted outside this browser: {0}</value></data>
   <data name="DownloadSuccessful" xml:space="preserve"><value>Download completed successfully</value></data>
   <data name="DownloadTitle" xml:space="preserve"><value>Remote DMS - File download</value></data>
   <data name="DownloadToTitle" xml:space="preserve"><value>Download to {0}</value></data>
