@@ -43,10 +43,10 @@ jobs:
         steps:
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Setup .NET Core
-              uses: actions/setup-dotnet@v4
+              uses: actions/setup-dotnet@v5
               with:
                 dotnet-version: 8.0.x
 
@@ -75,42 +75,42 @@ jobs:
               run: Compress-Archive -DestinationPath bin-nextcloud.zip ${{env.BUILD_OUTPUT_BASEDIR6}}/${{env.BUILD_CONFIGURATION}}
 
             - name: Publish binaries CompuMaster.Dms.Providers
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                 files: "bin-providers.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish binaries CompuMaster.Dms.BrowserUI
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                 files: "bin-browserui.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish binaries CompuMaster.Dms.TestDemo.ScopevisioTeamwork
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                 files: "bin-scopevisio-teamwork.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish binaries CompuMaster.Dms.TestDemo.WebDav
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                 files: "bin-webdav.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish binaries CompuMaster.Dms.TestDemo.OwnCloudClassic
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                 files: "bin-owncloud-classic.zip"
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish binaries CompuMaster.Dms.TestDemo.Nextcloud
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                 files: "bin-nextcloud.zip"
               env:
@@ -126,7 +126,7 @@ jobs:
               run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate 
 
             - name: Publish Package Artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                 name: Nupkg Artifacts
                 path: ./**/*.nupkg
