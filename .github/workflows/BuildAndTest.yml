@@ -178,6 +178,10 @@ jobs:
       - name: Run ${{ matrix.server.displayName }} integration tests
         run: dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --results-directory test-results --logger junit --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --filter "TestCategory=${{ matrix.server.category }}"
 
+      - name: Diagnose Scopevisio sharing principal
+        if: matrix.server.id == 'scopevisio-teamwork' && matrix.os == 'windows-latest'
+        run: dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --no-build --filter "FullyQualifiedName~ScopevisioSharingPrincipalTest" --logger "console;verbosity=detailed"
+
       - name: Publish integration test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always() && startsWith(matrix.os, 'ubuntu') && hashFiles('test-results/TestResults.xml') != ''
