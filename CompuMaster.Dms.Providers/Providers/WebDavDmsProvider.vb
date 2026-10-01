@@ -268,9 +268,11 @@ Namespace Providers
                 Return Result
             Else
                 If PropfindTask.Exception IsNot Nothing Then
-                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & PropfindTask.Exception.Message)
+                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & PropfindTask.Exception.Message, PropfindTask.Exception)
+                ElseIf PropfindTask.Result.StatusCode = 404 Then
+                    Throw New DirectoryNotFoundException(remoteFolderPath, New ResponseStatusCodeException(PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 Else
-                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description)
+                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description, New ResponseStatusCodeException(PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 End If
             End If
         End Function
@@ -358,6 +360,8 @@ Namespace Providers
 
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Using response = Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file without processing from the server
+                response.Wait()
+                If response.Result.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.Result.StatusCode, response.Result.Description))
                 WriteResponseStreamToDisk(response, localFilePath)
                 If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
             End Using
@@ -365,6 +369,8 @@ Namespace Providers
 
         Public Overridable Sub DownloadProcessedFile(remoteFilePath As String, localFilePath As String)
             Using response = Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file that can be processed by the server
+                response.Wait()
+                If response.Result.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.Result.StatusCode, response.Result.Description))
                 WriteResponseStreamToDisk(response, localFilePath)
             End Using
         End Sub
@@ -396,7 +402,18 @@ Namespace Providers
                     Throw New System.IO.IOException(ioExceptionMessage)
                 ElseIf completedTask.Result.StatusCode = 404 Then
                     '404 Not found
-                    Throw New RessourceNotFoundException(remoteDestinationPath)
+                    Dim statusError As New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description)
+                    If remoteSourcePath IsNot Nothing AndAlso Not Me.RemoteItemExists(remoteSourcePath) Then
+                        Select Case conflictItemType
+                            Case ExceptionTypeForItemType.File
+                                Throw New FileNotFoundException(remoteSourcePath, statusError)
+                            Case ExceptionTypeForItemType.Directory
+                                Throw New DirectoryNotFoundException(remoteSourcePath, statusError)
+                            Case Else
+                                Throw New RessourceNotFoundException(remoteSourcePath, statusError)
+                        End Select
+                    End If
+                    Throw New RessourceNotFoundException(remoteDestinationPath, statusError)
                 ElseIf completedTask.Result.StatusCode = 409 Then
                     '409 Conflict
                     If remoteDestinationPath = Nothing Then
