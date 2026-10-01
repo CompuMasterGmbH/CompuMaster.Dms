@@ -952,7 +952,7 @@ Namespace Providers
             Result.ExtendedInfosAssignedCollectionID = res.ParentDirectory?.AssociatedCollection?.CollectionID
             Result.ExtendedInfosAssignedFolderID = res.ParentDirectory?.FolderID
             Result.HasChildDirectories = ReadHasChildDirectoriesMetadata(res)
-            Result.ExtendedInfosOwner = New DmsUser() With {.ID = res.Owner, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
+            Result.ExtendedInfosOwner = New DmsUser() With {.ID = res.Owner, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
             Result.ExtendedInfosLinks = New List(Of DmsLink)
             If res.Link <> Nothing Then Result.ExtendedInfosLinks.Add(New DmsLink(Result, res.Link, Me, AddressOf CenterDeviceDmsProviderBase.DelegatedFillLinkDetails))
             If res.CollectionID <> Nothing AndAlso AllUploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(res.CollectionID) Then
@@ -994,7 +994,7 @@ Namespace Providers
                 Result.ExtendedInfosHasHiddenUserSharings = res.Users.NotVisibleCount <> 0
                 If res.Users.Visible IsNot Nothing Then
                     For Each ResSharing As String In res.Users.Visible
-                        Result.ExtendedInfosUserSharings.Add(New DmsShareForUser(Result, New DmsUser() With {.ID = ResSharing, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}, True, True, True, True, True, True))
+                        Result.ExtendedInfosUserSharings.Add(New DmsShareForUser(Result, New DmsUser() With {.ID = ResSharing, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}, True, True, True, True, True, True))
                     Next
                 End If
             End If
@@ -1082,12 +1082,12 @@ Namespace Providers
             Else
                 Result.ExtendedInfosReferencedFromFolderIDs = New List(Of String)
             End If
-            Result.ExtendedInfosOwner = New DmsUser() With {.ID = res.Owner, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
-            Result.ExtendedInfosLastModificationUser = New DmsUser() With {.ID = res.Uploader, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
+            Result.ExtendedInfosOwner = New DmsUser() With {.ID = res.Owner, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
+            Result.ExtendedInfosLastModificationUser = New DmsUser() With {.ID = res.Uploader, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
             Result.ExtendedInfosLinks = New List(Of DmsLink)
             If Not res.Link = Nothing Then Result.ExtendedInfosLinks.Add(New DmsLink(Result, res.Link, Me, AddressOf CenterDeviceDmsProviderBase.DelegatedFillLinkDetails))
             Result.ExtendedInfosLocks = res.Locks
-            Result.ExtendedInfosLockedByUser = New DmsUser() With {.ID = res.LockedBy, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
+            Result.ExtendedInfosLockedByUser = New DmsUser() With {.ID = res.LockedBy, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
             Result.ExtendedInfosArchivedDateLocalTime = DateTimeUtcToLocalTime(res.ArchivedDate)
             Result.ExtendedInfosVersion = res.Version.ToString
             Result.ExtendedInfosVersionDateLocalTime = DateTimeUtcToLocalTime(res.VersionDate)
@@ -1112,7 +1112,7 @@ Namespace Providers
                 Result.ExtendedInfosHasHiddenUserSharings = res.Users.NotVisibleCount <> 0
                 If res.Users.Visible IsNot Nothing Then
                     For Each ResSharing As String In res.Users.Visible
-                        Result.ExtendedInfosUserSharings.Add(New DmsShareForUser(Result, New DmsUser() With {.ID = ResSharing, .Provider = Me, .GetName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}, True, True, True, True, True, True))
+                        Result.ExtendedInfosUserSharings.Add(New DmsShareForUser(Result, New DmsUser() With {.ID = ResSharing, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}, True, True, True, True, True, True))
                     Next
                 End If
             End If
@@ -1185,9 +1185,21 @@ Namespace Providers
             Return CType(provider, CenterDeviceDmsProviderBase).IOClient.GroupName(groupId)
         End Function
 
+        ''' <summary>Resolves the display name of a CenterDevice user.</summary>
+        ''' <param name="provider">The CenterDevice provider instance.</param>
+        ''' <param name="userId">The provider-specific user ID.</param>
+        ''' <returns>The trimmed display name, or an empty string when no name is available.</returns>
+        Public Shared Function DelegatedGetDisplayName(provider As BaseDmsProvider, userId As String) As String
+            Dim displayName As String = CType(provider, CenterDeviceDmsProviderBase).IOClient.UserName(userId)
+            Return If(displayName, String.Empty).Trim()
+        End Function
+
+        ''' <summary>Resolves a CenterDevice user's display name through the legacy method.</summary>
+        ''' <param name="provider">The CenterDevice provider instance.</param>
+        ''' <param name="userId">The provider-specific user ID.</param>
+        ''' <returns>The trimmed display name, or an empty string when no name is available.</returns>
         Public Shared Function DelegatedGetUserName(provider As BaseDmsProvider, userId As String) As String
-            Dim userName As String = CType(provider, CenterDeviceDmsProviderBase).IOClient.UserName(userId)
-            Return If(userName, String.Empty).Trim()
+            Return DelegatedGetDisplayName(provider, userId)
         End Function
 
         Public Shared Function DelegatedGetUserEMailAddress(provider As BaseDmsProvider, userId As String) As String
@@ -1434,7 +1446,7 @@ Namespace Providers
             For Each User In UserList.Users
                 Result.Add(New DmsUser() With {
                     .ID = User.Id,
-                    .Name = If(User.GetFullName, String.Empty).Trim(),
+                    .DisplayName = If(User.GetFullName, String.Empty).Trim(),
                     .EMailAddress = User.Email
                    })
             Next
