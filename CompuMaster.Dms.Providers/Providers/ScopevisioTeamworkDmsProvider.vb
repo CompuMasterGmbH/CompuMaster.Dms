@@ -2,6 +2,8 @@
 Option Strict On
 
 Imports System.Net.Http
+Imports System.Net.Http.Headers
+Imports System.Text.Json
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 Imports CompuMaster.Scopevisio.OpenApi
@@ -23,6 +25,12 @@ Namespace Providers
         Implements IDmsInstanceProvider
 
         Private _OpenScopeClient As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient
+
+        Private Shared ReadOnly NameLookupClient As New HttpClient()
+        Private Shared ReadOnly NameLookupClientIgnoringSslErrors As New HttpClient(New HttpClientHandler With {
+            .ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True
+        })
+        Private _ignoreSslErrors As Boolean
 
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
@@ -93,10 +101,55 @@ Namespace Providers
                 Me.IOClient = If(OpenScopeClient.Token Is Nothing OrElse String.IsNullOrWhiteSpace(OpenScopeClient.Token.TeamworkTenantId),
                                  Nothing,
                                  New CompuMaster.Scopevisio.Teamwork.TeamworkIOClient(OpenScopeClient))
+                Me._ignoreSslErrors = ignoreSslErrors
             Catch ex As CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 Throw CreateAuthorizationException(ex.ErrorCode, ex.ErrorContent, ex, IsTokenRequest)
             End Try
         End Sub
+
+        ''' <inheritdoc/>
+        ''' <remarks>The bundled SDK does not map the API's hyphenated name fields, so this provider reads them when the SDK supplies no name.</remarks>
+        Protected Overrides Function LookupUserDisplayName(userId As String) As String
+            Dim sdkName As String = MyBase.LookupUserDisplayName(userId)
+            If Not String.IsNullOrWhiteSpace(sdkName) Then Return sdkName
+
+            Dim openScopeClient = CType(Me.IOClient, CompuMaster.Scopevisio.Teamwork.TeamworkIOClient).TeamworkRestClient.OpenscopeClient
+            If openScopeClient.Token Is Nothing OrElse String.IsNullOrWhiteSpace(openScopeClient.Token.AccessToken) Then Return String.Empty
+
+            Try
+                Dim client As HttpClient = If(Me._ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
+                Dim address As New Uri(New Uri(Me.WebApiDefaultUrl), "user/" & Uri.EscapeDataString(userId))
+                Using request As New HttpRequestMessage(HttpMethod.Get, address)
+                    request.Headers.Authorization = New AuthenticationHeaderValue("Bearer", openScopeClient.Token.AccessToken)
+                    Using response = client.SendAsync(request).GetAwaiter().GetResult()
+                        If Not response.IsSuccessStatusCode Then Return String.Empty
+                        Return ParseUserDisplayName(response.Content.ReadAsStringAsync().GetAwaiter().GetResult())
+                    End Using
+                End Using
+            Catch ex As HttpRequestException
+                Return String.Empty
+            Catch ex As OperationCanceledException
+                Return String.Empty
+            Catch ex As JsonException
+                Return String.Empty
+            End Try
+        End Function
+
+        Friend Shared Function ParseUserDisplayName(json As String) As String
+            If String.IsNullOrWhiteSpace(json) Then Return String.Empty
+            Using document = JsonDocument.Parse(json)
+                If document.RootElement.ValueKind <> JsonValueKind.Object Then Return String.Empty
+                Dim firstName As String = ReadUserNameField(document.RootElement, "first-name")
+                Dim lastName As String = ReadUserNameField(document.RootElement, "last-name")
+                Return (firstName & " " & lastName).Trim()
+            End Using
+        End Function
+
+        Private Shared Function ReadUserNameField(user As JsonElement, fieldName As String) As String
+            Dim field As JsonElement
+            If Not user.TryGetProperty(fieldName, field) OrElse field.ValueKind <> JsonValueKind.String Then Return String.Empty
+            Return If(field.GetString(), String.Empty).Trim()
+        End Function
 
         Friend Shared Function CreateAuthorizationException(errorCode As Integer, errorContent As Object, originalException As Exception, isTokenRequest As Boolean) As Exception
             If isTokenRequest AndAlso errorCode = 401 Then
