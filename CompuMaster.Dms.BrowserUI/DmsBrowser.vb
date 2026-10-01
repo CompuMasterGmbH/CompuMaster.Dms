@@ -558,6 +558,7 @@ Public Class DmsBrowser
             Next
             Me.TreeViewDmsFolders.SelectedNode = LastMatch
         End If
+        Me.SelectedFolder = Me.SelectedFolderPath()
         Me.RefreshFilesList()
     End Sub
 
@@ -625,8 +626,10 @@ Public Class DmsBrowser
 
     Private Sub ButtonCreateNewFolder_Click(sender As Object, e As EventArgs) Handles ButtonCreateNewFolder.Click
         Try
-            Dim NewFolderName As String = InputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"))
-            If NewFolderName = Nothing Then Return
+            Dim NewFolderName As String = Nothing
+            If Not UITools.TryInputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"), "", NewFolderName) Then Return
+            NewFolderName = NewFolderName.Trim()
+            If Not IsValidResourceName(NewFolderName, Me.DmsProvider.DirectorySeparator) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("InvalidDestinationName"))
             Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem?.FullName, NewFolderName)
             Me.DmsProvider.CreateDirectory(NewFolderPath)
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
@@ -648,6 +651,7 @@ Public Class DmsBrowser
     End Enum
     Private FilesSortOrderColumn As FilesListingColumn = FilesListingColumn.LastModified
     Private FilesSortOrderDirection As ListSortDirection = ListSortDirection.Descending
+    Private LastFileListFolderPath As String
     Private Function ApplyFilesSortOrder(list As List(Of DmsResourceItem)) As List(Of DmsResourceItem)
         Select Case Me.FilesSortOrderDirection
             Case ListSortDirection.Descending
@@ -677,12 +681,26 @@ Public Class DmsBrowser
 
     Private Sub RefreshFilesList()
         Me.ListViewDmsFiles.Items.Clear()
+        Me.ListViewDmsFiles.Tag = Nothing
         If Me.SplitContainer.Panel2Collapsed = False Then
-            Dim CurrentFolder As NodeTagData = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData)
+            Dim CurrentFolder As NodeTagData = TryCast(Me.TreeViewDmsFolders.SelectedNode?.Tag, NodeTagData)
+            Dim currentFolderPath As String
+            If CurrentFolder IsNot Nothing Then
+                currentFolderPath = CurrentFolder.DmsResourceItem?.FullName
+                If currentFolderPath Is Nothing AndAlso Me.DmsProvider.SupportsFilesInRootFolder Then
+                    currentFolderPath = Me.DmsProvider.BrowseInRootFolderName
+                End If
+                Me.LastFileListFolderPath = currentFolderPath
+            Else
+                currentFolderPath = Me.LastFileListFolderPath
+                If currentFolderPath Is Nothing AndAlso Me.SelectedFolder IsNot Nothing Then
+                    currentFolderPath = Me.DmsProvider.CombinePath(Me.InitialFolder, Me.SelectedFolder)
+                End If
+            End If
             Dim Files As List(Of DmsResourceItem)
-            If CurrentFolder IsNot Nothing AndAlso CurrentFolder.DmsResourceItem IsNot Nothing Then
-                Me.DmsProvider.ResetCachesForRemoteItems(CurrentFolder.DmsResourceItem.FullName, Providers.BaseDmsProvider.SearchItemType.Files)
-                Files = Me.DmsProvider.ListAllFileItems(CurrentFolder.DmsResourceItem.FullName)
+            If currentFolderPath IsNot Nothing Then
+                Me.DmsProvider.ResetCachesForRemoteItems(currentFolderPath, Providers.BaseDmsProvider.SearchItemType.Files)
+                Files = Me.DmsProvider.ListAllFileItems(currentFolderPath)
             Else
                 Files = New List(Of DmsResourceItem)
             End If
@@ -765,7 +783,7 @@ Public Class DmsBrowser
         If Me.TreeViewDmsFolders.SelectedNode Is Nothing OrElse Me.TreeViewDmsFolders.SelectedNode.Parent Is Nothing Then
             Return Nothing
         Else
-            Return Me.TreeViewDmsFolders.SelectedNode
+            Return Me.TreeViewDmsFolders.SelectedNode.Parent
         End If
     End Function
 
@@ -929,33 +947,164 @@ Public Class DmsBrowser
     End Sub
 
     Private Sub ToolStripButtonCopyFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonCopyFile.Click
-        Try
-            Throw New NotImplementedException
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        Me.RunFileAction(ResourceAction.Copy)
     End Sub
 
     Private Sub ToolStripButtonRenameFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonRenameFile.Click
-        Try
-            Throw New NotImplementedException
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        Me.RunFileAction(ResourceAction.Rename)
     End Sub
 
     Private Sub ToolStripButtonMoveFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonMoveFile.Click
+        Me.RunFileAction(ResourceAction.Move)
+    End Sub
+
+    Friend Enum ResourceAction
+        Copy
+        Rename
+        Move
+    End Enum
+
+    Private Sub RunFileAction(action As ResourceAction)
         Try
-            Throw New NotImplementedException
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim selectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles()
+            If selectedFiles.Count = 0 Then Throw New DmsUserInputInvalidException(UiStrings.GetText("NoFileSelected"))
+            If action = ResourceAction.Rename AndAlso selectedFiles.Count <> 1 Then Throw New DmsUserInputInvalidException(UiStrings.GetText("ExactlyOneItemRequired"))
+
+            Dim destinationDirectory As String = Nothing
+            If action <> ResourceAction.Rename AndAlso Not Me.TrySelectDestinationDirectory(destinationDirectory) Then Return
+
+            Dim completed As Integer = 0
+            Try
+                For Each source As DmsResourceItem In selectedFiles
+                    Dim parentPath As String = If(action = ResourceAction.Rename, Me.DmsProvider.ParentDirectoryPath(source.FullName), destinationDirectory)
+                    Dim targetName As String = source.Name
+                    If action = ResourceAction.Rename OrElse selectedFiles.Count = 1 Then
+                        If Not Me.TryGetDestinationName(action, source, targetName) Then Return
+                    End If
+                    Dim destinationPath As String = Me.DmsProvider.CombinePath(parentPath, targetName)
+                    If Not Me.ExecuteResourceAction(source, destinationPath, action) Then
+                        If completed > 0 Then MessageBox.Show(Me, UiStrings.Format("ActionStoppedAfter", completed, selectedFiles.Count), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        Return
+                    End If
+                    completed += 1
+                Next
+            Catch ex As Exception
+                If completed > 0 Then
+                    Throw New InvalidOperationException(UiStrings.Format("ActionPartlyCompleted", completed, selectedFiles.Count, ex.Message), ex)
+                End If
+                Throw
+            End Try
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.ShowResourceActionError(ex)
+        Finally
+            Try
+                If Me.TreeViewDmsFolders.SelectedNode IsNot Nothing Then Me.RefreshFilesList()
+            Catch ex As Exception
+                Me.ShowResourceActionError(ex)
+            End Try
         End Try
+    End Sub
+
+    Private Sub RunFolderAction(action As ResourceAction)
+        Dim refreshRequired As Boolean = False
+        Dim refreshPath As String = Nothing
+        Try
+            Dim source As DmsResourceItem = Me.CurrentSelectedFolder()
+            If source Is Nothing Then Throw New DmsUserInputInvalidException(UiStrings.GetText("NoFolderSelected"))
+            If source.ItemType = DmsResourceItem.ItemTypes.Root OrElse Me.CurrentSelectedFolderNode() Is Me.RootNode Then
+                Throw New DmsUserInputInvalidException(UiStrings.GetText("RootFolderCannotBeChanged"))
+            End If
+
+            Dim parentPath As String = Me.DmsProvider.ParentDirectoryPath(source.FullName)
+            If action <> ResourceAction.Rename AndAlso Not Me.TrySelectDestinationDirectory(parentPath) Then Return
+            Dim targetName As String = source.Name
+            If Not Me.TryGetDestinationName(action, source, targetName) Then Return
+            Dim destinationPath As String = Me.DmsProvider.CombinePath(parentPath, targetName)
+            refreshPath = source.FullName
+            refreshRequired = True
+            If Not Me.ExecuteResourceAction(source, destinationPath, action) Then Return
+            refreshPath = destinationPath
+        Catch ex As Exception
+            Me.ShowResourceActionError(ex)
+        Finally
+            If refreshRequired Then
+                Try
+                    Me.LoadTree()
+                    Me.SelectFolderPath(Me.PathRelativeToBrowserRoot(refreshPath))
+                Catch ex As Exception
+                    Me.ShowResourceActionError(ex)
+                End Try
+            End If
+        End Try
+    End Sub
+
+    Private Function TrySelectDestinationDirectory(ByRef directoryPath As String) As Boolean
+        Using picker As DmsBrowser = Me.CreateDestinationPicker()
+            If picker.ShowDialog(Me) <> DialogResult.OK Then Return False
+            directoryPath = If(picker.CurrentSelectedFolder()?.FullName, "")
+            Return True
+        End Using
+    End Function
+
+    Friend Function CreateDestinationPicker() As DmsBrowser
+        Dim picker As New DmsBrowser(Me.DmsProvider)
+        picker.DmsProfile = Me.DmsProfile
+        picker.Text = UiStrings.GetText("SelectDestinationFolder")
+        picker.InitialFolder = Me.InitialFolder
+        picker.SelectedFolder = Me.SelectedFolderPath()
+        picker.BrowseMode = BrowseModes.Folders
+        picker.AllowedActions = Me.AllowedActions And FileOrFolderActions.AllowCreateFolders
+        picker.DialogOperationModeInternal = DialogOperationModes.ReturnSelectedItems
+        Return picker
+    End Function
+
+    Private Function TryGetDestinationName(action As ResourceAction, source As DmsResourceItem, ByRef name As String) As Boolean
+        Dim promptKey As String = If(action = ResourceAction.Rename, "RenameItemPrompt", "DestinationNamePrompt")
+        If Not UITools.TryInputBox(UiStrings.Format(promptKey, source.Name), UiStrings.GetText("DestinationNameTitle"), source.Name, name) Then Return False
+        name = name.Trim()
+        If Not IsValidResourceName(name, Me.DmsProvider.DirectorySeparator) Then
+            Throw New DmsUserInputInvalidException(UiStrings.GetText("InvalidDestinationName"))
+        End If
+        Return True
+    End Function
+
+    Private Shared Function IsValidResourceName(name As String, separator As Char) As Boolean
+        Return Not String.IsNullOrWhiteSpace(name) AndAlso name <> "." AndAlso name <> ".." AndAlso
+            name.IndexOf(separator) < 0 AndAlso name.IndexOf("/"c) < 0 AndAlso name.IndexOf("\"c) < 0
+    End Function
+
+    Friend Function ExecuteResourceAction(source As DmsResourceItem, destinationPath As String, action As ResourceAction) As Boolean
+        If String.Equals(source.FullName.TrimEnd(Me.DmsProvider.DirectorySeparator), destinationPath.TrimEnd(Me.DmsProvider.DirectorySeparator), StringComparison.Ordinal) Then
+            Throw New DmsUserInputInvalidException(UiStrings.GetText("SourceEqualsDestination"))
+        End If
+
+        Dim allowOverwrite As Boolean = False
+        Dim existing As DmsResourceItem = Me.DmsProvider.ListRemoteItem(destinationPath)
+        If existing IsNot Nothing Then
+            Dim questionKey As String = If(source.ItemType = DmsResourceItem.ItemTypes.File, "OverwriteFileQuestion", "MergeFolderQuestion")
+            If MessageBox.Show(Me, UiStrings.Format(questionKey, destinationPath), Me.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return False
+            allowOverwrite = True
+        End If
+        Select Case action
+            Case ResourceAction.Copy
+                Me.DmsProvider.Copy(source, destinationPath, allowOverwrite, False)
+            Case ResourceAction.Rename, ResourceAction.Move
+                Me.DmsProvider.Move(source, destinationPath, allowOverwrite, False)
+        End Select
+        Return True
+    End Function
+
+    Private Function PathRelativeToBrowserRoot(path As String) As String
+        Dim rootPath As String = Me.InitialFolder
+        If String.IsNullOrEmpty(rootPath) Then Return path.TrimStart(Me.DmsProvider.DirectorySeparator)
+        Dim prefix As String = rootPath.TrimEnd(Me.DmsProvider.DirectorySeparator) & Me.DmsProvider.DirectorySeparator
+        If Not path.StartsWith(prefix, StringComparison.Ordinal) Then Throw New InvalidOperationException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
+        Return path.Substring(prefix.Length)
+    End Function
+
+    Private Sub ShowResourceActionError(ex As Exception)
+        Dim message As String = If(System.Diagnostics.Debugger.IsAttached, ex.ToString(), ex.Message)
+        MessageBox.Show(Me, message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
     End Sub
 
     Private Sub ButtonClose_Click(sender As Object, e As EventArgs) Handles ButtonClose.Click
@@ -1184,7 +1333,13 @@ Public Class DmsBrowser
                 If currentDmsItem IsNot Nothing AndAlso currentDmsItem.ExtendedInfosCollectionID = id Then
                     Return currentDmsItem.FullName & " (" & id & ")"
                 Else
-                    Return Me.DmsProvider.FindCollectionById(id).Name & " (" & id & ")"
+                    Try
+                        Dim collection As DmsResourceItem = Me.DmsProvider.FindCollectionById(id)
+                        If collection IsNot Nothing Then Return collection.Name & " (" & id & ")"
+                    Catch ex As Exception
+                        'A failed optional name lookup must not hide the file's other properties.
+                    End Try
+                    Return id
                 End If
             Case Else
                 Return id
@@ -1194,10 +1349,16 @@ Public Class DmsBrowser
     Private Function LookupFolderNameForUI(id As String, currentDmsItem As DmsResourceItem) As String
         Select Case Me.DmsProvider.DmsProviderID
             Case Providers.BaseDmsProvider.DmsProviders.CenterDevice, Providers.BaseDmsProvider.DmsProviders.Scopevisio
-                If currentDmsItem IsNot Nothing AndAlso currentDmsItem.ExtendedInfosCollectionID = id Then
+                If currentDmsItem IsNot Nothing AndAlso currentDmsItem.ExtendedInfosFolderID = id Then
                     Return currentDmsItem.FullName & " (" & id & ")"
                 Else
-                    Return Me.DmsProvider.FindFolderById(id).Name & " (" & id & ")"
+                    Try
+                        Dim folder As DmsResourceItem = Me.DmsProvider.FindFolderById(id)
+                        If folder IsNot Nothing Then Return folder.Name & " (" & id & ")"
+                    Catch ex As Exception
+                        'A failed optional name lookup must not hide the file's other properties.
+                    End Try
+                    Return id
                 End If
             Case Else
                 Return id
@@ -1232,8 +1393,7 @@ Public Class DmsBrowser
 
     Private Sub ToolStripButtonRefreshFilesList_Click(sender As Object, e As EventArgs) Handles ToolStripButtonRefreshFilesList.Click
         Try
-            If Me.TreeViewDmsFolders.SelectedNode IsNot Nothing Then Me.RefreshTreeNode(Me.TreeViewDmsFolders.SelectedNode)
-            Me.RefreshFilesList()
+            Me.RefreshCurrentFolderAndFiles()
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As DmsUserInputInvalidException
@@ -1241,6 +1401,23 @@ Public Class DmsBrowser
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Friend Sub RefreshCurrentFolderAndFiles()
+        Dim selectedNode As TreeNode = Me.TreeViewDmsFolders.SelectedNode
+        If selectedNode Is Nothing AndAlso Me.LastFileListFolderPath IsNot Nothing Then
+            Me.SelectFolderPath(Me.PathRelativeToBrowserRoot(Me.LastFileListFolderPath))
+            selectedNode = Me.TreeViewDmsFolders.SelectedNode
+        ElseIf selectedNode Is Nothing AndAlso Me.SelectedFolder IsNot Nothing Then
+            Me.SelectFolderPath(Me.SelectedFolder)
+            selectedNode = Me.TreeViewDmsFolders.SelectedNode
+        End If
+        If selectedNode Is Nothing Then selectedNode = Me.RootNode
+        If selectedNode IsNot Nothing Then
+            Me.RefreshTreeNode(selectedNode)
+            If Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Me.TreeViewDmsFolders.SelectedNode = selectedNode
+        End If
+        Me.RefreshFilesList()
     End Sub
 
     Private Sub ContextMenuStripFolder_Opening(sender As Object, e As CancelEventArgs) Handles ContextMenuStripFolder.Opening
@@ -1256,33 +1433,15 @@ Public Class DmsBrowser
     End Sub
 
     Private Sub ToolStripFolderContextButtonCopyFolder_Click(sender As Object, e As EventArgs) Handles ToolStripFolderContextButtonCopyFolder.Click
-        Try
-            Throw New NotImplementedException
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        Me.RunFolderAction(ResourceAction.Copy)
     End Sub
 
     Private Sub ToolStripFolderContextButtonRenameFolder_Click(sender As Object, e As EventArgs) Handles ToolStripFolderContextButtonRenameFolder.Click
-        Try
-            Throw New NotImplementedException
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        Me.RunFolderAction(ResourceAction.Rename)
     End Sub
 
     Private Sub ToolStripFolderContextButtonMoveFolder_Click(sender As Object, e As EventArgs) Handles ToolStripFolderContextButtonMoveFolder.Click
-        Try
-            Throw New NotImplementedException
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        Me.RunFolderAction(ResourceAction.Move)
     End Sub
 
     Private Sub ToolStripFolderContextButtonDeleteFolder_Click(sender As Object, e As EventArgs) Handles ToolStripFolderContextButtonDeleteFolder.Click

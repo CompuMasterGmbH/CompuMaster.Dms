@@ -81,6 +81,18 @@
   <data name="LimitationUploads" xml:space="preserve"><value>Uploads: {0}</value></data>
   <data name="NewFolderPrompt" xml:space="preserve"><value>Wie soll der neue Ordner unterhalb von &quot;{0}&quot; heißen?</value></data>
   <data name="NewFolderTitle" xml:space="preserve"><value>Neuer Ordner</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>Zielordner auswählen</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>Name am Ziel</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>Zielnamen für „{0}“ eingeben:</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>Neuen Namen für „{0}“ eingeben:</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>Bitte einen Namen ohne Verzeichnistrennzeichen eingeben.</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>Quelle und Ziel sind identisch. Bitte einen anderen Namen oder Ordner wählen.</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>Die Datei „{0}“ existiert bereits. Ersetzen?</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>Der Ordner „{0}“ existiert bereits. Inhalt mit der Quelle zusammenführen? Einträge, die nur im Ziel vorhanden sind, bleiben erhalten.</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>Das Stammverzeichnis des Browsers kann nicht kopiert, umbenannt oder verschoben werden.</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>Das Ziel liegt außerhalb des Stammverzeichnisses des Browsers.</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>{0} von {1} ausgewählten Einträgen wurden bearbeitet. Beim nächsten Eintrag trat ein Fehler auf: {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>Vorgang angehalten. {0} von {1} ausgewählten Einträgen wurden bearbeitet.</value></data>
   <data name="NoFileSelected" xml:space="preserve"><value>Keine Datei ausgewählt</value></data>
   <data name="NoFilesSelected" xml:space="preserve"><value>Keine Datei(en) ausgewählt</value></data>
   <data name="NoFolderSelected" xml:space="preserve"><value>Kein Ordner ausgewählt</value></data>

@@ -80,9 +80,8 @@ Public MustInherit Class BaseDmsProviderTestBase
         For Each MyItem As String In Items
             System.Console.WriteLine(MyItem)
         Next
-        If DmsProvider.SupportsFilesInRootFolder Then
-            ClassicAssert.NotZero(Items.Count)
-        Else
+        'Root-file support does not imply that this test server has permanent files in its root.
+        If Not DmsProvider.SupportsFilesInRootFolder Then
             ClassicAssert.Zero(Items.Count)
         End If
         System.Console.WriteLine("---")
@@ -186,9 +185,8 @@ Public MustInherit Class BaseDmsProviderTestBase
             ClassicAssert.AreEqual("", MyItem.Folder)
             ClassicAssert.AreEqual(DmsResourceItem.ItemTypes.File, MyItem.ItemType)
         Next
-        If DmsProvider.SupportsFilesInRootFolder Then
-            ClassicAssert.NotZero(Items.Count)
-        Else
+        'Root-file support does not imply that this test server has permanent files in its root.
+        If Not DmsProvider.SupportsFilesInRootFolder Then
             ClassicAssert.Zero(Items.Count)
         End If
         System.Console.WriteLine("---")
@@ -1081,21 +1079,19 @@ Public MustInherit Class BaseDmsProviderTestBase
             dmsProvider.Copy(RemotePathSource, RemotePathTarget, False, True)
             AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
             AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
-        Catch ex As NotImplementedException
-            Throw New IgnoreException("Implementation required" & System.Environment.NewLine & ex.ToString, ex)
         Catch ex As Exception
             ClassicAssert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.FullName & "}", "Catched exception type must match with expected result" & System.Environment.NewLine & ex.ToString)
         End Try
 
-        '3rd step: copy again and fail because of trial to overwrite: not yet implemented to handle what happens if destination already exists (partially)!
+        '3rd step: copy again and merge into the existing destination directory
         If RemotePathTarget.EndsWith(dmsProvider.DirectorySeparator) Then
             ClassicAssert.Catch(Of System.ArgumentException)(Sub()
                                                                  dmsProvider.Copy(RemotePathSource, RemotePathTarget, True, False)
                                                              End Sub)
         Else
-            ClassicAssert.Catch(Of NotImplementedException)(Sub()
-                                                                dmsProvider.Copy(RemotePathSource, RemotePathTarget, True, False)
-                                                            End Sub)
+            dmsProvider.Copy(RemotePathSource, RemotePathTarget, True, False)
+            AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
+            AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
         End If
 
         'Cleanup
@@ -1270,15 +1266,11 @@ Public MustInherit Class BaseDmsProviderTestBase
             AssertRemoteFileNotExists(dmsProvider, RemotePathExpectedMovedSourceNotExistingAnyMore, False)
         Catch ex As DirectoryNotFoundException
             ClassicAssert.AreEqual(RemotePathExpectedTarget, "{NOT-FOUND:" & ex.RemotePath & "}", "Catched exception type must match with expected result")
-        Catch ex As DirectoryActionFailedException
-            Throw New IgnoreException(ex.ToString)
-        Catch ex As NotImplementedException
-            Throw New IgnoreException(ex.ToString)
         Catch ex As Exception
             ClassicAssert.AreEqual(RemotePathExpectedTarget, "{NOT-SUPPORTED:" & ex.GetType.FullName & "}", "Catched exception type must match with expected result" & System.Environment.NewLine & ex.ToString)
         End Try
 
-        '3rd step: move again and fail because of trial to overwrite: not yet implemented to handle what happens if destination already exists (partially)!
+        '3rd step: move again and merge into the existing destination directory
         UploadInitialTestFile(dmsProvider, Me.MoveDirTestFileSource.Key, Me.MoveDirTestFileSource.Value)
         AssertRemoteDirectoryExists(dmsProvider, RemotePathSource)
         If RemotePathTarget.EndsWith(dmsProvider.DirectorySeparator) Then
@@ -1286,9 +1278,10 @@ Public MustInherit Class BaseDmsProviderTestBase
                                                                  dmsProvider.Move(RemotePathSource, RemotePathTarget, True, False)
                                                              End Sub)
         Else
-            ClassicAssert.Catch(Of NotImplementedException)(Sub()
-                                                                dmsProvider.Move(RemotePathSource, RemotePathTarget, True, False)
-                                                            End Sub)
+            dmsProvider.Move(RemotePathSource, RemotePathTarget, True, False)
+            AssertRemoteDirectoryNotExists(dmsProvider, RemotePathSource, False)
+            AssertRemoteDirectoryExists(dmsProvider, RemotePathTarget)
+            AssertRemoteFileExists(dmsProvider, RemotePathExpectedTarget)
         End If
 
         'Cleanup
@@ -1310,18 +1303,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         AssertRemoteFileExists(dmsProvider, RemoteFilePathSource)
 
         '2nd step: move remote file on remote storage
-        Try
-            dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, True)
-        Catch ex As FileActionFailedException
-            Select Case dmsProvider.DmsProviderID
-                Case BaseDmsProvider.DmsProviders.CenterDevice, BaseDmsProvider.DmsProviders.Scopevisio
-                    Throw New IgnoreException("Move action failed - CenterDevice implementation to be completed" & System.Environment.NewLine & ex.ToString, ex)
-                Case Else
-                    Throw
-            End Select
-        Catch ex As NotImplementedException
-            Throw New IgnoreException("Implementation required" & System.Environment.NewLine & ex.ToString, ex)
-        End Try
+        dmsProvider.Move(RemoteFilePathSource, RemoteFilePathTarget, False, True)
         AssertRemoteFileExists(dmsProvider, RemoteFilePathTarget)
         AssertRemoteFileNotExists(dmsProvider, RemoteFilePathSource, False)
 

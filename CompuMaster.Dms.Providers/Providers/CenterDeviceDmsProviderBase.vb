@@ -337,19 +337,350 @@ Namespace Providers
             Return FoundFileItem
         End Function
 
-        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
-            Dim FoundSourceFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationFileName As String = Me.ItemName(remoteDestinationPath)
-            Dim FoundDestinationFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(ParentRemoteDestinationDir, RemoteDestinationFileName, RessourceNotFoundHandling.ReturnWithNullIfItemOrParentDirectoryIsNotFound)
-
-            If FoundDestinationFileItem IsNot Nothing AndAlso allowOverwrite Then
-                'destination file already exists
-                'delete remote destination file
-                FoundDestinationFileItem.Delete()
+        Private Function GetParentDirectory(remoteItem As DmsResourceItem) As CenterDevice.IO.DirectoryInfo
+            If remoteItem.ExtendedInfosAssignedFolderID <> Nothing Then
+                Return Me.GetFolderDirectoryById(remoteItem.ExtendedInfosAssignedFolderID, remoteItem.ExtendedInfosAssignedCollectionID, New HashSet(Of String)(StringComparer.Ordinal))
+            ElseIf remoteItem.ExtendedInfosAssignedCollectionID <> Nothing Then
+                Return New CenterDevice.IO.DirectoryInfo(Me.IOClient, Me.IOClient.RootDirectory, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, remoteItem.ExtendedInfosAssignedCollectionID))
+            Else
+                Return Me.IOClient.RootDirectory
             End If
-            ParentRemoteDestinationDir.AddCopy(FoundSourceFileItem, RemoteDestinationFileName)
+        End Function
+
+        Private Function GetFolderDirectoryById(folderId As String, expectedCollectionId As String, visitedFolderIds As HashSet(Of String)) As CenterDevice.IO.DirectoryInfo
+            If Not visitedFolderIds.Add(folderId) Then Throw New InvalidOperationException("A cycle was found in the CenterDevice folder hierarchy at folder ID " & folderId & ".")
+
+            Dim Folder = Me.IOClient.ApiClient.Folder.GetFolder(Me.IOClient.CurrentAuthenticationContextUserID, folderId, Nothing)
+            If Not String.IsNullOrEmpty(expectedCollectionId) AndAlso Not String.IsNullOrEmpty(Folder.Collection) AndAlso Not String.Equals(Folder.Collection, expectedCollectionId, StringComparison.Ordinal) Then
+                Throw New InvalidOperationException("Folder ID " & folderId & " no longer belongs to its expected CenterDevice collection.")
+            End If
+
+            Dim CollectionId As String = If(String.IsNullOrEmpty(Folder.Collection), expectedCollectionId, Folder.Collection)
+            Dim ParentDirectory As CenterDevice.IO.DirectoryInfo
+            If String.IsNullOrEmpty(Folder.Parent) OrElse String.Equals(Folder.Parent, CenterDevice.Rest.RestApiConstants.NONE, StringComparison.Ordinal) Then
+                If String.IsNullOrEmpty(CollectionId) Then Throw New InvalidOperationException("The collection of CenterDevice folder ID " & folderId & " is unknown.")
+                ParentDirectory = New CenterDevice.IO.DirectoryInfo(Me.IOClient, Me.IOClient.RootDirectory, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, CollectionId))
+            Else
+                ParentDirectory = Me.GetFolderDirectoryById(Folder.Parent, CollectionId, visitedFolderIds)
+            End If
+
+            Return New CenterDevice.IO.DirectoryInfo(Me.IOClient, ParentDirectory, Folder)
+        End Function
+
+        Private Function GetFileItem(remoteItem As DmsResourceItem) As CenterDevice.IO.FileInfo
+            If remoteItem.ExtendedInfosFileID = Nothing Then
+                If remoteItem.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteItem.FullName)
+                Return Me.GetFileItem(remoteItem.FullName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            End If
+
+            Dim ParentDirectory As CenterDevice.IO.DirectoryInfo = Me.GetParentDirectory(remoteItem)
+            For Each File As CenterDevice.IO.FileInfo In ParentDirectory.GetFiles()
+                If File.ID = remoteItem.ExtendedInfosFileID Then Return File
+            Next
+            Throw New CompuMaster.Dms.Data.FileNotFoundException(remoteItem.FullName)
+        End Function
+
+        Private Function GetDirectoryItem(remoteItem As DmsResourceItem) As CenterDevice.IO.DirectoryInfo
+            If remoteItem.ItemType = DmsResourceItem.ItemTypes.Collection AndAlso remoteItem.ExtendedInfosCollectionID <> Nothing Then
+                For Each Directory As CenterDevice.IO.DirectoryInfo In Me.IOClient.RootDirectory.GetDirectories()
+                    If Directory.CollectionID = remoteItem.ExtendedInfosCollectionID Then Return Directory
+                Next
+            ElseIf remoteItem.ItemType = DmsResourceItem.ItemTypes.Folder AndAlso remoteItem.ExtendedInfosFolderID <> Nothing Then
+                Dim ParentDirectory As CenterDevice.IO.DirectoryInfo = Me.GetParentDirectory(remoteItem)
+                For Each Directory As CenterDevice.IO.DirectoryInfo In ParentDirectory.GetDirectories()
+                    If Directory.FolderID = remoteItem.ExtendedInfosFolderID Then Return Directory
+                Next
+            ElseIf Not remoteItem.ExtendedInfosCollisionDetected Then
+                Return Me.GetDirectoryItem(remoteItem.FullName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+            End If
+            Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(remoteItem.FullName)
+        End Function
+
+        ''' <inheritdoc/>
+        Protected Overrides Sub CopyItem(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?)
+            Select Case remoteSource.ItemType
+                Case DmsResourceItem.ItemTypes.File
+                    Dim SourceFile As CenterDevice.IO.FileInfo = Me.GetFileItem(remoteSource)
+                    Dim DestinationParent As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(Me.ParentDirectoryPath(remoteDestinationPath), RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+                    Me.CopyFileExact(SourceFile, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath, allowOverwrite)
+                Case DmsResourceItem.ItemTypes.Folder
+                    If Me.ParentDirectoryPath(remoteDestinationPath) = Nothing Then Throw New NotSupportedException("CenterDevice folders must remain inside a collection or another folder.")
+                    Dim SourceDirectory As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSource)
+                    Dim ExistingDestination As DmsResourceItem = Me.ListRemoteItem(remoteDestinationPath)
+                    If ExistingDestination IsNot Nothing Then
+                        If allowOverwrite <> True Then Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
+                        Me.MergeDirectoryContents(SourceDirectory, Me.GetDirectoryItem(remoteDestinationPath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound), False, remoteSource.FullName, remoteDestinationPath)
+                    Else
+                        Dim DestinationParent As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(Me.ParentDirectoryPath(remoteDestinationPath), RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+                        Me.CopyDirectoryTree(SourceDirectory, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath)
+                    End If
+                Case DmsResourceItem.ItemTypes.Collection
+                    Throw New NotSupportedException("CenterDevice collections can't be copied because they are top-level sharing containers rather than regular folders.")
+                Case Else
+                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+            End Select
+        End Sub
+
+        ''' <inheritdoc/>
+        Protected Overrides Async Function CopyItemAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
+            Await Task.Run(Sub() Me.CopyItem(remoteSource, remoteDestinationPath, allowOverwrite))
+        End Function
+
+        ''' <inheritdoc/>
+        Protected Overrides Sub MoveItem(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?)
+            Select Case remoteSource.ItemType
+                Case DmsResourceItem.ItemTypes.File
+                    Dim SourceFile As CenterDevice.IO.FileInfo = Me.GetFileItem(remoteSource)
+                    Dim DestinationParent As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(Me.ParentDirectoryPath(remoteDestinationPath), RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+                    Me.MoveFileExact(SourceFile, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath, allowOverwrite)
+                Case DmsResourceItem.ItemTypes.Folder
+                    If Me.ParentDirectoryPath(remoteDestinationPath) = Nothing Then Throw New NotSupportedException("CenterDevice folders must remain inside a collection or another folder.")
+                    Dim SourceDirectory As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSource)
+                    Dim ExistingDestination As DmsResourceItem = Me.ListRemoteItem(remoteDestinationPath)
+                    If ExistingDestination IsNot Nothing Then
+                        If allowOverwrite <> True Then Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
+                        Me.MergeDirectoryContents(SourceDirectory, Me.GetDirectoryItem(remoteDestinationPath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound), True, remoteSource.FullName, remoteDestinationPath)
+                        SourceDirectory.Delete()
+                    Else
+                        Dim DestinationParent As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(Me.ParentDirectoryPath(remoteDestinationPath), RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
+                        Me.MoveDirectoryExact(SourceDirectory, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath)
+                    End If
+                Case DmsResourceItem.ItemTypes.Collection
+                    If Me.ParentDirectoryPath(remoteSource.FullName) <> Nothing OrElse Me.ParentDirectoryPath(remoteDestinationPath) <> Nothing Then
+                        Throw New NotSupportedException("CenterDevice collections can only be renamed while remaining in the root.")
+                    End If
+                    If Me.ListRemoteItem(remoteDestinationPath) IsNot Nothing Then Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
+                    Me.GetDirectoryItem(remoteSource).Rename(Me.ItemName(remoteDestinationPath))
+                Case Else
+                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+            End Select
+        End Sub
+
+        Private Sub CopyDirectoryTree(sourceDirectory As CenterDevice.IO.DirectoryInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String)
+            Me.ValidateUniqueChildNames(sourceDirectory, sourcePath)
+            destinationParent.CreateDirectory(destinationName)
+            destinationParent.ResetDirectoriesCache()
+            Dim DestinationDirectory As CenterDevice.IO.DirectoryInfo = destinationParent.GetDirectory(destinationName)
+            Me.MergeDirectoryContents(sourceDirectory, DestinationDirectory, False, sourcePath, destinationPath)
+        End Sub
+
+        Private Sub MergeDirectoryContents(sourceDirectory As CenterDevice.IO.DirectoryInfo, destinationDirectory As CenterDevice.IO.DirectoryInfo, moveItems As Boolean, sourcePath As String, destinationPath As String)
+            Me.ValidateUniqueChildNames(sourceDirectory, sourcePath)
+            Me.ValidateUniqueChildNames(destinationDirectory, destinationPath)
+
+            Try
+                For Each SourceFile As CenterDevice.IO.FileInfo In sourceDirectory.GetFiles()
+                    Dim ChildSourcePath As String = Me.CombinePath(sourcePath, SourceFile.FileName)
+                    Dim ChildDestinationPath As String = Me.CombinePath(destinationPath, SourceFile.FileName)
+                    If destinationDirectory.DirectoryExists(SourceFile.FileName) Then Throw New DirectoryAlreadyExistsException(ChildDestinationPath)
+                    If moveItems Then
+                        Me.MoveFileExact(SourceFile, destinationDirectory, SourceFile.FileName, ChildSourcePath, ChildDestinationPath, True)
+                    Else
+                        Me.CopyFileExact(SourceFile, destinationDirectory, SourceFile.FileName, ChildSourcePath, ChildDestinationPath, True)
+                    End If
+                Next
+
+                For Each SourceChildDirectory As CenterDevice.IO.DirectoryInfo In sourceDirectory.GetDirectories()
+                    Dim ChildSourcePath As String = Me.CombinePath(sourcePath, SourceChildDirectory.Name)
+                    Dim ChildDestinationPath As String = Me.CombinePath(destinationPath, SourceChildDirectory.Name)
+                    If destinationDirectory.FileExists(SourceChildDirectory.Name) Then Throw New FileAlreadyExistsException(ChildDestinationPath)
+                    If destinationDirectory.DirectoryExists(SourceChildDirectory.Name) Then
+                        Dim DestinationChildDirectory As CenterDevice.IO.DirectoryInfo = destinationDirectory.GetDirectory(SourceChildDirectory.Name)
+                        Me.MergeDirectoryContents(SourceChildDirectory, DestinationChildDirectory, moveItems, ChildSourcePath, ChildDestinationPath)
+                        If moveItems Then SourceChildDirectory.Delete()
+                    ElseIf moveItems Then
+                        Me.MoveDirectoryExact(SourceChildDirectory, destinationDirectory, SourceChildDirectory.Name, ChildSourcePath, ChildDestinationPath)
+                    Else
+                        Me.CopyDirectoryTree(SourceChildDirectory, destinationDirectory, SourceChildDirectory.Name, ChildSourcePath, ChildDestinationPath)
+                    End If
+                Next
+            Finally
+                sourceDirectory.ResetFilesCache()
+                sourceDirectory.ResetDirectoriesCache()
+                destinationDirectory.ResetFilesCache()
+                destinationDirectory.ResetDirectoriesCache()
+            End Try
+        End Sub
+
+        Private Sub ValidateUniqueChildNames(directory As CenterDevice.IO.DirectoryInfo, directoryPath As String)
+            Dim Names As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+            For Each File As CenterDevice.IO.FileInfo In directory.GetFiles()
+                If Not Names.Add(File.FileName) Then Throw New RemotePathNotUniqueException(Me.CombinePath(directoryPath, File.FileName))
+            Next
+            For Each ChildDirectory As CenterDevice.IO.DirectoryInfo In directory.GetDirectories()
+                If Not Names.Add(ChildDirectory.Name) Then Throw New RemotePathNotUniqueException(Me.CombinePath(directoryPath, ChildDirectory.Name))
+            Next
+        End Sub
+
+        Private Function UniqueTemporaryName(directory As CenterDevice.IO.DirectoryInfo) As String
+            Dim Candidate As String
+            Do
+                Candidate = ".compumaster-dms-" & Guid.NewGuid().ToString("N")
+            Loop While directory.FileExists(Candidate) OrElse directory.DirectoryExists(Candidate)
+            Return Candidate
+        End Function
+
+        Private Sub CopyFileExact(sourceFile As CenterDevice.IO.FileInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String, allowOverwrite As Boolean?)
+            Dim ExistingDestination As CenterDevice.IO.FileInfo = destinationParent.TryGetFile(destinationName)
+            If ExistingDestination Is Nothing Then
+                destinationParent.AddCopy(sourceFile, destinationName)
+                Return
+            End If
+            If allowOverwrite <> True Then Throw New FileAlreadyExistsException(destinationPath)
+
+            Dim TemporaryCopyName As String = Me.UniqueTemporaryName(destinationParent)
+            Dim BackupName As String = Me.UniqueTemporaryName(destinationParent)
+            destinationParent.AddCopy(sourceFile, TemporaryCopyName)
+            destinationParent.ResetFilesCache()
+            Dim TemporaryCopy As CenterDevice.IO.FileInfo = destinationParent.GetFile(TemporaryCopyName)
+            Try
+                ExistingDestination.Rename(BackupName)
+            Catch ex As Exception
+                Try
+                    TemporaryCopy.Delete()
+                Catch rollbackException As Exception
+                    Throw New FileActionFailedException("copy", sourcePath, destinationPath, New AggregateException(ex, rollbackException))
+                End Try
+                Throw New FileActionFailedException("copy", sourcePath, destinationPath, ex)
+            End Try
+            Try
+                TemporaryCopy.Rename(destinationName)
+            Catch ex As Exception
+                Dim RollbackErrors As New List(Of Exception) From {ex}
+                Try
+                    ExistingDestination.Rename(destinationName)
+                Catch rollbackException As Exception
+                    RollbackErrors.Add(rollbackException)
+                End Try
+                Try
+                    TemporaryCopy.Delete()
+                Catch rollbackException As Exception
+                    RollbackErrors.Add(rollbackException)
+                End Try
+                Throw New FileActionFailedException("copy", sourcePath, destinationPath, New AggregateException("The copied file couldn't be promoted to its final name; rollback was attempted.", RollbackErrors))
+            End Try
+            Try
+                ExistingDestination.Delete()
+            Catch ex As Exception
+                Throw New FileActionFailedException("copy", sourcePath, destinationPath, New InvalidOperationException("The copy succeeded, but the replaced file with ID " & ExistingDestination.ID & " remains under temporary name " & BackupName & ".", ex))
+            End Try
+        End Sub
+
+        Private Sub MoveFileExact(sourceFile As CenterDevice.IO.FileInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String, allowOverwrite As Boolean?)
+            Dim ExistingDestination As CenterDevice.IO.FileInfo = destinationParent.TryGetFile(destinationName)
+            If ExistingDestination IsNot Nothing AndAlso allowOverwrite <> True Then Throw New FileAlreadyExistsException(destinationPath)
+            Dim BackupName As String = Nothing
+            If ExistingDestination IsNot Nothing Then
+                BackupName = Me.UniqueTemporaryName(destinationParent)
+                ExistingDestination.Rename(BackupName)
+            End If
+
+            Try
+                Me.MoveFileToFinalName(sourceFile, destinationParent, destinationName, sourcePath, destinationPath)
+            Catch ex As Exception
+                If ExistingDestination IsNot Nothing Then
+                    Try
+                        ExistingDestination.Rename(destinationName)
+                    Catch rollbackException As Exception
+                        Throw New FileActionFailedException("move", sourcePath, destinationPath, New AggregateException(ex, rollbackException))
+                    End Try
+                End If
+                Throw
+            End Try
+
+            If ExistingDestination IsNot Nothing Then
+                Try
+                    ExistingDestination.Delete()
+                Catch ex As Exception
+                    Throw New FileActionFailedException("move", sourcePath, destinationPath, New InvalidOperationException("The move succeeded, but the replaced file with ID " & ExistingDestination.ID & " remains under temporary name " & BackupName & ".", ex))
+                End Try
+            End If
+        End Sub
+
+        Private Sub MoveFileToFinalName(sourceFile As CenterDevice.IO.FileInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String)
+            Dim OriginalName As String = sourceFile.FileName
+            Dim OriginalParent As CenterDevice.IO.DirectoryInfo = sourceFile.ParentDirectory
+            Dim SameParent As Boolean = Me.IsSameDirectory(OriginalParent, destinationParent)
+            If SameParent Then
+                sourceFile.Rename(destinationName)
+                Return
+            ElseIf OriginalName = destinationName Then
+                sourceFile.Move(destinationParent)
+                Return
+            End If
+
+            Dim TemporaryName As String = Me.UniqueTemporaryName(OriginalParent)
+            Dim WasMoved As Boolean = False
+            sourceFile.Rename(TemporaryName)
+            Try
+                sourceFile.Move(destinationParent)
+                WasMoved = True
+                sourceFile.Rename(destinationName)
+            Catch ex As Exception
+                Dim RollbackErrors As New List(Of Exception) From {ex}
+                If WasMoved Then
+                    Try
+                        sourceFile.Move(OriginalParent)
+                    Catch rollbackException As Exception
+                        RollbackErrors.Add(rollbackException)
+                    End Try
+                End If
+                Try
+                    sourceFile.Rename(OriginalName)
+                Catch rollbackException As Exception
+                    RollbackErrors.Add(rollbackException)
+                End Try
+                Throw New FileActionFailedException("move", sourcePath, destinationPath, New AggregateException("Move failed for file ID " & sourceFile.ID & "; rollback was attempted.", RollbackErrors))
+            End Try
+        End Sub
+
+        Private Sub MoveDirectoryExact(sourceDirectory As CenterDevice.IO.DirectoryInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String)
+            Dim OriginalName As String = sourceDirectory.Name
+            Dim OriginalParent As CenterDevice.IO.DirectoryInfo = sourceDirectory.ParentDirectory
+            Dim SameParent As Boolean = Me.IsSameDirectory(OriginalParent, destinationParent)
+            If SameParent Then
+                sourceDirectory.Rename(destinationName)
+                Return
+            ElseIf OriginalName = destinationName Then
+                sourceDirectory.Move(destinationParent)
+                Return
+            End If
+
+            Dim TemporaryName As String = Me.UniqueTemporaryName(OriginalParent)
+            Dim WasMoved As Boolean = False
+            sourceDirectory.Rename(TemporaryName)
+            Try
+                sourceDirectory.Move(destinationParent)
+                WasMoved = True
+                sourceDirectory.Rename(destinationName)
+            Catch ex As Exception
+                Dim RollbackErrors As New List(Of Exception) From {ex}
+                If WasMoved Then
+                    Try
+                        sourceDirectory.Move(OriginalParent)
+                    Catch rollbackException As Exception
+                        RollbackErrors.Add(rollbackException)
+                    End Try
+                End If
+                Try
+                    sourceDirectory.Rename(OriginalName)
+                Catch rollbackException As Exception
+                    RollbackErrors.Add(rollbackException)
+                End Try
+                Throw New DirectoryActionFailedException("move", sourcePath, destinationPath, New AggregateException("Move failed for folder ID " & sourceDirectory.FolderID & "; rollback was attempted.", RollbackErrors))
+            End Try
+        End Sub
+
+        Private Function IsSameDirectory(first As CenterDevice.IO.DirectoryInfo, second As CenterDevice.IO.DirectoryInfo) As Boolean
+            If first Is Nothing OrElse second Is Nothing Then Return False
+            If first.IsRootDirectory OrElse second.IsRootDirectory Then Return first.IsRootDirectory AndAlso second.IsRootDirectory
+            If first.FolderID <> Nothing OrElse second.FolderID <> Nothing Then Return first.FolderID = second.FolderID
+            Return first.CollectionID = second.CollectionID
+        End Function
+
+        Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
+            Dim Source As DmsResourceItem = Me.RequireLegacySourceItem(remoteSourcePath, DmsResourceItem.ItemTypes.File)
+            Me.CopyItem(Source, remoteDestinationPath, allowOverwrite)
         End Sub
 
         Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
@@ -359,17 +690,8 @@ Namespace Providers
         End Function
 
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
-            Dim FoundSourceDirItem As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationSubDirName As String = Me.ItemName(remoteDestinationPath)
-            Dim FoundDestinationFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(ParentRemoteDestinationDir, RemoteDestinationSubDirName, RessourceNotFoundHandling.ReturnWithNullIfItemOrParentDirectoryIsNotFound)
-
-            If FoundDestinationFileItem IsNot Nothing Then
-                Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
-            Else
-                ParentRemoteDestinationDir.AddCopy(FoundSourceDirItem, RemoteDestinationSubDirName)
-            End If
+            Dim Source As DmsResourceItem = Me.RequireLegacySourceItem(remoteSourcePath, DmsResourceItem.ItemTypes.Folder)
+            Me.CopyItem(Source, remoteDestinationPath, False)
         End Sub
 
         Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
@@ -379,109 +701,31 @@ Namespace Providers
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
-            Dim ParentRemoteSourceDirName As String = Me.ParentDirectoryPath(remoteSourcePath)
-            Dim FoundSourceFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationFileName As String = Me.ItemName(remoteDestinationPath)
-            Dim FoundDestinationFileItem As CenterDevice.IO.FileInfo = Me.GetFileItem(ParentRemoteDestinationDir, RemoteDestinationFileName, RessourceNotFoundHandling.ReturnWithNullIfItemOrParentDirectoryIsNotFound)
-
-            'check destination
-            If FoundDestinationFileItem IsNot Nothing Then
-                'target already exists
-                If allowOverwrite = False Then
-                    Throw New CompuMaster.Dms.Data.FileAlreadyExistsException(remoteDestinationPath)
-                Else
-                    FoundDestinationFileItem.Delete()
-                End If
-            End If
-
-            'move or rename file
-            If ParentRemoteSourceDirName = ParentRemoteDestinationDirName Then
-                'rename the file
-                FoundSourceFileItem.Rename(RemoteDestinationFileName)
-            ElseIf FoundSourceFileItem.FileName = RemoteDestinationFileName Then
-                'move of file into new directory
-                FoundSourceFileItem.Move(ParentRemoteDestinationDir)
-            Else
-                'move of file into new directory + rename file
-                'CenterDevice doesn't provide a 1-stop-process -> workaround required with 2 steps
-
-                'FOLLOWING CODE FOR 3-STOPS-SHOP
-                Dim GuidDirName As String = Guid.NewGuid.ToString()
-                Dim GuidRemotePath1 As String = Me.CombinePath(ParentRemoteSourceDirName, GuidDirName)
-                Dim GuidRemotePath2 As String = Me.CombinePath(ParentRemoteDestinationDirName, GuidDirName)
-                FoundSourceFileItem.Rename(GuidDirName) 'Rename in source dir to temp name
-                Try
-                    FoundSourceFileItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
-                Catch ex As Exception
-                    'Rollback transaction: rename directory back to origin dir name
-                    FoundSourceFileItem.Rename(Me.ItemName(remoteSourcePath)) 'Rename in source dir to temp name
-                    Throw New FileActionFailedException("move", remoteSourcePath, remoteDestinationPath)
-                End Try
-                FoundSourceFileItem.Rename(RemoteDestinationFileName) 'Rename in destination dir to final name
-
-                'FOLLOWING CODE FOR 1-STOPS-SHOP
-                'FoundSourceFileItem.Move(ParentRemoteDestinationDir, RemoteDestinationFileName)
-            End If
+            Dim Source As DmsResourceItem = Me.RequireLegacySourceItem(remoteSourcePath, DmsResourceItem.ItemTypes.File)
+            Me.MoveItem(Source, remoteDestinationPath, allowOverwrite)
         End Sub
 
         Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
-            Dim ParentRemoteSourceDirName As String = Me.ParentDirectoryPath(remoteSourcePath)
-            Dim FoundSourceDirItem As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSourcePath, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim ParentRemoteDestinationDirName As String = Me.ParentDirectoryPath(remoteDestinationPath)
-            Dim ParentRemoteDestinationDir As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(ParentRemoteDestinationDirName, RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
-            Dim RemoteDestinationDirName As String = Me.ItemName(remoteDestinationPath)
-
-            If ParentRemoteDestinationDir.DirectoryExists(RemoteDestinationDirName) Then
-                Throw New Data.DirectoryAlreadyExistsException(remoteDestinationPath)
-            ElseIf ParentRemoteSourceDirName = ParentRemoteDestinationDirName Then
-                'rename the directory
-                FoundSourceDirItem.Rename(RemoteDestinationDirName)
-            ElseIf FoundSourceDirItem.Name = RemoteDestinationDirName Then
-                'move the directory, keep dir name
-                FoundSourceDirItem.Move(ParentRemoteDestinationDir)
-            Else
-                'move the directory + rename dir
-                'CenterDevice doesn't provide a 1-stop-process -> workaround required with 2 steps
-
-                'FOLLOWING CODE FOR 3-STOPS-SHOP
-                Dim GuidDirName As String = Guid.NewGuid.ToString()
-                Dim GuidRemotePath1 As String = Me.CombinePath(ParentRemoteSourceDirName, GuidDirName)
-                Dim GuidRemotePath2 As String = Me.CombinePath(ParentRemoteDestinationDirName, GuidDirName)
-                FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
-                Try
-                    FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
-                Catch ex As Exception
-                    'Rollback transaction: rename directory back to origin dir name
-                    FoundSourceDirItem.Rename(Me.ItemName(remoteSourcePath)) 'Rename in source dir to temp name
-                    Throw New DirectoryActionFailedException("move", remoteSourcePath, remoteDestinationPath)
-                End Try
-                FoundSourceDirItem.Rename(RemoteDestinationDirName) 'Rename in destination dir to final name
-
-                'FOLLOWING CODE FOR 2-STOPS-SHOP
-                'Dim Trial1RemotePath As String = Me.CombinePath(ParentRemoteDestinationDirName, FoundSourceDirItem.Name)
-                'Select Case Me.RemoteItemExistsAs(Trial1RemotePath)
-                '    Case DmsResourceItem.FoundItemType.Collection, DmsResourceItem.FoundItemType.Folder
-                '        'FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
-                '        'FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
-                '    Case Else
-                '        Dim Trial2RemotePath As String = Me.CombinePath(ParentRemoteSourceDirName, RemoteDestinationDirName)
-                '        Select Case Me.RemoteItemExistsAs(Trial2RemotePath)
-                '            Case DmsResourceItem.FoundItemType.Collection, DmsResourceItem.FoundItemType.Folder
-                '                'FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
-                '                'FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
-                '            Case Else
-                '                Dim GuidDirName As String = Guid.NewGuid.ToString()
-                '                Dim GuidRemotePath1 As String = Me.CombinePath(ParentRemoteSourceDirName, GuidDirName)
-                '                Dim GuidRemotePath2 As String = Me.CombinePath(ParentRemoteDestinationDirName, GuidDirName)
-                '                FoundSourceDirItem.Rename(GuidDirName) 'Rename in source dir to temp name
-                '                FoundSourceDirItem.Move(ParentRemoteDestinationDir) 'Move to destination dir
-                '                FoundSourceDirItem.Rename(RemoteDestinationDirName) 'Rename in destination dir to final name
-                '        End Select
-                'End Select
-            End If
+            Dim Source As DmsResourceItem = Me.ListRemoteItem(remoteSourcePath)
+            If Source Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(remoteSourcePath)
+            If Source.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteSourcePath)
+            If Source.ItemType <> DmsResourceItem.ItemTypes.Folder AndAlso Source.ItemType <> DmsResourceItem.ItemTypes.Collection Then Throw New ArgumentException("The source item isn't a directory.", NameOf(remoteSourcePath))
+            Me.MoveItem(Source, remoteDestinationPath, False)
         End Sub
+
+        Private Function RequireLegacySourceItem(remoteSourcePath As String, expectedType As DmsResourceItem.ItemTypes) As DmsResourceItem
+            Dim Source As DmsResourceItem = Me.ListRemoteItem(remoteSourcePath)
+            If Source Is Nothing Then
+                If expectedType = DmsResourceItem.ItemTypes.File Then
+                    Throw New CompuMaster.Dms.Data.FileNotFoundException(remoteSourcePath)
+                Else
+                    Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(remoteSourcePath)
+                End If
+            End If
+            If Source.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteSourcePath)
+            If Source.ItemType <> expectedType Then Throw New ArgumentException("The source item has an unexpected resource type.", NameOf(remoteSourcePath))
+            Return Source
+        End Function
 
         Private Function FindUploadLinkForCollection(collectionID As String) As CenterDevice.Rest.Clients.Link.UploadLink
             If collectionID <> Nothing AndAlso AllUploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(collectionID) Then
@@ -728,7 +972,9 @@ Namespace Providers
             Result.ExtendedInfosArchivedDateLocalTime = DateTimeUtcToLocalTime(res.ArchivedDate)
             Result.ExtendedInfosVersion = Nothing
             Result.ExtendedInfosVersionDateLocalTime = Nothing
-            Result.ExtendedInfosCollisionDetected = False
+            'Objects loaded directly by ID have no parent directory in the IO wrapper;
+            'its collision property requires that parent and cannot be evaluated here.
+            Result.ExtendedInfosCollisionDetected = res.ParentDirectory IsNot Nothing AndAlso res.HasCollidingDuplicateDirectory
             Result.ExtendedInfosIsPublicCollection = res.Public
             Result.ExtendedInfosIsAuditing = res.Auditing
             Result.ExtendedInfosIsIntelligent = res.IsIntelligent
