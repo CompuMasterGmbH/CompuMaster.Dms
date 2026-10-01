@@ -1186,7 +1186,8 @@ Namespace Providers
         End Function
 
         Public Shared Function DelegatedGetUserName(provider As BaseDmsProvider, userId As String) As String
-            Return CType(provider, CenterDeviceDmsProviderBase).IOClient.UserName(userId)
+            Dim userName As String = CType(provider, CenterDeviceDmsProviderBase).IOClient.UserName(userId)
+            Return If(userName, String.Empty).Trim()
         End Function
 
         Public Shared Function DelegatedGetUserEMailAddress(provider As BaseDmsProvider, userId As String) As String
@@ -1433,7 +1434,7 @@ Namespace Providers
             For Each User In UserList.Users
                 Result.Add(New DmsUser() With {
                     .ID = User.Id,
-                    .Name = User.GetFullName,
+                    .Name = If(User.GetFullName, String.Empty).Trim(),
                     .EMailAddress = User.Email
                    })
             Next

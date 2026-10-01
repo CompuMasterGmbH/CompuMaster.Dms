@@ -30,8 +30,9 @@ Namespace Data
 
         Public ReadOnly Property DisplayName As String
             Get
-                If Me.Name <> Nothing Then
-                    Return Me.Name
+                Dim resolvedName As String = Me.Name
+                If Not String.IsNullOrWhiteSpace(resolvedName) Then
+                    Return resolvedName
                 ElseIf Me.ID <> Nothing Then
                     Return Me.ID
                 Else
