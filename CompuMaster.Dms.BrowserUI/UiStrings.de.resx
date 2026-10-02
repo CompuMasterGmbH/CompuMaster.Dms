@@ -21,7 +21,7 @@
   <data name="ActionOkay" xml:space="preserve"><value>&amp;Okay</value></data>
   <data name="ActionOpen" xml:space="preserve"><value>&amp;Öffnen</value></data>
   <data name="ActionProperties" xml:space="preserve"><value>Eigenschaften</value></data>
-  <data name="ActionRefreshFiles" xml:space="preserve"><value>Datei-Liste aktualisieren</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>Aktualisieren</value></data>
   <data name="ActionRename" xml:space="preserve"><value>&amp;Umbenennen</value></data>
   <data name="ActionSave" xml:space="preserve"><value>&amp;Speichern</value></data>
   <data name="ActionSharings" xml:space="preserve"><value>&amp;Freigaben</value></data>

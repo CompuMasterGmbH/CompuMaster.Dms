@@ -1715,11 +1715,66 @@ Public Class DmsBrowser
             selectedNode = Me.TreeViewDmsFolders.SelectedNode
         End If
         If selectedNode Is Nothing Then selectedNode = Me.RootNode
-        If selectedNode IsNot Nothing Then
-            Me.RefreshTreeNode(selectedNode)
-            If Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Me.TreeViewDmsFolders.SelectedNode = selectedNode
-        End If
+        Dim selectionAncestors As New List(Of TreeNode)
+        While selectedNode IsNot Nothing
+            selectionAncestors.Add(selectedNode)
+            selectedNode = selectedNode.Parent
+        End While
+        Me.SuppressSelectionRefresh = True
+        Me.TreeViewDmsFolders.BeginUpdate()
+        Try
+            If Me.RootNode IsNot Nothing Then Me.RefreshLoadedTree(Me.RootNode, selectionAncestors.FirstOrDefault())
+            Me.TreeViewDmsFolders.Sort()
+            Me.TreeViewDmsFolders.SelectedNode = selectionAncestors.FirstOrDefault(Function(node) node.TreeView Is Me.TreeViewDmsFolders)
+            If Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Me.TreeViewDmsFolders.SelectedNode = Me.RootNode
+            Me.SelectedFolder = Me.SelectedFolderPath()
+        Finally
+            Me.TreeViewDmsFolders.EndUpdate()
+            Me.SuppressSelectionRefresh = False
+        End Try
         Me.RefreshFilesList()
+    End Sub
+
+    Private Sub RefreshLoadedTree(node As TreeNode, selectedNode As TreeNode)
+        Dim data As NodeTagData = DirectCast(node.Tag, NodeTagData)
+        If Not data.ChildrenLoaded AndAlso node IsNot selectedNode Then Return
+        Dim path As String = If(data.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
+        Me.DmsProvider.ResetCachesForRemoteItems(path, BaseDmsProvider.SearchItemType.AllItems)
+        Dim children As List(Of DmsResourceItem) = Me.DmsProvider.ListAllDirectoryItems(path)
+        Dim previousNodes As List(Of TreeNode) = node.Nodes.Cast(Of TreeNode)().Where(Function(child) child.Tag IsNot Nothing).ToList()
+        For Each child As TreeNode In node.Nodes.Cast(Of TreeNode)().Where(Function(item) item.Tag Is Nothing).ToList()
+            child.Remove()
+        Next
+        For Each item As DmsResourceItem In children
+            If item.ItemType = DmsResourceItem.ItemTypes.Collection AndAlso
+                (Not Me.DmsProvider.SupportsCollections OrElse
+                 (data.DmsResourceItem IsNot Nothing AndAlso data.DmsResourceItem.ItemType <> DmsResourceItem.ItemTypes.Collection)) Then Continue For
+            Dim existing As TreeNode = previousNodes.FirstOrDefault(Function(child)
+                                                                       Dim resource = DirectCast(child.Tag, NodeTagData).DmsResourceItem
+                                                                       Return resource.FullName = item.FullName AndAlso resource.ItemType = item.ItemType
+                                                                   End Function)
+            If existing Is Nothing Then
+                Me.AddDirectoryTreeNode(node, item)
+            Else
+                previousNodes.Remove(existing)
+                DirectCast(existing.Tag, NodeTagData).DmsResourceItem = item
+                existing.Text = item.Name
+                Dim appearance As TreeNode = CreateDirectoryTreeNode(item)
+                existing.ImageIndex = appearance.ImageIndex
+                existing.SelectedImageIndex = appearance.SelectedImageIndex
+                If Not DirectCast(existing.Tag, NodeTagData).ChildrenLoaded AndAlso existing IsNot selectedNode Then
+                    existing.Nodes.Clear()
+                    AddExpansionPlaceholderIfRequired(existing)
+                Else
+                    Me.RefreshLoadedTree(existing, selectedNode)
+                End If
+            End If
+        Next
+        For Each removed As TreeNode In previousNodes
+            removed.Remove()
+        Next
+        data.ChildrenLoaded = True
+        UpdateChildDirectoryMetadata(node)
     End Sub
 
     Private Sub ContextMenuStripFolder_Opening(sender As Object, e As CancelEventArgs) Handles ContextMenuStripFolder.Opening

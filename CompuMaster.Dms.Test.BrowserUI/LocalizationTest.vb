@@ -26,7 +26,7 @@ Public Class LocalizationTest
     <Test>
     Public Sub GermanCultureUsesGermanResources()
         ClassicAssert.AreEqual("&Abbrechen", UiResourceManager.GetString("ActionCancel", CultureInfo.GetCultureInfo("de-DE")))
-        ClassicAssert.AreEqual("Datei-Liste aktualisieren", UiResourceManager.GetString("ActionRefreshFiles", CultureInfo.GetCultureInfo("de-AT")))
+        ClassicAssert.AreEqual("Aktualisieren", UiResourceManager.GetString("ActionRefreshFiles", CultureInfo.GetCultureInfo("de-AT")))
     End Sub
 
     <Test>
@@ -37,9 +37,9 @@ Public Class LocalizationTest
         CollectionAssert.AreEquivalent(neutralKeys, germanKeys)
     End Sub
 
-    <TestCase("en-US", "&Cancel", "Refresh file list", "General settings", "&Close", "Sharings with internal users/groups")>
-    <TestCase("de-DE", "&Abbrechen", "Datei-Liste aktualisieren", "Allgemeine Einstellungen", "&Schließen", "Freigaben an interne Benutzer/Gruppen")>
-    <TestCase("fr-FR", "&Cancel", "Refresh file list", "General settings", "&Close", "Sharings with internal users/groups")>
+    <TestCase("en-US", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>
+    <TestCase("de-DE", "&Abbrechen", "Aktualisieren", "Allgemeine Einstellungen", "&Schließen", "Freigaben an interne Benutzer/Gruppen")>
+    <TestCase("fr-FR", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>
     Public Sub FormsApplyCurrentUICulture(cultureName As String, expectedCancel As String, expectedRefresh As String, expectedGeneralSettings As String, expectedClose As String, expectedInternalSharings As String)
         RunWithCulture(cultureName,
             Sub()

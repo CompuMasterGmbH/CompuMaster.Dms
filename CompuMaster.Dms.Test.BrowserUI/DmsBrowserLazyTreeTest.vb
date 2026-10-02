@@ -263,6 +263,70 @@ Public Class DmsBrowserLazyTreeTest
     End Sub
 
     <Test>
+    Public Sub FullRefreshPreservesLoadedBranchesExpansionAndSelection()
+        Dim provider As New InMemoryDmsProvider
+        provider.SetChildren("/", CreateDirectory("Parent", 1), CreateDirectory("Other", 1))
+        provider.SetChildren("Parent", CreateDirectory("Parent/Selected", 0))
+        provider.SetChildren("Parent/Selected", New DmsResourceItem With {.Name = "old.txt", .FullName = "Parent/Selected/old.txt", .ItemType = DmsResourceItem.ItemTypes.File})
+        provider.SetChildren("Other", CreateDirectory("Other/Removed", 0))
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(provider)
+            browser.BrowseMode = Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles
+            browser.LoadTree()
+            Dim root = GetFolderTree(browser).Nodes(0)
+            Dim parent = FindNode(root, "Parent")
+            Dim other = FindNode(root, "Other")
+            browser.AddTreeChildren(parent)
+            browser.AddTreeChildren(other)
+            parent.Expand()
+            other.Collapse()
+            Dim selected = FindNode(parent, "Selected")
+            GetFolderTree(browser).SelectedNode = selected
+
+            provider.SetChildren("/", CreateDirectory("Parent", 2), CreateDirectory("Other", 1), CreateDirectory("NewRoot", 0))
+            provider.SetChildren("Parent", CreateDirectory("Parent/Selected", 0), CreateDirectory("Parent/New", 0))
+            provider.SetChildren("Other", CreateDirectory("Other/Added", 0))
+            provider.SetChildren("Parent/Selected", New DmsResourceItem With {.Name = "new.txt", .FullName = "Parent/Selected/new.txt", .ItemType = DmsResourceItem.ItemTypes.File})
+            browser.RefreshCurrentFolderAndFiles()
+
+            ClassicAssert.AreSame(selected, GetFolderTree(browser).SelectedNode)
+            ClassicAssert.IsTrue(parent.IsExpanded)
+            ClassicAssert.IsFalse(other.IsExpanded)
+            ClassicAssert.AreEqual("Added", other.Nodes(0).Text)
+            ClassicAssert.AreEqual(2, parent.Nodes.Count)
+            ClassicAssert.IsNotNull(FindNode(root, "NewRoot"))
+            ClassicAssert.AreEqual("new.txt", browser.ListViewDmsFiles.Items(0).Text)
+        End Using
+    End Sub
+
+    <TestCase(False)>
+    <TestCase(True)>
+    Public Sub FullRefreshSelectsNearestSurvivingAncestor(removeParent As Boolean)
+        Dim provider As New InMemoryDmsProvider
+        provider.SetChildren("/", CreateDirectory("Parent", 1))
+        provider.SetChildren("Parent", CreateDirectory("Parent/Child", 1))
+        provider.SetChildren("Parent/Child", CreateDirectory("Parent/Child/Selected", 0))
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(provider)
+            browser.LoadTree()
+            Dim root = GetFolderTree(browser).Nodes(0)
+            Dim parent = FindNode(root, "Parent")
+            browser.AddTreeChildren(parent)
+            Dim child = FindNode(parent, "Child")
+            browser.AddTreeChildren(child)
+            GetFolderTree(browser).SelectedNode = FindNode(child, "Selected")
+            If removeParent Then
+                provider.SetChildren("/")
+            Else
+                provider.SetChildren("Parent")
+            End If
+
+            browser.RefreshCurrentFolderAndFiles()
+
+            ClassicAssert.AreSame(If(removeParent, root, parent), GetFolderTree(browser).SelectedNode)
+            ClassicAssert.AreEqual(If(removeParent, CType(Nothing, String), "Parent"), browser.SelectedFolder)
+        End Using
+    End Sub
+
+    <Test>
     Public Sub RefreshChangesOneChildToKnownZeroChildren()
         Dim Provider As New InMemoryDmsProvider
         Dim Parent As DmsResourceItem = CreateDirectory("Parent", 1)
