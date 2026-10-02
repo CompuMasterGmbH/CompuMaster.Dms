@@ -108,6 +108,34 @@ Public Class DmsBrowserSmokeTest
         End Using
     End Sub
 
+    <Test>
+    Public Sub InstanceSelectionIsOptIn()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+            ClassicAssert.IsFalse(browser.EnableDmsInstanceSelection)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub InstanceDialogShowsNamesAndSelectsCurrentInstance()
+        Dim instances As Global.CompuMaster.Dms.Data.DmsInstanceInfo() = {
+            New Global.CompuMaster.Dms.Data.DmsInstanceInfo("tenant-one", "First tenant", False),
+            New Global.CompuMaster.Dms.Data.DmsInstanceInfo("tenant-two", "Second tenant", True)
+        }
+
+        Using picker As New Global.CompuMaster.Dms.BrowserUI.DmsInstanceSelectionDialog(instances)
+            Dim list As ListBox = Nothing
+            For Each control As Control In picker.Controls
+                list = TryCast(control, ListBox)
+                If list IsNot Nothing Then Exit For
+            Next
+
+            ClassicAssert.IsNotNull(list)
+            ClassicAssert.AreEqual("First tenant", list.GetItemText(list.Items(0)))
+            ClassicAssert.AreEqual("Second tenant", list.GetItemText(list.Items(1)))
+            ClassicAssert.AreEqual("tenant-two", picker.SelectedInstance.ID)
+        End Using
+    End Sub
+
     Private Shared Function GetImageListFileIcons(browser As Global.CompuMaster.Dms.BrowserUI.DmsBrowser) As ImageList
         Return GetControlField(Of ImageList)(browser, "_ImageListFileIcons")
     End Function

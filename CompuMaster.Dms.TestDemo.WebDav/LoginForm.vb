@@ -1,7 +1,23 @@
-Imports System.ComponentModel
+﻿Imports System.ComponentModel
 Imports System.Windows.Forms
+Imports System.Drawing
 
 Public Class LoginForm
+
+    ''' <summary>Creates the login form with the provider-independent default icon.</summary>
+    <Obsolete("Use overload instead")>
+    <EditorBrowsable(EditorBrowsableState.Never)>
+    Public Sub New()
+        Me.New(Nothing)
+    End Sub
+
+    ''' <summary>Creates the login form with the specified icon.</summary>
+    ''' <param name="formIcon">The window icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
+    Public Sub New(formIcon As Icon)
+        MyBase.New()
+        InitializeComponent()
+        Me.Icon = If(formIcon, CType((New ComponentResourceManager(GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser))).GetObject("$this.Icon"), Icon))
+    End Sub
 
     Private Sub Form_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
         Me.Text = Settings.DemoTitle
@@ -34,7 +50,7 @@ Public Class LoginForm
                 Settings.DemoTitle, Me.Icon,
                 "", "",
                 Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
-                Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
+                Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
                 Global.CompuMaster.Dms.BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
                 "", "", ""
             )

@@ -1,7 +1,23 @@
-Imports System.ComponentModel
+﻿Imports System.ComponentModel
 Imports System.Windows.Forms
+Imports System.Drawing
 
 Public Class LoginForm
+
+    ''' <summary>Creates the login form with the provider-independent default icon.</summary>
+    <Obsolete("Use overload instead")>
+    <EditorBrowsable(EditorBrowsableState.Never)>
+    Public Sub New()
+        Me.New(Nothing)
+    End Sub
+
+    ''' <summary>Creates the login form with the specified icon.</summary>
+    ''' <param name="formIcon">The window icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
+    Public Sub New(formIcon As Icon)
+        MyBase.New()
+        InitializeComponent()
+        Me.Icon = If(formIcon, CType((New ComponentResourceManager(GetType(BrowserUI.DmsBrowser))).GetObject("$this.Icon"), Icon))
+    End Sub
 
     Private Sub Form_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
         Me.UsernameTextBox.Text = Settings.InputFromBufferFile("username")
@@ -40,19 +56,25 @@ Public Class LoginForm
                             .Username = Me.UsernameTextBox.Text,
                             .Password = Me.PasswordTextBox.Text
                         }
-            Dim Browser As New CompuMaster.Dms.BrowserUI.DmsBrowser(
-                        LoginProfile,
+            Dim InstanceSelector As New BrowserUI.RemoteInstanceSelector(
+                        BrowserUI.RemoteInstanceSelector.StartupInstance.SelectionDialog,
+                        AddressOf BrowserUI.RemoteInstanceSelector.ShowDefaultSelectionDialog)
+            Dim SelectedProvider As Providers.BaseDmsProvider = InstanceSelector.CreateSelectedProvider(LoginProfile, Me)
+            If SelectedProvider Is Nothing Then Return
+            Using Browser As New CompuMaster.Dms.BrowserUI.DmsBrowser(
+                        SelectedProvider, InstanceSelector.SelectionDialog,
                         "DMS Browser DEMO for Scopevisio Teamwork", Me.Icon,
                         If(Me.StartPathTextBox.Text.StartsWith("/"), Me.StartPathTextBox.Text.Substring(1), Me.StartPathTextBox.Text), "",
                         BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
-                        BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
+                        BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
                         BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
                         "", "", ""
                     )
-            Me.Cursor = Cursors.Default
-            Me.UseWaitCursor = False
-            Me.Refresh()
-            Browser.ShowDialog(Me)
+                Me.Cursor = Cursors.Default
+                Me.UseWaitCursor = False
+                Me.Refresh()
+                Browser.ShowDialog(Me)
+            End Using
         Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
             Me.Cursor = Cursors.Default
             Me.UseWaitCursor = False
@@ -65,6 +87,9 @@ Public Class LoginForm
             Me.Refresh()
             System.Windows.Forms.MessageBox.Show(Me, ex.ToString, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)
 #Enable Warning CA1031 ' Do not catch general exception types
+        Finally
+            Me.Cursor = Cursors.Default
+            Me.UseWaitCursor = False
         End Try
     End Sub
 

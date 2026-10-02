@@ -19,6 +19,7 @@ Public Class DmsBrowser
     ''' A browser for DMS systems
     ''' </summary>
     ''' <remarks>Intended for designer only; please use another constructor overload</remarks>
+    <Obsolete("Use overload instead")>
     <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
     Public Sub New()
         MyBase.New()
@@ -30,7 +31,9 @@ Public Class DmsBrowser
     End Sub
 
     Friend Sub New(dmsProvider As BaseDmsProvider)
+#Disable Warning BC40000
         Me.New()
+#Enable Warning BC40000
         If dmsProvider Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProvider))
         Me._DmsProviderOverride = dmsProvider
     End Sub
@@ -40,7 +43,7 @@ Public Class DmsBrowser
     ''' </summary>
     ''' <param name="dmsProfile"></param>
     ''' <param name="formTitle">The form title</param>
-    ''' <param name="formIcon">The form icon</param>
+    ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
     ''' <param name="initialRootFolder">The remote folder which shall be treated as root folder in browser dialog</param>
     ''' <param name="selectedFolder">The initially selected sub folder</param>
     ''' <param name="browseMode">Mode setting for browser dialog</param>
@@ -50,16 +53,68 @@ Public Class DmsBrowser
     ''' <param name="localDefaultFolderDownloads">Default downloads folder on local system</param>
     ''' <param name="localDefaultFolderUploads">Default uploads folder on local system</param>
     Public Sub New(dmsProfile As CompuMaster.Dms.Data.IDmsLoginProfile, formTitle As String, formIcon As System.Drawing.Icon, initialRootFolder As String, selectedFolder As String, browseMode As BrowseModes, allowedActions As FileOrFolderActions, dialogOperationMode As DialogOperationModes, localParentMustFolder As String, localDefaultFolderDownloads As String, localDefaultFolderUploads As String)
-
-        ' Dieser Aufruf ist für den Designer erforderlich.
-        InitializeComponent()
-        ConfigureIconImageListsForDpi(Me.DeviceDpi)
-        ApplyLocalizedText()
-
-        ' Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.
-        Me.Text = formTitle
-        Me.Icon = formIcon
+#Disable Warning BC40000
+        Me.New()
+#Enable Warning BC40000
         Me.DmsProfile = dmsProfile
+        Me.ConfigureBrowser(formTitle, formIcon, initialRootFolder, selectedFolder, browseMode, allowedActions, dialogOperationMode, localParentMustFolder, localDefaultFolderDownloads, localDefaultFolderUploads)
+    End Sub
+
+    ''' <summary>Creates a browser that opens the default or a specified DMS instance without a startup dialog.</summary>
+    ''' <param name="dmsProfile">The login profile used to authorize the provider.</param>
+    ''' <param name="remoteInstance">The startup instance and optional method for later switching.</param>
+    ''' <param name="formTitle">The form title.</param>
+    ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
+    ''' <param name="initialRootFolder">The remote folder treated as the browser root.</param>
+    ''' <param name="selectedFolder">The initially selected folder.</param>
+    ''' <param name="browseMode">The browser mode.</param>
+    ''' <param name="allowedActions">The permitted browser actions.</param>
+    ''' <param name="dialogOperationMode">The dialog operation mode.</param>
+    ''' <param name="localParentMustFolder">The parent required for local transfers.</param>
+    ''' <param name="localDefaultFolderDownloads">The default local download folder.</param>
+    ''' <param name="localDefaultFolderUploads">The default local upload folder.</param>
+    ''' <exception cref="NotSupportedException">The selector requests a startup dialog; resolve it before creating the browser.</exception>
+    Public Sub New(dmsProfile As IDmsLoginProfile, remoteInstance As RemoteInstanceSelector, formTitle As String, formIcon As Icon, initialRootFolder As String, selectedFolder As String, browseMode As BrowseModes, allowedActions As FileOrFolderActions, dialogOperationMode As DialogOperationModes, localParentMustFolder As String, localDefaultFolderDownloads As String, localDefaultFolderUploads As String)
+#Disable Warning BC40000
+        Me.New()
+#Enable Warning BC40000
+        If dmsProfile Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProfile))
+        If remoteInstance Is Nothing Then Throw New ArgumentNullException(NameOf(remoteInstance))
+        If remoteInstance.SelectedStartupInstance = RemoteInstanceSelector.StartupInstance.SelectionDialog Then
+            Throw New NotSupportedException("Resolve the startup selection before creating the browser.")
+        End If
+        Me.DmsProfile = dmsProfile
+        Me.InstanceSelectionDialog = remoteInstance.SelectionDialog
+        remoteInstance.SelectProviderInstance(Me.DmsProvider, Nothing)
+        Me.ConfigureBrowser(formTitle, formIcon, initialRootFolder, selectedFolder, browseMode, allowedActions, dialogOperationMode, localParentMustFolder, localDefaultFolderDownloads, localDefaultFolderUploads)
+    End Sub
+
+    ''' <summary>Creates a browser for an already authorized provider with its startup instance already selected.</summary>
+    ''' <param name="dmsProvider">The authorized provider bound to the instance to browse.</param>
+    ''' <param name="selectionDialog">The optional method for later switching.</param>
+    ''' <param name="formTitle">The form title.</param>
+    ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
+    ''' <param name="initialRootFolder">The remote folder treated as the browser root.</param>
+    ''' <param name="selectedFolder">The initially selected folder.</param>
+    ''' <param name="browseMode">The browser mode.</param>
+    ''' <param name="allowedActions">The permitted browser actions.</param>
+    ''' <param name="dialogOperationMode">The dialog operation mode.</param>
+    ''' <param name="localParentMustFolder">The parent required for local transfers.</param>
+    ''' <param name="localDefaultFolderDownloads">The default local download folder.</param>
+    ''' <param name="localDefaultFolderUploads">The default local upload folder.</param>
+    Public Sub New(dmsProvider As BaseDmsProvider, selectionDialog As RemoteInstanceSelector.SelectionDialogMethod, formTitle As String, formIcon As Icon, initialRootFolder As String, selectedFolder As String, browseMode As BrowseModes, allowedActions As FileOrFolderActions, dialogOperationMode As DialogOperationModes, localParentMustFolder As String, localDefaultFolderDownloads As String, localDefaultFolderUploads As String)
+#Disable Warning BC40000
+        Me.New()
+#Enable Warning BC40000
+        If dmsProvider Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProvider))
+        Me._DmsProviderOverride = dmsProvider
+        Me.InstanceSelectionDialog = selectionDialog
+        Me.ConfigureBrowser(formTitle, formIcon, initialRootFolder, selectedFolder, browseMode, allowedActions, dialogOperationMode, localParentMustFolder, localDefaultFolderDownloads, localDefaultFolderUploads)
+    End Sub
+
+    Private Sub ConfigureBrowser(formTitle As String, formIcon As Icon, initialRootFolder As String, selectedFolder As String, browseMode As BrowseModes, allowedActions As FileOrFolderActions, dialogOperationMode As DialogOperationModes, localParentMustFolder As String, localDefaultFolderDownloads As String, localDefaultFolderUploads As String)
+        Me.Text = formTitle
+        If formIcon IsNot Nothing Then Me.Icon = formIcon
         Me.InitialFolder = initialRootFolder
         Me.SelectedFolder = selectedFolder
         Me.BrowseMode = browseMode
@@ -128,7 +183,7 @@ Public Class DmsBrowser
                 'ElseIf System.Reflection.Assembly.GetEntryAssembly Is Nothing Then
                 '    'Visual Studio IDE, sometimes causing reload timer to run !?!
                 '    Return True
-            ElseIf Me.DmsProfile Is Nothing Then
+            ElseIf Me.DmsProfile Is Nothing AndAlso Me._DmsProviderOverride Is Nothing Then
                 Return True
             Else
                 Return False
@@ -137,6 +192,21 @@ Public Class DmsBrowser
     End Property
 
     Public Property DmsProfile As CompuMaster.Dms.Data.IDmsLoginProfile
+
+    ''' <summary>
+    ''' Gets or sets a value indicating whether the browser offers DMS instance selection when the provider supports it.
+    ''' </summary>
+    ''' <remarks>The default is <see langword="False"/> to preserve the existing browser behavior.</remarks>
+    Public Property EnableDmsInstanceSelection As Boolean
+
+    ''' <summary>
+    ''' Gets or sets the instance identifier to select without prompting when instance selection is enabled.
+    ''' </summary>
+    ''' <remarks>Leave this value empty to prompt when multiple instances are available.</remarks>
+    Public Property PreselectedDmsInstanceID As String
+
+    Private InstanceButton As Button
+    Private InstanceSelectionDialog As RemoteInstanceSelector.SelectionDialogMethod
 
     Private _DmsProviderOverride As CompuMaster.Dms.Providers.BaseDmsProvider
     Public ReadOnly Property DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider
@@ -192,6 +262,8 @@ Public Class DmsBrowser
         AllowDeleteFiles = 16
         AllowCopyRenameMoveFiles = 32
         AllowSharings = 64
+        ''' <summary>Allows switching between DMS instances when a selection method and multiple instances are available.</summary>
+        AllowSwitchDmsInstance = 128
     End Enum
     Private _AllowedActions As FileOrFolderActions
     Public Property AllowedActions As FileOrFolderActions
@@ -233,6 +305,7 @@ Public Class DmsBrowser
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonShareFile, Me.DmsProvider.SupportsSharingSetup AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonProperties, True, False)
             Me.UpdateFileToolbarLayout()
+            If Me.InstanceButton IsNot Nothing OrElse Me.IsHandleCreated Then Me.InitializeDmsInstanceSwitching()
         End Set
     End Property
 
@@ -377,6 +450,12 @@ Public Class DmsBrowser
         If Me.LocalDefaultFolderDownloads = Nothing Then LocalDefaultFolderDownloads = Me.LocalParentMustFolder
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
         Try
+            If Me.EnableDmsInstanceSelection AndAlso Not Me.InitializeDmsInstanceSelection() Then
+                Me.DialogResult = DialogResult.Cancel
+                Me.Close()
+                Return
+            End If
+            Me.InitializeDmsInstanceSwitching()
             Me.LoadTree()
         Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
             MessageBox.Show(Me, ex.Message, UiStrings.Format("DmsFolderNotFound", ex.RemotePath), MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -404,6 +483,106 @@ Public Class DmsBrowser
         Catch ex As Exception
             MessageBox.Show(Me, UiStrings.Format("InvalidFolderMessage", Me.SelectedFolder), UiStrings.GetText("InvalidFolderTitle"), MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
+    End Sub
+
+    Friend Function InitializeDmsInstanceSelection() As Boolean
+        Dim InstanceProvider As IDmsInstanceProvider = TryCast(Me.DmsProvider, IDmsInstanceProvider)
+        If InstanceProvider Is Nothing Then Return True
+
+        Dim Instances As IReadOnlyList(Of DmsInstanceInfo) = InstanceProvider.ListAvailableDmsInstances()
+        If Instances.Count = 0 Then Throw New InvalidOperationException(UiStrings.GetText("NoDmsInstances"))
+
+        If Not String.IsNullOrWhiteSpace(Me.PreselectedDmsInstanceID) Then
+            InstanceProvider.SelectDmsInstance(Me.PreselectedDmsInstanceID)
+        ElseIf Instances.Count > 1 Then
+            Using Picker As New DmsInstanceSelectionDialog(Instances, Me.Icon)
+                If Picker.ShowDialog(Me) <> DialogResult.OK Then Return False
+                InstanceProvider.SelectDmsInstance(Picker.SelectedInstance.ID)
+            End Using
+        ElseIf InstanceProvider.CurrentDmsInstance Is Nothing OrElse
+               Not String.Equals(InstanceProvider.CurrentDmsInstance.ID, Instances(0).ID, StringComparison.Ordinal) Then
+            InstanceProvider.SelectDmsInstance(Instances(0).ID)
+        End If
+
+        Return True
+    End Function
+
+    Friend Sub InitializeDmsInstanceSwitching()
+        If (Me.AllowedActions And FileOrFolderActions.AllowSwitchDmsInstance) <> FileOrFolderActions.AllowSwitchDmsInstance OrElse
+           Me.InstanceSelectionDialog Is Nothing Then
+            If Me.InstanceButton IsNot Nothing Then Me.InstanceButton.Visible = False
+            Return
+        End If
+
+        Dim instanceProvider As IDmsInstanceProvider = TryCast(Me.DmsProvider, IDmsInstanceProvider)
+        If instanceProvider Is Nothing OrElse instanceProvider.ListAvailableDmsInstances().Count <= 1 Then
+            If Me.InstanceButton IsNot Nothing Then Me.InstanceButton.Visible = False
+            Return
+        End If
+
+        If Me.InstanceButton Is Nothing Then
+            Me.InstanceButton = New Button With {
+                .Name = "ButtonDmsInstance",
+                .Text = UiStrings.GetText("ChangeDmsInstance"),
+                .AutoEllipsis = True,
+                .Location = New Point(Me.ButtonShowFiles.Right + 8, Me.ButtonShowFiles.Top),
+                .Size = New Size(250, Me.ButtonCreateNewFolder.Height),
+                .Anchor = AnchorStyles.Bottom Or AnchorStyles.Left
+            }
+            AddHandler Me.InstanceButton.Click, AddressOf Me.ChangeDmsInstance_Click
+            Me.Controls.Add(Me.InstanceButton)
+        End If
+        Me.InstanceButton.Visible = True
+        Me.UpdateDmsInstanceButton()
+    End Sub
+
+    Private Sub UpdateDmsInstanceButton()
+        If Me.InstanceButton Is Nothing Then Return
+        Dim InstanceProvider As IDmsInstanceProvider = CType(Me.DmsProvider, IDmsInstanceProvider)
+        Dim CurrentInstance As DmsInstanceInfo = InstanceProvider.CurrentDmsInstance
+        Me.InstanceButton.Text = If(CurrentInstance Is Nothing, UiStrings.GetText("ChangeDmsInstance"), UiStrings.Format("CurrentDmsInstance", CurrentInstance.DisplayName))
+    End Sub
+
+    Friend Sub ChangeDmsInstance_Click(sender As Object, e As EventArgs)
+        Dim InstanceChangeStarted As Boolean = False
+        Try
+            Dim InstanceProvider As IDmsInstanceProvider = CType(Me.DmsProvider, IDmsInstanceProvider)
+            Dim Instances As IReadOnlyList(Of DmsInstanceInfo) = InstanceProvider.ListAvailableDmsInstances()
+            If Instances.Count <= 1 Then
+                Me.InstanceButton.Visible = False
+                Return
+            End If
+            Dim selectedID As String = Me.InstanceSelectionDialog(Me, Instances)
+            If selectedID Is Nothing Then Return
+            If String.IsNullOrWhiteSpace(selectedID) OrElse
+               Not Instances.Any(Function(instance) String.Equals(instance.ID, selectedID, StringComparison.Ordinal)) Then
+                Throw New ArgumentOutOfRangeException(NameOf(selectedID), "The selected DMS instance is not available.")
+            End If
+            Dim CurrentInstance As DmsInstanceInfo = InstanceProvider.CurrentDmsInstance
+            If CurrentInstance IsNot Nothing AndAlso String.Equals(CurrentInstance.ID, selectedID, StringComparison.Ordinal) Then Return
+            InstanceChangeStarted = True
+            InstanceProvider.SelectDmsInstance(selectedID)
+
+            Me.ReloadDmsInstanceView()
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, UiStrings.GetText("ChangeDmsInstanceFailed"), MessageBoxButtons.OK, MessageBoxIcon.Error)
+            If InstanceChangeStarted Then Me.Close()
+        End Try
+    End Sub
+
+    Friend Sub ReloadDmsInstanceView()
+        Me.TreeViewDmsFolders.BeginUpdate()
+        Try
+            Me.ListViewDmsFiles.Items.Clear()
+            Me.ListViewDmsFiles.Tag = Nothing
+            Me.LastFileListFolderPath = Nothing
+            Me.SelectedFolder = Nothing
+            Me.LoadTree()
+            Me.SelectFolderPath(Nothing)
+        Finally
+            Me.TreeViewDmsFolders.EndUpdate()
+        End Try
+        Me.UpdateDmsInstanceButton()
     End Sub
 
     Friend Sub LoadTree()
@@ -611,7 +790,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Sub TreeViewDmsFolders_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles TreeViewDmsFolders.AfterSelect
-        If Me.SuppressSelectionRefresh Then Return
+        If Me.SuppressSelectionRefresh OrElse Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Return
         Me.SelectedFolder = Me.SelectedFolderPath
         Me.RefreshFilesList()
     End Sub

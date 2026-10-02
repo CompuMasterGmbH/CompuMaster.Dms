@@ -140,4 +140,10 @@
   <data name="ViewRequiredForDownload" xml:space="preserve"><value>Die Berechtigung Anzeigen ist erforderlich, wenn Download ausgewählt ist</value></data>
   <data name="AuthorizationObjectRequired" xml:space="preserve"><value>Kein Berechtigungs-Objekt ausgewählt</value></data>
   <data name="LinkSetupTitle" xml:space="preserve"><value>DMS Externe Links Einstellungen</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>DMS-Instanz wechseln...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>DMS-Instanz konnte nicht gewechselt werden</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>Instanz: {0} (wechseln...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>Wählen Sie die DMS-Instanz aus:</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>DMS-Instanz auswählen</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>Für dieses Konto sind keine DMS-Instanzen verfügbar.</value></data>
 </root>
