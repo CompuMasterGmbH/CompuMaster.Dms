@@ -993,16 +993,11 @@ Public Class DmsBrowser
 
         Me.DmsProvider.ResetCachesForRemoteItems(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)
         Dim Files As List(Of DmsResourceItem)
-        Try
-            If Me.DmsProvider.SupportsAsynchronousIo Then
-                Files = (Await Me.DmsProvider.ListAllRemoteItemsAsync(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)).Where(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File).ToList()
-            Else
-                Files = Me.DmsProvider.ListAllFileItems(CurrentFolderPath)
-            End If
-        Catch ex As Data.DirectoryNotFoundException
-            Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
-            Return
-        End Try
+        If Me.DmsProvider.SupportsAsynchronousIo Then
+            Files = (Await Me.DmsProvider.ListAllRemoteItemsAsync(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)).Where(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File).ToList()
+        Else
+            Files = Me.DmsProvider.ListAllFileItems(CurrentFolderPath)
+        End If
         Me.LastFileListFolderPath = CurrentFolderPath
         Me.ListViewDmsFiles.Items.Clear()
         Me.ListViewDmsFiles.Tag = Nothing
@@ -1172,6 +1167,8 @@ Public Class DmsBrowser
             End If
         Catch ex As OperationCanceledException
             Return
+        Catch ex As Data.DirectoryNotFoundException
+            Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
