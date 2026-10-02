@@ -977,8 +977,41 @@ Public Class DmsBrowser
             Else
                 Files = New List(Of DmsResourceItem)
             End If
+            Me.DisplayFiles(Files)
+        End If
+    End Sub
+
+    Private Async Function RefreshFilesListAfterTransferAsync() As Task
+        If Me.SplitContainer.Panel2Collapsed Then Return
+        Dim CurrentFolder As NodeTagData = TryCast(Me.TreeViewDmsFolders.SelectedNode?.Tag, NodeTagData)
+        Dim CurrentFolderPath As String = CurrentFolder?.DmsResourceItem?.FullName
+        If CurrentFolderPath Is Nothing AndAlso CurrentFolder IsNot Nothing AndAlso Me.DmsProvider.SupportsFilesInRootFolder Then
+            CurrentFolderPath = Me.DmsProvider.BrowseInRootFolderName
+        End If
+        If CurrentFolderPath Is Nothing Then CurrentFolderPath = Me.LastFileListFolderPath
+        If CurrentFolderPath Is Nothing Then Return
+
+        Me.DmsProvider.ResetCachesForRemoteItems(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)
+        Dim Files As List(Of DmsResourceItem)
+        Try
+            If Me.DmsProvider.SupportsAsynchronousIo Then
+                Files = (Await Me.DmsProvider.ListAllRemoteItemsAsync(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)).Where(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File).ToList()
+            Else
+                Files = Me.DmsProvider.ListAllFileItems(CurrentFolderPath)
+            End If
+        Catch ex As Data.DirectoryNotFoundException
+            Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
+            Return
+        End Try
+        Me.LastFileListFolderPath = CurrentFolderPath
+        Me.ListViewDmsFiles.Items.Clear()
+        Me.ListViewDmsFiles.Tag = Nothing
+        Me.DisplayFiles(Files)
+    End Function
+
+    Private Sub DisplayFiles(filesToDisplay As List(Of DmsResourceItem))
             Me.ListViewDmsFiles.Sorting = SortOrder.None
-            Files = ApplyFilesSortOrder(Files)
+            Dim Files As List(Of DmsResourceItem) = ApplyFilesSortOrder(filesToDisplay)
             Me.ListViewDmsFiles.Tag = Files
             Dim AllFileNameHashes As List(Of Integer) = Files.ConvertAll(Of Integer)(Function(file) file.Name.GetHashCode)
             For Each file As DmsResourceItem In Files
@@ -1002,7 +1035,6 @@ Public Class DmsBrowser
             Next
             Me.ListViewDmsFiles.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent)
             Me.ListViewDmsFiles.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize)
-        End If
     End Sub
 
     Private Sub ButtonShowFiles_CheckedChanged(sender As Object, e As EventArgs) Handles ButtonShowFiles.CheckedChanged
@@ -1075,10 +1107,35 @@ Public Class DmsBrowser
     End Sub
 
     Private TransferRunning As Boolean
+    Private TransferPreviousUseWaitCursor As Boolean
+    Private TransferPreviousEnabled As Boolean
+
+    Private Sub BeginTransfer()
+        TransferRunning = True
+        TransferPreviousUseWaitCursor = Me.UseWaitCursor
+        TransferPreviousEnabled = Me.Enabled
+        Me.UseWaitCursor = True
+        Me.Enabled = False
+    End Sub
+
+    Private Sub EndTransfer()
+        Me.Enabled = TransferPreviousEnabled
+        Me.UseWaitCursor = TransferPreviousUseWaitCursor
+        TransferRunning = False
+    End Sub
+
+    Friend Async Function RunTransferAsync(operation As Func(Of Task)) As Task
+        If TransferRunning Then Throw New InvalidOperationException("A file transfer is already running.")
+        Me.BeginTransfer()
+        Try
+            Await operation()
+        Finally
+            Me.EndTransfer()
+        End Try
+    End Function
 
     Private Async Sub ToolStripButtonUploadFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonUploadFile.Click
         If TransferRunning Then Return
-        TransferRunning = True
         Try
             If Me.LocalDefaultFolderUploads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderUploads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderUploads)
             Dim DialogUserResult As DialogResult = DialogResult.None
@@ -1094,39 +1151,36 @@ Public Class DmsBrowser
             DialogUserResult = f.ShowDialog()
             If DialogUserResult = DialogResult.OK Then
                 If f.FileNames.Length > 0 Then
-                    For MyCounter As Integer = 0 To f.FileNames.Length - 1
-                        If System.IO.File.Exists(f.FileNames(MyCounter)) = True Then
-                            Dim TargetFile As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName, System.IO.Path.GetFileName(f.FileNames(MyCounter)))
-                            Dim LocalFile As String = f.FileNames(MyCounter)
-                            If Me.DmsProvider.SupportsAsynchronousIo Then
-                                Await Me.DmsProvider.UploadFileAsync(TargetFile, LocalFile)
-                            Else
-                                Me.RunWithWaitCursor(Sub() Me.DmsProvider.UploadFile(TargetFile, LocalFile))
-                            End If
-                        Else
+                    For Each LocalFile As String In f.FileNames
+                        If Not System.IO.File.Exists(LocalFile) Then
                             System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("FileNotFound"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                            Return
                         End If
                     Next
+                    Dim RemoteFolderPath As String = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName
+                    Dim LocalFiles As String() = f.FileNames
+                    Await Me.RunTransferAsync(Async Function()
+                        Await UploadFilesForUiAsync(Me.DmsProvider, RemoteFolderPath, LocalFiles)
+                        Await Me.RefreshFilesListAfterTransferAsync()
+                    End Function)
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
-                    Me.RefreshFilesList()
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFileSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
             Else
                 System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("OperationCancelled"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             End If
+        Catch ex As OperationCanceledException
+            Return
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            TransferRunning = False
         End Try
     End Sub
 
     Private Async Sub ToolStripButtonDownloadFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonDownloadFile.Click
         If TransferRunning Then Return
-        TransferRunning = True
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then
@@ -1147,7 +1201,7 @@ Public Class DmsBrowser
                 If DialogUserResult = DialogResult.OK Then
                     If Me.LocalParentMustFolder = Nothing OrElse f.FileName.StartsWith(Me.LocalParentMustFolder) Then
                         Dim TargetFile As String = f.FileName
-                        Await DownloadFileForUiAsync(Me.DmsProvider, SelectedFiles(0), TargetFile)
+                        Await Me.RunTransferAsync(Function() DownloadFileForUiAsync(Me.DmsProvider, SelectedFiles(0), TargetFile))
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
@@ -1190,17 +1244,19 @@ Public Class DmsBrowser
                             End Select
                         End If
                         'Save to disk
-                        For MyCounter As Integer = 0 To SelectedFiles.Count - 1
-                            Dim RemoteFile As DmsResourceItem = SelectedFiles(MyCounter)
-                            Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
-                            If System.IO.File.Exists(TargetFile) Then
-                                If OverwriteLocalFiles Then
+                        Await Me.RunTransferAsync(Async Function()
+                            For MyCounter As Integer = 0 To SelectedFiles.Count - 1
+                                Dim RemoteFile As DmsResourceItem = SelectedFiles(MyCounter)
+                                Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
+                                If System.IO.File.Exists(TargetFile) Then
+                                    If OverwriteLocalFiles Then
+                                        Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile)
+                                    End If
+                                Else
                                     Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile)
                                 End If
-                            Else
-                                Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile)
-                            End If
-                        Next
+                            Next
+                        End Function)
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
@@ -1209,14 +1265,14 @@ Public Class DmsBrowser
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("OperationCancelled"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
             End If
+        Catch ex As OperationCanceledException
+            Return
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.FileNotFoundException
             Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            TransferRunning = False
         End Try
     End Sub
 
@@ -1971,23 +2027,31 @@ Public Class DmsBrowser
     ''' </summary>
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
-    Private Sub ToolStripButtonOpenFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonOpenFile.Click
+    Private Async Sub ToolStripButtonOpenFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonOpenFile.Click
+        If TransferRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then
                 System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFilesSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Else
-                For MyCounter As Integer = 0 To SelectedFiles.Count - 1
-                    Dim TargetFile As New CompuMaster.IO.TemporaryFile(CompuMaster.IO.TemporaryFile.TempFileCleanupEvent.OnApplicationExit,
-                                                                       System.IO.Path.GetRandomFileName,
-                                                                       System.IO.Path.GetFileNameWithoutExtension(SelectedFiles(MyCounter).Name),
-                                                                       System.IO.Path.GetExtension(SelectedFiles(MyCounter).Name))
-                    Dim RemoteFile As DmsResourceItem = SelectedFiles(MyCounter)
-                    Me.RunWithWaitCursor(Sub() DownloadFile(Me.DmsProvider, RemoteFile, TargetFile.FilePath))
+                Dim DownloadedFiles As New List(Of CompuMaster.IO.TemporaryFile)
+                Await Me.RunTransferAsync(Async Function()
+                    For Each RemoteFile As DmsResourceItem In SelectedFiles
+                        Dim TargetFile As New CompuMaster.IO.TemporaryFile(CompuMaster.IO.TemporaryFile.TempFileCleanupEvent.OnApplicationExit,
+                                                                           System.IO.Path.GetRandomFileName,
+                                                                           System.IO.Path.GetFileNameWithoutExtension(RemoteFile.Name),
+                                                                           System.IO.Path.GetExtension(RemoteFile.Name))
+                        Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile.FilePath)
+                        DownloadedFiles.Add(TargetFile)
+                    Next
+                End Function)
+                For Each TargetFile As CompuMaster.IO.TemporaryFile In DownloadedFiles
                     System.IO.File.SetAttributes(TargetFile.FilePath, System.IO.FileAttributes.ReadOnly Or System.IO.FileAttributes.Temporary)
                     OpenDownloadedFileItem.Invoke(TargetFile)
                 Next
             End If
+        Catch ex As OperationCanceledException
+            Return
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.FileNotFoundException
@@ -2021,7 +2085,18 @@ Public Class DmsBrowser
         provider.DownloadFile(remoteFile, localFilePath)
     End Sub
 
-    Private Shared Async Function DownloadFileForUiAsync(provider As BaseDmsProvider, remoteFile As DmsResourceItem, localFilePath As String) As Task
+    Friend Shared Async Function UploadFilesForUiAsync(provider As BaseDmsProvider, remoteFolderPath As String, localFilePaths As IEnumerable(Of String)) As Task
+        For Each LocalFilePath As String In localFilePaths
+            Dim RemoteFilePath As String = provider.CombinePath(remoteFolderPath, System.IO.Path.GetFileName(LocalFilePath))
+            If provider.SupportsAsynchronousIo Then
+                Await provider.UploadFileAsync(RemoteFilePath, LocalFilePath)
+            Else
+                provider.UploadFile(RemoteFilePath, LocalFilePath)
+            End If
+        Next
+    End Function
+
+    Friend Shared Async Function DownloadFileForUiAsync(provider As BaseDmsProvider, remoteFile As DmsResourceItem, localFilePath As String) As Task
         If provider.SupportsAsynchronousIo Then
             Await provider.DownloadFileAsync(remoteFile.FullName, localFilePath, remoteFile.LastModificationOnLocalTime)
         Else
