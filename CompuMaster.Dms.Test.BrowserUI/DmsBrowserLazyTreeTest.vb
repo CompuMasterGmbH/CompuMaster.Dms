@@ -112,6 +112,75 @@ Public Class DmsBrowserLazyTreeTest
         End Using
     End Sub
 
+    <TestCase(False)>
+    <TestCase(True)>
+    Public Sub TransferWaitCursorRestoresPreviousStateAfterSuccessOrFailure(fail As Boolean)
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New InMemoryDmsProvider)
+            Dim PreviousCursor As Cursor = Cursor.Current
+            Dim Operation As Action = Sub()
+                                          ClassicAssert.IsTrue(Browser.UseWaitCursor)
+                                          ClassicAssert.AreEqual(Cursors.WaitCursor, Cursor.Current)
+                                          If fail Then Throw New InvalidOperationException("Transfer failed.")
+                                      End Sub
+            If fail Then
+                Assert.Throws(Of InvalidOperationException)(Sub() Browser.RunWithWaitCursor(Operation))
+            Else
+                Browser.RunWithWaitCursor(Operation)
+            End If
+            ClassicAssert.IsFalse(Browser.UseWaitCursor)
+            ClassicAssert.AreEqual(PreviousCursor, Cursor.Current)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub CreatingNestedDirectoryImmediatelyKeepsBothNodesAttached()
+        Dim Provider As New InMemoryDmsProvider
+        Provider.SetChildren("/", CreateDirectory("Parent", 0))
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.LoadTree()
+            Dim Tree As TreeView = GetFolderTree(Browser)
+            Dim ParentNode As TreeNode = FindNode(Tree.Nodes(0), "Parent")
+            Dim First As TreeNode = Browser.CreateNewDirectoryTreeNode(ParentNode, "First")
+            Tree.SelectedNode = First
+            Dim Second As TreeNode = Browser.CreateNewDirectoryTreeNode(Tree.SelectedNode, "Second")
+            'Selecting a child can expand its parent and trigger lazy loading.
+            Browser.AddTreeChildren(First)
+            Tree.SelectedNode = Second
+
+            ClassicAssert.AreEqual("Parent/First/Second", Provider.CreatedDirectory.FullName)
+            ClassicAssert.AreSame(Tree, First.TreeView)
+            ClassicAssert.AreSame(Tree, Second.TreeView)
+            ClassicAssert.AreSame(Second, Tree.SelectedNode)
+            ClassicAssert.AreSame(First, Second.Parent)
+            ClassicAssert.AreEqual(1, First.Nodes.Count)
+            ClassicAssert.AreEqual(0, Second.Nodes.Count)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub NewlyCreatedDirectoryWithoutChildMetadataHasNoExpansionPlaceholder()
+        Dim Provider As New InMemoryDmsProvider
+        Dim Parent As DmsResourceItem = CreateDirectory("Parent", 0)
+        Provider.SetChildren("/", Parent)
+
+        Using Browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(Provider)
+            Browser.LoadTree()
+            Dim ParentNode As TreeNode = FindNode(GetFolderTree(Browser).Nodes(0), "Parent")
+            Dim ListingCount As Integer = Provider.DirectoryListingCount
+            Dim NewNode As TreeNode = Browser.CreateNewDirectoryTreeNode(ParentNode, "NewFolder")
+
+            ClassicAssert.AreEqual("Parent/NewFolder", Provider.CreatedDirectory.FullName)
+            ClassicAssert.AreEqual("NewFolder", NewNode.Text)
+            ClassicAssert.AreEqual(0, NewNode.Nodes.Count)
+            ClassicAssert.AreEqual(0, Provider.CreatedDirectory.ChildDirectoryCount.Value)
+            ClassicAssert.IsFalse(Provider.CreatedDirectory.HasChildDirectories.Value)
+            ClassicAssert.AreEqual(1, Parent.ChildDirectoryCount.Value)
+            ClassicAssert.IsTrue(Parent.HasChildDirectories.Value)
+            ClassicAssert.AreEqual(ListingCount, Provider.DirectoryListingCount)
+        End Using
+    End Sub
+
     <Test>
     Public Sub RefreshChangesKnownZeroChildrenToOneChild()
         Dim Provider As New InMemoryDmsProvider
@@ -397,6 +466,17 @@ Public Class DmsBrowserLazyTreeTest
         Inherits NoDmsProvider
 
         Private ReadOnly ChildrenByPath As New Dictionary(Of String, List(Of DmsResourceItem))(StringComparer.Ordinal)
+
+        Public Property CreatedDirectory As DmsResourceItem
+
+        Public Overrides Sub CreateDirectory(remoteDirectoryPath As String)
+            Me.CreatedDirectory = DmsBrowserLazyTreeTest.CreateDirectory(remoteDirectoryPath, Nothing)
+        End Sub
+
+        Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
+            ClassicAssert.AreEqual(Me.CreatedDirectory.FullName, remotePath)
+            Return Me.CreatedDirectory
+        End Function
 
         Public Property DirectoryListingCount As Integer
         Public Property RootPath As String = "/"

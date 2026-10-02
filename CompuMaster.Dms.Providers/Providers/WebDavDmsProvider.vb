@@ -17,6 +17,8 @@ Namespace Providers
     Public Class WebDavDmsProvider
         Inherits BaseDmsProvider
 
+        Private Shared ReadOnly ChildFolderCountProperty As System.Xml.Linq.XName = System.Xml.Linq.XName.Get("contained-folder-count", "http://nextcloud.org/ns")
+
         Private WebDavClient As Global.WebDav.WebDavClient
 
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
@@ -151,6 +153,8 @@ Namespace Providers
                 Throw New ArgumentNullException(NameOf(remotePath))
             End If
             Dim PropfindParams As New Global.WebDav.PropfindParameters With {
+          .RequestType = Global.WebDav.PropfindRequestType.AllProperties,
+          .CustomProperties = New System.Xml.Linq.XName() {ChildFolderCountProperty},
           .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceOnly
       }
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, PropfindParams)
@@ -212,6 +216,17 @@ Namespace Providers
             Else
                 Result.ItemType = DmsResourceItem.ItemTypes.File
             End If
+            If res.IsCollection AndAlso res.Properties IsNot Nothing Then
+                For Each prop As Global.WebDav.WebDavProperty In res.Properties
+                    If prop.Name <> ChildFolderCountProperty Then Continue For
+                    If res.PropertyStatuses IsNot Nothing AndAlso res.PropertyStatuses.Any(Function(status) status.Name = ChildFolderCountProperty AndAlso Not status.IsSuccessful) Then Continue For
+                    Dim ChildCount As Integer
+                    If Integer.TryParse(prop.Value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, ChildCount) AndAlso ChildCount >= 0 Then
+                        Result.ChildDirectoryCount = ChildCount
+                        Result.HasChildDirectories = ChildCount > 0
+                    End If
+                Next
+            End If
             'Normalize field content
             If Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(res.Uri.ToString) = Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(Me.CustomWebApiUrl) Then
                 Result.Name = ""
@@ -238,6 +253,8 @@ Namespace Providers
 
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
             Dim PropfindParams As New Global.WebDav.PropfindParameters With {
+            .RequestType = Global.WebDav.PropfindRequestType.AllProperties,
+            .CustomProperties = New System.Xml.Linq.XName() {ChildFolderCountProperty},
             .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceAndChildren
         }
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remoteFolderPath, PropfindParams)
