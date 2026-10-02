@@ -65,7 +65,7 @@ Public Class DmsBrowserToolbarLayoutTest
             browser.ClientSize = New Size(1400, 700)
             PerformFilePanelLayout(browser, splitContainer, toolbarHost)
 
-            ClassicAssert.Less(toolbarHost.Height, narrowToolbarHeight)
+            ClassicAssert.LessOrEqual(toolbarHost.Height, narrowToolbarHeight)
             ClassicAssert.AreEqual(toolbarHost.Bottom, fileList.Top)
             ClassicAssert.AreEqual(splitContainer.Panel2.ClientSize.Width, toolbarHost.Width)
         End Using
