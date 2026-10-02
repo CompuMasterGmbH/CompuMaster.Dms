@@ -73,6 +73,12 @@
 - Keep any `.gitattributes` rules intact and treat binary formats as binary. Do not apply text normalization to images, archives, or other binary assets.
 - Keep broad encoding or line-ending normalization in a separate mechanical change whenever possible; avoid unrelated file churn in feature fixes.
 
+## Starting the Nextcloud demo for visual review
+
+- Build and launch `CompuMaster.Dms.TestDemo.Nextcloud/bin/CI_CD/net8.0-windows/CompuMaster.Dms.TestDemo.Nextcloud.exe` from this repository. The `net48` demo currently fails while loading the form icon resource.
+- With Windows Computer Use, pass `process:<absolute path to that exe>` to `sky.launch_app`; do not select an app merely named `Nextcloud`. That name also belongs to the installed Nextcloud sync client, and app discovery can associate the demo with the client's app ID.
+- Wait for the window to appear, then verify the exact title `DMS Browser DEMO for Nextcloud` and the running executable path. `Nextcloud-Einstellungen` is the sync client, not this demo. A process ID or successful launch call alone does not prove that the demo dialog is visible.
+
 ## Agreed issue direction
 
 - #8: Prefer optional provider metadata indicating whether/how many child folders or collections exist. Use it to show expansion controls without fetching children; fetch actual children when expanded. Preserve the distinction between unknown metadata and a known zero count, with a lazy-loading fallback for unknown values. Cover these cases with tests.
