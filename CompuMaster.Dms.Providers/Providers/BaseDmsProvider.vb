@@ -2,6 +2,7 @@
 Option Strict On
 
 Imports CompuMaster.Dms.Data
+Imports System.Collections.Concurrent
 Imports System.Threading
 Imports System.Threading.Tasks
 
@@ -13,6 +14,25 @@ Namespace Providers
     Public MustInherit Class BaseDmsProvider
 
         Private Shared ReadOnly AmbientCancellation As New AsyncLocal(Of CancellationToken)
+        Private Shared ReadOnly SynchronousFallbackGates As New ConcurrentDictionary(Of DmsProviders, SemaphoreSlim)
+
+        Private Async Function RunSynchronousFallbackAsync(Of TResult)(operation As Func(Of TResult), cancellationToken As CancellationToken) As Task(Of TResult)
+            Dim gate As SemaphoreSlim = SynchronousFallbackGates.GetOrAdd(Me.DmsProviderID, Function(key) New SemaphoreSlim(1, 1))
+            Await gate.WaitAsync(cancellationToken).ConfigureAwait(False)
+            Try
+                cancellationToken.ThrowIfCancellationRequested()
+                Return Await Task.Run(operation).ConfigureAwait(False)
+            Finally
+                gate.Release()
+            End Try
+        End Function
+
+        Private Async Function RunSynchronousFallbackAsync(operation As Action, cancellationToken As CancellationToken) As Task
+            Await Me.RunSynchronousFallbackAsync(Function()
+                                                    operation()
+                                                    Return True
+                                                End Function, cancellationToken).ConfigureAwait(False)
+        End Function
 
         ''' <summary>Gets the cancellation token for the current asynchronous item operation.</summary>
         ''' <returns>The token supplied by the caller, or CancellationToken.None.</returns>
@@ -23,7 +43,7 @@ Namespace Providers
         End Property
 
         ''' <summary>Indicates whether this provider implements native asynchronous remote I/O.</summary>
-        ''' <returns>True when remote requests can be awaited without occupying a worker thread.</returns>
+        ''' <returns>True when remote requests can be awaited without occupying a worker thread; the Task-based API also supports a serialized worker fallback.</returns>
         Public Overridable ReadOnly Property SupportsAsynchronousIo As Boolean
             Get
                 Return False
@@ -197,6 +217,24 @@ Namespace Providers
         ''' <param name="searchType"></param>
         Public MustOverride Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
 
+        ''' <summary>Invalidates cached remote children without blocking the calling thread.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="searchType">The child types whose cache should be reset.</param>
+        ''' <param name="cancellationToken">Cancels a queued cache operation.</param>
+        ''' <returns>A task that completes when the cache is reset.</returns>
+        Public Overridable Function ResetCachesForRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.ResetCachesForRemoteItems(remoteFolderPath, searchType), cancellationToken)
+        End Function
+
+        ''' <summary>Resets cached information for a selected remote directory asynchronously.</summary>
+        ''' <param name="remoteItem">The selected remote directory.</param>
+        ''' <param name="searchType">The cached child types to reset.</param>
+        ''' <param name="cancellationToken">Cancels a queued reset.</param>
+        ''' <returns>A task that completes after the cache reset.</returns>
+        Public Overridable Function ResetCachesForRemoteItemsAsync(remoteItem As DmsResourceItem, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.ResetCachesForRemoteItems(remoteItem, searchType), cancellationToken)
+        End Function
+
         ''' <summary>
         ''' List all child items (files/folders/collections) for a remote path
         ''' </summary>
@@ -345,9 +383,9 @@ Namespace Providers
         ''' <param name="remotePath">The remote path to inspect.</param>
         ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
         ''' <returns>The matching item, or Nothing when the path is absent.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued operation, but cannot interrupt an active synchronous request.</remarks>
         Public Overridable Function ListRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
-            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+            Return Me.RunSynchronousFallbackAsync(Function() Me.ListRemoteItem(remotePath), cancellationToken)
         End Function
 
         ''' <summary>Lists remote child items without blocking the calling thread.</summary>
@@ -355,9 +393,140 @@ Namespace Providers
         ''' <param name="searchType">The child types to include.</param>
         ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
         ''' <returns>The matching child items.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued operation, but cannot interrupt an active synchronous request.</remarks>
         Public Overridable Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
-            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+            Return Me.RunSynchronousFallbackAsync(Function() Me.ListAllRemoteItems(remoteFolderPath, searchType), cancellationToken)
+        End Function
+
+        ''' <summary>Checks whether a remote item exists asynchronously.</summary>
+        ''' <param name="remotePath">The remote path to check.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>True when an item exists at the path.</returns>
+        Public Overridable Async Function RemoteItemExistsAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean)
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.RemoteItemExists(remotePath), cancellationToken).ConfigureAwait(False)
+            Return Await Me.ListRemoteItemAsync(remotePath, cancellationToken).ConfigureAwait(False) IsNot Nothing
+        End Function
+
+        ''' <summary>Checks the type of a remote item asynchronously.</summary>
+        ''' <param name="remotePath">The remote path to check.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The item type or NotFound.</returns>
+        Public Overridable Async Function RemoteItemExistsAsAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem.FoundItemType)
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.RemoteItemExistsAs(remotePath), cancellationToken).ConfigureAwait(False)
+            Dim item = Await Me.ListRemoteItemAsync(remotePath, cancellationToken).ConfigureAwait(False)
+            Return If(item Is Nothing, DmsResourceItem.FoundItemType.NotFound, CType(CType(item.ItemType, Byte), DmsResourceItem.FoundItemType))
+        End Function
+
+        ''' <summary>Checks a remote item's type and name collisions asynchronously.</summary>
+        ''' <param name="remotePath">The remote path to check.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The item result, including name collisions.</returns>
+        Public Overridable Async Function RemoteItemExistsUniquelyAsAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem.FoundItemResult)
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.RemoteItemExistsUniquelyAs(remotePath), cancellationToken).ConfigureAwait(False)
+            Dim item = Await Me.ListRemoteItemAsync(remotePath, cancellationToken).ConfigureAwait(False)
+            If item Is Nothing Then Return DmsResourceItem.FoundItemResult.NotFound
+            If item.ExtendedInfosCollisionDetected Then Return DmsResourceItem.FoundItemResult.WithNameCollisions
+            Return CType(CType(item.ItemType, Byte), DmsResourceItem.FoundItemResult)
+        End Function
+
+        ''' <summary>Lists child folders and collections asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The direct child directories.</returns>
+        Public Overridable Async Function ListAllDirectoryItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllDirectoryItems(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Dim items = Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.AllItems, cancellationToken).ConfigureAwait(False)
+            Return items.FindAll(Function(item) item.ItemType = DmsResourceItem.ItemTypes.Folder OrElse item.ItemType = DmsResourceItem.ItemTypes.Collection)
+        End Function
+
+        ''' <summary>Lists child collections asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The direct child collections.</returns>
+        Public Overridable Async Function ListAllCollectionItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllCollectionItems(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Dim items = Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.Collections, cancellationToken).ConfigureAwait(False)
+            Return items.FindAll(Function(item) item.ItemType = DmsResourceItem.ItemTypes.Collection)
+        End Function
+
+        ''' <summary>Lists child folders asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The direct child folders.</returns>
+        Public Overridable Async Function ListAllFolderItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllFolderItems(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Dim items = Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.Folders, cancellationToken).ConfigureAwait(False)
+            Return items.FindAll(Function(item) item.ItemType = DmsResourceItem.ItemTypes.Folder)
+        End Function
+
+        ''' <summary>Lists child files asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The direct child files.</returns>
+        Public Overridable Async Function ListAllFileItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllFileItems(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Dim items = Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.Files, cancellationToken).ConfigureAwait(False)
+            Return items.FindAll(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File)
+        End Function
+
+        ''' <summary>Lists child collection names asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The collection names.</returns>
+        Public Overridable Async Function ListAllCollectionNamesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of String))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllCollectionNames(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Return (Await Me.ListAllCollectionItemsAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)).ConvertAll(Function(item) item.Name)
+        End Function
+
+        ''' <summary>Lists child folder names asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The folder names.</returns>
+        Public Overridable Async Function ListAllFolderNamesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of String))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllFolderNames(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Return (Await Me.ListAllFolderItemsAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)).ConvertAll(Function(item) item.Name)
+        End Function
+
+        ''' <summary>Lists child file names asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native request.</param>
+        ''' <returns>The file names.</returns>
+        Public Overridable Async Function ListAllFileNamesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of String))
+            If Not Me.SupportsAsynchronousIo Then Return Await Me.RunSynchronousFallbackAsync(Function() Me.ListAllFileNames(remoteFolderPath), cancellationToken).ConfigureAwait(False)
+            Return (Await Me.ListAllFileItemsAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)).ConvertAll(Function(item) item.Name)
+        End Function
+
+        ''' <summary>Finds a collection by identifier without blocking the calling thread.</summary>
+        ''' <param name="id">The provider-specific collection identifier.</param>
+        ''' <param name="cancellationToken">Cancels a queued lookup.</param>
+        ''' <returns>The collection.</returns>
+        Public Overridable Function FindCollectionByIdAsync(id As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Return Me.RunSynchronousFallbackAsync(Function() Me.FindCollectionById(id), cancellationToken)
+        End Function
+
+        ''' <summary>Finds a folder by identifier without blocking the calling thread.</summary>
+        ''' <param name="id">The provider-specific folder identifier.</param>
+        ''' <param name="cancellationToken">Cancels a queued lookup.</param>
+        ''' <returns>The folder.</returns>
+        Public Overridable Function FindFolderByIdAsync(id As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Return Me.RunSynchronousFallbackAsync(Function() Me.FindFolderById(id), cancellationToken)
+        End Function
+
+        ''' <summary>Finds a file by identifier without blocking the calling thread.</summary>
+        ''' <param name="id">The provider-specific file identifier.</param>
+        ''' <param name="cancellationToken">Cancels a queued lookup.</param>
+        ''' <returns>The file.</returns>
+        Public Overridable Function FindFileByIdAsync(id As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Return Me.RunSynchronousFallbackAsync(Function() Me.FindFileById(id), cancellationToken)
+        End Function
+
+        ''' <summary>Finds a document by identifier without blocking the calling thread.</summary>
+        ''' <param name="id">The provider-specific document identifier.</param>
+        ''' <param name="cancellationToken">Cancels a queued lookup.</param>
+        ''' <returns>The document.</returns>
+        <Obsolete("Use FindFileByIdAsync instead")>
+        Public Overridable Function FindDocumentByIdAsync(id As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Return Me.FindFileByIdAsync(id, cancellationToken)
         End Function
 
         ''' <summary>
@@ -387,9 +556,97 @@ Namespace Providers
         ''' <param name="localFilePath">The local source path.</param>
         ''' <param name="cancellationToken">Cancels the upload and any wait for service capacity.</param>
         ''' <returns>A task that completes when the upload finishes.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued upload, but cannot interrupt an active synchronous upload.</remarks>
         Public Overridable Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
-            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, localFilePath), cancellationToken)
+        End Function
+
+        ''' <summary>Uploads bytes to a remote file without blocking the calling thread.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="binaryData">The file contents.</param>
+        ''' <param name="cancellationToken">Cancels a queued upload.</param>
+        ''' <returns>A task that completes when the upload finishes.</returns>
+        Public Overridable Function UploadFileAsync(remoteFilePath As String, binaryData As Byte(), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Me.SupportsAsynchronousIo Then Return Me.UploadFileAsync(remoteFilePath, Function() New System.IO.MemoryStream(binaryData), cancellationToken)
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, binaryData), cancellationToken)
+        End Function
+
+        ''' <summary>Uploads stream contents to a remote file without blocking the calling thread.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="binaryData">A factory for the input stream.</param>
+        ''' <param name="cancellationToken">Cancels a queued upload.</param>
+        ''' <returns>A task that completes when the upload finishes.</returns>
+        Public Overridable Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, binaryData), cancellationToken)
+        End Function
+
+        Private Async Function EnsureUploadParentAsync(remoteFilePath As String, recursive As Boolean, cancellationToken As CancellationToken) As Task
+            If remoteFilePath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
+            Dim parentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
+            If parentDirectory IsNot Nothing AndAlso Not Await Me.RemoteItemExistsAsync(parentDirectory, cancellationToken).ConfigureAwait(False) Then
+                If recursive Then
+                    Await Me.CreateFolderAsync(parentDirectory, True, cancellationToken).ConfigureAwait(False)
+                Else
+                    Await Me.CreateFolderAsync(parentDirectory, cancellationToken).ConfigureAwait(False)
+                End If
+            End If
+        End Function
+
+        ''' <summary>Uploads a local file and optionally creates its remote parent directory asynchronously.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="localFilePath">The local source path.</param>
+        ''' <param name="createDirectoryStructureIfMissing">Creates missing remote parent folders when true.</param>
+        ''' <param name="cancellationToken">Cancels a queued upload.</param>
+        ''' <returns>A task that completes when the upload finishes.</returns>
+        Public Overridable Async Function UploadFileAsync(remoteFilePath As String, localFilePath As String, createDirectoryStructureIfMissing As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Not createDirectoryStructureIfMissing Then
+                Await Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, localFilePath, createDirectoryStructureIfMissing), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            Await Me.EnsureUploadParentAsync(remoteFilePath, False, cancellationToken).ConfigureAwait(False)
+            Await Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        ''' <summary>Uploads stream contents and optionally creates their remote parent directory asynchronously.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="binaryData">A factory for the input stream.</param>
+        ''' <param name="createDirectoryStructureIfMissing">Creates missing remote parent folders when true.</param>
+        ''' <param name="cancellationToken">Cancels a queued upload.</param>
+        ''' <returns>A task that completes when the upload finishes.</returns>
+        Public Overridable Async Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), createDirectoryStructureIfMissing As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Not createDirectoryStructureIfMissing Then
+                Await Me.UploadFileAsync(remoteFilePath, binaryData, cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, binaryData, createDirectoryStructureIfMissing), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            Await Me.EnsureUploadParentAsync(remoteFilePath, False, cancellationToken).ConfigureAwait(False)
+            Await Me.UploadFileAsync(remoteFilePath, binaryData, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        ''' <summary>Uploads bytes and optionally creates their remote parent directory asynchronously.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="binaryData">The file contents.</param>
+        ''' <param name="createDirectoryStructureIfMissing">Creates missing remote parent folders when true.</param>
+        ''' <param name="cancellationToken">Cancels a queued upload.</param>
+        ''' <returns>A task that completes when the upload finishes.</returns>
+        Public Overridable Async Function UploadFileAsync(remoteFilePath As String, binaryData As Byte(), createDirectoryStructureIfMissing As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Not createDirectoryStructureIfMissing Then
+                Await Me.UploadFileAsync(remoteFilePath, binaryData, cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, binaryData, createDirectoryStructureIfMissing), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            Await Me.EnsureUploadParentAsync(remoteFilePath, True, cancellationToken).ConfigureAwait(False)
+            Await Me.UploadFileAsync(remoteFilePath, binaryData, cancellationToken).ConfigureAwait(False)
         End Function
 
         ''' <summary>
@@ -467,9 +724,24 @@ Namespace Providers
         ''' <param name="lastModificationDateOnLocalTime">The optional local timestamp to apply.</param>
         ''' <param name="cancellationToken">Cancels the download and any wait for service capacity.</param>
         ''' <returns>A task that completes when the download finishes.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued download, but cannot interrupt an active synchronous download.</remarks>
         Public Overridable Function DownloadFileAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, Optional cancellationToken As CancellationToken = Nothing) As Task
-            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DownloadFile(remoteFilePath, localFilePath, lastModificationDateOnLocalTime), cancellationToken)
+        End Function
+
+        ''' <summary>Downloads a selected remote file asynchronously while preserving its resource identity.</summary>
+        ''' <param name="remoteFile">The selected remote file.</param>
+        ''' <param name="localFilePath">The local destination path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native download.</param>
+        ''' <returns>A task that completes when the download finishes.</returns>
+        Public Overridable Async Function DownloadFileAsync(remoteFile As DmsResourceItem, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            If Not Me.SupportsAsynchronousIo OrElse Me.SupportsNonUniqueRemoteItems Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.DownloadFile(remoteFile, localFilePath), cancellationToken).ConfigureAwait(False)
+            Else
+                Await Me.DownloadFileAsync(remoteFile.FullName, localFilePath, remoteFile.LastModificationOnLocalTime, cancellationToken).ConfigureAwait(False)
+            End If
         End Function
 
         ''' <summary>
@@ -515,6 +787,15 @@ Namespace Providers
             Await Me.CopyAsync(remoteSourcePath, remoteDestinationPath, False, False)
         End Function
 
+        ''' <summary>Copies a remote item without overwriting an existing destination.</summary>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="cancellationToken">Cancels queued requests; active synchronous provider calls cannot be interrupted.</param>
+        ''' <returns>A task that completes after the copy.</returns>
+        Public Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, cancellationToken As CancellationToken) As Task
+            Return Me.CopyAsync(remoteSourcePath, remoteDestinationPath, False, False, cancellationToken)
+        End Function
+
         ''' <summary>
         ''' Copies a remote DMS item asynchronously while preserving its provider-specific identity.
         ''' </summary>
@@ -522,6 +803,15 @@ Namespace Providers
         ''' <param name="remoteDestinationPath">The absolute destination path.</param>
         Public Async Function CopyAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String) As Task
             Await Me.CopyAsync(remoteSource, remoteDestinationPath, False, False)
+        End Function
+
+        ''' <summary>Copies a selected remote item without overwriting an existing destination.</summary>
+        ''' <param name="remoteSource">The selected source item.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="cancellationToken">Cancels queued requests; active synchronous provider calls cannot be interrupted.</param>
+        ''' <returns>A task that completes after the copy.</returns>
+        Public Function CopyAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, cancellationToken As CancellationToken) As Task
+            Return Me.CopyAsync(remoteSource, remoteDestinationPath, False, False, cancellationToken)
         End Function
 
         ''' <summary>
@@ -561,24 +851,23 @@ Namespace Providers
             Await Me.CopyAsync(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory, CancellationToken.None).ConfigureAwait(False)
         End Function
 
-        ''' <summary>Copies a remote item asynchronously with cancellation when the provider supports native asynchronous I/O.</summary>
+        ''' <summary>Copies a remote item without blocking the calling thread.</summary>
         ''' <param name="remoteSourcePath">The remote source path.</param>
         ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <param name="allowOverwrite">Whether files may be replaced or directories merged.</param>
         ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
-        ''' <param name="cancellationToken">Cancels queued and active requests for providers with native asynchronous I/O.</param>
+        ''' <param name="cancellationToken">Cancels queued requests; active synchronous provider calls cannot be interrupted.</param>
         ''' <returns>A task that completes after the copy and cache update.</returns>
         Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, cancellationToken As CancellationToken) As Task
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.Copy(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
             Dim previous As CancellationToken = AmbientCancellation.Value
             AmbientCancellation.Value = cancellationToken
             Try
                 cancellationToken.ThrowIfCancellationRequested()
-                Dim source As DmsResourceItem
-                If Me.SupportsAsynchronousIo Then
-                    source = Await Me.ResolveUniqueSourceItemAsync(remoteSourcePath).ConfigureAwait(False)
-                Else
-                    source = Me.ResolveUniqueSourceItem(remoteSourcePath)
-                End If
+                Dim source As DmsResourceItem = Await Me.ResolveUniqueSourceItemAsync(remoteSourcePath).ConfigureAwait(False)
                 Await Me.CopyAsync(source, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory, cancellationToken).ConfigureAwait(False)
             Finally
                 AmbientCancellation.Value = previous
@@ -601,9 +890,13 @@ Namespace Providers
         ''' <param name="remoteDestinationPath">The destination path.</param>
         ''' <param name="allowOverwrite">Whether files may be replaced or directories merged.</param>
         ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
-        ''' <param name="cancellationToken">Cancels queued and active requests for providers with native asynchronous I/O.</param>
+        ''' <param name="cancellationToken">Cancels queued requests; active synchronous provider calls cannot be interrupted.</param>
         ''' <returns>A task that completes after the copy and cache update.</returns>
         Public Async Function CopyAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, cancellationToken As CancellationToken) As Task
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.Copy(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
             Dim previous As CancellationToken = AmbientCancellation.Value
             AmbientCancellation.Value = cancellationToken
             Try
@@ -971,9 +1264,8 @@ Namespace Providers
         ''' <summary>Moves a remote item asynchronously without overwriting an existing destination.</summary>
         ''' <param name="remoteSourcePath">The remote source path.</param>
         ''' <param name="remoteDestinationPath">The remote destination path.</param>
-        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <param name="cancellationToken">Cancels queued requests; active synchronous provider calls cannot be interrupted.</param>
         ''' <returns>A task that completes after the move.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
         Public Function MoveAsync(remoteSourcePath As String, remoteDestinationPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Return Me.MoveAsync(remoteSourcePath, remoteDestinationPath, False, False, cancellationToken)
         End Function
@@ -981,9 +1273,8 @@ Namespace Providers
         ''' <summary>Moves a remote item asynchronously while retaining its provider identity.</summary>
         ''' <param name="remoteSource">The source item.</param>
         ''' <param name="remoteDestinationPath">The remote destination path.</param>
-        ''' <param name="cancellationToken">Cancels queued and active requests.</param>
+        ''' <param name="cancellationToken">Cancels queued requests; active synchronous provider calls cannot be interrupted.</param>
         ''' <returns>A task that completes after the move.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
         Public Function MoveAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Return Me.MoveAsync(remoteSource, remoteDestinationPath, False, False, cancellationToken)
         End Function
@@ -995,9 +1286,12 @@ Namespace Providers
         ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
         ''' <param name="cancellationToken">Cancels queued and active requests.</param>
         ''' <returns>A task that completes after the move.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
+        ''' <remarks>Providers without native asynchronous I/O use a serialized worker fallback.</remarks>
         Public Async Function MoveAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
-            If Not Me.SupportsAsynchronousIo Then Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.Move(remoteSourcePath, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
             Dim previous As CancellationToken = AmbientCancellation.Value
             AmbientCancellation.Value = cancellationToken
             Try
@@ -1015,9 +1309,12 @@ Namespace Providers
         ''' <param name="allowCreationOfRemoteDirectory">Whether a missing destination parent may be created.</param>
         ''' <param name="cancellationToken">Cancels queued and active requests.</param>
         ''' <returns>A task that completes after the move.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support native asynchronous move operations.</exception>
+        ''' <remarks>Providers without native asynchronous I/O use a serialized worker fallback.</remarks>
         Public Async Function MoveAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
-            If Not Me.SupportsAsynchronousIo Then Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.Move(remoteSource, remoteDestinationPath, allowOverwrite, allowCreationOfRemoteDirectory), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
             Dim previous As CancellationToken = AmbientCancellation.Value
             AmbientCancellation.Value = cancellationToken
             Try
@@ -1120,9 +1417,60 @@ Namespace Providers
         ''' <param name="remotePath">The remote path to delete.</param>
         ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
         ''' <returns>A task that completes when deletion finishes.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued delete, but cannot interrupt an active synchronous delete.</remarks>
         Public Overridable Function DeleteRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
-            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteRemoteItem(remotePath), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a selected remote item asynchronously while preserving its resource identity.</summary>
+        ''' <param name="remoteItem">The selected remote item.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native deletion.</param>
+        ''' <returns>A task that completes when the item is deleted.</returns>
+        Public Overridable Async Function DeleteRemoteItemAsync(remoteItem As DmsResourceItem, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If remoteItem Is Nothing Then Throw New ArgumentNullException(NameOf(remoteItem))
+            If Not Me.SupportsAsynchronousIo OrElse Me.SupportsNonUniqueRemoteItems Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.DeleteRemoteItem(remoteItem), cancellationToken).ConfigureAwait(False)
+            Else
+                Await Me.DeleteRemoteItemAsync(remoteItem.FullName, cancellationToken).ConfigureAwait(False)
+            End If
+        End Function
+
+        ''' <summary>Deletes a remote item when its type matches the expected type asynchronously.</summary>
+        ''' <param name="remotePath">The remote item path.</param>
+        ''' <param name="expectedItemType">The required item type.</param>
+        ''' <param name="cancellationToken">Cancels a queued deletion.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteRemoteItemAsync(remotePath As String, expectedItemType As DmsResourceItem.ItemTypes, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteRemoteItem(remotePath, expectedItemType), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a remote item when its type matches either expected type asynchronously.</summary>
+        ''' <param name="remotePath">The remote item path.</param>
+        ''' <param name="expectedItemType">The first accepted item type.</param>
+        ''' <param name="alternativeExpectedItemType">The second accepted item type.</param>
+        ''' <param name="cancellationToken">Cancels a queued deletion.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteRemoteItemAsync(remotePath As String, expectedItemType As DmsResourceItem.ItemTypes, alternativeExpectedItemType As DmsResourceItem.ItemTypes, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteRemoteItem(remotePath, expectedItemType, alternativeExpectedItemType), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a selected remote item when its type matches the expected type asynchronously.</summary>
+        ''' <param name="remoteItem">The selected remote item.</param>
+        ''' <param name="expectedItemType">The required item type.</param>
+        ''' <param name="cancellationToken">Cancels a queued deletion.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteRemoteItemAsync(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteRemoteItem(remoteItem, expectedItemType), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a selected remote item when its type matches either expected type asynchronously.</summary>
+        ''' <param name="remoteItem">The selected remote item.</param>
+        ''' <param name="expectedItemType">The first accepted item type.</param>
+        ''' <param name="alternativeExpectedItemType">The second accepted item type.</param>
+        ''' <param name="cancellationToken">Cancels a queued deletion.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteRemoteItemAsync(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes, alternativeExpectedItemType As DmsResourceItem.ItemTypes, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteRemoteItem(remoteItem, expectedItemType, alternativeExpectedItemType), cancellationToken)
         End Function
 
         ''' <summary>
@@ -1192,9 +1540,55 @@ Namespace Providers
         ''' <param name="remoteDirectoryPath">The path of the new folder.</param>
         ''' <param name="cancellationToken">Cancels the request and any wait for service capacity.</param>
         ''' <returns>A task that completes when the folder is created.</returns>
-        ''' <exception cref="NotSupportedException">The provider does not support asynchronous I/O.</exception>
+        ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued creation, but cannot interrupt an active synchronous request.</remarks>
         Public Overridable Function CreateFolderAsync(remoteDirectoryPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
-            Throw New NotSupportedException("This provider does not support asynchronous I/O.")
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CreateFolder(remoteDirectoryPath), cancellationToken)
+        End Function
+
+        ''' <summary>Creates a remote folder and optionally its missing parent folders asynchronously.</summary>
+        ''' <param name="remoteDirectoryPath">The remote folder path.</param>
+        ''' <param name="createParentFolders">Creates missing parent folders when true.</param>
+        ''' <param name="cancellationToken">Cancels a queued creation.</param>
+        ''' <returns>A task that completes when the folder is created.</returns>
+        Public Overridable Async Function CreateFolderAsync(remoteDirectoryPath As String, createParentFolders As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Not Me.SupportsAsynchronousIo Then
+                Await Me.RunSynchronousFallbackAsync(Sub() Me.CreateFolder(remoteDirectoryPath, createParentFolders), cancellationToken).ConfigureAwait(False)
+                Return
+            End If
+            If remoteDirectoryPath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteDirectoryPath))
+            Dim parentDirectory As String = Me.ParentDirectoryPath(remoteDirectoryPath)
+            If parentDirectory IsNot Nothing AndAlso Not Await Me.RemoteItemExistsAsync(parentDirectory, cancellationToken).ConfigureAwait(False) Then
+                If Not createParentFolders Then Throw New DirectoryNotFoundException(parentDirectory)
+                Await Me.CreateFolderAsync(parentDirectory, True, cancellationToken).ConfigureAwait(False)
+            End If
+            Await Me.CreateFolderAsync(remoteDirectoryPath, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        ''' <summary>Creates a remote directory asynchronously.</summary>
+        ''' <param name="remoteDirectoryPath">The remote directory path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native creation.</param>
+        ''' <returns>A task that completes when the directory is created.</returns>
+        Public Overridable Function CreateDirectoryAsync(remoteDirectoryPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Me.SupportsAsynchronousIo Then Return Me.CreateFolderAsync(remoteDirectoryPath, cancellationToken)
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CreateDirectory(remoteDirectoryPath), cancellationToken)
+        End Function
+
+        ''' <summary>Creates a remote directory and optionally its missing parents asynchronously.</summary>
+        ''' <param name="remoteDirectoryPath">The remote directory path.</param>
+        ''' <param name="createParentFolders">Creates missing parent directories when true.</param>
+        ''' <param name="cancellationToken">Cancels a queued creation.</param>
+        ''' <returns>A task that completes when the directory is created.</returns>
+        Public Overridable Function CreateDirectoryAsync(remoteDirectoryPath As String, createParentFolders As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
+            If Me.SupportsAsynchronousIo Then Return Me.CreateFolderAsync(remoteDirectoryPath, createParentFolders, cancellationToken)
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CreateDirectory(remoteDirectoryPath, createParentFolders), cancellationToken)
+        End Function
+
+        ''' <summary>Creates a remote collection asynchronously.</summary>
+        ''' <param name="remoteCollectionName">The remote collection name.</param>
+        ''' <param name="cancellationToken">Cancels a queued creation.</param>
+        ''' <returns>A task that completes when the collection is created.</returns>
+        Public Overridable Function CreateCollectionAsync(remoteCollectionName As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CreateCollection(remoteCollectionName), cancellationToken)
         End Function
 
         ''' <summary>
@@ -1262,6 +1656,14 @@ Namespace Providers
         ''' </summary>
         ''' <param name="dmsProfile"></param>
         Public MustOverride Sub Authorize(dmsProfile As IDmsLoginProfile)
+
+        ''' <summary>Authorizes access to the remote DMS without blocking the calling thread.</summary>
+        ''' <param name="dmsProfile">The login profile to authorize.</param>
+        ''' <param name="cancellationToken">Cancels a queued authorization.</param>
+        ''' <returns>A task that completes after authorization.</returns>
+        Public Overridable Function AuthorizeAsync(dmsProfile As IDmsLoginProfile, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.Authorize(dmsProfile), cancellationToken)
+        End Function
 
         ''' <summary>
         ''' Combines folder names to a path
@@ -1346,6 +1748,28 @@ Namespace Providers
             Dim ItemName As String = Me.ItemName(remoteFolderPath)
             Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllFolderNames(ParentPath)
             Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+        End Function
+
+        ''' <summary>Checks whether a remote collection exists asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The collection path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native lookup.</param>
+        ''' <returns>True when the collection exists.</returns>
+        Public Overridable Async Function CollectionExistsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean)
+            Dim parentPath = Me.ParentDirectoryPath(remoteFolderPath)
+            Dim name = Me.ItemName(remoteFolderPath)
+            Dim names = Await Me.ListAllCollectionNamesAsync(parentPath, cancellationToken).ConfigureAwait(False)
+            Return names.Contains(name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+        End Function
+
+        ''' <summary>Checks whether a remote folder exists asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The folder path.</param>
+        ''' <param name="cancellationToken">Cancels a queued or native lookup.</param>
+        ''' <returns>True when the folder exists.</returns>
+        Public Overridable Async Function FolderExistsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean)
+            Dim parentPath = Me.ParentDirectoryPath(remoteFolderPath)
+            Dim name = Me.ItemName(remoteFolderPath)
+            Dim names = Await Me.ListAllFolderNamesAsync(parentPath, cancellationToken).ConfigureAwait(False)
+            Return names.Contains(name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
         End Function
 
         ''' <summary>
@@ -1468,6 +1892,95 @@ Namespace Providers
         ''' </summary>
         ''' <returns></returns>
         Public MustOverride Function GetAllUsers() As List(Of DmsUser)
+
+        ''' <summary>Creates a link share without blocking the calling thread.</summary>
+        ''' <param name="dmsResource">The resource to share.</param>
+        ''' <param name="shareInfo">The requested link settings.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>The created link.</returns>
+        Public Overridable Function CreateLinkAsync(dmsResource As DmsResourceItem, shareInfo As DmsLink, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsLink)
+            Return Me.RunSynchronousFallbackAsync(Function() Me.CreateLink(dmsResource, shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Updates a link share without blocking the calling thread.</summary>
+        ''' <param name="shareInfo">The link to update.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after the update.</returns>
+        Public Overridable Function UpdateLinkAsync(shareInfo As DmsLink, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.UpdateLink(shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a link share without blocking the calling thread.</summary>
+        ''' <param name="shareInfo">The link to delete.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteLinkAsync(shareInfo As DmsLink, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteLink(shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Creates a group share without blocking the calling thread.</summary>
+        ''' <param name="dmsResource">The resource to share.</param>
+        ''' <param name="shareInfo">The group share settings.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after creation.</returns>
+        Public Overridable Function CreateSharingAsync(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CreateSharing(dmsResource, shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Creates a user share without blocking the calling thread.</summary>
+        ''' <param name="dmsResource">The resource to share.</param>
+        ''' <param name="shareInfo">The user share settings.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after creation.</returns>
+        Public Overridable Function CreateSharingAsync(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CreateSharing(dmsResource, shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Updates a group share without blocking the calling thread.</summary>
+        ''' <param name="shareInfo">The group share to update.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after the update.</returns>
+        Public Overridable Function UpdateSharingAsync(shareInfo As DmsShareForGroup, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.UpdateSharing(shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Updates a user share without blocking the calling thread.</summary>
+        ''' <param name="shareInfo">The user share to update.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after the update.</returns>
+        Public Overridable Function UpdateSharingAsync(shareInfo As DmsShareForUser, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.UpdateSharing(shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a group share without blocking the calling thread.</summary>
+        ''' <param name="shareInfo">The group share to delete.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteSharingAsync(shareInfo As DmsShareForGroup, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteSharing(shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Deletes a user share without blocking the calling thread.</summary>
+        ''' <param name="shareInfo">The user share to delete.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation.</param>
+        ''' <returns>A task that completes after deletion.</returns>
+        Public Overridable Function DeleteSharingAsync(shareInfo As DmsShareForUser, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.DeleteSharing(shareInfo), cancellationToken)
+        End Function
+
+        ''' <summary>Lists visible groups without blocking the calling thread.</summary>
+        ''' <param name="cancellationToken">Cancels a queued lookup.</param>
+        ''' <returns>The visible groups.</returns>
+        Public Overridable Function GetAllGroupsAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsGroup))
+            Return Me.RunSynchronousFallbackAsync(Function() Me.GetAllGroups(), cancellationToken)
+        End Function
+
+        ''' <summary>Lists visible users without blocking the calling thread.</summary>
+        ''' <param name="cancellationToken">Cancels a queued lookup.</param>
+        ''' <returns>The visible users.</returns>
+        Public Overridable Function GetAllUsersAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsUser))
+            Return Me.RunSynchronousFallbackAsync(Function() Me.GetAllUsers(), cancellationToken)
+        End Function
 
         ''' <summary>
         ''' A runtime variable which contains the user ID after login at remote DMS system

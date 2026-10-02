@@ -484,6 +484,17 @@ Namespace Providers
             End Using
         End Function
 
+        ''' <inheritdoc/>
+        Public Overrides Async Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If binaryData Is Nothing Then Throw New ArgumentNullException(NameOf(binaryData))
+            Using input As System.IO.Stream = binaryData()
+                Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
+                Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
+                Await request.ConfigureAwait(False)
+                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+            End Using
+        End Function
+
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
             Dim PutParams As New Global.WebDav.PutFileParameters
             Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams)

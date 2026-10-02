@@ -991,13 +991,9 @@ Public Class DmsBrowser
         If CurrentFolderPath Is Nothing Then CurrentFolderPath = Me.LastFileListFolderPath
         If CurrentFolderPath Is Nothing Then Return
 
-        Me.DmsProvider.ResetCachesForRemoteItems(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)
+        Await Me.DmsProvider.ResetCachesForRemoteItemsAsync(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)
         Dim Files As List(Of DmsResourceItem)
-        If Me.DmsProvider.SupportsAsynchronousIo Then
-            Files = (Await Me.DmsProvider.ListAllRemoteItemsAsync(CurrentFolderPath, BaseDmsProvider.SearchItemType.Files)).Where(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File).ToList()
-        Else
-            Files = Me.DmsProvider.ListAllFileItems(CurrentFolderPath)
-        End If
+        Files = Await Me.DmsProvider.ListAllFileItemsAsync(CurrentFolderPath)
         Me.LastFileListFolderPath = CurrentFolderPath
         Me.ListViewDmsFiles.Items.Clear()
         Me.ListViewDmsFiles.Tag = Nothing
@@ -1449,7 +1445,6 @@ Public Class DmsBrowser
     End Function
 
     Friend Async Function ExecuteResourceActionAsync(source As DmsResourceItem, destinationPath As String, action As ResourceAction) As Task(Of Boolean)
-        If Not Me.DmsProvider.SupportsAsynchronousIo Then Return Me.ExecuteResourceAction(source, destinationPath, action)
         If String.Equals(source.FullName.TrimEnd(Me.DmsProvider.DirectorySeparator), destinationPath.TrimEnd(Me.DmsProvider.DirectorySeparator), StringComparison.Ordinal) Then
             Throw New DmsUserInputInvalidException(UiStrings.GetText("SourceEqualsDestination"))
         End If
@@ -2081,20 +2076,12 @@ Public Class DmsBrowser
     Friend Shared Async Function UploadFilesForUiAsync(provider As BaseDmsProvider, remoteFolderPath As String, localFilePaths As IEnumerable(Of String)) As Task
         For Each LocalFilePath As String In localFilePaths
             Dim RemoteFilePath As String = provider.CombinePath(remoteFolderPath, System.IO.Path.GetFileName(LocalFilePath))
-            If provider.SupportsAsynchronousIo Then
-                Await provider.UploadFileAsync(RemoteFilePath, LocalFilePath)
-            Else
-                provider.UploadFile(RemoteFilePath, LocalFilePath)
-            End If
+            Await provider.UploadFileAsync(RemoteFilePath, LocalFilePath)
         Next
     End Function
 
     Friend Shared Async Function DownloadFileForUiAsync(provider As BaseDmsProvider, remoteFile As DmsResourceItem, localFilePath As String) As Task
-        If provider.SupportsAsynchronousIo Then
-            Await provider.DownloadFileAsync(remoteFile.FullName, localFilePath, remoteFile.LastModificationOnLocalTime)
-        Else
-            DownloadFile(provider, remoteFile, localFilePath)
-        End If
+        Await provider.DownloadFileAsync(remoteFile, localFilePath)
     End Function
 
     Public Property OpenDownloadedFileItem As OpenDownloadedFileAction = AddressOf _OpenDownloadedFile_Default

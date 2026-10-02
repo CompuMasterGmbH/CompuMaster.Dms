@@ -59,9 +59,10 @@ Public Class DmsBrowserAsyncTransferTest
         End Using
     End Sub
 
-    <Test>
-    Public Sub UploadBatchAwaitsEachAsyncFileBeforeStartingTheNext()
-        Dim provider As New DelayedUploadProvider()
+    <TestCase(True)>
+    <TestCase(False)>
+    Public Sub UploadBatchAwaitsEachAsyncFileBeforeStartingTheNext(nativeAsync As Boolean)
+        Dim provider As New DelayedUploadProvider(nativeAsync)
         Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(provider)
             Dim transfer As Task = browser.RunTransferAsync(Function() Global.CompuMaster.Dms.BrowserUI.DmsBrowser.UploadFilesForUiAsync(provider, "folder", {"first.txt", "second.txt"}))
 
@@ -137,15 +138,20 @@ Public Class DmsBrowserAsyncTransferTest
     Private Class DelayedUploadProvider
         Inherits NoDmsProvider
 
+        Private ReadOnly nativeAsync As Boolean
         Private ReadOnly firstCompletion As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         Private ReadOnly secondCompletion As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
 
         Public ReadOnly Property RequestedPaths As New List(Of String)
         Public Property SynchronousUploadCount As Integer
 
+        Public Sub New(nativeAsync As Boolean)
+            Me.nativeAsync = nativeAsync
+        End Sub
+
         Public Overrides ReadOnly Property SupportsAsynchronousIo As Boolean
             Get
-                Return True
+                Return nativeAsync
             End Get
         End Property
 
