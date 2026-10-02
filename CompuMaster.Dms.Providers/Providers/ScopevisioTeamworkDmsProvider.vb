@@ -3,6 +3,7 @@ Option Strict On
 
 Imports System.Net.Http
 Imports System.Net.Http.Headers
+Imports System.Globalization
 Imports System.Text.Json
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
@@ -133,6 +134,21 @@ Namespace Providers
             Catch ex As JsonException
                 Return String.Empty
             End Try
+        End Function
+
+        ''' <inheritdoc/>
+        ''' <remarks>The Scopevisio public group has no name in the Teamwork API response.</remarks>
+        Protected Overrides Function NormalizeGroupDisplayName(groupId As String, groupName As String) As String
+            If Not String.IsNullOrWhiteSpace(groupName) Then Return groupName
+
+            Const prefix As String = "ALL_USERS_"
+            Dim groupGuid As Guid
+            If groupId IsNot Nothing AndAlso groupId.StartsWith(prefix, StringComparison.Ordinal) AndAlso
+                Guid.TryParseExact(groupId.Substring(prefix.Length), "D", groupGuid) Then
+                Return If(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName = "de", "Alle Benutzer", "All users")
+            End If
+
+            Return MyBase.NormalizeGroupDisplayName(groupId, groupName)
         End Function
 
         Friend Shared Function ParseUserDisplayName(json As String) As String
