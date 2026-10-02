@@ -27,7 +27,12 @@ Namespace Providers
             End Try
         End Function
 
-        Private Async Function RunSynchronousFallbackAsync(operation As Action, cancellationToken As CancellationToken) As Task
+        ''' <summary>Runs a synchronous provider operation without blocking the calling thread.</summary>
+        ''' <param name="operation">The synchronous operation to execute.</param>
+        ''' <param name="cancellationToken">Cancels a queued operation; an active synchronous call cannot be interrupted.</param>
+        ''' <returns>A task that completes when the operation finishes.</returns>
+        ''' <remarks>Operations using this helper are serialized across provider instances of the same backend in this process.</remarks>
+        Protected Async Function RunSynchronousFallbackAsync(operation As Action, cancellationToken As CancellationToken) As Task
             Await Me.RunSynchronousFallbackAsync(Function()
                                                     operation()
                                                     Return True
@@ -1134,7 +1139,7 @@ Namespace Providers
                         If Me.SupportsAsynchronousIo Then
                             Await Me.MergeDirectoryContentsAsync(remoteSource, remoteDestinationPath).ConfigureAwait(False)
                         Else
-                            Await Task.Run(Sub() Me.MergeDirectoryContents(remoteSource, remoteDestinationPath, False)).ConfigureAwait(False)
+                            Await Me.RunSynchronousFallbackAsync(Sub() Me.MergeDirectoryContents(remoteSource, remoteDestinationPath, False), Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
                         End If
                     Else
                         Await Me.CopyDirectoryItemAsync(remoteSource.FullName, remoteDestinationPath)

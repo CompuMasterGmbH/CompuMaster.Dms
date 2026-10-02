@@ -26,7 +26,7 @@ Public Class BaseDmsProviderAsyncFallbackTest
                                                                    End Function)
             End Using
 
-            Dim secondRequest As Task(Of DmsResourceItem) = second.ListRemoteItemAsync("second")
+            Dim secondRequest As Task = second.RunProtectedOperationAsync("second")
             Assert.That(state.StartedCount, [Is].EqualTo(1))
             Assert.That(secondRequest.IsCompleted, [Is].False)
             state.ReleaseFirst.Set()
@@ -100,6 +100,10 @@ Public Class BaseDmsProviderAsyncFallbackTest
         Friend Sub New(state As SharedState)
             Me.state = state
         End Sub
+
+        Friend Function RunProtectedOperationAsync(remotePath As String) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.ListRemoteItem(remotePath), CancellationToken.None)
+        End Function
 
         Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
             Dim active = Interlocked.Increment(state.ActiveCount)
