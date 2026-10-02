@@ -816,19 +816,38 @@ Public Class DmsBrowser
             If Not UITools.TryInputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"), "", NewFolderName) Then Return
             NewFolderName = NewFolderName.Trim()
             If Not IsValidResourceName(NewFolderName, Me.DmsProvider.DirectorySeparator) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("InvalidDestinationName"))
-            Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem?.FullName, NewFolderName)
-            Me.DmsProvider.CreateDirectory(NewFolderPath)
-            Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
-            Dim ParentNode As TreeNode = Me.TreeViewDmsFolders.SelectedNode
-            Me.AddDirectoryTreeNode(ParentNode, Folder)
-            RecordChildDirectoryCreated(ParentNode)
-            Dim n As TreeNode = ParentNode.Nodes.Cast(Of TreeNode)().Single(Function(node) node.Tag IsNot Nothing AndAlso CType(node.Tag, NodeTagData).DmsResourceItem Is Folder)
+            Dim n As TreeNode = Me.CreateNewDirectoryTreeNode(Me.TreeViewDmsFolders.SelectedNode, NewFolderName)
             Me.TreeViewDmsFolders.SelectedNode = n
             n.TreeView.Focus()
         Catch ex As Exception
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
+
+    Friend Function CreateNewDirectoryTreeNode(parentNode As TreeNode, folderName As String) As TreeNode
+        Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
+        If Not ParentData.ChildrenLoaded Then
+            If HasKnownChildDirectories(ParentData.DmsResourceItem) = False Then
+                ParentData.ChildrenLoaded = True
+            Else
+                Me.AddTreeChildren(parentNode)
+            End If
+        End If
+        Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(parentNode.Tag, NodeTagData).DmsResourceItem?.FullName, folderName)
+        Me.DmsProvider.CreateDirectory(NewFolderPath)
+        Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
+        'A newly created directory is empty even when the provider omits child metadata.
+        If Not Folder.ChildDirectoryCount.HasValue AndAlso Not Folder.HasChildDirectories.HasValue Then
+            Folder.ChildDirectoryCount = 0
+            Folder.HasChildDirectories = False
+        End If
+        Me.AddDirectoryTreeNode(parentNode, Folder)
+        RecordChildDirectoryCreated(parentNode)
+        Dim NewNode As TreeNode = parentNode.Nodes.Cast(Of TreeNode)().Single(Function(node) node.Tag IsNot Nothing AndAlso CType(node.Tag, NodeTagData).DmsResourceItem Is Folder)
+        'The empty child list is already known; expansion must not replace newly inserted children.
+        If HasKnownChildDirectories(Folder) = False Then CType(NewNode.Tag, NodeTagData).ChildrenLoaded = True
+        Return NewNode
+    End Function
 
     Private Enum FilesListingColumn As Integer
         FileName = 0
@@ -1073,7 +1092,8 @@ Public Class DmsBrowser
                     For MyCounter As Integer = 0 To f.FileNames.Length - 1
                         If System.IO.File.Exists(f.FileNames(MyCounter)) = True Then
                             Dim TargetFile As String = Me.DmsProvider.CombinePath(CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName, System.IO.Path.GetFileName(f.FileNames(MyCounter)))
-                            Me.DmsProvider.UploadFile(TargetFile, f.FileNames(MyCounter))
+                            Dim LocalFile As String = f.FileNames(MyCounter)
+                            Me.RunWithWaitCursor(Sub() Me.DmsProvider.UploadFile(TargetFile, LocalFile))
                         Else
                             System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("FileNotFound"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                         End If
@@ -1114,7 +1134,7 @@ Public Class DmsBrowser
                 If DialogUserResult = DialogResult.OK Then
                     If Me.LocalParentMustFolder = Nothing OrElse f.FileName.StartsWith(Me.LocalParentMustFolder) Then
                         Dim TargetFile As String = f.FileName
-                        DownloadFile(Me.DmsProvider, SelectedFiles(0), TargetFile)
+                        Me.RunWithWaitCursor(Sub() DownloadFile(Me.DmsProvider, SelectedFiles(0), TargetFile))
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Else
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
@@ -1158,13 +1178,14 @@ Public Class DmsBrowser
                         End If
                         'Save to disk
                         For MyCounter As Integer = 0 To SelectedFiles.Count - 1
+                            Dim RemoteFile As DmsResourceItem = SelectedFiles(MyCounter)
                             Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
                             If System.IO.File.Exists(TargetFile) Then
                                 If OverwriteLocalFiles Then
-                                    DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile)
+                                    Me.RunWithWaitCursor(Sub() DownloadFile(Me.DmsProvider, RemoteFile, TargetFile))
                                 End If
                             Else
-                                DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile)
+                                Me.RunWithWaitCursor(Sub() DownloadFile(Me.DmsProvider, RemoteFile, TargetFile))
                             End If
                         Next
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
@@ -1861,7 +1882,8 @@ Public Class DmsBrowser
                                                                        System.IO.Path.GetRandomFileName,
                                                                        System.IO.Path.GetFileNameWithoutExtension(SelectedFiles(MyCounter).Name),
                                                                        System.IO.Path.GetExtension(SelectedFiles(MyCounter).Name))
-                    DownloadFile(Me.DmsProvider, SelectedFiles(MyCounter), TargetFile.FilePath)
+                    Dim RemoteFile As DmsResourceItem = SelectedFiles(MyCounter)
+                    Me.RunWithWaitCursor(Sub() DownloadFile(Me.DmsProvider, RemoteFile, TargetFile.FilePath))
                     System.IO.File.SetAttributes(TargetFile.FilePath, System.IO.FileAttributes.ReadOnly Or System.IO.FileAttributes.Temporary)
                     OpenDownloadedFileItem.Invoke(TargetFile)
                 Next
@@ -1881,6 +1903,19 @@ Public Class DmsBrowser
     ''' <param name="localTemporaryFile">The remote file downloaded into a temporary file on local disk</param>
     ''' <returns>Process of started file</returns>
     Public Delegate Function OpenDownloadedFileAction(localTemporaryFile As CompuMaster.IO.TemporaryFile) As System.Diagnostics.Process
+
+    Friend Sub RunWithWaitCursor(operation As Action)
+        Dim PreviousUseWaitCursor As Boolean = Me.UseWaitCursor
+        Dim PreviousCursor As Cursor = Cursor.Current
+        Try
+            Me.UseWaitCursor = True
+            Cursor.Current = Cursors.WaitCursor
+            operation()
+        Finally
+            Me.UseWaitCursor = PreviousUseWaitCursor
+            Cursor.Current = PreviousCursor
+        End Try
+    End Sub
 
     Friend Shared Sub DownloadFile(provider As BaseDmsProvider, remoteFile As DmsResourceItem, localFilePath As String)
         provider.DownloadFile(remoteFile, localFilePath)
