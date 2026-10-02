@@ -21,7 +21,7 @@
   <data name="ActionOkay" xml:space="preserve"><value>&amp;OK</value></data>
   <data name="ActionOpen" xml:space="preserve"><value>&amp;Open</value></data>
   <data name="ActionProperties" xml:space="preserve"><value>Properties</value></data>
-  <data name="ActionRefreshFiles" xml:space="preserve"><value>Refresh file list</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>Refresh</value></data>
   <data name="ActionRename" xml:space="preserve"><value>&amp;Rename</value></data>
   <data name="ActionSave" xml:space="preserve"><value>&amp;Save</value></data>
   <data name="ActionSharings" xml:space="preserve"><value>&amp;Sharings</value></data>
