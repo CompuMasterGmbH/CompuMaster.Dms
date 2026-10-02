@@ -2031,7 +2031,6 @@ Public Class DmsBrowser
             If SelectedFiles.Count = 0 Then
                 System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFilesSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Else
-                Dim DownloadedFiles As New List(Of CompuMaster.IO.TemporaryFile)
                 Await Me.RunTransferAsync(Async Function()
                     For Each RemoteFile As DmsResourceItem In SelectedFiles
                         Dim TargetFile As New CompuMaster.IO.TemporaryFile(CompuMaster.IO.TemporaryFile.TempFileCleanupEvent.OnApplicationExit,
@@ -2039,13 +2038,10 @@ Public Class DmsBrowser
                                                                            System.IO.Path.GetFileNameWithoutExtension(RemoteFile.Name),
                                                                            System.IO.Path.GetExtension(RemoteFile.Name))
                         Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile.FilePath)
-                        DownloadedFiles.Add(TargetFile)
+                        System.IO.File.SetAttributes(TargetFile.FilePath, System.IO.FileAttributes.ReadOnly Or System.IO.FileAttributes.Temporary)
+                        OpenDownloadedFileItem.Invoke(TargetFile)
                     Next
                 End Function)
-                For Each TargetFile As CompuMaster.IO.TemporaryFile In DownloadedFiles
-                    System.IO.File.SetAttributes(TargetFile.FilePath, System.IO.FileAttributes.ReadOnly Or System.IO.FileAttributes.Temporary)
-                    OpenDownloadedFileItem.Invoke(TargetFile)
-                Next
             End If
         Catch ex As OperationCanceledException
             Return
