@@ -5,6 +5,7 @@ Imports System.Net
 Imports System.Net.Http
 Imports System.Runtime.ConstrainedExecution
 Imports System.Security.Claims
+Imports System.Xml.Linq
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 Imports WebDav
@@ -20,6 +21,10 @@ Namespace Providers
         Private Shared ReadOnly ChildFolderCountProperty As System.Xml.Linq.XName = System.Xml.Linq.XName.Get("contained-folder-count", "http://nextcloud.org/ns")
 
         Private WebDavClient As Global.WebDav.WebDavClient
+
+        Private Shared ReadOnly OwnCloudOwnerId As XName = XName.Get("owner-id", "http://owncloud.org/ns")
+        Private Shared ReadOnly OwnCloudOwnerDisplayName As XName = XName.Get("owner-display-name", "http://owncloud.org/ns")
+        Private Shared ReadOnly DavOwner As XName = XName.Get("owner", "DAV:")
 
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
@@ -152,13 +157,13 @@ Namespace Providers
             If remotePath Is Nothing Then
                 Throw New ArgumentNullException(NameOf(remotePath))
             End If
-            Dim PropfindParams As New Global.WebDav.PropfindParameters With {
-          .RequestType = Global.WebDav.PropfindRequestType.AllProperties,
-          .CustomProperties = New System.Xml.Linq.XName() {ChildFolderCountProperty},
-          .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceOnly
-      }
+            Dim PropfindParams As Global.WebDav.PropfindParameters = CreateResourcePropfindParameters(Global.WebDav.ApplyTo.Propfind.ResourceOnly)
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, PropfindParams)
             PropfindTask.Wait()
+            If PropfindTask.Result.StatusCode = 400 OrElse PropfindTask.Result.StatusCode = 501 Then
+                PropfindTask = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, New Global.WebDav.PropfindParameters With {.ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceOnly})
+                PropfindTask.Wait()
+            End If
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
                 Dim Res As Global.WebDav.WebDavResource = PropfindTask.Result.Resources(0)
                 Return Me.CreateDmsResourceItem(Res)
@@ -228,7 +233,7 @@ Namespace Providers
                 Next
             End If
             'Normalize field content
-            If Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(res.Uri.ToString) = Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(Me.CustomWebApiUrl) Then
+            If Result.ItemType = DmsResourceItem.ItemTypes.Root OrElse Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(res.Uri.ToString) = Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(Me.CustomWebApiUrl) Then
                 Result.Name = ""
             ElseIf Result.Name <> Nothing AndAlso Result.Name.EndsWith(Me.DirectorySeparator) Then
                 Result.Name = Result.Name.Substring(0, Result.Name.Length - 1)
@@ -248,17 +253,79 @@ Namespace Providers
             Result.Folder = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.Folder))
             Result.Collection = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.Collection))
             Result.FullName = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.FullName))
+            Result.ExtendedInfosOwner = ResourceOwner(res)
             Return Result
         End Function
 
+        Private Shared Function CreateResourcePropfindParameters(depth As Global.WebDav.ApplyTo.Propfind) As Global.WebDav.PropfindParameters
+            'Some servers silently omit requested owner properties from allprop/include responses.
+            Return New Global.WebDav.PropfindParameters With {
+                .ApplyTo = depth,
+                .RequestType = Global.WebDav.PropfindRequestType.NamedProperties,
+                .CustomProperties = New XName() {
+                    XName.Get("lockdiscovery", "DAV:"),
+                    XName.Get("getcontentlanguage", "DAV:"),
+                    XName.Get("getcontentlength", "DAV:"),
+                    XName.Get("getcontenttype", "DAV:"),
+                    XName.Get("creationdate", "DAV:"),
+                    XName.Get("displayname", "DAV:"),
+                    XName.Get("getetag", "DAV:"),
+                    XName.Get("getlastmodified", "DAV:"),
+                    XName.Get("ishidden", "DAV:"),
+                    XName.Get("iscollection", "DAV:"),
+                    XName.Get("resourcetype", "DAV:"),
+                    ChildFolderCountProperty,
+                    OwnCloudOwnerId,
+                    OwnCloudOwnerDisplayName,
+                    DavOwner
+                }
+            }
+        End Function
+
+        Private Shared Function ResourceOwner(resource As Global.WebDav.WebDavResource) As DmsUser
+            Dim ownerId As String = PropertyText(resource, OwnCloudOwnerId)
+            Dim displayName As String = PropertyText(resource, OwnCloudOwnerDisplayName)
+            If ownerId Is Nothing Then
+                ownerId = DavOwnerPrincipal(resource)
+            End If
+            If ownerId Is Nothing AndAlso displayName Is Nothing Then Return Nothing
+            Return New DmsUser With {.ID = ownerId, .DisplayName = displayName}
+        End Function
+
+        Private Shared Function PropertyText(resource As Global.WebDav.WebDavResource, name As XName) As String
+            Dim propertyValue As Global.WebDav.WebDavProperty = resource.Properties.FirstOrDefault(Function(item) item.Name = name)
+            If propertyValue Is Nothing Then Return Nothing
+            Try
+                Dim propertyXml As XElement = XElement.Parse("<root>" & propertyValue.Value & "</root>")
+                If propertyXml.HasElements Then Return Nothing
+                Dim value As String = propertyXml.Value.Trim()
+                Return If(value.Length = 0, Nothing, value)
+            Catch ex As System.Xml.XmlException
+                Return Nothing
+            End Try
+        End Function
+
+        Private Shared Function DavOwnerPrincipal(resource As Global.WebDav.WebDavResource) As String
+            Dim ownerProperty As Global.WebDav.WebDavProperty = resource.Properties.FirstOrDefault(Function(item) item.Name = DavOwner)
+            If ownerProperty Is Nothing OrElse String.IsNullOrWhiteSpace(ownerProperty.Value) Then Return Nothing
+            Try
+                Dim ownerXml As XElement = XElement.Parse("<root>" & ownerProperty.Value & "</root>")
+                Dim principalHref As XElement = ownerXml.Descendants(XName.Get("href", "DAV:")).FirstOrDefault()
+                If principalHref Is Nothing Then Return Nothing
+                Return If(String.IsNullOrWhiteSpace(principalHref.Value), Nothing, principalHref.Value.Trim())
+            Catch ex As System.Xml.XmlException
+                Return Nothing
+            End Try
+        End Function
+
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
-            Dim PropfindParams As New Global.WebDav.PropfindParameters With {
-            .RequestType = Global.WebDav.PropfindRequestType.AllProperties,
-            .CustomProperties = New System.Xml.Linq.XName() {ChildFolderCountProperty},
-            .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceAndChildren
-        }
+            Dim PropfindParams As Global.WebDav.PropfindParameters = CreateResourcePropfindParameters(Global.WebDav.ApplyTo.Propfind.ResourceAndChildren)
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remoteFolderPath, PropfindParams)
             PropfindTask.Wait()
+            If PropfindTask.Result.StatusCode = 400 OrElse PropfindTask.Result.StatusCode = 501 Then
+                PropfindTask = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remoteFolderPath, New Global.WebDav.PropfindParameters With {.ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceAndChildren})
+                PropfindTask.Wait()
+            End If
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
                 Dim Result As New List(Of DmsResourceItem)
                 For Each res In PropfindTask.Result.Resources
