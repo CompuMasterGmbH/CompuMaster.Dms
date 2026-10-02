@@ -41,6 +41,8 @@ Partial Class LoginForm
         Me.ServerAddress = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.CheckboxPersistLoginCredentialsToDisk = New System.Windows.Forms.CheckBox()
+        Me.StartPathTextBox = New System.Windows.Forms.TextBox()
+        Me.StartPathLabel = New System.Windows.Forms.Label()
         CType(Me.LogoPictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -93,20 +95,20 @@ Partial Class LoginForm
         'OK
         '
         Me.OK.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.OK.Location = New System.Drawing.Point(620, 160)
+        Me.OK.Location = New System.Drawing.Point(620, 216)
         Me.OK.Name = "OK"
         Me.OK.Size = New System.Drawing.Size(94, 23)
-        Me.OK.TabIndex = 4
+        Me.OK.TabIndex = 6
         Me.OK.Text = "&OK"
         '
         'Cancel
         '
         Me.Cancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.Cancel.Location = New System.Drawing.Point(723, 160)
+        Me.Cancel.Location = New System.Drawing.Point(723, 216)
         Me.Cancel.Name = "Cancel"
         Me.Cancel.Size = New System.Drawing.Size(94, 23)
-        Me.Cancel.TabIndex = 5
+        Me.Cancel.TabIndex = 7
         Me.Cancel.Text = "E&xit"
         '
         'ServerAddress
@@ -131,11 +133,29 @@ Partial Class LoginForm
         '
         Me.CheckboxPersistLoginCredentialsToDisk.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.CheckboxPersistLoginCredentialsToDisk.Location = New System.Drawing.Point(171, 145)
+        Me.CheckboxPersistLoginCredentialsToDisk.Location = New System.Drawing.Point(171, 201)
         Me.CheckboxPersistLoginCredentialsToDisk.Name = "CheckboxPersistLoginCredentialsToDisk"
         Me.CheckboxPersistLoginCredentialsToDisk.Size = New System.Drawing.Size(443, 48)
-        Me.CheckboxPersistLoginCredentialsToDisk.TabIndex = 7
+        Me.CheckboxPersistLoginCredentialsToDisk.TabIndex = 5
         Me.CheckboxPersistLoginCredentialsToDisk.Text = "Save credentials to disk (plain text in temp directory)"
+        '
+        'StartPathTextBox
+        '
+        Me.StartPathTextBox.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.StartPathTextBox.Location = New System.Drawing.Point(174, 165)
+        Me.StartPathTextBox.Name = "StartPathTextBox"
+        Me.StartPathTextBox.Size = New System.Drawing.Size(643, 23)
+        Me.StartPathTextBox.TabIndex = 4
+        '
+        'StartPathLabel
+        '
+        Me.StartPathLabel.Location = New System.Drawing.Point(172, 145)
+        Me.StartPathLabel.Name = "StartPathLabel"
+        Me.StartPathLabel.Size = New System.Drawing.Size(220, 23)
+        Me.StartPathLabel.TabIndex = 8
+        Me.StartPathLabel.Text = "&Start path"
+        Me.StartPathLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'LoginForm
         '
@@ -143,7 +163,9 @@ Partial Class LoginForm
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.Cancel
-        Me.ClientSize = New System.Drawing.Size(824, 191)
+        Me.ClientSize = New System.Drawing.Size(824, 253)
+        Me.Controls.Add(Me.StartPathTextBox)
+        Me.Controls.Add(Me.StartPathLabel)
         Me.Controls.Add(Me.CheckboxPersistLoginCredentialsToDisk)
         Me.Controls.Add(Me.ServerAddress)
         Me.Controls.Add(Me.Label1)
@@ -156,7 +178,7 @@ Partial Class LoginForm
         Me.Controls.Add(Me.LogoPictureBox)
         Me.MaximizeBox = False
         Me.MinimizeBox = False
-        Me.MinimumSize = New System.Drawing.Size(840, 230)
+        Me.MinimumSize = New System.Drawing.Size(840, 292)
         Me.Name = "LoginForm"
         Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
@@ -170,4 +192,6 @@ Partial Class LoginForm
     Friend WithEvents ServerAddress As System.Windows.Forms.TextBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents CheckboxPersistLoginCredentialsToDisk As System.Windows.Forms.CheckBox
+    Friend WithEvents StartPathTextBox As System.Windows.Forms.TextBox
+    Friend WithEvents StartPathLabel As System.Windows.Forms.Label
 End Class
