@@ -1,4 +1,4 @@
-# CompuMaster.Dms
+﻿# CompuMaster.Dms
 DMS Browser component for Scopevisio Teamwork, CenterDevice, WebDAV (e.g. NextCloud, OwnCloud)
 
 [![Github Release](https://img.shields.io/github/release/CompuMasterGmbH/CompuMaster.Dms.svg?maxAge=2592000&label=GitHub%20Release)](https://github.com/CompuMasterGmbH/CompuMaster.Dms/releases) 
@@ -30,6 +30,10 @@ There are following main modules for your use:
 
 Development and remote integration-test guidance is documented in [TESTING.md](TESTING.md).
 See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between demo applications, environment variables, and local integration-test credential stores.
+
+## WebDAV resource owners
+
+`WebDavDmsProvider` reads owner metadata returned for each file or folder. Generic WebDAV servers may provide an owner principal through the optional WebDAV ACL `DAV:owner` property. ownCloud Classic and Nextcloud may provide `oc:owner-id` and `oc:owner-display-name`; other servers may expose these properties too. Availability depends on the server and resource, including whether an item is shared. The provider requests the properties by name because some servers omit them from `allprop` responses even when asked through `include`. It prefers the account properties when available. It leaves the owner blank when the server does not return usable owner metadata, including when a requested property is missing or forbidden. A known owner ID without a display name is shown as the ID. This does not require user-directory or sharing support.
 
 ## Screenshots
 

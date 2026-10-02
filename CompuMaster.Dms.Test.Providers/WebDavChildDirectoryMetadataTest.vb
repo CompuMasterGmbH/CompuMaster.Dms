@@ -51,7 +51,8 @@ Public Class WebDavChildDirectoryMetadataTest
 
     Private Shared Sub AssertRequest(body As String)
         Dim document = XDocument.Parse(body)
-        ClassicAssert.IsTrue(document.Descendants(XName.Get("allprop", "DAV:")).Any())
+        ClassicAssert.IsTrue(document.Descendants(XName.Get("prop", "DAV:")).Any())
+        ClassicAssert.IsFalse(document.Descendants(XName.Get("allprop", "DAV:")).Any())
         ClassicAssert.IsTrue(document.Descendants(XName.Get("contained-folder-count", "http://nextcloud.org/ns")).Any())
     End Sub
 
