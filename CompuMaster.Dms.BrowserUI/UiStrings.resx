@@ -140,4 +140,10 @@
   <data name="ViewRequiredForDownload" xml:space="preserve"><value>View permission is required when Download is selected</value></data>
   <data name="AuthorizationObjectRequired" xml:space="preserve"><value>No permission object is selected</value></data>
   <data name="LinkSetupTitle" xml:space="preserve"><value>DMS external link settings</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>Change DMS instance...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>Unable to change DMS instance</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>Instance: {0} (change...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>Select the DMS instance to open:</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>Select DMS instance</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>No DMS instances are available for this account.</value></data>
 </root>
