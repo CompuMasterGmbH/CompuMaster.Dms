@@ -56,6 +56,36 @@ Public Class WebDavMissingResourceTest
     End Sub
 
     <Test>
+    Public Sub AsyncProcessedDownloadReportsMissingRemoteFile()
+        Dim provider As WebDavDmsProvider = CreateProviderReturningNotFound()
+        Dim failure = Assert.ThrowsAsync(Of CompuMaster.Dms.Data.FileNotFoundException)(
+            Async Function() As Task
+                Await provider.DownloadProcessedFileAsync("gone.txt", "unused.txt")
+            End Function)
+        ClassicAssert.AreEqual("gone.txt", failure.RemotePath)
+        ClassicAssert.AreEqual(404, CType(failure.InnerException, ResponseStatusCodeException).StatusCode)
+    End Sub
+
+    <Test>
+    Public Async Function AsyncProcessedDownloadReplacesExistingLocalFile() As Task
+        Dim testDirectory As String = System.IO.Path.Combine(TestContext.CurrentContext.WorkDirectory, "processed-download-" & Guid.NewGuid().ToString("N"))
+        If System.IO.Directory.Exists(testDirectory) Then Throw New InvalidOperationException("The test directory already exists.")
+        System.IO.Directory.CreateDirectory(testDirectory)
+        Try
+            Dim target As String = System.IO.Path.Combine(testDirectory, "existing.txt")
+            System.IO.File.WriteAllText(target, "original")
+            Dim provider As WebDavDmsProvider = CreateProvider(New StaticDownloadHandler())
+
+            Await provider.DownloadProcessedFileAsync("remote.txt", target)
+            ClassicAssert.AreEqual("updated", System.IO.File.ReadAllText(target))
+            Assert.That(System.IO.Directory.GetFiles(testDirectory), Has.Length.EqualTo(1))
+        Finally
+            System.IO.Directory.Delete(testDirectory, True)
+            Assert.That(System.IO.Directory.Exists(testDirectory), [Is].False)
+        End Try
+    End Function
+
+    <Test>
     Public Sub FailedAsyncDownloadPreservesExistingLocalFile()
         Dim testDirectory As String = System.IO.Path.Combine(TestContext.CurrentContext.WorkDirectory, "failed-download-" & Guid.NewGuid().ToString("N"))
         If System.IO.Directory.Exists(testDirectory) Then Throw New InvalidOperationException("The test directory already exists.")
@@ -112,7 +142,7 @@ Public Class WebDavMissingResourceTest
         Inherits HttpMessageHandler
 
         Protected Overrides Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
-            Return Task.FromResult(New HttpResponseMessage(HttpStatusCode.NotFound) With {.ReasonPhrase = "Not Found"})
+            Return Task.FromResult(New HttpResponseMessage(HttpStatusCode.NotFound) With {.ReasonPhrase = "Not Found", .Content = New StringContent("")})
         End Function
     End Class
 

@@ -563,6 +563,33 @@ Namespace Providers
             End Using
         End Sub
 
+        ''' <summary>Downloads a server-processed remote file asynchronously.</summary>
+        ''' <param name="remoteFilePath">The remote source path.</param>
+        ''' <param name="localFilePath">The local destination path.</param>
+        ''' <param name="cancellationToken">Cancels the request or response transfer.</param>
+        ''' <returns>A task that completes when the processed file is saved.</returns>
+        Public Overridable Async Function DownloadProcessedFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Dim parameters As New Global.WebDav.GetFileParameters With {.CancellationToken = cancellationToken}
+            Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
+            Try
+                Using response = Await Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
+                    If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
+                        Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
+                    End Using
+                End Using
+                cancellationToken.ThrowIfCancellationRequested()
+                If System.IO.File.Exists(localFilePath) Then
+                    System.IO.File.Replace(temporaryPath, localFilePath, Nothing)
+                Else
+                    System.IO.File.Move(temporaryPath, localFilePath)
+                End If
+            Finally
+                If System.IO.File.Exists(temporaryPath) Then System.IO.File.Delete(temporaryPath)
+            End Try
+        End Function
+
         ''' <summary>
         ''' Check for successful run of a task
         ''' </summary>
