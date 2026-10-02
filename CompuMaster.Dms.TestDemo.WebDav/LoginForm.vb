@@ -24,14 +24,17 @@ Public Class LoginForm
         Me.UsernameTextBox.Text = Settings.Username()
         Me.PasswordTextBox.Text = Settings.Password()
         Me.ServerAddress.Text = Settings.ServerUrl()
+        Me.StartPathTextBox.Text = If(Settings.InputFromBufferFile("start path"), "/")
         Me.CheckboxPersistLoginCredentialsToDisk.Checked = Settings.HasPersistedCredentials()
     End Sub
 
     Private Sub LoginForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Me.CheckboxPersistLoginCredentialsToDisk.Checked Then
             Settings.PersistCredentials(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.ServerAddress.Text)
+            Settings.PersistInputValue("start path", Me.StartPathTextBox.Text)
         Else
             Settings.RemovePersistedCredentials()
+            Settings.RemoveBufferFile("start path")
         End If
     End Sub
 
@@ -48,7 +51,7 @@ Public Class LoginForm
                     .Password = Me.PasswordTextBox.Text
                 },
                 Settings.DemoTitle, Me.Icon,
-                "", "",
+                If(Me.StartPathTextBox.Text.StartsWith("/"), Me.StartPathTextBox.Text.Substring(1), Me.StartPathTextBox.Text), "",
                 Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
                 Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
                 Global.CompuMaster.Dms.BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
