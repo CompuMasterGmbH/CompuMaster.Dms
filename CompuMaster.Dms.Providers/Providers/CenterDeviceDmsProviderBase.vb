@@ -1182,7 +1182,16 @@ Namespace Providers
         End Sub
 
         Public Shared Function DelegatedGetGroupName(provider As BaseDmsProvider, groupId As String) As String
-            Return CType(provider, CenterDeviceDmsProviderBase).IOClient.GroupName(groupId)
+            Dim centerDeviceProvider As CenterDeviceDmsProviderBase = CType(provider, CenterDeviceDmsProviderBase)
+            Return centerDeviceProvider.NormalizeGroupDisplayName(groupId, centerDeviceProvider.IOClient.GroupName(groupId))
+        End Function
+
+        ''' <summary>Resolves the display name of a CenterDevice group from its identifier and SDK name.</summary>
+        ''' <param name="groupId">The provider-specific group ID.</param>
+        ''' <param name="groupName">The group name returned by the SDK, if available.</param>
+        ''' <returns>The name to show for the group, or the original SDK name when no alternative is available.</returns>
+        Protected Overridable Function NormalizeGroupDisplayName(groupId As String, groupName As String) As String
+            Return groupName
         End Function
 
         ''' <summary>Resolves the display name of a CenterDevice user.</summary>
@@ -1473,7 +1482,7 @@ Namespace Providers
             For Each Group In GroupList.Groups
                 Result.Add(New DmsGroup() With {
                     .ID = Group.Id,
-                    .Name = Group.Name
+                    .Name = Me.NormalizeGroupDisplayName(Group.Id, Group.Name)
                    })
             Next
             Return Result
