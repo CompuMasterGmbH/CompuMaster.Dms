@@ -3,6 +3,7 @@ Option Strict On
 
 Imports System.Net
 Imports System.Net.Http
+Imports System.Threading
 Imports System.Runtime.ConstrainedExecution
 Imports System.Security.Claims
 Imports System.Xml.Linq
@@ -25,6 +26,13 @@ Namespace Providers
         Private Shared ReadOnly OwnCloudOwnerId As XName = XName.Get("owner-id", "http://owncloud.org/ns")
         Private Shared ReadOnly OwnCloudOwnerDisplayName As XName = XName.Get("owner-display-name", "http://owncloud.org/ns")
         Private Shared ReadOnly DavOwner As XName = XName.Get("owner", "DAV:")
+
+        ''' <inheritdoc/>
+        Public Overrides ReadOnly Property SupportsAsynchronousIo As Boolean
+            Get
+                Return True
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
@@ -97,7 +105,7 @@ Namespace Providers
                 httpHandler.Proxy = params.Proxy
             End If
 
-            Dim httpClient = New HttpClient(httpHandler, True) With {
+            Dim httpClient = New HttpClient(New ServiceRequestPolicy(params.BaseAddress, httpHandler), True) With {
                 .BaseAddress = params.BaseAddress
             }
 
@@ -177,6 +185,20 @@ Namespace Providers
                     Throw New InvalidOperationException("Listing of WebDAV resource at " & remotePath & " failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description)
                 End If
             End If
+        End Function
+
+        ''' <inheritdoc/>
+        Public Overrides Async Function ListRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            If remotePath Is Nothing Then Throw New ArgumentNullException(NameOf(remotePath))
+            Dim parameters As New Global.WebDav.PropfindParameters With {
+                .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceOnly,
+                .CancellationToken = cancellationToken
+            }
+            Dim response = Await Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, parameters).ConfigureAwait(False)
+            If response.IsSuccessful Then Return Me.CreateDmsResourceItem(response.Resources(0))
+            If response.StatusCode = 404 Then Return Nothing
+            Throw New InvalidOperationException("Listing of WebDAV resource at " & remotePath & " failed: " & response.StatusCode & " " & response.Description,
+                                                New ResponseStatusCodeException(response.StatusCode, response.Description))
         End Function
 
         Public Overrides Function FindCollectionById(id As String) As DmsResourceItem
@@ -361,6 +383,43 @@ Namespace Providers
             End If
         End Function
 
+        ''' <inheritdoc/>
+        Public Overrides Async Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Dim parameters As New Global.WebDav.PropfindParameters With {
+                .ApplyTo = Global.WebDav.ApplyTo.Propfind.ResourceAndChildren,
+                .CancellationToken = cancellationToken
+            }
+            Dim response = Await Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remoteFolderPath, parameters).ConfigureAwait(False)
+            If Not response.IsSuccessful Then
+                Dim failure As New ResponseStatusCodeException(response.StatusCode, response.Description)
+                If response.StatusCode = 404 Then Throw New DirectoryNotFoundException(remoteFolderPath, failure)
+                Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & response.StatusCode & " " & response.Description, failure)
+            End If
+            Dim result As New List(Of DmsResourceItem)
+            For Each resource In response.Resources
+                Dim include As Boolean
+                Select Case searchType
+                    Case SearchItemType.AllItems
+                        include = True
+                    Case SearchItemType.Folders
+                        include = resource.IsCollection
+                    Case SearchItemType.Files
+                        include = Not resource.IsCollection
+                    Case SearchItemType.Collections
+                        include = False
+                    Case Else
+                        Throw New ArgumentOutOfRangeException(NameOf(searchType))
+                End Select
+                If include Then
+                    Dim item As DmsResourceItem = Me.CreateDmsResourceItem(resource)
+                    If item.ItemType <> DmsResourceItem.ItemTypes.Folder OrElse Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(item.FullName) <> Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(remoteFolderPath) Then
+                        result.Add(item)
+                    End If
+                End If
+            Next
+            Return result
+        End Function
+
         Private Function PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(path As String) As String
             If path = Nothing OrElse path = "/" Then
                 Return ""
@@ -415,6 +474,27 @@ Namespace Providers
             End Try
         End Sub
 
+        ''' <inheritdoc/>
+        Public Overrides Async Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Using input As System.IO.FileStream = System.IO.File.OpenRead(localFilePath)
+                Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
+                Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
+                Await request.ConfigureAwait(False)
+                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+            End Using
+        End Function
+
+        ''' <inheritdoc/>
+        Public Overrides Async Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If binaryData Is Nothing Then Throw New ArgumentNullException(NameOf(binaryData))
+            Using input As System.IO.Stream = binaryData()
+                Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
+                Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
+                Await request.ConfigureAwait(False)
+                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+            End Using
+        End Function
+
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
             Dim PutParams As New Global.WebDav.PutFileParameters
             Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams)
@@ -451,6 +531,30 @@ Namespace Providers
             End Using
         End Sub
 
+        ''' <inheritdoc/>
+        Public Overrides Async Function DownloadFileAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Dim parameters As New Global.WebDav.GetFileParameters With {.CancellationToken = cancellationToken}
+            Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
+            Try
+                Using response = Await Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
+                    If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
+                        Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
+                    End Using
+                End Using
+                cancellationToken.ThrowIfCancellationRequested()
+                If System.IO.File.Exists(localFilePath) Then
+                    System.IO.File.Replace(temporaryPath, localFilePath, Nothing)
+                Else
+                    System.IO.File.Move(temporaryPath, localFilePath)
+                End If
+                If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
+            Finally
+                If System.IO.File.Exists(temporaryPath) Then System.IO.File.Delete(temporaryPath)
+            End Try
+        End Function
+
         Public Overridable Sub DownloadProcessedFile(remoteFilePath As String, localFilePath As String)
             Using response = Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file that can be processed by the server
                 response.Wait()
@@ -458,6 +562,33 @@ Namespace Providers
                 WriteResponseStreamToDisk(response, localFilePath)
             End Using
         End Sub
+
+        ''' <summary>Downloads a server-processed remote file asynchronously.</summary>
+        ''' <param name="remoteFilePath">The remote source path.</param>
+        ''' <param name="localFilePath">The local destination path.</param>
+        ''' <param name="cancellationToken">Cancels the request or response transfer.</param>
+        ''' <returns>A task that completes when the processed file is saved.</returns>
+        Public Overridable Async Function DownloadProcessedFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Dim parameters As New Global.WebDav.GetFileParameters With {.CancellationToken = cancellationToken}
+            Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
+            Try
+                Using response = Await Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
+                    If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
+                        Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
+                    End Using
+                End Using
+                cancellationToken.ThrowIfCancellationRequested()
+                If System.IO.File.Exists(localFilePath) Then
+                    System.IO.File.Replace(temporaryPath, localFilePath, Nothing)
+                Else
+                    System.IO.File.Move(temporaryPath, localFilePath)
+                End If
+            Finally
+                If System.IO.File.Exists(temporaryPath) Then System.IO.File.Delete(temporaryPath)
+            End Try
+        End Function
 
         ''' <summary>
         ''' Check for successful run of a task
@@ -543,6 +674,49 @@ Namespace Providers
             End If
         End Sub
 
+        Private Async Function CheckTaskResultForErrorsAsync(response As WebDav.WebDavResponse, remoteSourcePath As String, remoteDestinationPath As String, ioExceptionMessage As String, conflictItemType As ExceptionTypeForItemType, cancellationToken As CancellationToken) As Task
+            If response.IsSuccessful Then Return
+            Dim statusError As New ResponseStatusCodeException(response.StatusCode, response.Description)
+            Select Case response.StatusCode
+                Case 404
+                    If remoteSourcePath IsNot Nothing AndAlso Await Me.ListRemoteItemAsync(remoteSourcePath, cancellationToken).ConfigureAwait(False) Is Nothing Then
+                        Select Case conflictItemType
+                            Case ExceptionTypeForItemType.File
+                                Throw New FileNotFoundException(remoteSourcePath, statusError)
+                            Case ExceptionTypeForItemType.Directory
+                                Throw New DirectoryNotFoundException(remoteSourcePath, statusError)
+                            Case Else
+                                Throw New RessourceNotFoundException(remoteSourcePath, statusError)
+                        End Select
+                    End If
+                    Throw New RessourceNotFoundException(remoteDestinationPath, statusError)
+                Case 409
+                    Dim destination = Await Me.ListRemoteItemAsync(remoteDestinationPath, cancellationToken).ConfigureAwait(False)
+                    If destination IsNot Nothing Then
+                        Select Case conflictItemType
+                            Case ExceptionTypeForItemType.File
+                                Throw New FileAlreadyExistsException(remoteDestinationPath, statusError)
+                            Case ExceptionTypeForItemType.Directory
+                                Throw New DirectoryAlreadyExistsException(remoteDestinationPath, statusError)
+                        End Select
+                    End If
+                    Dim parent As String = Me.ParentDirectoryPath(remoteDestinationPath)
+                    If parent <> Nothing AndAlso Await Me.ListRemoteItemAsync(parent, cancellationToken).ConfigureAwait(False) Is Nothing Then Throw New DirectoryNotFoundException(parent, statusError)
+                Case 412
+                    If remoteSourcePath IsNot Nothing AndAlso Await Me.ListRemoteItemAsync(remoteSourcePath, cancellationToken).ConfigureAwait(False) Is Nothing Then
+                        Select Case conflictItemType
+                            Case ExceptionTypeForItemType.File
+                                Throw New FileNotFoundException(remoteSourcePath, statusError)
+                            Case ExceptionTypeForItemType.Directory
+                                Throw New DirectoryNotFoundException(remoteSourcePath, statusError)
+                            Case Else
+                                Throw New RessourceNotFoundException(remoteSourcePath, statusError)
+                        End Select
+                    End If
+            End Select
+            Throw New System.IO.IOException(ioExceptionMessage, statusError)
+        End Function
+
         Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
@@ -554,9 +728,10 @@ Namespace Providers
         Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
+            CopyParams.CancellationToken = Me.CurrentAsyncCancellationToken
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             Await CopyTask
-            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File)
+            Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
@@ -570,9 +745,10 @@ Namespace Providers
         Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
+            CopyParams.CancellationToken = Me.CurrentAsyncCancellationToken
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             Await CopyTask
-            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory)
+            Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
@@ -581,17 +757,40 @@ Namespace Providers
             CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.File)
         End Sub
 
+        ''' <inheritdoc/>
+        Protected Overrides Async Function MoveFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, cancellationToken As CancellationToken) As Task
+            Dim parameters As New Global.WebDav.MoveParameters With {.Overwrite = allowOverwrite.GetValueOrDefault(), .CancellationToken = cancellationToken}
+            Dim request = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, parameters)
+            Await request.ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+        End Function
+
         Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False})
             MoveTask.Wait()
             CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.Directory)
         End Sub
 
+        ''' <inheritdoc/>
+        Protected Overrides Async Function MoveDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, cancellationToken As CancellationToken) As Task
+            Dim parameters As New Global.WebDav.MoveParameters With {.Overwrite = False, .CancellationToken = cancellationToken}
+            Dim request = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, parameters)
+            Await request.ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
+        End Function
+
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteFilePath)
             DelTask.Wait()
             CheckTaskResultForErrors(DelTask, Nothing, remoteFilePath, "Delete failed", ExceptionTypeForItemType.Unspecified)
         End Sub
+
+        ''' <inheritdoc/>
+        Public Overrides Async Function DeleteRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Dim request = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remotePath, New Global.WebDav.DeleteParameters With {.CancellationToken = cancellationToken})
+            Await request.ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remotePath, "Delete failed", ExceptionTypeForItemType.Unspecified, cancellationToken).ConfigureAwait(False)
+        End Function
 
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteItem.FullName)
@@ -604,6 +803,13 @@ Namespace Providers
             CreateTask.Wait()
             CheckTaskResultForErrors(CreateTask, Nothing, remoteFilePath, "Create folder failed", ExceptionTypeForItemType.Directory)
         End Sub
+
+        ''' <inheritdoc/>
+        Public Overrides Async Function CreateFolderAsync(remoteDirectoryPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Dim request = Me.WebDavClient.Mkcol(Me.CustomWebApiUrl & remoteDirectoryPath, New Global.WebDav.MkColParameters With {.CancellationToken = cancellationToken})
+            Await request.ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteDirectoryPath, "Create folder failed", ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
+        End Function
 
         Public Overrides Sub CreateDirectory(remoteDirectoryPath As String)
             Me.CreateFolder(remoteDirectoryPath)

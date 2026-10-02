@@ -247,6 +247,18 @@ Public Class DmsBrowserInstanceSelectionTest
         Inherits NoDmsProvider
         Implements IDmsInstanceProvider
 
+        Public Overrides Function ListAllDirectoryItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As System.Threading.Tasks.Task(Of List(Of DmsResourceItem))
+            Return System.Threading.Tasks.Task.FromResult(Me.ListAllDirectoryItems(remoteFolderPath))
+        End Function
+
+        Public Overrides Function ListAllFileItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As System.Threading.Tasks.Task(Of List(Of DmsResourceItem))
+            Return System.Threading.Tasks.Task.FromResult(Me.ListAllFileItems(remoteFolderPath))
+        End Function
+
+        Public Overrides Function ResetCachesForRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As System.Threading.Tasks.Task
+            Return System.Threading.Tasks.Task.CompletedTask
+        End Function
+
         Public Property SelectedInstanceID As String = "tenant-a"
         Public Property AvailableInstanceIDs As String() = New String() {"tenant-a", "tenant-b"}
 
