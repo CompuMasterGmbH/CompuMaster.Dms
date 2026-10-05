@@ -162,6 +162,8 @@ Public Class DmsLinkShareSetup
                 Me.TextBoxDownloadUrl.Enabled = Me.CheckBoxAllowDownload.Checked AndAlso Me._DialogMode = DialogModes.UpdateLink
             Case "WebDavDmsProvider"
                 Me.TextBoxName.Enabled = True
+                Me.CheckBoxMaxBytes.Enabled = False
+                Me.TextBoxMaxBytes.Enabled = False
                 Me.CheckBoxMaxUploads.Enabled = False
                 Me.TextBoxMaxUploads.Enabled = False
                 Me.CheckBoxMaxDownloads.Enabled = False
