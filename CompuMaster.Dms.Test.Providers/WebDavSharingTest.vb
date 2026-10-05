@@ -194,6 +194,34 @@ Public Class WebDavSharingTest
     End Sub
 
     <Test>
+    Public Sub GroupShareRoundTripUsesGroupIdentifier()
+        Dim Client As New FakeOcsSharingClient(New OcsSharingCapabilities(OcsServerFamily.Nextcloud, True, True, True, True, True),
+            ParseShares(ShareElement(22, OcsShareType.Group, "/Team/report.docx", 1, "reviewer-id", "Reviewers")))
+        Dim Provider As WebDavDmsProvider = CreateProvider(Client, "/Team")
+        Dim Item As New DmsResourceItem With {.FullName = "report.docx", .ItemType = DmsResourceItem.ItemTypes.File}
+        Dim Sharing As New DmsShareForGroup(Item, New DmsGroup With {.ID = "reviewer-id", .Name = "Reviewers"}, True, True, False, False, False, False)
+        Provider.CreateSharing(Item, Sharing)
+        Provider.UpdateSharing(Sharing)
+        Provider.DeleteSharing(Sharing)
+        Assert.That(Client.LastShareWithID, [Is].EqualTo("reviewer-id"))
+        Assert.That(Client.LastPermissions, [Is].EqualTo(1))
+        Assert.That(Client.LastUpdatedShareID, [Is].EqualTo(22))
+        Assert.That(Client.LastDeletedShareID, [Is].EqualTo(22))
+    End Sub
+
+    <Test>
+    Public Sub DisabledGroupPolicyRejectsMutationsBeforeCallingServer()
+        Dim Client As New FakeOcsSharingClient(New OcsSharingCapabilities(OcsServerFamily.Nextcloud, True, False, True, False, True), New List(Of Share))
+        Dim Provider As WebDavDmsProvider = CreateProvider(Client, "/")
+        Dim Item As New DmsResourceItem With {.FullName = "report.docx"}
+        Dim Sharing As New DmsShareForGroup(Item, New DmsGroup With {.ID = "reviewer-id"}, True, True, False, False, False, False)
+        Assert.Throws(Of NotSupportedException)(Sub() Provider.CreateSharing(Item, Sharing))
+        Assert.Throws(Of NotSupportedException)(Sub() Provider.UpdateSharing(Sharing))
+        Assert.That(Client.LastShareWithID, [Is].Null)
+        Assert.That(Client.LastUpdatedShareID, [Is].Zero)
+    End Sub
+
+    <Test>
     Public Sub InfiniteScaleProfileCanDisableUnsupportedPublicUpload()
         Dim FakeClient As New FakeOcsSharingClient(
             New OcsSharingCapabilities(OcsServerFamily.OwnCloudInfiniteScale, True, True, True, False, True),

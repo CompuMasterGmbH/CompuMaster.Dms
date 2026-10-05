@@ -9,6 +9,27 @@ Imports NUnit.Framework.Legacy
 <Apartment(ApartmentState.STA)>
 Public Class DmsLinkCreationTest
 
+    <TestCase(DmsResourceItem.ItemTypes.File, False)>
+    <TestCase(DmsResourceItem.ItemTypes.Folder, True)>
+    Public Sub WebDavLinkControlsDoNotOfferUnsupportedLimits(itemType As DmsResourceItem.ItemTypes, uploadSupported As Boolean)
+        Dim provider As New WebDavDmsProvider
+        Dim item As DmsResourceItem = CreateDmsItem()
+        item.ItemType = itemType
+        Using dialog As New Global.CompuMaster.Dms.BrowserUI.DmsLinkShareSetup()
+            dialog.DmsProvider = provider
+            dialog.DmsItem = item
+            dialog.DialogMode = Global.CompuMaster.Dms.BrowserUI.DmsLinkShareSetup.DialogModes.CreateLink
+            InvokePrivateMethod(dialog, "DmsLinkShare_Load")
+            Assert.That(dialog.CheckBoxMaxBytes.Enabled, [Is].False)
+            Assert.That(dialog.TextBoxMaxBytes.Enabled, [Is].False)
+            Assert.That(dialog.CheckBoxMaxDownloads.Enabled, [Is].False)
+            Assert.That(dialog.CheckBoxMaxUploads.Enabled, [Is].False)
+            Assert.That(dialog.CheckBoxAllowView.Checked, [Is].True)
+            Assert.That(dialog.CheckBoxAllowDownload.Checked, [Is].True)
+            Assert.That(dialog.CheckBoxAllowUpload.Enabled, [Is].EqualTo(uploadSupported))
+        End Using
+    End Sub
+
     <Test>
     Public Sub CreateLinkWithProviderModelMutationShowsExactlyOneRowAndPreservesDetails()
         Dim provider As New ScopevisioTeamworkDmsProvider(True)
