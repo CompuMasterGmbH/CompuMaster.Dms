@@ -11,6 +11,24 @@
 - Before closing an issue, review its description, acceptance criteria, and all task checkboxes. Ensure their state agrees with the delivered code and test evidence; explain any remaining or deferred work instead of marking it complete.
 - For new issues, capture actionable tasks and acceptance criteria using Markdown checkboxes (`- [ ]`).
 
+## DMS ecosystem and cross-repository changes
+
+| Component | Repository | Responsibility |
+|---|---|---|
+| CompuMaster.Dms | [CompuMaster.Dms](https://github.com/CompuMasterGmbH/CompuMaster.Dms) | Provider-independent DMS workflows, provider adapters, and BrowserUI. |
+| CompuMaster.Ocs | [CompuMaster.OpenCollaborationService](https://github.com/CompuMasterGmbH/CompuMaster.OpenCollaborationService) | ownCloud/Nextcloud OCS protocol, sharing, and account/group operations. |
+| CompuMaster.Scopevisio.OpenApi | [CompuMaster.Scopevisio.OpenApi](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.OpenApi) | Scopevisio OpenScope REST API and authorization. |
+| CompuMaster.Scopevisio.Teamwork | [CompuMaster.Scopevisio.Teamwork](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork) | Teamwork integration connecting OpenScope authorization with CenterDevice clients. |
+| CompuMaster.CenterDevice | [CompuMaster.CenterDevice.IO](https://github.com/CompuMasterGmbH/CompuMaster.CenterDevice.IO) | CenterDevice REST and file-system SDK; the DMS package dependency is CompuMaster.CenterDevice.Rest. |
+
+- Treat these libraries as one development ecosystem, but preserve their independent repositories, versioning, and standalone consumers. Inspect the affected dependency code and current issue/PR state when investigating DMS behavior; do not assume a fix belongs only in DMS.
+- Put reusable protocol, authentication, transport, and SDK fixes in their owning library. Keep provider-neutral workflows, capability decisions exposed to consumers, and UI mapping in DMS. Record any temporary DMS workaround and the upstream issue required to remove it.
+- Before changing an upstream library, create or reuse a focused issue in that repository with task/acceptance checkboxes. Link its implementing PR and the consuming DMS issue. In the DMS issue, add an explicit dependency link back to the upstream issue, with the affected package/API, integration order, exact commit or package version, and remaining verification.
+- Preserve source/binary compatibility, existing synchronous APIs, and default behavior. Assess downstream effects on DmsUser ID/DisplayName/LoginName, resource ownership, sharing permissions/metadata, capabilities, and cancellation before changing underlying models or clients.
+- Distinguish implementation, isolated tests, real-server tests, merge, package publication, and DMS consumption in issue checkboxes. An upstream PR or green old head does not establish current combined verification. Keep unresolved dependencies open and explain limitations.
+- Coordinate immutable integration pins with other tasks before importing a moving feature branch. Never edit another task's checkout, discard its work, or silently upgrade dependencies. Verify the combined DMS build/tests with the exact intended dependency set.
+- Use CompuMaster.Dms AGENTS.md as the baseline when introducing or updating agent guidance in these libraries. Adapt applicable API, XML documentation, issue tracking, test lifecycle, release, and cleanup rules; preserve repository-specific requirements. Do not copy DMS-only demo launch paths, issue numbers, package names, or workflow/lock names blindly.
+
 ## API design
 
 - Design the public API around simple, provider-independent DMS workflows. Consuming developers should be able to use the component productively without knowing provider-specific concepts or implementation details.
@@ -50,8 +68,8 @@
 
 - Shared DMS test servers are exclusive resources. Never run multiple test jobs that modify the same server concurrently, including across chats, worktrees, GitHub Actions runs, operating-system matrix jobs, and local execution.
 - Before starting server-mutating tests, establish exclusive access for the entire run, including setup and cleanup. A one-time check that no CI job is running does not prevent a new job from starting.
-- Prefer the existing serialized GitHub Actions test path. BuildAndTest.yml currently uses the job concurrency group `teamwork_test_server` and matrix `max-parallel: 1`. Preserve this protection and use the same group for other workflows accessing these servers in this repository.
-- GitHub concurrency does not lock out local runs or jobs in other repositories. Local integration tests require a coordinated exclusive window with CI and other sessions, or a shared lock honored by every runner. If neither is established, run isolated tests only and defer server-mutating tests.
+- Prefer the existing serialized GitHub Actions test path. Inspect the current branch's workflow for the exact server/account concurrency groups and matrix limits; preserve those protections and use the same applicable group for other workflows accessing the same test scope in this repository. Do not copy a stale lock name from another branch or repository.
+- GitHub concurrency does not lock out local runs or jobs in other repositories. Any integration run sharing resources across ecosystem repositories requires a coordinated exclusive window including scheduled workflows and local sessions, or a shared lock honored by every runner. If neither is established, run isolated tests only and defer server-mutating tests.
 - Do not run the entire provider test suite casually to verify a local-only change. Select isolated tests explicitly when shared server access is unnecessary.
 
 ## Releases
