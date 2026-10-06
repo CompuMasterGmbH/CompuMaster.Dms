@@ -378,7 +378,7 @@ Namespace Providers
             Return Result
         End Function
 
-        Private Function TryLoadOcsShares(remotePath As String, includeSubFiles As Boolean) As List(Of Share)
+        Private Function TryLoadOcsShares(remotePath As String, includeSubFiles As Boolean) As List(Of OcsShareRecord)
             If Me.OcsSharingClient Is Nothing Then
                 Return Nothing
             End If
@@ -453,7 +453,7 @@ Namespace Providers
             End If
         End Function
 
-        Friend Sub ApplyOcsSharingMetadata(dmsResource As DmsResourceItem, shares As IEnumerable(Of Share))
+        Friend Sub ApplyOcsSharingMetadata(dmsResource As DmsResourceItem, shares As IEnumerable(Of OcsShareRecord))
             dmsResource.ExtendedInfosLinks = New List(Of DmsLink)
             dmsResource.ExtendedInfosGroupSharings = New List(Of DmsShareForGroup)
             dmsResource.ExtendedInfosUserSharings = New List(Of DmsShareForUser)
@@ -468,7 +468,7 @@ Namespace Providers
             End If
 
             Dim ExpectedPath As String = NormalizeOcsPath(Me.ToOcsPath(dmsResource.FullName))
-            For Each ShareInfo As Share In shares
+            For Each ShareInfo As OcsShareRecord In shares
                 If ShareInfo Is Nothing OrElse Not String.Equals(NormalizeOcsPath(ShareInfo.TargetPath), ExpectedPath, StringComparison.Ordinal) Then
                     Continue For
                 End If
@@ -483,20 +483,11 @@ Namespace Providers
 
                 Select Case ShareInfo.Type
                     Case OcsShareType.User
-                        Dim UserShareInfo As UserShare = TryCast(ShareInfo, UserShare)
-                        If UserShareInfo IsNot Nothing Then
-                            dmsResource.ExtendedInfosUserSharings.Add(Me.CreateDmsUserShare(dmsResource, UserShareInfo))
-                        End If
+                        dmsResource.ExtendedInfosUserSharings.Add(Me.CreateDmsUserShare(dmsResource, ShareInfo))
                     Case OcsShareType.Group
-                        Dim GroupShareInfo As GroupShare = TryCast(ShareInfo, GroupShare)
-                        If GroupShareInfo IsNot Nothing Then
-                            dmsResource.ExtendedInfosGroupSharings.Add(Me.CreateDmsGroupShare(dmsResource, GroupShareInfo))
-                        End If
+                        dmsResource.ExtendedInfosGroupSharings.Add(Me.CreateDmsGroupShare(dmsResource, ShareInfo))
                     Case OcsShareType.Link
-                        Dim PublicShareInfo As PublicShare = TryCast(ShareInfo, PublicShare)
-                        If PublicShareInfo IsNot Nothing Then
-                            dmsResource.ExtendedInfosLinks.Add(Me.CreateDmsLink(dmsResource, PublicShareInfo))
-                        End If
+                        dmsResource.ExtendedInfosLinks.Add(Me.CreateDmsLink(dmsResource, ShareInfo))
                 End Select
             Next
 
@@ -515,7 +506,7 @@ Namespace Providers
             Return Result
         End Function
 
-        Private Function CreateDmsUserShare(dmsResource As DmsResourceItem, shareInfo As UserShare) As DmsShareForUser
+        Private Function CreateDmsUserShare(dmsResource As DmsResourceItem, shareInfo As OcsShareRecord) As DmsShareForUser
             Dim Permissions As Integer = Convert.ToInt32(shareInfo.Permissions)
             Return New DmsShareForUser(
                 dmsResource,
@@ -531,7 +522,7 @@ Namespace Providers
                 HasOcsPermission(Permissions, OcsPermission.Share))
         End Function
 
-        Private Function CreateDmsGroupShare(dmsResource As DmsResourceItem, shareInfo As GroupShare) As DmsShareForGroup
+        Private Function CreateDmsGroupShare(dmsResource As DmsResourceItem, shareInfo As OcsShareRecord) As DmsShareForGroup
             Dim Permissions As Integer = Convert.ToInt32(shareInfo.Permissions)
             Return New DmsShareForGroup(
                 dmsResource,
@@ -547,13 +538,13 @@ Namespace Providers
                 HasOcsPermission(Permissions, OcsPermission.Share))
         End Function
 
-        Private Function CreateDmsLink(dmsResource As DmsResourceItem, shareInfo As PublicShare) As DmsLink
+        Private Function CreateDmsLink(dmsResource As DmsResourceItem, shareInfo As OcsShareRecord) As DmsLink
             Dim Result As New DmsLink(dmsResource, shareInfo.ShareId.ToString(Globalization.CultureInfo.InvariantCulture), Me, AddressOf FillOcsLinkDetails)
             Me.InitializeDmsLink(Result, shareInfo, password:=Nothing)
             Return Result
         End Function
 
-        Private Sub InitializeDmsLink(dmsLink As DmsLink, shareInfo As PublicShare, password As String)
+        Private Sub InitializeDmsLink(dmsLink As DmsLink, shareInfo As OcsShareRecord, password As String)
             Dim Permissions As Integer = Convert.ToInt32(shareInfo.Permissions)
             dmsLink.Name = shareInfo.Name
             dmsLink.Initialize(
@@ -580,11 +571,11 @@ Namespace Providers
         Private Shared Sub FillOcsLinkDetails(provider As Object, id As String, dmsLink As DmsLink)
             Dim WebDavProvider As WebDavDmsProvider = CType(provider, WebDavDmsProvider)
             Dim ShareID As Integer = ParseOcsShareID(id)
-            Dim Shares As List(Of Share) = WebDavProvider.RequireOcsSharingClient().GetShares(WebDavProvider.ToOcsPath(dmsLink.ParentDmsResourceItem.FullName), True, False)
-            Dim MatchingShare As PublicShare = Nothing
-            For Each ShareInfo As Share In Shares
-                If ShareInfo.ShareId = ShareID Then
-                    MatchingShare = TryCast(ShareInfo, PublicShare)
+            Dim Shares As List(Of OcsShareRecord) = WebDavProvider.RequireOcsSharingClient().GetShares(WebDavProvider.ToOcsPath(dmsLink.ParentDmsResourceItem.FullName), True, False)
+            Dim MatchingShare As OcsShareRecord = Nothing
+            For Each ShareInfo As OcsShareRecord In Shares
+                If ShareInfo.ShareId = ShareID AndAlso ShareInfo.Type = OcsShareType.Link Then
+                    MatchingShare = ShareInfo
                     Exit For
                 End If
             Next
@@ -622,7 +613,7 @@ Namespace Providers
             End If
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
                 Dim Result As New List(Of DmsResourceItem)
-                Dim Shares As List(Of Share) = Me.TryLoadOcsShares(remoteFolderPath, includeSubFiles:=True)
+                Dim Shares As List(Of OcsShareRecord) = Me.TryLoadOcsShares(remoteFolderPath, includeSubFiles:=True)
                 For Each res In PropfindTask.Result.Resources
                     Dim AddThisItem As Boolean = False
                     Select Case searchType
@@ -958,8 +949,9 @@ Namespace Providers
             shareInfo.ParentDmsResourceItem = dmsResource
             shareInfo.DmsProvider = Me
             shareInfo.FillLinkDetails = AddressOf FillOcsLinkDetails
-            Dim Result As DmsLink = Me.CreateDmsLink(dmsResource, CreatedShare)
-            Me.InitializeDmsLink(Result, CreatedShare, shareInfo.Password)
+            Dim Record As OcsShareRecord = OcsShareRecord.FromLegacy(CreatedShare)
+            Dim Result As DmsLink = Me.CreateDmsLink(dmsResource, Record)
+            Me.InitializeDmsLink(Result, Record, shareInfo.Password)
             Return Result
         End Function
 
@@ -1102,12 +1094,12 @@ Namespace Providers
             End If
 
             Dim Result As Integer?
-            For Each ShareInfo As Share In Me.RequireOcsSharingClient().GetShares(Me.ToOcsPath(dmsResource.FullName), True, False)
+            For Each ShareInfo As OcsShareRecord In Me.RequireOcsSharingClient().GetShares(Me.ToOcsPath(dmsResource.FullName), True, False)
                 Dim FoundShareWithID As String = Nothing
                 If shareType = OcsShareType.User Then
-                    FoundShareWithID = TryCast(ShareInfo, UserShare)?.SharedWith
+                    FoundShareWithID = ShareInfo.SharedWith
                 ElseIf shareType = OcsShareType.Group Then
-                    FoundShareWithID = TryCast(ShareInfo, GroupShare)?.SharedWith
+                    FoundShareWithID = ShareInfo.SharedWith
                 End If
 
                 If ShareInfo.Type = shareType AndAlso String.Equals(FoundShareWithID, shareWithID, StringComparison.Ordinal) Then

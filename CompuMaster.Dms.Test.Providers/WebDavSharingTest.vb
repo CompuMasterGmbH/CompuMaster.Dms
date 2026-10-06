@@ -14,6 +14,40 @@ Imports NUnit.Framework
 <TestFixture>
 Public Class WebDavSharingTest
 
+    <TestCase(0)>
+    <TestCase(1)>
+    <TestCase(3)>
+    Public Sub NestedShareUsesSourcePathRatherThanRecipientTarget(shareType As Integer)
+        Dim Json As String = "{'ocs':{'meta':{'statuscode':100},'data':[" &
+            "{'id':42,'share_type':" & shareType & ",'permissions':1,'path':'/Projects/Nested/report.txt','file_target':'/report.txt','share_with':'recipient','label':'Report','url':'https://example.test/s/token','expiration':'2030-01-02 00:00:00'}," &
+            "{'id':43,'share_type':" & shareType & ",'permissions':1,'path':'/Projects/Other/report.txt','file_target':'/report.txt','share_with':'other'}]}}"
+        Dim Records As List(Of OcsShareRecord) = OcsSharingClientAdapter.ParseShareRecords(Json)
+        Assert.That(Records(0).TargetPath, [Is].EqualTo("/Projects/Nested/report.txt"))
+        Assert.That(Records(0).Expiration, [Is].EqualTo(New DateTime(2030, 1, 2)))
+        Dim Provider As New WebDavDmsProvider With {.OcsRootPathForTesting = "/Projects"}
+        Dim Item As New DmsResourceItem With {.FullName = "Nested/report.txt", .ItemType = DmsResourceItem.ItemTypes.File}
+        Provider.ApplyOcsSharingMetadata(Item, Records)
+        Assert.That(Item.ExtendedInfosIsShared, [Is].True)
+        Select Case shareType
+            Case 0
+                Assert.That(Item.ExtendedInfosUserSharings.Single().User.ID, [Is].EqualTo("recipient"))
+            Case 1
+                Assert.That(Item.ExtendedInfosGroupSharings.Single().Group.ID, [Is].EqualTo("recipient"))
+            Case 3
+                Assert.That(Item.ExtendedInfosLinks.Single().ID, [Is].EqualTo("42"))
+                Assert.That(Item.ExtendedInfosLinks.Single().Name, [Is].EqualTo("Report"))
+        End Select
+    End Sub
+
+    <Test>
+    Public Sub LegacyShareResponseWithoutSourcePathRetainsTargetFallback()
+        Dim Records As List(Of OcsShareRecord) = OcsSharingClientAdapter.ParseShareRecords("{'ocs':{'meta':{'statuscode':200},'data':[{'id':'42','share_type':3,'permissions':1,'file_target':'/report.txt','expiration':null}]}}")
+        Assert.That(Records.Single().TargetPath, [Is].EqualTo("/report.txt"))
+        Assert.That(Records.Single().Expiration, [Is].Null)
+        Assert.Throws(Of InvalidOperationException)(Sub() OcsSharingClientAdapter.ParseShareRecords("{'ocs':{'meta':{'statuscode':404},'data':[]}}"))
+        Assert.Throws(Of InvalidOperationException)(Sub() OcsSharingClientAdapter.ParseShareRecords("{'ocs':{'meta':{'statuscode':100},'data':{}}}"))
+    End Sub
+
     <TestCase("https://cloud.example.test/remote.php/dav/files/alice/", "https://cloud.example.test", "/")>
     <TestCase("https://cloud.example.test/nextcloud/remote.php/dav/files/alice/Projects/2026/", "https://cloud.example.test/nextcloud", "/Projects/2026")>
     <TestCase("https://cloud.example.test/owncloud/remote.php/webdav/Shared/", "https://cloud.example.test/owncloud", "/Shared")>
@@ -67,7 +101,7 @@ Public Class WebDavSharingTest
             ShareElement(13, OcsShareType.Link, "/Projects/Planning/roadmap.txt", 5, Nothing, Nothing, "https://cloud.example.test/s/public", "Roadmap") &
             ShareElement(14, OcsShareType.User, "/Projects/Planning/other.txt", 31, "ignored", "Ignored"))
 
-        Provider.ApplyOcsSharingMetadata(Item, Shares)
+        Provider.ApplyOcsSharingMetadata(Item, Shares.Select(AddressOf OcsShareRecord.FromLegacy))
 
         Assert.Multiple(Sub()
                             Assert.That(Item.ExtendedInfosIsShared, [Is].True)
@@ -95,7 +129,7 @@ Public Class WebDavSharingTest
     Public Sub OcsMetadataPreservesWebDavOwner()
         Dim Provider As New WebDavDmsProvider
         Dim Item As New DmsResourceItem With {.FullName = "file.txt", .ExtendedInfosOwner = New DmsUser With {.ID = "dav-owner", .DisplayName = "DAV Owner"}}
-        Provider.ApplyOcsSharingMetadata(Item, ParseShares(ShareElement(1, OcsShareType.User, "/file.txt", 1, "recipient", Nothing)))
+        Provider.ApplyOcsSharingMetadata(Item, ParseShares(ShareElement(1, OcsShareType.User, "/file.txt", 1, "recipient", Nothing)).Select(AddressOf OcsShareRecord.FromLegacy))
         Assert.That(Item.ExtendedInfosOwner.ID, [Is].EqualTo("dav-owner"))
         Assert.That(Item.ExtendedInfosOwner.DisplayName, [Is].EqualTo("DAV Owner"))
         Assert.That(Item.ExtendedInfosUserSharings(0).User.DisplayName, [Is].EqualTo("recipient"))
@@ -331,9 +365,9 @@ Public Class WebDavSharingTest
         Public Sub ProbeCapabilities() Implements IOcsSharingClient.ProbeCapabilities
         End Sub
 
-        Public Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of Share) Implements IOcsSharingClient.GetShares
+        Public Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of OcsShareRecord) Implements IOcsSharingClient.GetShares
             Me.LastPath = path
-            Return Me.Shares
+            Return Me.Shares.Select(AddressOf OcsShareRecord.FromLegacy).ToList()
         End Function
 
         Public Function CreateLink(path As String, permissions As Integer, publicUpload As Boolean, name As String, expiration As DateTime?, password As String) As Share Implements IOcsSharingClient.CreateLink

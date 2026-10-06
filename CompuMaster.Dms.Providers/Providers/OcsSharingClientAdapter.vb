@@ -11,6 +11,29 @@ Imports Newtonsoft.Json.Linq
 
 Namespace Providers
 
+    'The upstream Share.TargetPath only retains file_target (the recipient's path).
+    'Keep the current user's source path separately when reading share lists.
+    Friend NotInheritable Class OcsShareRecord
+        Public Property ShareId As Integer
+        Public Property Type As OcsShareType
+        Public Property TargetPath As String
+        Public Property Permissions As OcsPermission
+        Public Property Expiration As DateTime?
+        Public Property Name As String
+        Public Property Url As String
+        Public Property SharedWith As String
+        Public Property AdvancedProperties As AdvancedShareProperties
+
+        Public Shared Function FromLegacy(value As Share) As OcsShareRecord
+            Return New OcsShareRecord With {
+                .ShareId = value.ShareId, .Type = value.Type, .TargetPath = value.TargetPath,
+                .Permissions = value.Permissions, .Expiration = value.Expiration, .Name = value.Name,
+                .Url = TryCast(value, PublicShare)?.Url,
+                .SharedWith = If(TryCast(value, UserShare)?.SharedWith, TryCast(value, GroupShare)?.SharedWith),
+                .AdvancedProperties = value.AdvancedProperties}
+        End Function
+    End Class
+
     Friend Enum OcsServerFamily As Byte
         Unknown = 0
         Nextcloud = 1
@@ -55,7 +78,7 @@ Namespace Providers
 
         Sub ProbeCapabilities()
 
-        Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of Share)
+        Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of OcsShareRecord)
 
         Function CreateLink(path As String, permissions As Integer, publicUpload As Boolean, name As String, expiration As DateTime?, password As String) As Share
 
@@ -81,12 +104,12 @@ Namespace Providers
         Implements IOcsSharingClient
 
         Private ReadOnly Client As OcsClient
-        Private ReadOnly ReadCapabilities As Func(Of String)
+        Private ReadOnly ReadJson As Func(Of String, String)
         Private _Capabilities As OcsSharingCapabilities
 
         Public Sub New(baseUrl As String, userID As String, password As String)
             Me.Client = New OcsClient(baseUrl, userID, password)
-            Me.ReadCapabilities = Function() LoadCapabilities(baseUrl, userID, password)
+            Me.ReadJson = Function(endpoint) LoadJson(baseUrl, userID, password, endpoint)
         End Sub
 
         Public ReadOnly Property Capabilities As OcsSharingCapabilities Implements IOcsSharingClient.Capabilities
@@ -103,8 +126,8 @@ Namespace Providers
             Catch
                 'Family detection is diagnostic only; capabilities decide support.
             End Try
-            Dim CapabilityJson As String = Me.ReadCapabilities()
-            Me.Client.GetShares()
+            Dim CapabilityJson As String = Me.ReadJson("cloud/capabilities")
+            Me.GetShares(Nothing, False, False)
 
             Dim SupportsShareeDiscovery As Boolean
             Try
@@ -117,11 +140,11 @@ Namespace Providers
             Me._Capabilities = ParseCapabilities(CapabilityJson, DetectServerFamily(Config), SupportsShareeDiscovery)
         End Sub
 
-        Private Shared Function LoadCapabilities(baseUrl As String, userID As String, password As String) As String
+        Private Shared Function LoadJson(baseUrl As String, userID As String, password As String, endpoint As String) As String
             'Do not forward credentials through redirects to another endpoint.
             Using Handler As New HttpClientHandler With {.AllowAutoRedirect = False},
                   Http As New HttpClient(Handler) With {.Timeout = TimeSpan.FromSeconds(30)},
-                  Request As New HttpRequestMessage(HttpMethod.Get, baseUrl.TrimEnd("/"c) & "/ocs/v1.php/cloud/capabilities?format=json")
+                  Request As New HttpRequestMessage(HttpMethod.Get, baseUrl.TrimEnd("/"c) & "/ocs/v1.php/" & endpoint & If(endpoint.Contains("?"), "&", "?") & "format=json")
                 Request.Headers.Authorization = New AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(userID & ":" & password)))
                 Request.Headers.Add("OCS-APIRequest", "true")
                 Request.Headers.Accept.Add(New MediaTypeWithQualityHeaderValue("application/json"))
@@ -173,8 +196,35 @@ Namespace Providers
             End If
         End Function
 
-        Public Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of Share) Implements IOcsSharingClient.GetShares
-            Return Me.Client.GetShares(path, ToOcsBoolParam(includeReshares), ToOcsBoolParam(includeSubFiles))
+        Public Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of OcsShareRecord) Implements IOcsSharingClient.GetShares
+            Dim Endpoint As String = "apps/files_sharing/api/v1/shares?reshares=" & If(includeReshares, "true", "false") & "&subfiles=" & If(includeSubFiles, "true", "false")
+            If Not String.IsNullOrEmpty(path) Then Endpoint &= "&path=" & Uri.EscapeDataString(path)
+            Return ParseShareRecords(Me.ReadJson(Endpoint))
+        End Function
+
+        Friend Shared Function ParseShareRecords(json As String) As List(Of OcsShareRecord)
+            Dim Document As JObject = JObject.Parse(json)
+            Dim Status As String = CStr(Document.SelectToken("ocs.meta.statuscode"))
+            If Status <> "100" AndAlso Status <> "200" Then Throw New InvalidOperationException("OCS share listing failed.")
+            Dim Entries As JArray = TryCast(Document.SelectToken("ocs.data"), JArray)
+            If Entries Is Nothing Then Throw New InvalidOperationException("OCS share listing did not return an array.")
+            Dim Result As New List(Of OcsShareRecord)
+            For Each Entry As JObject In Entries
+                Dim SourcePath As String = CStr(Entry("path"))
+                If String.IsNullOrEmpty(SourcePath) Then SourcePath = CStr(Entry("file_target"))
+                Dim Expiration As DateTime? = Nothing
+                Dim ExpirationText As String = CStr(Entry("expiration"))
+                If Not String.IsNullOrEmpty(ExpirationText) Then Expiration = DateTime.Parse(ExpirationText, Globalization.CultureInfo.InvariantCulture)
+                Result.Add(New OcsShareRecord With {
+                    .ShareId = CInt(Entry("id")), .Type = CType(CInt(Entry("share_type")), OcsShareType),
+                    .TargetPath = SourcePath, .Permissions = CType(CInt(Entry("permissions")), OcsPermission),
+                    .Expiration = Expiration, .Name = If(CStr(Entry("name")), CStr(Entry("label"))),
+                    .Url = CStr(Entry("url")), .SharedWith = CStr(Entry("share_with")),
+                    .AdvancedProperties = New AdvancedShareProperties With {
+                        .Owner = CStr(Entry("uid_owner")), .DisplaynameOwner = CStr(Entry("displayname_owner")),
+                        .SharedWithDisplayname = CStr(Entry("share_with_displayname"))}})
+            Next
+            Return Result
         End Function
 
         Public Function CreateLink(path As String, permissions As Integer, publicUpload As Boolean, name As String, expiration As DateTime?, password As String) As Share Implements IOcsSharingClient.CreateLink
