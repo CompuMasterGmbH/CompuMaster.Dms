@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ActionAdd" xml:space="preserve"><value>新增(&amp;A)</value></data>
+  <data name="ActionAddGroup" xml:space="preserve"><value>新增群組</value></data>
+  <data name="ActionAddUser" xml:space="preserve"><value>新增使用者</value></data>
+  <data name="ActionCancel" xml:space="preserve"><value>取消(&amp;C)</value></data>
+  <data name="ActionClose" xml:space="preserve"><value>關閉(&amp;C)</value></data>
+  <data name="ActionCopy" xml:space="preserve"><value>複製(&amp;C)</value></data>
+  <data name="ActionCopyWebLink" xml:space="preserve"><value>複製網頁連結</value></data>
+  <data name="ActionCreateFolder" xml:space="preserve"><value>新增資料夾</value></data>
+  <data name="ActionDelete" xml:space="preserve"><value>刪除(&amp;D)</value></data>
+  <data name="ActionDownload" xml:space="preserve"><value>下載(&amp;D)</value></data>
+  <data name="ActionEdit" xml:space="preserve"><value>編輯(&amp;E)</value></data>
+  <data name="ActionFileSharings" xml:space="preserve"><value>檔案共用</value></data>
+  <data name="ActionFolderSharings" xml:space="preserve"><value>資料夾共用</value></data>
+  <data name="ActionMove" xml:space="preserve"><value>移動(&amp;M)</value></data>
+  <data name="ActionOkay" xml:space="preserve"><value>確定(&amp;O)</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>開啟(&amp;O)</value></data>
+  <data name="ActionProperties" xml:space="preserve"><value>內容</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>重新整理</value></data>
+  <data name="ActionRename" xml:space="preserve"><value>重新命名</value></data>
+  <data name="ActionSave" xml:space="preserve"><value>儲存(&amp;S)</value></data>
+  <data name="ActionSharings" xml:space="preserve"><value>共用</value></data>
+  <data name="ActionShowFiles" xml:space="preserve"><value>顯示檔案</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>上傳(&amp;U)</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>所有文件 (*.*)|*.*</value></data>
+  <data name="BrowseTitle" xml:space="preserve"><value>瀏覽 DMS 資料夾</value></data>
+  <data name="ColumnAuthorizations" xml:space="preserve"><value>權限</value></data>
+  <data name="ColumnLastModification" xml:space="preserve"><value>最後修改</value></data>
+  <data name="ColumnLimitations" xml:space="preserve"><value>限制</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>名稱</value></data>
+  <data name="ColumnSize" xml:space="preserve"><value>尺寸</value></data>
+  <data name="ColumnType" xml:space="preserve"><value>類型</value></data>
+  <data name="CredentialsOrServerError" xml:space="preserve"><value>憑證無效、DMS 伺服器實例錯誤或網路錯誤</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>目前所有者：{0}</value></data>
+  <data name="DeleteFilesQuestion" xml:space="preserve"><value>您確實要刪除以下文件嗎？</value></data>
+  <data name="DeleteFilesTitle" xml:space="preserve"><value>遠端 DMS - 刪除文件</value></data>
+  <data name="DeleteFolderQuestion" xml:space="preserve"><value>您確實要刪除以下資料夾嗎？</value></data>
+  <data name="DeleteFolderTitle" xml:space="preserve"><value>遠端 DMS - 刪除資料夾</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>該文件已在此瀏覽器之外刪除：{0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>該資料夾已在此瀏覽器之外刪除：{0}</value></data>
+  <data name="DownloadSuccessful" xml:space="preserve"><value>下載成功完成</value></data>
+  <data name="DownloadTitle" xml:space="preserve"><value>遠端 DMS - 檔案下載</value></data>
+  <data name="DownloadToTitle" xml:space="preserve"><value>下載到{0}</value></data>
+  <data name="DmsFolderNotFound" xml:space="preserve"><value>未找到 DMS 資料夾：{0}</value></data>
+  <data name="DuplicateFileNameConflict" xml:space="preserve"><value>衝突：多個檔案具有相同的檔案名</value></data>
+  <data name="ExactlyOneItemRequired" xml:space="preserve"><value>必須僅選擇一項</value></data>
+  <data name="EntityGroup" xml:space="preserve"><value>集團</value></data>
+  <data name="EntityUser" xml:space="preserve"><value>使用者</value></data>
+  <data name="ExternalSharings" xml:space="preserve"><value>透過連結與外部用戶分享</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>找不到文件</value></data>
+  <data name="FileProperties" xml:space="preserve"><value>文件屬性</value></data>
+  <data name="FilesAlreadyExist" xml:space="preserve"><value>以下文件已存在。您想覆蓋它們嗎？</value></data>
+  <data name="FolderProperties" xml:space="preserve"><value>資料夾屬性</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>常規設定</value></data>
+  <data name="InternalSharings" xml:space="preserve"><value>與內部用戶/群組共享</value></data>
+  <data name="InvalidFolderMessage" xml:space="preserve"><value>無效資料夾：{0}</value></data>
+  <data name="InvalidFolderTitle" xml:space="preserve"><value>DMS 資料夾無效或不再存在</value></data>
+  <data name="LabelDownloadLink" xml:space="preserve"><value>下載連結</value></data>
+  <data name="LabelExpiryDate" xml:space="preserve"><value>有效期限</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>團體名稱</value></data>
+  <data name="LabelId" xml:space="preserve"><value>ID</value></data>
+  <data name="LabelMaxBytes" xml:space="preserve"><value>最大。位元組</value></data>
+  <data name="LabelMaxDownloads" xml:space="preserve"><value>最大。下載</value></data>
+  <data name="LabelMaxUploads" xml:space="preserve"><value>最大上傳次數</value></data>
+  <data name="LabelMaxViews" xml:space="preserve"><value>最大。意見</value></data>
+  <data name="LabelName" xml:space="preserve"><value>名稱</value></data>
+  <data name="LabelNumberBytes" xml:space="preserve"><value>位元組</value></data>
+  <data name="LabelNumberDownloads" xml:space="preserve"><value>下載</value></data>
+  <data name="LabelNumberUploads" xml:space="preserve"><value>上傳次數</value></data>
+  <data name="LabelNumberViews" xml:space="preserve"><value>意見</value></data>
+  <data name="LabelPassword" xml:space="preserve"><value>密碼</value></data>
+  <data name="LabelUserName" xml:space="preserve"><value>使用者名稱</value></data>
+  <data name="LabelWebLink" xml:space="preserve"><value>網頁連結</value></data>
+  <data name="Limits" xml:space="preserve"><value>限制</value></data>
+  <data name="LinkSharingRequired" xml:space="preserve"><value>未選擇連結共享</value></data>
+  <data name="LimitationDownloads" xml:space="preserve"><value>下載次數：{0}</value></data>
+  <data name="LimitationPassword" xml:space="preserve"><value>密碼</value></data>
+  <data name="LimitationUploads" xml:space="preserve"><value>上傳次數: {0}</value></data>
+  <data name="NewFolderPrompt" xml:space="preserve"><value>“{0}”下面的新資料夾應該命名為什麼？</value></data>
+  <data name="NewFolderTitle" xml:space="preserve"><value>新建資料夾</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>選擇目標資料夾</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>目的地名稱</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>輸入「{0}」的目的地名稱：</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>輸入「{0}」的新名稱：</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>輸入不含目錄分隔符號的名稱。</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>來源和目的地相同。選擇不同的名稱或資料夾。</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>文件“{0}”已存在。更換嗎？</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>資料夾「{0}」已存在。將其內容與來源合併？僅在目的地找到的項目將保留。</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>瀏覽器根目錄無法複製、重新命名或移動。</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>目的地位於瀏覽器根目錄之外。</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>已完成 {1} 個選定項目中的 {0} 個。下一項失敗：{2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>停了。已完成 {1} 個選定項目中的 {0} 個。</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>未選擇文件</value></data>
+  <data name="NoFilesSelected" xml:space="preserve"><value>未選擇文件</value></data>
+  <data name="NoFolderSelected" xml:space="preserve"><value>未選擇資料夾</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>{已隱藏}</value></data>
+  <data name="UnknownValue" xml:space="preserve"><value>未知</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>使用者取消操作</value></data>
+  <data name="OutsideRequiredFolder" xml:space="preserve"><value>不支援在資料夾「{0}」之外保存</value></data>
+  <data name="PermissionDelete" xml:space="preserve"><value>刪除(D)</value></data>
+  <data name="PermissionDownload" xml:space="preserve"><value>下載(D)</value></data>
+  <data name="PermissionEdit" xml:space="preserve"><value>編輯(E)</value></data>
+  <data name="PermissionShare" xml:space="preserve"><value>共用</value></data>
+  <data name="PermissionUpload" xml:space="preserve"><value>上傳(U)</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>檢視</value></data>
+  <data name="Permissions" xml:space="preserve"><value>權限</value></data>
+  <data name="PropertiesTitle" xml:space="preserve"><value>屬性 {0}</value></data>
+  <data name="PropertiesArchivedDate" xml:space="preserve"><value>存檔日期： </value></data>
+  <data name="PropertiesCollisionWarning" xml:space="preserve"><value>警告：偵測到與另一個同名檔案的衝突</value></data>
+  <data name="PropertiesDetails" xml:space="preserve"><value>詳情</value></data>
+  <data name="PropertiesExtendedInformation" xml:space="preserve"><value>擴充訊息</value></data>
+  <data name="PropertiesFileSize" xml:space="preserve"><value>文件大小： </value></data>
+  <data name="PropertiesFullPath" xml:space="preserve"><value>完整路徑： </value></data>
+  <data name="PropertiesLastModification" xml:space="preserve"><value>最後修改： </value></data>
+  <data name="PropertiesLockedBy" xml:space="preserve"><value>鎖定者： </value></data>
+  <data name="PropertiesLocks" xml:space="preserve"><value>鎖： </value></data>
+  <data name="PropertiesOwner" xml:space="preserve"><value>業主： </value></data>
+  <data name="PropertiesParentCollection" xml:space="preserve"><value>家長收藏： </value></data>
+  <data name="PropertiesParentFolder" xml:space="preserve"><value>父資料夾： </value></data>
+  <data name="PropertiesReferencedCollectionIds" xml:space="preserve"><value>從集合 ID 引用</value></data>
+  <data name="PropertiesReferencedFolderIds" xml:space="preserve"><value>從資料夾 ID 引用</value></data>
+  <data name="PropertiesSharings" xml:space="preserve"><value>股份</value></data>
+  <data name="PropertiesVersionDate" xml:space="preserve"><value>版本日期： </value></data>
+  <data name="PropertiesVersionNumber" xml:space="preserve"><value>版本號碼： </value></data>
+  <data name="RootSharingUnsupported" xml:space="preserve"><value>不支援共享根資料夾</value></data>
+  <data name="RootFolderCannotBeDeleted" xml:space="preserve"><value>根資料夾無法刪除</value></data>
+  <data name="ShareSetupTitle" xml:space="preserve"><value>DMS 共享設定 - {0}</value></data>
+  <data name="SharingsTitle" xml:space="preserve"><value>DMS 共享設定</value></data>
+  <data name="Statistics" xml:space="preserve"><value>統計數據</value></data>
+  <data name="UploadSuccessful" xml:space="preserve"><value>上傳成功</value></data>
+  <data name="UploadTitle" xml:space="preserve"><value>遠端 DMS — 檔案上傳</value></data>
+  <data name="UploadLinkNameRequired" xml:space="preserve"><value>上傳連結需要名稱</value></data>
+  <data name="UserSharingRequired" xml:space="preserve"><value>未選擇用戶或群組共享</value></data>
+  <data name="ViewOrUploadRequired" xml:space="preserve"><value>需要查看或上傳權限</value></data>
+  <data name="ViewRequiredForDownload" xml:space="preserve"><value>選擇下載時需要查看權限</value></data>
+  <data name="AuthorizationObjectRequired" xml:space="preserve"><value>未選擇權限對象</value></data>
+  <data name="LinkSetupTitle" xml:space="preserve"><value>DMS 外部連結設置</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>更改 DMS 實例...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>無法變更 DMS 實例</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>實例：{0}（更改...）</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>選擇要開啟的DMS實例：</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>選擇DMS實例</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>該帳戶沒有可用的 DMS 實例。</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>瀏覽器操作已在運作中。</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>需要一個集合或資料夾。</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>需要實例標識符。</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>至少需要一項授權</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>否</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>是</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>DialogObjectMode 未實作用於建立共享</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>DialogObjectMode 未實作載入</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>DialogObjectMode 未實作保存共享</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>DialogObjectMode 未實作更新共享</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>{0} 需要 DmsProvider 實現</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>錯誤：{0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} 位元組</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>無效值：{0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>本機預設下載資料夾「{0}」必須是目錄「{1}」的子資料夾</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>本機預設上傳資料夾「{0}」必須是目錄「{1}」的子資料夾</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS 需要同時選擇「檢視」和「下載」權限</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>在 DmsResourceItem 中找不到 ID 為「{0}」的原始 DmsLink</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>在 DmsResourceItem 中找不到 ID 為「{0}」的原始 DmsShareBase 項目</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>允許刪除： </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>允許下載： </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>允許編輯： </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>允許上傳： </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>允許查看： </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>分配的集合 ID： </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>分配的資料夾 ID： </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>收藏編號： </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>下載地址： </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>到期日： </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>文件編號： </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>資料夾ID： </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>有子資料夾： </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>擁有集團股份： </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>擁有隱藏的集團股份： </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>具有隱藏的用戶共享： </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>擁有用戶分享： </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>哈希/ETag： </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>啟用審核： </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>智慧採集： </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>公開徵件： </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>分享： </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>連結： </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>最大位元組數： </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>最大下載量： </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>最大上傳數量： </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>密碼： </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>上傳的位元組數： </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>上傳數量： </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>網址： </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>在建立瀏覽器之前解決啟動選擇問題。</value></data>
+  <data name="RootValue" xml:space="preserve"><value>根</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>SelectedNodeFolderPath「{0}」預計以 RootNodeFolderPath「{1}」開頭</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>DMS 提供者傳回了一個已建立的沒有 ID 的連結。</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>DMS 提供者未傳回任何已建立的連結。</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>提供者不支援選擇DMS實例。</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>所選的 DMS 實例不可用。</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>來自 DmsShareBase 的未知衍生類</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>使用接受實例標識符的建構函數。</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>文件 {1} 的 {0}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>已處理 {1:N0} 來源位元組中的 {0:N0}</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} 已處理來源位元組；完全未知</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>位元組進度不可用。</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>正在上傳…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>等待提供者確認...</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>取消</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>未開始</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>要求取消；等待主動傳輸。</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{0} 個檔案（共 {1} 個）已完成</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>完成的上傳保留在伺服器上。中斷的上傳可能會留下部分文件。</value></data>
+</root>
