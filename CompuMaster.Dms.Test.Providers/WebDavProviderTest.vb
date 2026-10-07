@@ -65,7 +65,9 @@ Public MustInherit Class WebDavProviderTestBase
                 .Password = Guid.NewGuid().ToString("N"), .ExpiryDateLocalTime = Date.Today.AddDays(2)})
             Assert.That(Link.ID, [Is].Not.Empty)
             Assert.That(Link.WebUrl, [Is].Not.Empty)
-            Dim Reloaded As Dms.Data.DmsLink = Provider.ListRemoteItem(Path).ExtendedInfosLinks.Single()
+            Dim SharedItem = Provider.ListRemoteItem(Path)
+            AssertOwnerEqual(Item, SharedItem)
+            Dim Reloaded As Dms.Data.DmsLink = SharedItem.ExtendedInfosLinks.Single()
             Assert.That(Reloaded.ID, [Is].EqualTo(Link.ID))
             Assert.That(Reloaded.AllowView, [Is].True)
             Assert.That(Reloaded.AllowDownload, [Is].True)
@@ -90,6 +92,78 @@ Public MustInherit Class WebDavProviderTestBase
             End Try
         End Try
     End Sub
+
+    <Test, Category("TestLevel2")>
+    Public Async Function ResourceOwnerMetadataMatchesTheServerAndAsyncListings() As Task
+        Await WithOwnedMetadataFixtureAsync("Owner_Metadata", Async Function(provider, root)
+            Dim synchronous = provider.ListAllRemoteItems(root, Dms.Providers.BaseDmsProvider.SearchItemType.AllItems)
+            Dim asynchronous = Await provider.ListAllRemoteItemsAsync(root, Dms.Providers.BaseDmsProvider.SearchItemType.AllItems)
+            For Each item In synchronous
+                Dim asyncItem = asynchronous.Single(Function(candidate) candidate.Name = item.Name)
+                AssertOwnerEqual(item, asyncItem)
+                AssertOwnerEqual(item, Await provider.ListRemoteItemAsync(item.FullName))
+                Await AssertOwnerMatchesResourceResponseAsync(CType(provider, Dms.Providers.WebDavDmsProvider), item)
+            Next
+        End Function)
+    End Function
+
+    Private Async Function WithOwnedMetadataFixtureAsync(name As String, action As Func(Of Dms.Providers.BaseDmsProvider, String, Task)) As Task
+        Dim provider = Me.LoggedInDmsProvider()
+        Dim root = provider.CombinePath(TestDirName, name)
+        If Await provider.RemoteItemExistsAsync(root) Then Await provider.DeleteRemoteItemAsync(root)
+        Assert.That(Await provider.RemoteItemExistsAsync(root), [Is].False, "Stale metadata fixture could not be removed.")
+        Dim originalFailure As Exception = Nothing
+        Try
+            Await provider.CreateFolderAsync(root)
+            Await provider.CreateFolderAsync(provider.CombinePath(root, "empty"))
+            Await provider.UploadFileAsync(provider.CombinePath(root, "file.txt"), New Byte() {1, 2, 3})
+            Await action(provider, root)
+        Catch ex As Exception
+            originalFailure = ex
+            Throw
+        Finally
+            Try
+                If provider.RemoteItemExists(root) Then provider.DeleteRemoteItem(root)
+                Assert.That(provider.RemoteItemExists(root), [Is].False, "Metadata fixture cleanup failed.")
+            Catch cleanupFailure As Exception
+                If originalFailure IsNot Nothing Then Throw New AggregateException("Metadata test and cleanup both failed.", originalFailure, cleanupFailure)
+                Throw
+            End Try
+        End Try
+    End Function
+
+    Private Shared Sub AssertOwnerEqual(first As Dms.Data.DmsResourceItem, second As Dms.Data.DmsResourceItem)
+        Assert.That(String.Equals(first.ExtendedInfosOwner.ID, second.ExtendedInfosOwner.ID, StringComparison.Ordinal), [Is].True, "Owner identity differs between listing paths; values are intentionally omitted.")
+        Assert.That(String.Equals(first.ExtendedInfosOwner.DisplayName, second.ExtendedInfosOwner.DisplayName, StringComparison.Ordinal), [Is].True, "Owner display metadata differs between listing paths; values are intentionally omitted.")
+    End Sub
+
+    Private Async Function AssertOwnerMatchesResourceResponseAsync(provider As Dms.Providers.WebDavDmsProvider, item As Dms.Data.DmsResourceItem) As Task
+        Dim field = GetType(Dms.Providers.WebDavDmsProvider).GetField("WebDavClient", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
+        Dim client = CType(field.GetValue(provider), WebDav.WebDavClient)
+        Dim ownerId = Xml.Linq.XName.Get("owner-id", "http://owncloud.org/ns")
+        Dim ownerDisplay = Xml.Linq.XName.Get("owner-display-name", "http://owncloud.org/ns")
+        Dim davOwner = Xml.Linq.XName.Get("owner", "DAV:")
+        Dim response = Await client.Propfind(provider.CustomWebApiUrl & item.FullName, New WebDav.PropfindParameters With {
+            .ApplyTo = WebDav.ApplyTo.Propfind.ResourceOnly, .RequestType = WebDav.PropfindRequestType.NamedProperties,
+            .CustomProperties = New Xml.Linq.XName() {Xml.Linq.XName.Get("resourcetype", "DAV:"), ownerId, ownerDisplay, davOwner}})
+        Assert.That(response.IsSuccessful, [Is].True, "Named owner-property request failed.")
+        Dim resource = response.Resources.Single()
+        For Each propertyName In New Xml.Linq.XName() {ownerId, ownerDisplay, davOwner}
+            Dim status = resource.PropertyStatuses.FirstOrDefault(Function(candidate) candidate.Name = propertyName)
+            TestContext.WriteLine("Owner capability (" & item.ItemType.ToString() & "): " & propertyName.LocalName & " status=" & If(status Is Nothing, "unreported", status.StatusCode.ToString(Globalization.CultureInfo.InvariantCulture)))
+        Next
+        Dim id = resource.Properties.FirstOrDefault(Function(prop) prop.Name = ownerId)
+        Dim display = resource.Properties.FirstOrDefault(Function(prop) prop.Name = ownerDisplay)
+        If id IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(id.Value) Then
+            Assert.That(String.Equals(item.ExtendedInfosOwner.ID, Xml.Linq.XElement.Parse("<root>" & id.Value & "</root>").Value.Trim(), StringComparison.Ordinal), [Is].True, "Mapped owner differs from the reported resource owner; values are intentionally omitted.")
+        End If
+        If display IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(display.Value) Then
+            Assert.That(String.Equals(item.ExtendedInfosOwner.DisplayName, Xml.Linq.XElement.Parse("<root>" & display.Value & "</root>").Value.Trim(), StringComparison.Ordinal), [Is].True, "Mapped owner display differs from the resource response; values are intentionally omitted.")
+        End If
+        If TypeOf Me Is OwnCloudWebDavProviderTest OrElse TypeOf Me Is NextcloudWebDavProviderTest Then
+            Assert.That(Not String.IsNullOrWhiteSpace(item.ExtendedInfosOwner.ID) OrElse Not String.IsNullOrWhiteSpace(item.ExtendedInfosOwner.DisplayName), [Is].True, "The configured cloud server must report owner metadata for its own test resources.")
+        End If
+    End Function
 
     Private Const TestDirName As String = "ZZZ_UnitTests_CM.Dms"
     Private Const TestDirNameSub1 As String = "ZZZ_UnitTests_CM.Dms/Folder"

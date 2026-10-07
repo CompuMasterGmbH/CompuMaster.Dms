@@ -118,6 +118,15 @@ Public Class WebDavOwnerMetadataTest
         Return "<d:multistatus xmlns:d='DAV:' xmlns:oc='http://owncloud.org/ns'><d:response><d:href>https://example.test/item" & If(isFolder, "/", "") & "</d:href><d:propstat><d:prop><d:displayname>item</d:displayname>" & resourceType & successfulProperties & "</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat>" & missing & forbidden & "</d:response></d:multistatus>"
     End Function
 
+    <TestCase(403), TestCase(404)>
+    Public Sub UnsuccessfulOwnerPropertiesNeverPublishReturnedValues(statusCode As Integer)
+        Dim properties = "<oc:owner-id>not-an-owner</oc:owner-id><oc:owner-display-name>Not an owner</oc:owner-display-name><d:owner><d:href>/principals/unavailable</d:href></d:owner>"
+        Dim xml = OwnerProperties(properties, False).Replace("HTTP/1.1 200 OK", "HTTP/1.1 " & statusCode.ToString(Globalization.CultureInfo.InvariantCulture) & " Unavailable")
+        Dim resource = CreateProvider(New PropfindHandler(xml)).ListRemoteItem("item")
+        Assert.That(resource.ExtendedInfosOwner.ID, [Is].Null)
+        Assert.That(resource.ExtendedInfosOwner.DisplayName, [Is].Null)
+    End Sub
+
     Private Shared Function CreateProvider(handler As HttpMessageHandler, Optional apiUrl As String = "https://example.test/") As WebDavDmsProvider
         Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = apiUrl}
         Dim field As FieldInfo = GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic)
