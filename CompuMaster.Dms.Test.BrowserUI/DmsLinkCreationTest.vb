@@ -9,6 +9,18 @@ Imports NUnit.Framework.Legacy
 <Apartment(ApartmentState.STA)>
 Public Class DmsLinkCreationTest
 
+    Private Dispatcher As UiTestDispatcher
+
+    <SetUp>
+    Public Sub InstallDispatcher()
+        Dispatcher = New UiTestDispatcher()
+    End Sub
+
+    <TearDown>
+    Public Sub RestoreDispatcher()
+        Dispatcher.Dispose()
+    End Sub
+
     <TestCase(DmsResourceItem.ItemTypes.File, False)>
     <TestCase(DmsResourceItem.ItemTypes.Folder, True)>
     Public Sub WebDavLinkControlsDoNotOfferUnsupportedLimits(itemType As DmsResourceItem.ItemTypes, uploadSupported As Boolean)
@@ -343,6 +355,7 @@ Public Class DmsLinkCreationTest
         Dim method As MethodInfo = instance.GetType().GetMethod(methodName, BindingFlags.Instance Or BindingFlags.NonPublic)
         ClassicAssert.IsNotNull(method, methodName)
         method.Invoke(instance, If(hasEventArgs, New Object() {Nothing, EventArgs.Empty}, Nothing))
+        DirectCast(SynchronizationContext.Current, UiTestDispatcher).WaitForEvents()
     End Sub
 
     Private Class ScopevisioTeamworkDmsProvider

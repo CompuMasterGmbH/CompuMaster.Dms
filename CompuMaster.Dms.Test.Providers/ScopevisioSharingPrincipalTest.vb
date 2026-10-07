@@ -8,7 +8,7 @@ Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
-<TestFixture, Category("RemoteDms"), Category("ScopevisioTeamwork")>
+<TestFixture, Category("RemoteDms"), Category("TestLevel2"), Category("ScopevisioTeamwork")>
 Public Class ScopevisioSharingPrincipalTest
 
     <Test>

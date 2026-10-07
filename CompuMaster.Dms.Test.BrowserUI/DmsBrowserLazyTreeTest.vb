@@ -254,7 +254,7 @@ Public Class DmsBrowserLazyTreeTest
 
             GetFolderTree(Browser).SelectedNode = Nothing
             Browser.SelectedFolder = Nothing
-            Browser.RefreshCurrentFolderAndFiles()
+            Browser.RefreshCurrentFolderAndFilesAsync().GetAwaiter().GetResult()
 
             ClassicAssert.AreEqual("Test-Temp", Browser.SelectedFolder)
             ClassicAssert.AreEqual("Test-Temp", GetFolderTree(Browser).SelectedNode.Text)
@@ -286,7 +286,7 @@ Public Class DmsBrowserLazyTreeTest
             provider.SetChildren("Parent", CreateDirectory("Parent/Selected", 0), CreateDirectory("Parent/New", 0))
             provider.SetChildren("Other", CreateDirectory("Other/Added", 0))
             provider.SetChildren("Parent/Selected", New DmsResourceItem With {.Name = "new.txt", .FullName = "Parent/Selected/new.txt", .ItemType = DmsResourceItem.ItemTypes.File})
-            browser.RefreshCurrentFolderAndFiles()
+            browser.RefreshCurrentFolderAndFilesAsync().GetAwaiter().GetResult()
 
             ClassicAssert.AreSame(selected, GetFolderTree(browser).SelectedNode)
             ClassicAssert.IsTrue(parent.IsExpanded)
@@ -530,6 +530,18 @@ Public Class DmsBrowserLazyTreeTest
         Inherits NoDmsProvider
 
         Private ReadOnly ChildrenByPath As New Dictionary(Of String, List(Of DmsResourceItem))(StringComparer.Ordinal)
+
+        Public Overrides Function ListAllDirectoryItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As System.Threading.Tasks.Task(Of List(Of DmsResourceItem))
+            Return System.Threading.Tasks.Task.FromResult(Me.ListAllDirectoryItems(remoteFolderPath))
+        End Function
+
+        Public Overrides Function ListAllFileItemsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As System.Threading.Tasks.Task(Of List(Of DmsResourceItem))
+            Return System.Threading.Tasks.Task.FromResult(Me.ListAllFileItems(remoteFolderPath))
+        End Function
+
+        Public Overrides Function ResetCachesForRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As System.Threading.Tasks.Task
+            Return System.Threading.Tasks.Task.CompletedTask
+        End Function
 
         Public Property CreatedDirectory As DmsResourceItem
 

@@ -19,7 +19,7 @@ Namespace Providers
     ''' Common Center Device REST API (incl. Scopevisio Teamwork API) implementations
     ''' </summary>
     ''' <inheritdoc path="https://public.centerdevice.de/02bf3cfd-06c6-4d43-9cd4-3c18aab0020a"/>
-    Public MustInherit Class CenterDeviceDmsProviderBase
+    Partial Public MustInherit Class CenterDeviceDmsProviderBase
         Inherits Providers.BaseDmsProvider
 
         Public Overrides ReadOnly Property WebApiUrlCustomization As UrlCustomizationType
@@ -422,8 +422,13 @@ Namespace Providers
         End Sub
 
         ''' <inheritdoc/>
-        Protected Overrides Async Function CopyItemAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
-            Await Task.Run(Sub() Me.CopyItem(remoteSource, remoteDestinationPath, allowOverwrite))
+        ''' <remarks>Source mode uses native asynchronous requests; the default package build retains the serialized synchronous compatibility path.</remarks>
+        Protected Overrides Function CopyItemAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
+#If NATIVE_ASYNC Then
+            Return Me.CopyMoveNativeItemAsync(remoteSource, remoteDestinationPath, allowOverwrite, False, Me.CurrentAsyncCancellationToken)
+#Else
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CopyItem(remoteSource, remoteDestinationPath, allowOverwrite), Me.CurrentAsyncCancellationToken)
+#End If
         End Function
 
         ''' <inheritdoc/>
@@ -522,6 +527,7 @@ Namespace Providers
 
         Private Sub CopyFileExact(sourceFile As CenterDevice.IO.FileInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String, allowOverwrite As Boolean?)
             Dim ExistingDestination As CenterDevice.IO.FileInfo = destinationParent.TryGetFile(destinationName)
+            If ExistingDestination IsNot Nothing Then RejectSameDocumentAction(sourceFile.ID, ExistingDestination.ID, destinationPath)
             If ExistingDestination Is Nothing Then
                 destinationParent.AddCopy(sourceFile, destinationName)
                 Return
@@ -568,6 +574,7 @@ Namespace Providers
 
         Private Sub MoveFileExact(sourceFile As CenterDevice.IO.FileInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String, allowOverwrite As Boolean?)
             Dim ExistingDestination As CenterDevice.IO.FileInfo = destinationParent.TryGetFile(destinationName)
+            If ExistingDestination IsNot Nothing Then RejectSameDocumentAction(sourceFile.ID, ExistingDestination.ID, destinationPath)
             If ExistingDestination IsNot Nothing AndAlso allowOverwrite <> True Then Throw New FileAlreadyExistsException(destinationPath)
             Dim BackupName As String = Nothing
             If ExistingDestination IsNot Nothing Then
@@ -594,6 +601,12 @@ Namespace Providers
                 Catch ex As Exception
                     Throw New FileActionFailedException("move", sourcePath, destinationPath, New InvalidOperationException("The move succeeded, but the replaced file with ID " & ExistingDestination.ID & " remains under temporary name " & BackupName & ".", ex))
                 End Try
+            End If
+        End Sub
+
+        Private Shared Sub RejectSameDocumentAction(sourceId As String, destinationId As String, destinationPath As String)
+            If Not String.IsNullOrEmpty(sourceId) AndAlso String.Equals(sourceId, destinationId, StringComparison.Ordinal) Then
+                Throw New ArgumentException("Source and destination identify the same document; replacement would delete the source document and its other references.", NameOf(destinationPath))
             End If
         End Sub
 
@@ -683,10 +696,9 @@ Namespace Providers
             Me.CopyItem(Source, remoteDestinationPath, allowOverwrite)
         End Sub
 
-        Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
-            Await Task.Run(Sub()
-                               CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite)
-                           End Sub)
+        ''' <inheritdoc/>
+        Protected Overrides Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite), Me.CurrentAsyncCancellationToken)
         End Function
 
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
@@ -694,10 +706,9 @@ Namespace Providers
             Me.CopyItem(Source, remoteDestinationPath, False)
         End Sub
 
-        Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
-            Await Task.Run(Sub()
-                               CopyDirectoryItem(remoteSourcePath, remoteDestinationPath)
-                           End Sub)
+        ''' <inheritdoc/>
+        Protected Overrides Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
+            Return Me.RunSynchronousFallbackAsync(Sub() Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath), Me.CurrentAsyncCancellationToken)
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
@@ -927,6 +938,13 @@ Namespace Providers
         ''' <param name="res"></param>
         ''' <returns></returns>
         Private Function CreateDmsResourceItem(res As CenterDevice.IO.DirectoryInfo) As DmsResourceItem
+            Dim links = If(res.CollectionID <> Nothing, AllUploadLinks(), Nothing)
+            Dim collision = res.ParentDirectory IsNot Nothing AndAlso res.HasCollidingDuplicateDirectory
+            Return Me.CreateDmsResourceItem(res, links, collision)
+        End Function
+
+        'Snapshot inputs let native async callers avoid synchronous lookups during conversion.
+        Private Function CreateDmsResourceItem(res As CenterDevice.IO.DirectoryInfo, uploadLinks As UploadLinks, collision As Boolean) As DmsResourceItem
             Dim Result As New DmsResourceItem() With {
                         .Name = res.Name,
                             .CreatedOnLocalTime = Nothing,
@@ -955,8 +973,8 @@ Namespace Providers
             Result.ExtendedInfosOwner = New DmsUser() With {.ID = res.Owner, .Provider = Me, .GetDisplayName = AddressOf CenterDeviceDmsProviderBase.DelegatedGetDisplayName, .GetEMailAddress = AddressOf CenterDeviceDmsProviderBase.DelegatedGetUserEMailAddress}
             Result.ExtendedInfosLinks = New List(Of DmsLink)
             If res.Link <> Nothing Then Result.ExtendedInfosLinks.Add(New DmsLink(Result, res.Link, Me, AddressOf CenterDeviceDmsProviderBase.DelegatedFillLinkDetails))
-            If res.CollectionID <> Nothing AndAlso AllUploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(res.CollectionID) Then
-                Dim UploadLink As CenterDevice.Rest.Clients.Link.UploadLink = AllUploadLinks.UploadLinksList.Find(Function(item) item.Collection = res.CollectionID)
+            If res.CollectionID <> Nothing AndAlso uploadLinks.UploadLinksList.ConvertAll(Of String)(Function(item) item.Collection).Contains(res.CollectionID) Then
+                Dim UploadLink As CenterDevice.Rest.Clients.Link.UploadLink = uploadLinks.UploadLinksList.Find(Function(item) item.Collection = res.CollectionID)
                 Dim RefreshableDmsLink As New DmsLink(Result, UploadLink.Id, Me, AddressOf DelegatedFillUploadLinkDetails)
                 RefreshableDmsLink.Initialize(UploadLink.Password,
                 DateTimeUtcToLocalTime(UploadLink.ExpiryDate),
@@ -974,7 +992,7 @@ Namespace Providers
             Result.ExtendedInfosVersionDateLocalTime = Nothing
             'Objects loaded directly by ID have no parent directory in the IO wrapper;
             'its collision property requires that parent and cannot be evaluated here.
-            Result.ExtendedInfosCollisionDetected = res.ParentDirectory IsNot Nothing AndAlso res.HasCollidingDuplicateDirectory
+            Result.ExtendedInfosCollisionDetected = collision
             Result.ExtendedInfosIsPublicCollection = res.Public
             Result.ExtendedInfosIsAuditing = res.Auditing
             Result.ExtendedInfosIsIntelligent = res.IsIntelligent
@@ -1055,6 +1073,10 @@ Namespace Providers
         ''' <param name="res"></param>
         ''' <returns></returns>
         Private Function CreateDmsResourceItem(res As CenterDevice.IO.FileInfo) As DmsResourceItem
+            Return Me.CreateDmsResourceItem(res, res.ParentDirectory IsNot Nothing AndAlso res.HasCollidingDuplicateFile)
+        End Function
+
+        Private Function CreateDmsResourceItem(res As CenterDevice.IO.FileInfo, collision As Boolean) As DmsResourceItem
             Dim Result As New DmsResourceItem() With {
                             .Name = res.FileName,
                             .IsHidden = False,
@@ -1065,13 +1087,14 @@ Namespace Providers
             Result.LastModificationOnLocalTime = DateTimeUtcToLocalTime(res.ModificationDate)
 
             'Assign additional fields
-            Result.FullName = res.FullName
+            'A direct identifier lookup has no selected parent path; retain the name and references.
+            Result.FullName = If(res.ParentDirectory Is Nothing, res.FileName, res.FullName)
             Result.Name = res.FileName
             Result.ExtendedInfosFileID = res.ID
             Result.ExtendedInfosCollectionID = Nothing
             Result.ExtendedInfosFolderID = Nothing
-            Result.ExtendedInfosAssignedCollectionID = res.ParentDirectory.AssociatedCollection.CollectionID
-            Result.ExtendedInfosAssignedFolderID = res.ParentDirectory.FolderID
+            Result.ExtendedInfosAssignedCollectionID = res.ParentDirectory?.AssociatedCollection?.CollectionID
+            Result.ExtendedInfosAssignedFolderID = res.ParentDirectory?.FolderID
             If res.ReferencedFromCollectionIDs IsNot Nothing AndAlso res.ReferencedFromCollectionIDs.HasSharing = True Then
                 Result.ExtendedInfosReferencedFromCollectionIDs = New List(Of String)(res.ReferencedFromCollectionIDs.Visible)
             Else
@@ -1091,7 +1114,7 @@ Namespace Providers
             Result.ExtendedInfosArchivedDateLocalTime = DateTimeUtcToLocalTime(res.ArchivedDate)
             Result.ExtendedInfosVersion = res.Version.ToString
             Result.ExtendedInfosVersionDateLocalTime = DateTimeUtcToLocalTime(res.VersionDate)
-            Result.ExtendedInfosCollisionDetected = res.HasCollidingDuplicateFile
+            Result.ExtendedInfosCollisionDetected = collision
             Result.ExtendedInfosIsShared = res.IsShared
             'Result.ExtendedInfosIsPublicCollection = res.Public
             'Result.ExtendedInfosIsAuditing = res.Auditing
@@ -1125,10 +1148,10 @@ Namespace Providers
             Else
                 ParentFolderName = ""
             End If
-            If res.ParentDirectory.IsRootDirectory = False AndAlso res.ParentDirectory.CollectionID = Nothing Then
+            If res.ParentDirectory IsNot Nothing AndAlso res.ParentDirectory.IsRootDirectory = False AndAlso res.ParentDirectory.CollectionID = Nothing Then
                 Result.Folder = ParentFolderName
             End If
-            Result.Collection = res.ParentDirectory.AssociatedCollection.FullName
+            Result.Collection = res.ParentDirectory?.AssociatedCollection?.FullName
 
             'Require at least empty strings
             Result.Name = Tools.NotNullOrEmptyStringValue(Result.Name)
@@ -1345,9 +1368,7 @@ Namespace Providers
                 Case Else
                     Throw New NotImplementedException()
             End Select
-            If Response?.FailedGroups?.Count = 0 AndAlso Response?.FailedUsers?.Count = 0 Then
-                Throw New InvalidOperationException("Failure deleting sharing")
-            End If
+            ValidateSharingResponse(Response)
             Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(dmsResource)
         End Sub
 
@@ -1458,10 +1479,16 @@ Namespace Providers
                 Case Else
                     Throw New NotImplementedException()
             End Select
-            If Response?.FailedGroups?.Count = 0 AndAlso Response?.FailedUsers?.Count = 0 Then
-                Throw New InvalidOperationException("Failure deleting sharing")
-            End If
+            ValidateSharingResponse(Response)
             Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(shareInfo.ParentDmsResourceItem)
+        End Sub
+
+        Friend Shared Sub ValidateSharingResponse(response As SharingResponse)
+            If response Is Nothing Then Return 'The API also accepts a successful 204 response without content.
+            If (response.FailedGroups IsNot Nothing AndAlso response.FailedGroups.Count > 0) OrElse
+                (response.FailedUsers IsNot Nothing AndAlso response.FailedUsers.Count > 0) Then
+                Throw New InvalidOperationException("The sharing operation failed for one or more users or groups.")
+            End If
         End Sub
 
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForGroup)

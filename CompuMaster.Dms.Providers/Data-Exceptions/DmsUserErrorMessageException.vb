@@ -11,6 +11,13 @@
             MyBase.New(message)
         End Sub
 
+        ''' <summary>Creates a user-facing error while retaining its original cause.</summary>
+        ''' <param name="message">The message shown to the user.</param>
+        ''' <param name="innerException">The original failure.</param>
+        Public Sub New(message As String, innerException As Exception)
+            MyBase.New(message, innerException)
+        End Sub
+
     End Class
 
 End Namespace

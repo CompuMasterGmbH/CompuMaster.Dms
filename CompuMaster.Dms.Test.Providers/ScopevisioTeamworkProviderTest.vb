@@ -87,7 +87,7 @@ Public Class ScopevisioTeamworkProviderTest
     ''' <summary>
     ''' Verifies that Scopevisio reports child-folder metadata for both nested and empty folders.
     ''' </summary>
-    <Test>
+    <Test, Category("TestLevel1")>
     Public Sub DirectoryListingIncludesKnownChildFolderFlags()
         Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
@@ -105,7 +105,7 @@ Public Class ScopevisioTeamworkProviderTest
     ''' <summary>
     ''' Verifies that an upload byte limit survives creation and update on the Scopevisio server.
     ''' </summary>
-    <Test>
+    <Test, Category("TestLevel2")>
     Public Sub UploadLinkMaxBytesPersistsAfterCreateAndUpdate()
         Const CollectionName As String = "ZZZ_UnitTests_CM.Dms_MaxBytesLink"
         Const InitialMaxBytes As Long = 1073741824L
@@ -157,7 +157,7 @@ Public Class ScopevisioTeamworkProviderTest
     ''' <summary>
     ''' Verifies that downloads of duplicate Scopevisio file names return the content belonging to the selected file ID.
     ''' </summary>
-    <Test>
+    <Test, Category("TestLevel2")>
     Public Sub DownloadDuplicateFileNamesBySelectedResourceId()
         Const FileName As String = "duplicate-download-content.test"
         Dim olderContent As Byte() = {1, 3, 5, 7, 9}
@@ -204,7 +204,7 @@ Public Class ScopevisioTeamworkProviderTest
     ''' <summary>
     ''' Verifies that copy and move use the selected CenterDevice file ID when several files share the same path.
     ''' </summary>
-    <Test>
+    <Test, Category("TestLevel2")>
     Public Sub CopyAndMoveDuplicateFileNamesBySelectedResourceId()
         Dim Provider As CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase = DirectCast(Me.LoggedInDmsProvider, CompuMaster.Dms.Providers.CenterDeviceDmsProviderBase)
         Dim TestSuffix As String = Guid.NewGuid().ToString("N")
@@ -263,7 +263,7 @@ Public Class ScopevisioTeamworkProviderTest
     ''' <summary>
     ''' Verifies that a CenterDevice collection can be renamed in the root without being treated as a regular movable folder.
     ''' </summary>
-    <Test>
+    <Test, Category("TestLevel2")>
     Public Sub RenameCollectionInRoot()
         Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim TestSuffix As String = Guid.NewGuid().ToString("N")
@@ -297,7 +297,7 @@ Public Class ScopevisioTeamworkProviderTest
     ''' <summary>
     ''' Verifies that collections aren't exposed as regular copyable directory trees.
     ''' </summary>
-    <Test>
+    <Test, Category("TestLevel1")>
     Public Sub CopyCollectionIsNotSupported()
         Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim DestinationName As String = "ZZZ_UnitTests_CM.Dms_CollectionCopy_" & Guid.NewGuid().ToString("N")

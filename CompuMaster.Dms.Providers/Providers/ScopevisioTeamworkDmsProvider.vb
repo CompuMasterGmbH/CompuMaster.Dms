@@ -27,11 +27,20 @@ Namespace Providers
 
         Private _OpenScopeClient As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient
 
-        Private Shared ReadOnly NameLookupClient As New HttpClient()
-        Private Shared ReadOnly NameLookupClientIgnoringSslErrors As New HttpClient(New HttpClientHandler With {
-            .ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True
-        })
+        Private Shared ReadOnly NameLookupClient As HttpClient = CreateNameLookupTransport(False)
+        Private Shared ReadOnly NameLookupClientIgnoringSslErrors As HttpClient = CreateNameLookupTransport(True)
         Private _ignoreSslErrors As Boolean
+
+        Private Shared Function CreateNameLookupTransport(ignoreSslErrors As Boolean) As HttpClient
+            Dim handler As New HttpClientHandler()
+            If ignoreSslErrors Then handler.ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True
+#If NATIVE_ASYNC Then
+            handler.UseCookies = False
+            Return Global.CenterDevice.Rest.Clients.CenterDeviceHttpTransport.CreateHttpClient(handler)
+#Else
+            Return New HttpClient(handler)
+#End If
+        End Function
 
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
@@ -80,6 +89,9 @@ Namespace Providers
         ''' <param name="loginCredentials">The Scopevisio login credentials.</param>
         ''' <param name="ignoreSslErrors">A value indicating whether TLS certificate validation errors are ignored.</param>
         Protected Overridable Sub AuthorizeCore(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean)
+#If NATIVE_ASYNC Then
+            Me.AuthorizeNativeCoreAsync(loginCredentials, ignoreSslErrors, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
+#Else
             Dim IsTokenRequest As Boolean = False
             Try
                 Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration With {
@@ -106,6 +118,7 @@ Namespace Providers
             Catch ex As CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 Throw CreateAuthorizationException(ex.ErrorCode, ex.ErrorContent, ex, IsTokenRequest)
             End Try
+#End If
         End Sub
 
         ''' <inheritdoc/>

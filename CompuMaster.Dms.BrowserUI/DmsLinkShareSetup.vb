@@ -1,8 +1,11 @@
 ﻿Imports System.Windows.Forms
 Imports CompuMaster.Dms.Data
+Imports System.Threading.Tasks
 Imports CompuMaster.Dms.Providers
 
 Public Class DmsLinkShareSetup
+
+    Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
 
     Public Sub New()
         InitializeComponent()
@@ -73,7 +76,19 @@ Public Class DmsLinkShareSetup
         End Set
     End Property
 
-    Private Sub DmsLinkShare_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Async Sub DmsLinkShare_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Try
+            If Me.DmsLinkDetails IsNot Nothing Then
+                Await PendingOperation.RunAsync(Function() Me.DmsLinkDetails.RefreshAsync())
+            End If
+            LoadControls()
+        Catch ex As Exception
+            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.Close()
+        End Try
+    End Sub
+
+    Private Sub LoadControls()
         If Me._DialogMode = Nothing Then
             If Me.DmsLinkDetails Is Nothing Then
                 Me.DialogMode = DialogModes.CreateLink
@@ -255,6 +270,18 @@ Public Class DmsLinkShareSetup
         If requestedLink Is Nothing Then Throw New ArgumentNullException(NameOf(requestedLink))
 
         Dim CreatedLink As DmsLink = dmsProvider.CreateLink(dmsItem, requestedLink)
+        Return SynchronizeCreatedLink(dmsItem, CreatedLink)
+    End Function
+
+    Friend Shared Async Function CreateLinkAndSynchronizeDmsItemAsync(dmsProvider As BaseDmsProvider, dmsItem As DmsResourceItem, requestedLink As DmsLink) As Task(Of DmsLink)
+        If dmsProvider Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProvider))
+        If dmsItem Is Nothing Then Throw New ArgumentNullException(NameOf(dmsItem))
+        If requestedLink Is Nothing Then Throw New ArgumentNullException(NameOf(requestedLink))
+        Dim CreatedLink As DmsLink = Await dmsProvider.CreateLinkAsync(dmsItem, requestedLink)
+        Return SynchronizeCreatedLink(dmsItem, CreatedLink)
+    End Function
+
+    Private Shared Function SynchronizeCreatedLink(dmsItem As DmsResourceItem, CreatedLink As DmsLink) As DmsLink
         If CreatedLink Is Nothing Then Throw New InvalidOperationException("The DMS provider returned no created link.")
         If String.IsNullOrEmpty(CreatedLink.ID) Then Throw New InvalidOperationException("The DMS provider returned a created link without an ID.")
 
@@ -341,7 +368,8 @@ Public Class DmsLinkShareSetup
         End If
     End Sub
 
-    Private Sub ButtonSave_Click(sender As Object, e As EventArgs) Handles ButtonSave.Click
+    Private Async Sub ButtonSave_Click(sender As Object, e As EventArgs) Handles ButtonSave.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Select Case Me.DmsProvider.GetType.Name
                 Case "ScopevisioTeamworkDmsProvider"
@@ -365,13 +393,16 @@ Public Class DmsLinkShareSetup
                     Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
             End Select
             Me.SaveControlDataIntoDmsLink()
-            If Me._DialogMode = DialogModes.CreateLink Then
-                Me._DmsUpdatedLinkDetails = CreateLinkAndSynchronizeDmsItem(Me.DmsProvider, Me.DmsItem, Me.DmsUpdatedLinkDetails)
-            Else
-                Me.DmsProvider.UpdateLink(Me.DmsUpdatedLinkDetails)
-            End If
-            Me.DialogResult = DialogResult.OK
-            Me.Close()
+            Await PendingOperation.RunAsync(Async Function()
+                                                If Me._DialogMode = DialogModes.CreateLink Then
+                                                    Me._DmsUpdatedLinkDetails = Await CreateLinkAndSynchronizeDmsItemAsync(Me.DmsProvider, Me.DmsItem, Me.DmsUpdatedLinkDetails)
+                                                Else
+                                                    Await Me.DmsProvider.UpdateLinkAsync(Me.DmsUpdatedLinkDetails)
+                                                End If
+                                            End Function, Sub()
+                                                              Me.DialogResult = DialogResult.OK
+                                                              Me.Close()
+                                                          End Sub)
         Catch ex As Data.DmsUserInputInvalidException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.DmsUserInputMissingException

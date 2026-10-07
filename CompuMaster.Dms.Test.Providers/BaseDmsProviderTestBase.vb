@@ -30,12 +30,12 @@ Public MustInherit Class BaseDmsProviderTestBase
     Protected MustOverride Function UninitializedDmsProvider() As CompuMaster.Dms.Providers.BaseDmsProvider
     Protected MustOverride Function LoggedInDmsProvider() As CompuMaster.Dms.Providers.BaseDmsProvider
 
-    <Test> Public Sub LoginAtRestApiWebservice()
+    <Test, Category("TestLevel1")> Public Sub LoginAtRestApiWebservice()
         Me.LoggedInDmsProvider()
         ClassicAssert.Pass()
     End Sub
 
-    <Test> Public Overridable Sub ListAllFolderNames()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllFolderNames()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of String)
 
@@ -56,7 +56,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Next
     End Sub
 
-    <Test> Public Overridable Sub ListAllCollectionNames()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllCollectionNames()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of String) = DmsProvider.ListAllCollectionNames(DmsProvider.BrowseInRootFolderName)
         For Each MyItem As String In Items
@@ -72,7 +72,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         End If
     End Sub
 
-    <Test> Public Overridable Sub ListAllFileNames()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllFileNames()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of String)
 
@@ -96,7 +96,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Next
     End Sub
 
-    <Test> Public Overridable Sub ListAllFolderItems()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllFolderItems()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of DmsResourceItem)
 
@@ -142,7 +142,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Next
     End Sub
 
-    <Test> Public Sub RemoteItemExists()
+    <Test, Category("TestLevel1")> Public Sub RemoteItemExists()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         For Each MustNotExistItem As String In Me.RemoteItemsMustNotExist
             ClassicAssert.IsFalse(DmsProvider.RemoteItemExists(MustNotExistItem))
@@ -158,7 +158,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Next
     End Sub
 
-    <Test> Public Overridable Sub ListAllCollectionItems()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllCollectionItems()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of DmsResourceItem) = DmsProvider.ListAllCollectionItems(DmsProvider.BrowseInRootFolderName)
         For Each MyItem As DmsResourceItem In Items
@@ -174,7 +174,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         End If
     End Sub
 
-    <Test> Public Overridable Sub ListAllFileItems()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllFileItems()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of DmsResourceItem)
 
@@ -212,7 +212,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         End If
     End Function
 
-    <Test> Public Overridable Sub ListAllRemoteItems()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListAllRemoteItems()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of DmsResourceItem)
 
@@ -235,7 +235,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Next
     End Sub
 
-    <Test> Public Overridable Sub ListRemoteItem()
+    <Test, Category("TestLevel1")> Public Overridable Sub ListRemoteItem()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Item As DmsResourceItem
 
@@ -354,7 +354,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         "sub-move4/sub3/move-source-test-file.tmp"
     }
 
-    <Test> Public Sub CorrectTestConfigOverrides()
+    <Test, Category("TestLevel1")> Public Sub CorrectTestConfigOverrides()
         'Copy property
         ClassicAssert.AreEqual(CopyDirTestDirSource.Length, CopyDirTestDirTarget.Length)
         ClassicAssert.AreEqual(CopyDirTestDirSource.Length, CopyDirTestExpectedTargetFile.Length)
@@ -388,7 +388,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         End If
     End Function
 
-    <Test> Public Sub CombinePath()
+    <Test, Category("TestLevel1")> Public Sub CombinePath()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
         ClassicAssert.AreEqual("folder1/folder2/folder3/folder4", DmsProvider.CombinePath("folder1/folder2", "folder3/folder4"))
         ClassicAssert.AreEqual("folder1/folder2/folder3/folder4", DmsProvider.CombinePath("folder1", "folder2", "folder3", "folder4"))
@@ -400,7 +400,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         ClassicAssert.AreEqual("", DmsProvider.CombinePath("", ""))
     End Sub
 
-    <Test> Public Sub ParentDirectoryPath()
+    <Test, Category("TestLevel1")> Public Sub ParentDirectoryPath()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
         ClassicAssert.AreEqual("folder1/folder2/folder3/folder4", DmsProvider.ParentDirectoryPath("folder1/folder2/folder3/folder4/folder5"))
         ClassicAssert.AreEqual("/folder1/folder2/folder3/folder4", DmsProvider.ParentDirectoryPath("/folder1/folder2/folder3/folder4/folder5"))
@@ -411,7 +411,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         ClassicAssert.AreEqual(Nothing, DmsProvider.ParentDirectoryPath(""))
     End Sub
 
-    <Test> Public Sub ItemName()
+    <Test, Category("TestLevel1")> Public Sub ItemName()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.UninitializedDmsProvider
         ClassicAssert.AreEqual("folder4", DmsProvider.ItemName("folder1/folder2/folder3/folder4"))
         ClassicAssert.AreEqual("folder4", DmsProvider.ItemName("/folder1/folder2/folder3/folder4"))
@@ -517,7 +517,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         ClassicAssert.IsFalse(RemoteItemExists)
     End Sub
 
-    <Test> Public Sub CreateCollectionOrFolderAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub CreateCollectionOrFolderAndCleanup()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
         'Test RemoteTestFolderName as is
@@ -574,7 +574,7 @@ Public MustInherit Class BaseDmsProviderTestBase
     ''' <summary>
     ''' Test creation of provider-decided directory type of collection or folder
     ''' </summary>
-    <Test> Public Sub CreateRemoteDirectoryAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub CreateRemoteDirectoryAndCleanup()
         Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
         Dim RemotePath As String = Me.RemoteTestFolderName
         Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
@@ -605,7 +605,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection, TriState.True)
     End Sub
 
-    <Test> Public Sub CreateRemoteFolderAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub CreateRemoteFolderAndCleanup()
         Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
         Dim RemotePath As String = Me.RemoteTestFolderName
         Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, Nothing, TriState.UseDefault)
@@ -638,7 +638,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Me.RemoveRemoteItemIfItExists(DmsProvider, RemotePath, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection, TriState.True)
     End Sub
 
-    <Test> Public Sub CreateRemoteCollectionAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub CreateRemoteCollectionAndCleanup()
         Dim DmsProvider As BaseDmsProvider = Me.LoggedInDmsProvider
         Dim RemotePath As String = Me.RemoteTestCollectionName
         If DmsProvider.SupportsCollections Then
@@ -679,7 +679,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         Me.CleanupRemoteDirectory(DmsProvider, RemotePath)
     End Sub
 
-    <Test> Public Sub UploadFilesAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub UploadFilesAndCleanup()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
         If Me.UploadTestFilesAndCleanupAgainFilePath.Length > 0 OrElse Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
@@ -868,7 +868,7 @@ Public MustInherit Class BaseDmsProviderTestBase
     ''' <summary>
     ''' Test for whole procedure of creating directory + creating link share + update link share + remove share and directory
     ''' </summary>
-    <Test> Public Sub CreateUploadLinkForCollectionAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub CreateUploadLinkForCollectionAndCleanup()
         Const RemoteTestFolderName As String = "ZZZ_UnitTest_CM.Dms.CenterDevice_TempUploadLinkDir"
 
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
@@ -946,7 +946,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         End Try
     End Sub
 
-    <Test> Public Sub CreateDownloadLinkForCollectionAndCleanup()
+    <Test, Category("TestLevel2")> Public Sub CreateDownloadLinkForCollectionAndCleanup()
         Const RemoteTestFolderName As String = "ZZZ_UnitTest_CM.Dms.CenterDevice_TempDownloadLinkDir"
 
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
@@ -1014,7 +1014,68 @@ Public MustInherit Class BaseDmsProviderTestBase
         End Try
     End Sub
 
-    <Test> Public Sub Copy_Files()
+    ''' <summary>
+    ''' Verifies a small upload, version replacement, download, copy, move, and owned-resource cleanup.
+    ''' </summary>
+    <Test, Category("TestLevel1")>
+    Public Async Function BasicFileRoundTripAndCleanup() As Task
+        Dim provider = Me.LoggedInDmsProvider()
+        Const ownedRoot As String = "ZZZ_UnitTests_CM.Dms_Level1"
+        Dim source = provider.CombinePath(ownedRoot, "source.bin")
+        Dim copied = provider.CombinePath(ownedRoot, "copy.bin")
+        Dim moved = provider.CombinePath(ownedRoot, "moved.bin")
+        Dim originalFailure As Exception = Nothing
+        Dim localFile = System.IO.Path.GetTempFileName()
+        Try
+            Await RemoveLevel1ResourcesAsync(provider, ownedRoot)
+            Await provider.CreateDirectoryAsync(ownedRoot)
+            Await provider.UploadFileAsync(source, New Byte() {1, 2, 3})
+            Dim expected As Byte() = {0, 255, 68, 46, 64, 87, 92}
+            Await provider.UploadFileAsync(source, expected)
+            Await provider.CopyAsync(source, copied, False, False)
+            Await provider.MoveAsync(copied, moved, False, False)
+            Assert.That(Await provider.RemoteItemExistsAsync(source), [Is].True)
+            Assert.That(Await provider.RemoteItemExistsAsync(copied), [Is].False)
+            Await provider.DownloadFileAsync(moved, localFile, Nothing)
+            Assert.That(System.IO.File.ReadAllBytes(localFile), [Is].EqualTo(expected))
+        Catch ex As Exception
+            originalFailure = ex
+        End Try
+        'VB cannot await inside Finally. Capture the original failure before independent cleanup.
+        Try
+            Await RemoveLevel1ResourcesAsync(provider, ownedRoot)
+        Catch cleanupFailure As Exception
+            If originalFailure IsNot Nothing Then Throw New AggregateException("Level 1 round trip and cleanup both failed.", originalFailure, cleanupFailure)
+            Throw
+        Finally
+            System.IO.File.Delete(localFile)
+        End Try
+        If originalFailure IsNot Nothing Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(originalFailure).Throw()
+    End Function
+
+    Private Shared Async Function RemoveLevel1ResourcesAsync(provider As BaseDmsProvider, ownedRoot As String) As Task
+        Await provider.ResetCachesForRemoteItemsAsync("/", BaseDmsProvider.SearchItemType.AllItems)
+        Dim root = Await provider.ListRemoteItemAsync(ownedRoot)
+        If root IsNot Nothing Then
+            Assert.That(root.ExtendedInfosCollisionDetected, [Is].False, "The owned Level 1 root must have an unambiguous identity.")
+            Assert.That(root.ItemType = DmsResourceItem.ItemTypes.Collection OrElse root.ItemType = DmsResourceItem.ItemTypes.Folder, [Is].True)
+            For Each child In Await provider.ListAllRemoteItemsAsync(ownedRoot, BaseDmsProvider.SearchItemType.AllItems)
+                Assert.That(child.ItemType, [Is].EqualTo(DmsResourceItem.ItemTypes.File), "Unexpected child in the flat Level 1 test scope; refusing uncertain cleanup.")
+                Assert.That(child.Name, [Is].AnyOf("source.bin", "copy.bin", "moved.bin"), "Cleanup must only remove known smoke-test files.")
+                Assert.That(child.ExtendedInfosCollisionDetected, [Is].False)
+                If provider.SupportsCollections Then
+                    Assert.That(root.ExtendedInfosCollectionID, [Is].Not.Empty)
+                    Assert.That(child.ExtendedInfosReferencedFromCollectionIDs Is Nothing OrElse child.ExtendedInfosReferencedFromCollectionIDs.All(Function(id) id = root.ExtendedInfosCollectionID), [Is].True, "Cleanup must not delete a file referenced outside the owned collection.")
+                End If
+                Await provider.DeleteRemoteItemAsync(child)
+            Next
+            Await provider.DeleteRemoteItemAsync(root)
+        End If
+        Await provider.ResetCachesForRemoteItemsAsync("/", BaseDmsProvider.SearchItemType.AllItems)
+        Assert.That(Await provider.RemoteItemExistsAsync(ownedRoot), [Is].False, "Level 1 test scope must be absent before setup and after cleanup.")
+    End Function
+
+    <Test, Category("TestLevel2")> Public Sub Copy_Files()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
@@ -1047,7 +1108,7 @@ Public MustInherit Class BaseDmsProviderTestBase
 
     End Sub
 
-    <Test> Public Sub Copy_Directories()
+    <Test, Category("TestLevel2")> Public Sub Copy_Directories()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
@@ -1211,7 +1272,7 @@ Public MustInherit Class BaseDmsProviderTestBase
         CleanupRemoteFile(dmsProvider, RemoteFilePathTarget)
     End Sub
 
-    <Test> Public Sub Move_Files()
+    <Test, Category("TestLevel2")> Public Sub Move_Files()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
@@ -1244,7 +1305,7 @@ Public MustInherit Class BaseDmsProviderTestBase
 
     End Sub
 
-    <Test> Public Sub Move_Directories()
+    <Test, Category("TestLevel2")> Public Sub Move_Directories()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
 
         If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then

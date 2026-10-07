@@ -45,7 +45,7 @@ Public MustInherit Class WebDavProviderTestBase
         End Get
     End Property
 
-    <Test>
+    <Test, Category("TestLevel2")>
     Public Sub CloudOcsPublicLinkRoundTrip()
         If Not TypeOf Me Is OwnCloudWebDavProviderTest AndAlso Not TypeOf Me Is NextcloudWebDavProviderTest Then
             Assert.Ignore("Generic WebDAV does not require an OCS sharing API.")
