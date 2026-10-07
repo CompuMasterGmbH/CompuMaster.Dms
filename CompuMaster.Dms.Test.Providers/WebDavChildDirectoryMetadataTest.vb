@@ -26,15 +26,18 @@ Public Class WebDavChildDirectoryMetadataTest
             Using client As New HttpClient(handler)
                 Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = "https://example.test/"}
                 GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic).SetValue(provider, New WebDav.WebDavClient(client))
-                Dim folder = provider.ListAllRemoteItems("", BaseDmsProvider.SearchItemType.Folders).Single()
-                AssertMetadata(folder, expectedCount)
-                ClassicAssert.AreEqual("1", handler.Depth)
-                AssertRequest(handler.RequestBody)
+                For Each asynchronous As Boolean In New Boolean() {False, True}
+                    Dim folder = If(asynchronous, provider.ListAllRemoteItemsAsync("", BaseDmsProvider.SearchItemType.Folders).GetAwaiter().GetResult().Single(), provider.ListAllRemoteItems("", BaseDmsProvider.SearchItemType.Folders).Single())
+                    AssertMetadata(folder, expectedCount)
+                    ClassicAssert.AreEqual("1", handler.Depth)
+                    AssertRequest(handler.RequestBody)
 
-                folder = provider.ListRemoteItem("folder")
-                AssertMetadata(folder, expectedCount)
-                ClassicAssert.AreEqual("0", handler.Depth)
-                AssertRequest(handler.RequestBody)
+                    folder = If(asynchronous, provider.ListRemoteItemAsync("folder").GetAwaiter().GetResult(), provider.ListRemoteItem("folder"))
+                    AssertMetadata(folder, expectedCount)
+                    ClassicAssert.AreEqual("0", handler.Depth)
+                    AssertRequest(handler.RequestBody)
+                Next
+                Assert.That(handler.RequestCount, [Is].EqualTo(4), "Metadata must use the listing response without extra per-folder requests.")
             End Using
         End Using
     End Sub
@@ -63,6 +66,7 @@ Public Class WebDavChildDirectoryMetadataTest
         Private ReadOnly StatusCode As Integer
         Public Property RequestBody As String
         Public Property Depth As String
+        Public Property RequestCount As Integer
 
         Public Sub New(value As String, statusCode As Integer)
             Me.Value = value
@@ -70,6 +74,7 @@ Public Class WebDavChildDirectoryMetadataTest
         End Sub
 
         Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
+            Me.RequestCount += 1
             Me.RequestBody = Await request.Content.ReadAsStringAsync()
             Me.Depth = request.Headers.GetValues("Depth").Single()
             Dim xml = <d:multistatus xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns">

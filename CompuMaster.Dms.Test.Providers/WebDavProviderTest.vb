@@ -107,6 +107,52 @@ Public MustInherit Class WebDavProviderTestBase
         End Function)
     End Function
 
+    <Test, Category("TestLevel2")>
+    Public Async Function ChildDirectoryMetadataReportsEmptyNonemptyOrUnknownAcrossListingPaths() As Task
+        Await WithOwnedMetadataFixtureAsync("Child_Metadata", Async Function(provider, root)
+            Dim parent = Await provider.ListRemoteItemAsync(root)
+            AssertChildMetadata(parent, 1)
+            Dim children = Await provider.ListAllRemoteItemsAsync(root, Dms.Providers.BaseDmsProvider.SearchItemType.Folders)
+            Assert.That(children, Has.Count.EqualTo(1))
+            Dim empty = children.Single()
+            AssertChildMetadata(empty, 0)
+            Dim synchronous = provider.ListAllRemoteItems(root, Dms.Providers.BaseDmsProvider.SearchItemType.Folders).Single()
+            Assert.That(synchronous.ChildDirectoryCount, [Is].EqualTo(empty.ChildDirectoryCount))
+            Assert.That(synchronous.HasChildDirectories, [Is].EqualTo(empty.HasChildDirectories))
+            Dim individual = Await provider.ListRemoteItemAsync(empty.FullName)
+            Assert.That(individual.ChildDirectoryCount, [Is].EqualTo(empty.ChildDirectoryCount))
+            Assert.That(individual.HasChildDirectories, [Is].EqualTo(empty.HasChildDirectories))
+            Dim field = GetType(Dms.Providers.WebDavDmsProvider).GetField("WebDavClient", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
+            Dim client = CType(field.GetValue(provider), WebDav.WebDavClient)
+            Dim name = Xml.Linq.XName.Get("contained-folder-count", "http://nextcloud.org/ns")
+            Dim response = Await client.Propfind(CType(provider, Dms.Providers.WebDavDmsProvider).CustomWebApiUrl & empty.FullName, New WebDav.PropfindParameters With {
+                .ApplyTo = WebDav.ApplyTo.Propfind.ResourceOnly, .RequestType = WebDav.PropfindRequestType.NamedProperties,
+                .CustomProperties = New Xml.Linq.XName() {Xml.Linq.XName.Get("resourcetype", "DAV:"), name}})
+            Assert.That(response.IsSuccessful, [Is].True, "Named child-metadata request failed.")
+            Dim resource = response.Resources.Single()
+            Dim status = resource.PropertyStatuses.FirstOrDefault(Function(candidate) candidate.Name = name)
+            Dim count = resource.Properties.FirstOrDefault(Function(prop) prop.Name = name)
+            TestContext.WriteLine("Child-folder capability: property status=" & If(status Is Nothing, "unreported", status.StatusCode.ToString(Globalization.CultureInfo.InvariantCulture)) & ", mappedKnown=" & empty.ChildDirectoryCount.HasValue.ToString())
+            If count IsNot Nothing AndAlso (status Is Nothing OrElse status.IsSuccessful) Then
+                Dim numeric As Integer
+                If Integer.TryParse(count.Value, Globalization.NumberStyles.Integer, Globalization.CultureInfo.InvariantCulture, numeric) AndAlso numeric >= 0 Then
+                    Assert.That(empty.ChildDirectoryCount, [Is].EqualTo(numeric), "A supported explicit count must reach the initial listing.")
+                End If
+            Else
+                Assert.That(empty.ChildDirectoryCount.HasValue, [Is].False, "Unavailable metadata must remain unknown, even for this empty fixture.")
+            End If
+        End Function)
+    End Function
+
+    Private Shared Sub AssertChildMetadata(item As Dms.Data.DmsResourceItem, expected As Integer)
+        If item.ChildDirectoryCount.HasValue Then
+            Assert.That(item.ChildDirectoryCount.Value, [Is].EqualTo(expected))
+            Assert.That(item.HasChildDirectories, [Is].EqualTo(expected > 0))
+        Else
+            Assert.That(item.HasChildDirectories.HasValue, [Is].False)
+        End If
+    End Sub
+
     Private Async Function WithOwnedMetadataFixtureAsync(name As String, action As Func(Of Dms.Providers.BaseDmsProvider, String, Task)) As Task
         Dim provider = Me.LoggedInDmsProvider()
         Dim root = provider.CombinePath(TestDirName, name)
