@@ -19,6 +19,8 @@ Component-generated prompts, validation/authentication explanations, and generat
 
 The agreed languages are English, German, French, Spanish, simplified Chinese, traditional Chinese, Japanese, Arabic, Hebrew, and initially Hindi. All four demo applications are included as GUI demonstrators. New upload-progress and token-renewal messages use the same resource conventions.
 
+The demos share their login/startup resource implementation; WebDAV, ownCloud Classic, Nextcloud, and Scopevisio each embed the resources under their own assembly namespace. Localizing a form's construction does not read/write credentials or change profile keys. Persisted credential behavior is unchanged. Stable branded demo-window titles and product/provider names remain recognizable across cultures, including the exact Nextcloud demo title used by visual-review tooling.
+
 Arabic/Hebrew text resources are separate from full RTL GUI support. This chat preserves the existing layout direction. Issue #66 records the later mirroring/control-order/directional-icon/mixed-text design; implementing `RightToLeft` or `RightToLeftLayout` is deferred. A translated text pack does not claim full bidirectional GUI acceptance.
 
 References: [.NET resource lookup](https://learn.microsoft.com/en-us/dotnet/core/extensions/retrieve-resources), [satellite assemblies](https://learn.microsoft.com/en-us/dotnet/core/extensions/create-satellite-assemblies), and [WinForms bidirectional control behavior](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/advanced/bi-directional-support-for-windows-forms-applications).

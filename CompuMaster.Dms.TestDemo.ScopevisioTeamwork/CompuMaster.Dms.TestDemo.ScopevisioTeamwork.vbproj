@@ -66,4 +66,9 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoStrings.vb" Link="DemoStrings.vb" />
+    <EmbeddedResource Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoStrings*.resx" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

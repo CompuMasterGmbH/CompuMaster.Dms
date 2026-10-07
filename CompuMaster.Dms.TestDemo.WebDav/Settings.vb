@@ -99,7 +99,7 @@
         Dim ParsedServerUrl As Uri = Nothing
         If Not Uri.TryCreate(serverUrl, UriKind.Absolute, ParsedServerUrl) OrElse
            (ParsedServerUrl.Scheme <> Uri.UriSchemeHttp AndAlso ParsedServerUrl.Scheme <> Uri.UriSchemeHttps) Then
-            Throw New InvalidOperationException("The Nextcloud server URL must be an absolute HTTP or HTTPS URL.")
+            Throw New InvalidOperationException(DemoStrings.GetText("InvalidNextcloudServerUrl"))
         End If
 
         Dim ServerUrlBuilder As New UriBuilder(ParsedServerUrl) With {
