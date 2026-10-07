@@ -48,6 +48,9 @@ Public Class LocalFileSystemContractTest
                 End Sub)
             Assert.That(TypeOf failure Is IOException OrElse TypeOf failure Is UnauthorizedAccessException, [Is].True, failure.ToString())
             TestContext.WriteLine("Directory-at-file-target: " & Environment.OSVersion.Platform.ToString() & ", async=" & asynchronous.ToString() & ", processed=" & processed.ToString() & ": " & failure.GetType().FullName)
+            CapabilityEvidence.Record("filesystem-" & asynchronous.ToString() & "-" & processed.ToString(), New With {
+                .Platform = Environment.OSVersion.Platform.ToString(), .Framework = AppContext.TargetFrameworkName,
+                .Asynchronous = asynchronous, .Processed = processed, .ExceptionType = failure.GetType().FullName})
             Assert.That(Directory.Exists(target), [Is].True)
             Assert.That(Directory.GetFiles(OwnedRoot), [Is].Empty, "Failed finalization must remove the temporary download.")
         End Using
