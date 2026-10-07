@@ -3,16 +3,22 @@ Imports CompuMaster.Dms.Data
 Imports System.Threading.Tasks
 Imports CompuMaster.Dms.Providers
 
+''' <summary>Edits permissions granted to an internal DMS user or group.</summary>
 Public Class DmsStandardShareSetup
 
     Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
 
+    ''' <summary>Initializes the internal sharing dialog.</summary>
     <Obsolete("Use overloaded constructor")>
     Public Sub New()
         InitializeComponent()
         ApplyLocalizedText()
     End Sub
 
+    ''' <summary>Initializes the internal sharing dialog.</summary>
+    ''' <param name="userSharing">The existing user share, or Nothing when preparing a new share.</param>
+    ''' <param name="dmsProvider">The authorized provider used for the operation.</param>
+    ''' <param name="hideIDs">The identifiers omitted from the list of addable users or groups.</param>
     Public Sub New(userSharing As DmsShareForUser, dmsProvider As Providers.BaseDmsProvider, hideIDs As List(Of String))
         InitializeComponent()
         ApplyLocalizedText()
@@ -25,6 +31,10 @@ Public Class DmsStandardShareSetup
         Me.HideIDs = hideIDs
     End Sub
 
+    ''' <summary>Initializes the internal sharing dialog.</summary>
+    ''' <param name="groupSharing">The existing group share, or Nothing when preparing a new share.</param>
+    ''' <param name="dmsProvider">The authorized provider used for the operation.</param>
+    ''' <param name="hideIDs">The identifiers omitted from the list of addable users or groups.</param>
     Public Sub New(groupSharing As DmsShareForGroup, dmsProvider As Providers.BaseDmsProvider, hideIDs As List(Of String))
         InitializeComponent()
         ApplyLocalizedText()
@@ -52,32 +62,37 @@ Public Class DmsStandardShareSetup
         Me.LabelName.Text = UiStrings.GetText("LabelName")
     End Sub
 
+    ''' <summary>Gets or sets the original sharing settings to edit.</summary>
     Public Property DmsSharingDetails As DmsShareBase
+    ''' <summary>Gets or sets the provider associated with this object.</summary>
     Public Property DmsProvider As Providers.BaseDmsProvider
     ''' <summary>
     ''' DmsResourceItem required for creation of links
     ''' </summary>
-    ''' <returns></returns>
     Public Property DmsItem As DmsResourceItem
     ''' <summary>
     ''' IDs which shall be hidden in list of addable users/groups
     ''' </summary>
-    ''' <returns></returns>
     Public Property HideIDs As List(Of String)
 
     Private _DmsUpdatedSharingDetails As DmsShareBase = Nothing
+    ''' <summary>Gets the updated share returned after a successful save, or Nothing before saving.</summary>
     Public ReadOnly Property DmsUpdatedSharingDetails As DmsShareBase
         Get
             Return Me._DmsUpdatedSharingDetails
         End Get
     End Property
 
+    ''' <summary>Identifies whether the sharing dialog targets a user or group.</summary>
     Public Enum DialogObjectModes As Byte
+        ''' <summary>Edits permissions for a group.</summary>
         GroupSharing = 1
+        ''' <summary>Edits permissions for a user.</summary>
         UserSharing = 2
     End Enum
 
     Private _DialogObjectMode As DialogObjectModes
+    ''' <summary>Sets whether the dialog edits a user or group share.</summary>
     Public WriteOnly Property DialogObjectMode As DialogObjectModes
         Set(value As DialogObjectModes)
             Select Case value
@@ -92,12 +107,16 @@ Public Class DmsStandardShareSetup
         End Set
     End Property
 
+    ''' <summary>Specifies whether the sharing dialog creates or updates a share.</summary>
     Public Enum DialogModes As Byte
+        ''' <summary>Creates a new share or link.</summary>
         CreateLink = 1
+        ''' <summary>Updates an existing share or link.</summary>
         UpdateLink = 2
     End Enum
 
     Private _DialogMode As DialogModes
+    ''' <summary>Sets whether the dialog creates or updates sharing settings.</summary>
     Public WriteOnly Property DialogMode As DialogModes
         Set(value As DialogModes)
             Select Case value
@@ -353,11 +372,12 @@ Public Class DmsStandardShareSetup
         End Try
     End Sub
 
+    ''' <inheritdoc/>
     ''' <summary>
     ''' Handle ESC key to cancel dialog
     ''' </summary>
-    ''' <param name="keyData"></param>
-    ''' <returns></returns>
+    ''' <param name="keyData">The pressed key and modifier flags.</param>
+    ''' <returns>True when the dialog handles the key; otherwise the inherited result.</returns>
     Protected Overrides Function ProcessDialogKey(keyData As Keys) As Boolean
         If Form.ModifierKeys = Keys.None AndAlso keyData = Keys.Escape Then
             Me.Close()

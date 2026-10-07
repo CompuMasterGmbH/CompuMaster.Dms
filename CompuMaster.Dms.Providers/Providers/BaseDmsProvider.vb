@@ -55,33 +55,36 @@ Namespace Providers
             End Get
         End Property
 
+        ''' <summary>Identifies the built-in provider implementations.</summary>
         Public Enum DmsProviders As Integer
+            ''' <summary>Selects manual URL entry without a remote provider.</summary>
             <System.ComponentModel.Description("URL (manueller Transfer)")>
             ManualUrl = -1
+            ''' <summary>Selects no DMS provider.</summary>
             None = 0
+            ''' <summary>Selects the WebDAV provider, including supported ownCloud and Nextcloud servers.</summary>
             <System.ComponentModel.Description("WebDAV (OwnCloud, NextCloud, etc.)")>
             WebDAV = 1
+            ''' <summary>Selects Scopevisio Teamwork.</summary>
             <System.ComponentModel.Description("Scopevisio Teamwork")>
             Scopevisio = 20
+            ''' <summary>Selects the legacy direct CenterDevice provider; initial login remains incomplete.</summary>
             CenterDevice = 21
         End Enum
 
         ''' <summary>
         ''' The unique ID of the provider
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property DmsProviderID As DmsProviders
 
         ''' <summary>
         ''' The name of the provider
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property Name As String
 
         ''' <summary>
         ''' The url to access the web API endpoint 
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property WebApiDefaultUrl As String
 
         ''' <summary>
@@ -105,7 +108,6 @@ Namespace Providers
         ''' <summary>
         ''' Configuration options for url of DMS service
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property WebApiUrlCustomization As UrlCustomizationType
 
         ''' <summary>
@@ -129,7 +131,6 @@ Namespace Providers
         ''' <summary>
         ''' Configuration options for customer reference in user credentials
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property WebApiUserCustomerReferenceRequirement As UserCustomerReferenceType
 
         ''' <summary>
@@ -143,23 +144,27 @@ Namespace Providers
         ''' Search filter criteria based on item type
         ''' </summary>
         Public Enum SearchItemType As Byte
+            ''' <summary>Includes files, folders and collections.</summary>
             AllItems = 0
+            ''' <summary>Includes provider collections.</summary>
             Collections = 1
+            ''' <summary>Includes ordinary folders.</summary>
             Folders = 2
+            ''' <summary>Includes files.</summary>
             Files = 3
         End Enum
 
         ''' <summary>
         ''' Open a remote item (file/folder/collection) or null/Nothing if the remote item doesn't exist
         ''' </summary>
-        ''' <param name="remotePath"></param>
-        ''' <returns></returns>
+        ''' <param name="remotePath">The remote resource path.</param>
+        ''' <returns>The matching resource snapshot, or Nothing when the provider reports no result.</returns>
         Public MustOverride Function ListRemoteItem(remotePath As String) As DmsResourceItem
 
         ''' <summary>
         ''' An existance check for a remote item
         ''' </summary>
-        ''' <param name="remotePath"></param>
+        ''' <param name="remotePath">The remote resource path.</param>
         ''' <returns></returns>
         Public Overridable Function RemoteItemExists(remotePath As String) As Boolean
             Dim RemoteItem As DmsResourceItem
@@ -170,8 +175,8 @@ Namespace Providers
         ''' <summary>
         ''' An existance check for a remote item
         ''' </summary>
-        ''' <param name="remotePath"></param>
-        ''' <returns></returns>
+        ''' <param name="remotePath">The remote resource path.</param>
+        ''' <returns>The kind of resource found at the path.</returns>
         Public Overridable Function RemoteItemExistsAs(remotePath As String) As DmsResourceItem.FoundItemType
             Dim RemoteItem As DmsResourceItem
             RemoteItem = Me.ListRemoteItem(remotePath)
@@ -185,7 +190,7 @@ Namespace Providers
         ''' <summary>
         ''' An existance check for a remote item (collissions with remote items under the very same name are checked)
         ''' </summary>
-        ''' <param name="remotePath"></param>
+        ''' <param name="remotePath">The remote resource path.</param>
         ''' <returns></returns>
         Public Overridable Function RemoteItemExistsUniquelyAs(remotePath As String) As DmsResourceItem.FoundItemResult
             Dim RemoteItem As DmsResourceItem
@@ -203,7 +208,7 @@ Namespace Providers
         ''' Reset file system cache and force refresh on next access
         ''' </summary>
         ''' <param name="remoteItem">A directory which might contain lists of children items</param>
-        ''' <param name="searchType"></param>
+        ''' <param name="searchType">The resource kinds included in the listing or cache reset.</param>
         Public Sub ResetCachesForRemoteItems(remoteItem As DmsResourceItem, searchType As SearchItemType)
             Select Case remoteItem.ItemType
                 Case DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Root
@@ -218,8 +223,8 @@ Namespace Providers
         ''' <summary>
         ''' Reset file system cache and force refresh on next access
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <param name="searchType"></param>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <param name="searchType">The resource kinds included in the listing or cache reset.</param>
         Public MustOverride Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
 
         ''' <summary>Invalidates cached remote children without blocking the calling thread.</summary>
@@ -243,9 +248,9 @@ Namespace Providers
         ''' <summary>
         ''' List all child items (files/folders/collections) for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <param name="searchType"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <param name="searchType">The resource kinds included in the listing or cache reset.</param>
+        ''' <returns>The matching child resource snapshots supplied by the provider.</returns>
         Public MustOverride Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
 
         ''' <summary>
@@ -266,7 +271,7 @@ Namespace Providers
         ''' <summary>
         ''' List all child collections for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
         ''' <returns></returns>
         Public Overridable Function ListAllCollectionItems(remoteFolderPath As String) As List(Of DmsResourceItem)
             Dim Result As New List(Of DmsResourceItem)
@@ -281,7 +286,7 @@ Namespace Providers
         ''' <summary>
         ''' List all child folders for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
         ''' <returns></returns>
         Public Overridable Function ListAllFolderItems(remoteFolderPath As String) As List(Of DmsResourceItem)
             Dim Result As New List(Of DmsResourceItem)
@@ -296,7 +301,7 @@ Namespace Providers
         ''' <summary>
         ''' List all child files for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
         ''' <returns></returns>
         Public Overridable Function ListAllFileItems(remoteFolderPath As String) As List(Of DmsResourceItem)
             Dim Result As New List(Of DmsResourceItem)
@@ -311,8 +316,8 @@ Namespace Providers
         ''' <summary>
         ''' List all child collection names for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <returns>The names of matching child collections.</returns>
         Public Overridable Function ListAllCollectionNames(remoteFolderPath As String) As List(Of String)
             Dim Result As New List(Of String)
             For Each Item In Me.ListAllCollectionItems(remoteFolderPath)
@@ -326,8 +331,8 @@ Namespace Providers
         ''' <summary>
         ''' List all child folder names for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <returns>The names of matching child folders.</returns>
         Public Overridable Function ListAllFolderNames(remoteFolderPath As String) As List(Of String)
             Dim Result As New List(Of String)
             For Each Item In Me.ListAllFolderItems(remoteFolderPath)
@@ -341,8 +346,8 @@ Namespace Providers
         ''' <summary>
         ''' List all child file names for a remote path
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <returns>The names of matching child files.</returns>
         Public Overridable Function ListAllFileNames(remoteFolderPath As String) As List(Of String)
             Dim Result As New List(Of String)
             For Each Item In Me.ListAllFileItems(remoteFolderPath)
@@ -356,15 +361,15 @@ Namespace Providers
         ''' <summary>
         ''' Load a remote collection item based on its ID
         ''' </summary>
-        ''' <param name="id"></param>
-        ''' <returns></returns>
+        ''' <param name="id">The provider-owned resource identifier.</param>
+        ''' <returns>The collection snapshot returned by the provider for the specified identifier.</returns>
         Public MustOverride Function FindCollectionById(id As String) As DmsResourceItem
 
         ''' <summary>
         ''' Load a remote folder item based on its ID
         ''' </summary>
-        ''' <param name="id"></param>
-        ''' <returns></returns>
+        ''' <param name="id">The provider-owned resource identifier.</param>
+        ''' <returns>The folder snapshot returned by the provider for the specified identifier.</returns>
         Public MustOverride Function FindFolderById(id As String) As DmsResourceItem
 
         ''' <summary>
@@ -380,8 +385,8 @@ Namespace Providers
         ''' <summary>
         ''' Load a remote file item based on its ID
         ''' </summary>
-        ''' <param name="id"></param>
-        ''' <returns></returns>
+        ''' <param name="id">The provider-owned resource identifier.</param>
+        ''' <returns>The file snapshot returned by the provider for the specified identifier.</returns>
         Public MustOverride Function FindFileById(id As String) As DmsResourceItem
 
         ''' <summary>Finds a remote item without blocking the calling thread.</summary>
@@ -537,23 +542,26 @@ Namespace Providers
         ''' <summary>
         ''' Create a provider-specific credentials instance for further customization
         ''' </summary>
-        ''' <returns></returns>
+        ''' <returns>A new credential object configured for this provider.</returns>
         Public MustOverride Function CreateNewCredentialsInstance() As BaseDmsLoginCredentials
 
         ''' <summary>
         ''' The desired exception type in case of errors
         ''' </summary>
         Protected Enum ExceptionTypeForItemType As Byte
+            ''' <summary>Uses the generic resource exception contract.</summary>
             Unspecified = 0
+            ''' <summary>Uses the directory exception contract.</summary>
             Directory = 1
+            ''' <summary>Uses the file exception contract.</summary>
             File = 2
         End Enum
 
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="localFilePath"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="localFilePath">The path of the local source or destination file.</param>
         ''' <exception cref="System.IO.IOException">The local source cannot be read. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
         ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
         ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
@@ -717,15 +725,15 @@ Namespace Providers
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="binaryData"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="binaryData">The source bytes or factory for a readable stream; the provider owns a stream returned by the factory.</param>
         Public MustOverride Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
 
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="binaryData"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="binaryData">The source bytes or factory for a readable stream; the provider owns a stream returned by the factory.</param>
         Public Overridable Sub UploadFile(remoteFilePath As String, binaryData As Byte())
             Me.UploadFile(remoteFilePath, Function()
                                               Return New System.IO.MemoryStream(binaryData)
@@ -735,8 +743,8 @@ Namespace Providers
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="localFilePath"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="localFilePath">The path of the local source or destination file.</param>
         ''' <exception cref="System.IO.IOException">The local source cannot be read. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
         ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
         ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
@@ -757,8 +765,8 @@ Namespace Providers
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="binaryData"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="binaryData">The source bytes or factory for a readable stream; the provider owns a stream returned by the factory.</param>
         Public Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), createDirectoryStructureIfMissing As Boolean)
             If remoteFilePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
             Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
@@ -771,8 +779,8 @@ Namespace Providers
         ''' <summary>
         ''' Upload a local file to the remote DMS, if applicable: create a new version to an existing file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="binaryData"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="binaryData">The source bytes or factory for a readable stream; the provider owns a stream returned by the factory.</param>
         Public Sub UploadFile(remoteFilePath As String, binaryData As Byte(), createDirectoryStructureIfMissing As Boolean)
             If remoteFilePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
             Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
@@ -785,9 +793,9 @@ Namespace Providers
         ''' <summary>
         ''' Download a remote DMS file
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="localFilePath"></param>
-        ''' <param name="lastModificationDateOnLocalTime"></param>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="localFilePath">The path of the local source or destination file.</param>
+        ''' <param name="lastModificationDateOnLocalTime">The local-time modification timestamp to apply to the downloaded file, or Nothing to leave it unchanged.</param>
         ''' <exception cref="System.IO.IOException">The local destination, staging file, replacement, or timestamp cannot be written. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
         ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
         ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
@@ -855,8 +863,8 @@ Namespace Providers
         ''' <summary>
         ''' Copy a remote DMS item (overwriting forbidden, destination directory must exist)
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Copy(remoteSourcePath As String, remoteDestinationPath As String)
@@ -875,8 +883,8 @@ Namespace Providers
         ''' <summary>
         ''' Copy a remote DMS item (overwriting forbidden, destination directory must exist)
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Async Function CopyAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
@@ -1313,8 +1321,8 @@ Namespace Providers
         ''' <summary>
         ''' Copy a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
@@ -1323,8 +1331,8 @@ Namespace Providers
         ''' <summary>
         ''' Copy a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <param name="allowOverwrite">True to overwrite, False to throw exception if target already exists, null/Nothing to use provider specific default</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
@@ -1333,8 +1341,8 @@ Namespace Providers
         ''' <summary>
         ''' Copy a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Protected MustOverride Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
@@ -1342,8 +1350,8 @@ Namespace Providers
         ''' <summary>
         ''' Copy a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Protected MustOverride Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
@@ -1351,8 +1359,8 @@ Namespace Providers
         ''' <summary>
         ''' Move a remote DMS item (overwriting forbidden, destination directory must exist)
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Move(remoteSourcePath As String, remoteDestinationPath As String)
@@ -1362,8 +1370,8 @@ Namespace Providers
         ''' <summary>
         ''' Move a remote DMS item (overwriting forbidden, destination directory must exist)
         ''' </summary>
-        ''' <param name="remoteSource"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSource">The selected source resource snapshot.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Move(remoteSource As DmsResourceItem, remoteDestinationPath As String)
@@ -1373,8 +1381,8 @@ Namespace Providers
         ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Move(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
@@ -1384,8 +1392,8 @@ Namespace Providers
         ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSource"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSource">The selected source resource snapshot.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         ''' <exception cref="FileAlreadyExistsException" />
         ''' <exception cref="DirectoryAlreadyExistsException" />
         Public Sub Move(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
@@ -1528,22 +1536,22 @@ Namespace Providers
         ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
-        ''' <param name="allowOverwrite"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="allowOverwrite">Whether an existing destination file may be replaced.</param>
         Protected MustOverride Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
 
         ''' <summary>
         ''' Move a remote DMS item
         ''' </summary>
-        ''' <param name="remoteSourcePath"></param>
-        ''' <param name="remoteDestinationPath"></param>
+        ''' <param name="remoteSourcePath">The remote source path.</param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
         Protected MustOverride Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
 
         ''' <summary>
         ''' Delete a remote item (folder, collection or file)
         ''' </summary>
-        ''' <param name="remotePath"></param>
+        ''' <param name="remotePath">The remote resource path.</param>
         Public MustOverride Sub DeleteRemoteItem(remotePath As String)
 
         ''' <summary>Deletes a remote item without blocking the calling thread.</summary>
@@ -1609,8 +1617,8 @@ Namespace Providers
         ''' <summary>
         ''' Delete a remote item if its item type matches with the expected item type
         ''' </summary>
-        ''' <param name="remotePath"></param>
-        ''' <param name="expectedItemType"></param>
+        ''' <param name="remotePath">The remote resource path.</param>
+        ''' <param name="expectedItemType">The expected resource kind used to select the not-found exception.</param>
         Public Overridable Sub DeleteRemoteItem(remotePath As String, expectedItemType As DmsResourceItem.ItemTypes)
             Dim Item As DmsResourceItem = Me.ListRemoteItem(remotePath)
             Me.DeleteRemoteItem(Item, expectedItemType)
@@ -1619,9 +1627,9 @@ Namespace Providers
         ''' <summary>
         ''' Delete a remote item if its item type matches with the expected item type
         ''' </summary>
-        ''' <param name="remotePath"></param>
-        ''' <param name="expectedItemType"></param>
-        ''' <param name="alternativeExpectedItemType"></param>
+        ''' <param name="remotePath">The remote resource path.</param>
+        ''' <param name="expectedItemType">The expected resource kind used to select the not-found exception.</param>
+        ''' <param name="alternativeExpectedItemType">The alternative accepted resource kind.</param>
         Public Overridable Sub DeleteRemoteItem(remotePath As String, expectedItemType As DmsResourceItem.ItemTypes, alternativeExpectedItemType As DmsResourceItem.ItemTypes)
             Dim Item As DmsResourceItem = Me.ListRemoteItem(remotePath)
             Me.DeleteRemoteItem(Item, expectedItemType, alternativeExpectedItemType)
@@ -1630,14 +1638,14 @@ Namespace Providers
         ''' <summary>
         ''' Delete a remote item (folder, collection or file)
         ''' </summary>
-        ''' <param name="remoteItem"></param>
+        ''' <param name="remoteItem">The selected remote resource snapshot.</param>
         Public MustOverride Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
 
         ''' <summary>
         ''' Delete a remote item if its item type matches with the expected item type
         ''' </summary>
-        ''' <param name="remoteItem"></param>
-        ''' <param name="expectedItemType"></param>
+        ''' <param name="remoteItem">The selected remote resource snapshot.</param>
+        ''' <param name="expectedItemType">The expected resource kind used to select the not-found exception.</param>
         Public Overridable Sub DeleteRemoteItem(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes)
             If expectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(expectedItemType))
             If remoteItem.ItemType <> expectedItemType Then
@@ -1650,9 +1658,9 @@ Namespace Providers
         ''' <summary>
         ''' Delete a remote item if its item type matches with the expected item type
         ''' </summary>
-        ''' <param name="remoteItem"></param>
-        ''' <param name="expectedItemType"></param>
-        ''' <param name="alternativeExpectedItemType"></param>
+        ''' <param name="remoteItem">The selected remote resource snapshot.</param>
+        ''' <param name="expectedItemType">The expected resource kind used to select the not-found exception.</param>
+        ''' <param name="alternativeExpectedItemType">The alternative accepted resource kind.</param>
         Public Overridable Sub DeleteRemoteItem(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes, alternativeExpectedItemType As DmsResourceItem.ItemTypes)
             If expectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(expectedItemType))
             If alternativeExpectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(alternativeExpectedItemType))
@@ -1666,7 +1674,7 @@ Namespace Providers
         ''' <summary>
         ''' Create a new folder on remote DMS
         ''' </summary>
-        ''' <param name="remoteDirectoryPath"></param>
+        ''' <param name="remoteDirectoryPath">The remote directory path.</param>
         Public MustOverride Sub CreateFolder(remoteDirectoryPath As String)
 
         ''' <summary>Creates a remote folder without blocking the calling thread.</summary>
@@ -1727,7 +1735,7 @@ Namespace Providers
         ''' <summary>
         ''' Create a new folder on remote DMS
         ''' </summary>
-        ''' <param name="remoteDirectoryPath"></param>
+        ''' <param name="remoteDirectoryPath">The remote directory path.</param>
         Public Sub CreateFolder(remoteDirectoryPath As String, createParentFolders As Boolean)
             If remoteDirectoryPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDirectoryPath))
             Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteDirectoryPath)
@@ -1744,14 +1752,14 @@ Namespace Providers
         ''' <summary>
         ''' Create a new collection or folder on remote DMS
         ''' </summary>
-        ''' <param name="remoteDirectoryName"></param>
+        ''' <param name="remoteDirectoryName">The remote directory name.</param>
         ''' <remarks>The provider decides itself to create either a collection or a folder</remarks>
         Public MustOverride Sub CreateDirectory(remoteDirectoryName As String)
 
         ''' <summary>
         ''' Create a new collection or folder on remote DMS
         ''' </summary>
-        ''' <param name="remoteDirectoryPath"></param>
+        ''' <param name="remoteDirectoryPath">The remote directory path.</param>
         ''' <remarks>The provider decides itself to create either a collection or a folder</remarks>
         Public Sub CreateDirectory(remoteDirectoryPath As String, createParentFolders As Boolean)
             If remoteDirectoryPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDirectoryPath))
@@ -1769,25 +1777,23 @@ Namespace Providers
         ''' <summary>
         ''' Create a new collection on remote DMS
         ''' </summary>
-        ''' <param name="remoteCollectionName"></param>
+        ''' <param name="remoteCollectionName">The remote collection name.</param>
         Public MustOverride Sub CreateCollection(remoteCollectionName As String)
 
         ''' <summary>
         ''' The directory separator used by the DMS provider
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property DirectorySeparator As Char
 
         ''' <summary>
         ''' The name of the root element to request a folder/collection listing at root
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property BrowseInRootFolderName() As String
 
         ''' <summary>
         ''' Login to the remote DMS
         ''' </summary>
-        ''' <param name="dmsProfile"></param>
+        ''' <param name="dmsProfile">The login profile used to authorize the provider.</param>
         Public MustOverride Sub Authorize(dmsProfile As IDmsLoginProfile)
 
         ''' <summary>Authorizes access to the remote DMS without blocking the calling thread.</summary>
@@ -1801,9 +1807,9 @@ Namespace Providers
         ''' <summary>
         ''' Combines folder names to a path
         ''' </summary>
-        ''' <param name="basePath"></param>
-        ''' <param name="paths"></param>
-        ''' <returns></returns>
+        ''' <param name="basePath">The base path used to resolve or compare the resource.</param>
+        ''' <param name="paths">The additional path segments to combine using the provider separator.</param>
+        ''' <returns>The combined path using the provider separator.</returns>
         Public Overridable Function CombinePath(basePath As String, ParamArray paths As String()) As String
             Dim Result As String = basePath
             For Each Path In paths
@@ -1825,8 +1831,8 @@ Namespace Providers
         ''' <summary>
         ''' The parent folder name for a path
         ''' </summary>
-        ''' <param name="absolutePath"></param>
-        ''' <returns></returns>
+        ''' <param name="absolutePath">The complete path to make relative.</param>
+        ''' <returns>The parent directory path, or Nothing when the input has no parent.</returns>
         Public Overridable Function ParentDirectoryPath(absolutePath As String) As String
             If absolutePath = Nothing OrElse absolutePath = Me.DirectorySeparator Then
                 Return Nothing
@@ -1842,8 +1848,8 @@ Namespace Providers
         ''' <summary>
         ''' The item name (directory name or file name) in an absolute path
         ''' </summary>
-        ''' <param name="absolutePath"></param>
-        ''' <returns></returns>
+        ''' <param name="absolutePath">The complete path to make relative.</param>
+        ''' <returns>The final file or directory name in the path.</returns>
         Public Overridable Function ItemName(absolutePath As String) As String
             If absolutePath Is Nothing Then
                 Throw New ArgumentNullException(NameOf(absolutePath))
@@ -1862,8 +1868,8 @@ Namespace Providers
         ''' <summary>
         ''' Check existance of a remote collection
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <returns>True when the path identifies a collection; otherwise False.</returns>
         Public Function CollectionExists(remoteFolderPath As String) As Boolean
             Dim ParentPath As String = Me.ParentDirectoryPath(remoteFolderPath)
             Dim ItemName As String = Me.ItemName(remoteFolderPath)
@@ -1874,8 +1880,8 @@ Namespace Providers
         ''' <summary>
         ''' Check existance of a remote folder
         ''' </summary>
-        ''' <param name="remoteFolderPath"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
+        ''' <returns>True when the path identifies an ordinary folder; otherwise False.</returns>
         Public Function FolderExists(remoteFolderPath As String) As Boolean
             Dim ParentPath As String = Me.ParentDirectoryPath(remoteFolderPath)
             Dim ItemName As String = Me.ItemName(remoteFolderPath)
@@ -1908,31 +1914,26 @@ Namespace Providers
         ''' <summary>
         ''' DMS provider supports collections (concept of collections can be understood as "intelligent folders", see CenterDevice/Scopevisio Teamwork)
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsCollections As Boolean
 
         ''' <summary>
         ''' DMS provider supports sharing API
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsSharingSetup As Boolean
 
         ''' <summary>
         ''' DMS provider supports configuration of root folder and subfolders for the different purposes (input files, reports)
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsSubFolderConfiguration As Boolean
 
         ''' <summary>
         ''' DMS provider supports remote items with very same names (e.g. 2 files with the very same name are uniquely accessible only by their DmsItem respectively by their ID)
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
 
         ''' <summary>
         ''' DMS provider supports files in root folder (or only folders/collections)
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsFilesInRootFolder As Boolean
 
         ''' <summary>
@@ -1960,70 +1961,69 @@ Namespace Providers
         ''' <summary>
         ''' DMS provider supports authentication and transfer of files on runtime (False indicates a configuration-only provider)
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property SupportsRuntimeAccessToRemoteServer As RuntimeAccessTypes
 
         ''' <summary>
         ''' Create a link share for a remote DMS item
         ''' </summary>
-        ''' <param name="dmsResource"></param>
-        ''' <param name="shareInfo"></param>
-        ''' <returns></returns>
+        ''' <param name="dmsResource">The remote resource associated with the share or link.</param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
+        ''' <returns>The link created by the provider, including its identifier and supplied details.</returns>
         Public MustOverride Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
         ''' <summary>
         ''' Update an existing link share
         ''' </summary>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub UpdateLink(shareInfo As DmsLink)
         ''' <summary>
         ''' Remove an existing link share
         ''' </summary>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub DeleteLink(shareInfo As DmsLink)
 
         ''' <summary>
         ''' Create a share for a group on remote DMS
         ''' </summary>
-        ''' <param name="dmsResource"></param>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="dmsResource">The remote resource associated with the share or link.</param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
         ''' <summary>
         ''' Create a share for a user on remote DMS
         ''' </summary>
-        ''' <param name="dmsResource"></param>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="dmsResource">The remote resource associated with the share or link.</param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser)
 
         ''' <summary>
         ''' Update a group share on remote DMS
         ''' </summary>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub UpdateSharing(shareInfo As DmsShareForGroup)
         ''' <summary>
         ''' Remove a group share on remote DMS
         ''' </summary>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub DeleteSharing(shareInfo As DmsShareForGroup)
         ''' <summary>
         ''' Update a user share on remote DMS
         ''' </summary>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub UpdateSharing(shareInfo As DmsShareForUser)
         ''' <summary>
         ''' Remove a user share on remote DMS
         ''' </summary>
-        ''' <param name="shareInfo"></param>
+        ''' <param name="shareInfo">The requested sharing settings; provider capability restrictions apply.</param>
         Public MustOverride Sub DeleteSharing(shareInfo As DmsShareForUser)
 
         ''' <summary>
         ''' Load a list of groups on remote DMS (which are visible to the current login user)
         ''' </summary>
-        ''' <returns></returns>
+        ''' <returns>The group snapshots visible to the authorized account.</returns>
         Public MustOverride Function GetAllGroups() As List(Of DmsGroup)
         ''' <summary>
         ''' Load a list of users on remote DMS (which are visible to the current login user)
         ''' </summary>
-        ''' <returns></returns>
+        ''' <returns>The user snapshots visible to the authorized account.</returns>
         Public MustOverride Function GetAllUsers() As List(Of DmsUser)
 
         ''' <summary>Creates a link share without blocking the calling thread.</summary>
@@ -2129,7 +2129,6 @@ Namespace Providers
         ''' <summary>
         ''' A runtime variable which contains the user ID after login at remote DMS system
         ''' </summary>
-        ''' <returns></returns>
         Public MustOverride ReadOnly Property CurrentContextUserID As String
 
         ''' <summary>

@@ -5,6 +5,7 @@ Imports CompuMaster.Dms.Providers
 
 Namespace Data
 
+    ''' <summary>Exposes the account and server settings required to authorize a DMS provider.</summary>
     Public Interface IDmsLoginProfile
 
         ''' <summary>

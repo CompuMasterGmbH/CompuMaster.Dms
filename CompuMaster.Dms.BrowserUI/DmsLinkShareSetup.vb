@@ -3,10 +3,12 @@ Imports CompuMaster.Dms.Data
 Imports System.Threading.Tasks
 Imports CompuMaster.Dms.Providers
 
+''' <summary>Edits the supported permissions and limits of an external sharing link.</summary>
 Public Class DmsLinkShareSetup
 
     Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
 
+    ''' <summary>Initializes the external link dialog.</summary>
     Public Sub New()
         InitializeComponent()
         ApplyLocalizedText()
@@ -42,28 +44,34 @@ Public Class DmsLinkShareSetup
         Me.Label11.Text = UiStrings.GetText("LabelNumberDownloads")
     End Sub
 
+    ''' <summary>Gets or sets the original link settings to edit.</summary>
     Public Property DmsLinkDetails As DmsLink
+    ''' <summary>Gets or sets the provider associated with this object.</summary>
     Public Property DmsProvider As Providers.BaseDmsProvider
     ''' <summary>
     ''' DmsResourceItem required for creation of links
     ''' </summary>
-    ''' <returns></returns>
     Public Property DmsItem As DmsResourceItem
 
     Private _DmsUpdatedLinkDetails As DmsLink = Nothing
     Private _LoadingControls As Boolean
+    ''' <summary>Gets the updated link returned after a successful save, or Nothing before saving.</summary>
     Public ReadOnly Property DmsUpdatedLinkDetails As DmsLink
         Get
             Return Me._DmsUpdatedLinkDetails
         End Get
     End Property
 
+    ''' <summary>Specifies whether the sharing dialog creates or updates a share.</summary>
     Public Enum DialogModes As Byte
+        ''' <summary>Creates a new share or link.</summary>
         CreateLink = 1
+        ''' <summary>Updates an existing share or link.</summary>
         UpdateLink = 2
     End Enum
 
     Private _DialogMode As DialogModes
+    ''' <summary>Sets whether the dialog creates or updates sharing settings.</summary>
     Public WriteOnly Property DialogMode As DialogModes
         Set(value As DialogModes)
             Select Case value
@@ -427,11 +435,12 @@ Public Class DmsLinkShareSetup
         End Try
     End Sub
 
+    ''' <inheritdoc/>
     ''' <summary>
     ''' Handle ESC key to cancel dialog
     ''' </summary>
-    ''' <param name="keyData"></param>
-    ''' <returns></returns>
+    ''' <param name="keyData">The pressed key and modifier flags.</param>
+    ''' <returns>True when the dialog handles the key; otherwise the inherited result.</returns>
     Protected Overrides Function ProcessDialogKey(keyData As Keys) As Boolean
         If Form.ModifierKeys = Keys.None AndAlso keyData = Keys.Escape Then
             Me.Close()

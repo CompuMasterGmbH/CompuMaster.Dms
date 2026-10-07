@@ -25,6 +25,7 @@
     <Description>Implementation of browser dialogs for System.Windows.Form</Description>
     <NeutralLanguage>en</NeutralLanguage>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

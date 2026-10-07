@@ -10,11 +10,14 @@
 #Enable Warning CA2237 ' Mark ISerializable types with serializable
         Inherits System.Exception
 
+        ''' <summary>Initializes the exception with the supplied failure details.</summary>
+        ''' <param name="remotePath">The affected remote resource path.</param>
         Public Sub New(remotePath As String)
             MyBase.New(ProviderStrings.Format("RemoteItemExistsMultipleTimes", remotePath))
             Me.RemotePath = remotePath
         End Sub
 
+        ''' <summary>Gets or sets the affected remote DMS path, independent of the localized message.</summary>
         Public Property RemotePath As String
 
     End Class
