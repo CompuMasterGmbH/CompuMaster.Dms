@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ACycleWasFoundInTheCenterDeviceFolder" xml:space="preserve"><value>נמצא מחזור בהיררכיית התיקיות CenterDevice במזהה תיקייה {0}.</value></data>
+  <data name="ADMSInstanceDisplayNameIsRequired" xml:space="preserve"><value>נדרש שם תצוגה של מופע DMS.</value></data>
+  <data name="ADMSInstanceIDIsRequired" xml:space="preserve"><value>נדרש מזהה מופע DMS.</value></data>
+  <data name="ADirectoryCanTBeCopiedOrMoved" xml:space="preserve"><value>לא ניתן להעתיק ספרייה או להעביר אותה לתוך עצמה.</value></data>
+  <data name="ADirectoryMergeCannotConsumeTheSameFolder" xml:space="preserve"><value>מיזוג ספריות לא יכול לצרוך את אותה זהות תיקייה פעמיים.</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto" xml:space="preserve"><value>לא ניתן להעתיק תיקיה או להעביר אותה להיררכיה משלה, כולל מתי ייווצרו הורי יעד.</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto2" xml:space="preserve"><value>לא ניתן להעתיק תיקיה או להעביר אותה לעצמה, כולל דרך נתיב אחר.</value></data>
+  <data name="AGroupIDIsRequired" xml:space="preserve"><value>נדרש מזהה קבוצה</value></data>
+  <data name="APositiveNumericOCSShareIDIsRequired" xml:space="preserve"><value>נדרש מזהה מספרי חיובי של שיתוף OCS</value></data>
+  <data name="AResourceSnapshotCannotBeNull" xml:space="preserve"><value>תמונת מצב של משאב לא יכולה להיות null.</value></data>
+  <data name="ASelectedFolderIdentifierIsRequired" xml:space="preserve"><value>נדרש מזהה תיקייה שנבחר.</value></data>
+  <data name="AUserIDIsRequired" xml:space="preserve"><value>נדרש מזהה משתמש</value></data>
+  <data name="ActionFailedForDirectory" xml:space="preserve"><value>פעולה {0} נכשלה עבור הספרייה "{1}"</value></data>
+  <data name="ActionFailedForFile" xml:space="preserve"><value>פעולה {0} נכשלה עבור הקובץ "{1}"</value></data>
+  <data name="ActionFailedForSourceDirectoryAndDestination" xml:space="preserve"><value>פעולה {0} נכשלה עבור ספריית המקור "{1}" ויעד "{2}"</value></data>
+  <data name="ActionFailedForSourceFileAndDestination" xml:space="preserve"><value>פעולה {0} נכשלה עבור קובץ המקור "{1}" והיעד "{2}"</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>כל המשתמשים</value></data>
+  <data name="AllowDeleteNotSupportedByProvider" xml:space="preserve"><value>AllowDelete לא נתמך על ידי הספק</value></data>
+  <data name="AllowEditNotSupportedByProvider" xml:space="preserve"><value>AllowEdit לא נתמך על ידי הספק</value></data>
+  <data name="AllowShareNotSupportedByProvider" xml:space="preserve"><value>AllowShare לא נתמך על ידי הספק</value></data>
+  <data name="AtLeastOneSharingPermissionIsRequired" xml:space="preserve"><value>נדרשת הרשאת שיתוף אחת לפחות</value></data>
+  <data name="AuthentificationForUserFailed" xml:space="preserve"><value>האימות של המשתמש "{0}" נכשל: {1}</value></data>
+  <data name="AuthentificationForUserFailed2" xml:space="preserve"><value>האימות של המשתמש "{0}" נכשל: {1} {2}</value></data>
+  <data name="ButRemoteItemExists" xml:space="preserve"><value>{0}, אבל פריט מרוחק קיים: {1}</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedInThe" xml:space="preserve"><value>ניתן לשנות את השם של אוספי CenterDevice רק בשורש.</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining" xml:space="preserve"><value>ניתן לשנות את השם של אוספי CenterDevice רק כשהם נשארים בשורש.</value></data>
+  <data name="CenterDeviceCollectionsCanTBeCopiedBecauseThey" xml:space="preserve"><value>לא ניתן להעתיק אוספי CenterDevice מכיוון שהם מכולות שיתוף ברמה העליונה ולא תיקיות רגילות.</value></data>
+  <data name="CenterDeviceCollectionsCannotBeCopied" xml:space="preserve"><value>לא ניתן להעתיק את אוספי CenterDevice.</value></data>
+  <data name="CenterDeviceFilesAndFoldersMustRemainInsideA" xml:space="preserve"><value>קבצים ותיקיות של CenterDevice חייבים להישאר בתוך אוסף או תיקיה.</value></data>
+  <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>תיקיות CenterDevice חייבות להישאר בתוך אוסף או תיקיה אחרת.</value></data>
+  <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>מטא נתונים של אוסף אינם תואמים למזהה המבוקש.</value></data>
+  <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>אוספים אינם נתמכים על ידי WebDAV</value></data>
+  <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>האוספים "{0}" חייבים להיות ממוקמים בתיקיית השורש בלבד, אך הם נמצאים ב-"{1}"</value></data>
+  <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>אוספים חייבים להיות ממוקמים בתיקיית השורש: {0}</value></data>
+  <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>כתובות אתרים של שירות אינטרנט מותאמות אישית אינן נתמכות עבור ספק DMS זה</value></data>
+  <data name="DMSClientNumber" xml:space="preserve"><value>מספר לקוח DMS</value></data>
+  <data name="CustomerDmsInstanceDeleted" xml:space="preserve"><value>מופע ה-DMS של הלקוח נמחק.</value></data>
+  <data name="DMSPassword" xml:space="preserve"><value>סיסמת DMS</value></data>
+  <data name="DMSUsername" xml:space="preserve"><value>שם משתמש DMS</value></data>
+  <data name="DirectoryAlreadyExists" xml:space="preserve"><value>ספרייה כבר קיימת: {0}</value></data>
+  <data name="DirectoryNotFound" xml:space="preserve"><value>ספרייה לא נמצאה: {0}</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>ההורדה נכשלה</value></data>
+  <data name="DownloadFailedNotCompletedSuccessfull" xml:space="preserve"><value>ההורדה נכשלה: לא הושלמה/הצליחה</value></data>
+  <data name="DownloadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>יצירת קישור להורדה לא החזירה מזהה.</value></data>
+  <data name="EitherAllowViewOrAllowUploadMustBeSet" xml:space="preserve"><value>יש להגדיר את AllowView או AllowUpload</value></data>
+  <data name="Failed" xml:space="preserve"><value>{0} נכשל: {1}</value></data>
+  <data name="FileAlreadyExists" xml:space="preserve"><value>הקובץ כבר קיים: {0}</value></data>
+  <data name="FileMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>המטא נתונים של הקובץ אינם תואמים למזהה המבוקש.</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>הקובץ לא נמצא: {0}</value></data>
+  <data name="FilesDonTContainDirectoryCaches" xml:space="preserve"><value>קבצים אינם מכילים מטמון ספרייה</value></data>
+  <data name="FilesInRootFolderNotSupportedByDMS" xml:space="preserve"><value>קבצים בתיקיית השורש אינם נתמכים על ידי ספק DMS</value></data>
+  <data name="FolderIDNoLongerBelongsToItsExpected" xml:space="preserve"><value>מזהה התיקייה {0} אינו שייך עוד לאוסף CenterDevice הצפוי שלה.</value></data>
+  <data name="FolderMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>המטא נתונים של התיקייה אינם תואמים למזהה המבוקש.</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>אסור: {0}</value></data>
+  <data name="GroupSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>שיתוף קבוצתי אינו נתמך על ידי שרת OCS זה</value></data>
+  <data name="InvalidItemType" xml:space="preserve"><value>סוג פריט לא חוקי: {0}</value></data>
+  <data name="InvalidItemTypeStatus" xml:space="preserve"><value>סטטוס סוג פריט לא חוקי</value></data>
+  <data name="InvalidItemTypeStatusForIsRoot" xml:space="preserve"><value>סטטוס סוג פריט לא חוקי עבור IsRoot</value></data>
+  <data name="ItemTypeExpectedButWas" xml:space="preserve"><value>ItemType {0} צפוי, אבל היה {1}</value></data>
+  <data name="ItemTypeExpectedButWas2" xml:space="preserve"><value>ItemType {0}{1} צפוי, אבל היה {2}</value></data>
+  <data name="ItemTypeOrExpectedButWas" xml:space="preserve"><value>ItemType {0} או {1} צפוי, אבל היה {2}</value></data>
+  <data name="LinkCreationRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>יצירת קישור מחייבת את מזהה המשאב שנבחר.</value></data>
+  <data name="LinkSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>שיתוף קישורים אינו נתמך על ידי שרת OCS זה</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed" xml:space="preserve"><value>רישום של משאב WebDAV ב-{0} נכשל: {1}</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed2" xml:space="preserve"><value>רישום של משאב WebDAV ב-{0} נכשל: {1} {2}</value></data>
+  <data name="LoginCredentialsCanTExistForDMSProvider" xml:space="preserve"><value>אישורי התחברות לא יכולים להתקיים עבור ספק DMS "ללא"</value></data>
+  <data name="LoginCredentialsProviderWebDAVExpectedButWas" xml:space="preserve"><value>ספק אישורי התחברות WebDAV צפוי, אך היה {0}</value></data>
+  <data name="MoreThanOneMatchingOCSShareWasFound" xml:space="preserve"><value>נמצא יותר משיתוף OCS תואם אחד</value></data>
+  <data name="MoveFailedForFileIDRollbackWasAttempted" xml:space="preserve"><value>ההעברה נכשלה עבור מזהה הקובץ {0}; בוצע ניסיון החזרה לאחור.</value></data>
+  <data name="MoveFailedForFolderIDRollbackWasAttempted" xml:space="preserve"><value>העברה נכשלה עבור מזהה תיקייה {0}; בוצע ניסיון החזרה לאחור.</value></data>
+  <data name="MovingADocumentWithMultipleOrUnknownDirectory" xml:space="preserve"><value>העברת מסמך עם הפניות מרובות או לא ידועות מחייבת הורה מקור נבחר.</value></data>
+  <data name="MustBe" xml:space="preserve"><value>חייב להיות &gt;= 0</value></data>
+  <data name="MustBeAPathWithoutTrailingDirectorySeparator" xml:space="preserve"><value>חייב להיות נתיב ללא תו מפריד ספריות נגרר: {0}</value></data>
+  <data name="NegativeSizeValuesAreNotAllowed" xml:space="preserve"><value>ערכי גודל שליליים אינם מותרים</value></data>
+  <data name="NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre" xml:space="preserve"><value>לא נמצא ארגון, בדרך כלל נדרשות הרשאות משתמש Scopevisio: Rechteprofil Kontakte – alle Rechte oder CRM – alle Rechte</value></data>
+  <data name="NotYetImplementedDMSProvider" xml:space="preserve"><value>עדיין לא מיושם ספק DMS: {0}</value></data>
+  <data name="OCSCapabilityDiscoveryFailed" xml:space="preserve"><value>גילוי יכולת OCS נכשל.</value></data>
+  <data name="OCSLinkShareWasNotFound" xml:space="preserve"><value>שיתוף קישור OCS {0} לא נמצא</value></data>
+  <data name="OCSShareListingDidNotReturnAnArray" xml:space="preserve"><value>רישום מניות OCS לא החזיר מערך.</value></data>
+  <data name="OCSShareListingFailed" xml:space="preserve"><value>רישום שיתוף OCS נכשל.</value></data>
+  <data name="PublicUploadsAreNotSupportedByThisOCS" xml:space="preserve"><value>העלאות ציבוריות אינן נתמכות על ידי שרת OCS זה</value></data>
+  <data name="PublicUploadsCanOnlyBeEnabledForFolders" xml:space="preserve"><value>ניתן להפעיל העלאות ציבוריות רק עבור תיקיות</value></data>
+  <data name="RemoteItemExistsMultipleTimes" xml:space="preserve"><value>פריט מרוחק קיים מספר פעמים: {0}</value></data>
+  <data name="RemoteRessourceWithUnsupportedType" xml:space="preserve"><value>משאב מרוחק עם סוג לא נתמך: {0}</value></data>
+  <data name="RessourceNotFound" xml:space="preserve"><value>משאב לא נמצא: {0}</value></data>
+  <data name="RootDirectoryCanTBeTheSourceOf" xml:space="preserve"><value>ספריית שורש לא יכולה להיות המקור לפעולת העתקה או העברה</value></data>
+  <data name="RootDirectoryCanTBeTheTargetOf" xml:space="preserve"><value>ספריית שורש לא יכולה להיות היעד של פעולת העתקה או העברה</value></data>
+  <data name="RootFolderCanTBeDeleted" xml:space="preserve"><value>לא ניתן למחוק תיקיית שורש</value></data>
+  <data name="ScopevisioUserAuthenticationFailed" xml:space="preserve"><value>אימות המשתמש של Scopevisio נכשל.</value></data>
+  <data name="SharingForFilesNotSupported" xml:space="preserve"><value>שיתוף עבור קבצים אינו נתמך</value></data>
+  <data name="SharingForRootDirectoryNotSupported" xml:space="preserve"><value>שיתוף עבור ספריית שורש אינו נתמך</value></data>
+  <data name="SharingIsNotSupportedByThisWebDAVServer" xml:space="preserve"><value>השיתוף אינו נתמך על ידי שרת WebDAV זה</value></data>
+  <data name="SharingRequiresANonemptyUserOrGroupIdentifier" xml:space="preserve"><value>שיתוף דורש מזהה משתמש או קבוצה לא ריק.</value></data>
+  <data name="SharingRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>שיתוף מחייב את מזהה המשאב שנבחר.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameDocumentReplacement" xml:space="preserve"><value>המקור והיעד מזהים את אותו מסמך; החלפה תמחק את מסמך המקור ואת ההפניות האחרות שלו.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameFolder" xml:space="preserve"><value>המקור והיעד מזהים את אותה תיקיה.</value></data>
+  <data name="SourceAndDestinationPathsMustDiffer" xml:space="preserve"><value>נתיבי המקור והיעד חייבים להיות שונים.</value></data>
+  <data name="SubItemsOfFoundOutsideOfThisPath" xml:space="preserve"><value>פריטי משנה של {0} נמצאו מחוץ לנתיב זה: {1}</value></data>
+  <data name="TaskNotFinished" xml:space="preserve"><value>המשימה לא הסתיימה</value></data>
+  <data name="TaskNotStarted" xml:space="preserve"><value>המשימה לא התחילה</value></data>
+  <data name="TaskStatusInvalid" xml:space="preserve"><value>סטטוס המשימה לא חוקי</value></data>
+  <data name="TheCollectionOfCenterDeviceFolderIDIsUnknown" xml:space="preserve"><value>האוסף של מזהה תיקיית CenterDevice {0} אינו ידוע.</value></data>
+  <data name="TheCollectionSUploadLinkHasNoIdentifier" xml:space="preserve"><value>לקישור ההעלאה של האוסף אין מזהה.</value></data>
+  <data name="TheCopiedFileCouldnTBePromotedTo" xml:space="preserve"><value>לא ניתן היה לקדם את הקובץ שהועתק לשמו הסופי; בוצע ניסיון החזרה לאחור.</value></data>
+  <data name="TheCopySucceededButTheReplacedFileWith" xml:space="preserve"><value>ההעתקה הצליחה, אך הקובץ המוחלף עם המזהה {0} נשאר תחת השם הזמני {1}.</value></data>
+  <data name="TheDMSInstanceIsNotAvailableToThe" xml:space="preserve"><value>מופע ה-DMS אינו זמין למשתמש המורשה.</value></data>
+  <data name="TheDMSProviderMustBeAuthorizedBeforeAccessing" xml:space="preserve"><value>ספק ה-DMS חייב להיות מורשה לפני גישה למופעי DMS.</value></data>
+  <data name="TheDownloadLinkResponseContainsNoAccessControl" xml:space="preserve"><value>תגובת קישור ההורדה אינה מכילה מטא נתונים של בקרת גישה.</value></data>
+  <data name="TheFolderListingFailedWithHTTP" xml:space="preserve"><value>רישום התיקיות נכשל עם HTTP {0}.</value></data>
+  <data name="TheFolderListingResponseHasNoFoldersArray" xml:space="preserve"><value>לתגובת רישום התיקיות אין מערך תיקיות.</value></data>
+  <data name="TheLinkOperationRequiresAnIdentifier" xml:space="preserve"><value>פעולת הקישור דורשת מזהה.</value></data>
+  <data name="TheMatchingOCSShareWasNotFound" xml:space="preserve"><value>נתח OCS התואם לא נמצא</value></data>
+  <data name="TheMoveSucceededButTheReplacedFileWith" xml:space="preserve"><value>המהלך הצליח, אך הקובץ המוחלף עם המזהה {0} נשאר תחת השם הזמני {1}.</value></data>
+  <data name="TheNativeGroupResponseContainsNoGroupList" xml:space="preserve"><value>תגובת הקבוצה המקורית אינה מכילה רשימה של קבוצות.</value></data>
+  <data name="TheNativeGroupSnapshotDoesNotMatchThe" xml:space="preserve"><value>תמונת המצב של הקבוצה המקורית אינה תואמת למזהה המבוקש.</value></data>
+  <data name="TheNativeUserResponseContainsANullUser" xml:space="preserve"><value>תגובת המשתמש המקורי מכילה משתמש null.</value></data>
+  <data name="TheNativeUserResponseContainsNoUserList" xml:space="preserve"><value>תגובת המשתמש המקורית אינה מכילה רשימת משתמשים.</value></data>
+  <data name="TheNativeUserSnapshotDoesNotMatchThe" xml:space="preserve"><value>תמונת המצב של המשתמש המקורי אינה תואמת את המזהה המבוקש.</value></data>
+  <data name="TheOCSServerReturnedAnUnexpectedShareType" xml:space="preserve"><value>שרת ה-OCS החזיר סוג שיתוף לא צפוי עבור שיתוף קישור</value></data>
+  <data name="TheOperationFailedCompensationOfConfirmedChangesWas" xml:space="preserve"><value>הפעולה נכשלה; נוסה פיצוי על שינויים שאושרו. בקשה שנקטעה עשויה לדרוש התאמה של מצב שרת.</value></data>
+  <data name="TheOperationSucceededButReplacedDocumentIDRemains" xml:space="preserve"><value>הפעולה הצליחה, אך מזהה המסמך שהוחלף {0} נשאר תחת השם הזמני {1}.</value></data>
+  <data name="TheParentDMSResourceItemIsRequired" xml:space="preserve"><value>נדרש פריט משאב DMS האב</value></data>
+  <data name="TheRemoteResourceMustBeAFile" xml:space="preserve"><value>המשאב המרוחק חייב להיות קובץ.</value></data>
+  <data name="TheResolvedFileHasNoIdentifier" xml:space="preserve"><value>לקובץ שנפתר אין מזהה.</value></data>
+  <data name="TheResolvedResourceHasNoIdentifier" xml:space="preserve"><value>למשאב שנפתר אין מזהה: {0}</value></data>
+  <data name="TheRetryLoopEndedUnexpectedly" xml:space="preserve"><value>לולאת הניסיון החוזר הסתיימה באופן בלתי צפוי.</value></data>
+  <data name="TheSelectedDirectoryPathNoLongerHasThe" xml:space="preserve"><value>לנתיב הספרייה שנבחר כבר אין את הסוג הצפוי.</value></data>
+  <data name="TheSelectedFilePathNoLongerIdentifiesA" xml:space="preserve"><value>נתיב הקובץ שנבחר אינו מזהה עוד קובץ.</value></data>
+  <data name="TheSelectedResourceIsNotACollectionOr" xml:space="preserve"><value>המשאב שנבחר אינו אוסף או תיקיה.</value></data>
+  <data name="TheSelectedResourceIsNotAFile" xml:space="preserve"><value>המשאב שנבחר אינו קובץ.</value></data>
+  <data name="TheSharingOperationFailedForOneOrMore" xml:space="preserve"><value>פעולת השיתוף נכשלה עבור משתמש או קבוצה אחת או יותר.</value></data>
+  <data name="TheSourceItemHasAnUnexpectedResourceType" xml:space="preserve"><value>לפריט המקור יש סוג משאב לא צפוי.</value></data>
+  <data name="TheSourceItemIsnTADirectory" xml:space="preserve"><value>פריט המקור אינו ספרייה.</value></data>
+  <data name="TheSourceItemMustProvideItsFullRemote" xml:space="preserve"><value>פריט המקור חייב לספק את הנתיב המרוחק המלא שלו.</value></data>
+  <data name="TheUploadLinkResponseContainsNoMetadata" xml:space="preserve"><value>תגובת הקישור להעלאה אינה מכילה מטא נתונים.</value></data>
+  <data name="ThisOCSAPICannotRepresentViewAndDownload" xml:space="preserve"><value>API זה של OCS אינו יכול לייצג הרשאות צפייה והורדה בנפרד</value></data>
+  <data name="ThisProviderDoesNotSupportAsynchronousMoveOperations" xml:space="preserve"><value>ספק זה אינו תומך בפעולות העברה אסינכרוניות.</value></data>
+  <data name="UnknownItemTypeAdditionalImplementationRequired" xml:space="preserve"><value>סוג פריט לא ידוע, נדרש יישום נוסף</value></data>
+  <data name="UnsupportedSourceItemType" xml:space="preserve"><value>סוג פריט מקור לא נתמך.</value></data>
+  <data name="UnsupportedSourceItemType2" xml:space="preserve"><value>סוג פריט מקור לא נתמך: {0}</value></data>
+  <data name="UpdateOfLinkRequiresAnIDInDmsLink" xml:space="preserve"><value>עדכון הקישור דורש מזהה ב-DmsLink</value></data>
+  <data name="UpdatingOfSharePropertiesNotSupported" xml:space="preserve"><value>עדכון נכסי שיתוף אינו נתמך</value></data>
+  <data name="UploadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>יצירת קישור להעלאה לא החזירה מזהה.</value></data>
+  <data name="UploadLinkMaxBytesMustBeAPositiveMultiple" xml:space="preserve"><value>העלאה-קישור MaxBytes חייב להיות כפולה חיובית של 1 GiB (1073741824 בתים).</value></data>
+  <data name="UploadLinksSupportedOnlyWithCollections" xml:space="preserve"><value>העלאת קישורים נתמכים רק עם אוספים</value></data>
+  <data name="UserGroupSharingIsSupportedOnlyForCollections" xml:space="preserve"><value>שיתוף משתמש/קבוצה נתמך רק עבור אוספים ותיקיות.</value></data>
+  <data name="UserSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>שיתוף משתמשים אינו נתמך על ידי שרת OCS זה</value></data>
+  <data name="CopyTaskFailed" xml:space="preserve"><value>משימת ההעתקה נכשלה</value></data>
+  <data name="CreateFolderFailed" xml:space="preserve"><value>יצירת התיקייה נכשלה</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>המחיקה נכשלה</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>המהלך נכשל</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>ההעלאה נכשלה</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>לא ניתן עוד לחדש את הפגישה שלך. היכנס שוב כדי להמשיך.</value></data>
+</root>

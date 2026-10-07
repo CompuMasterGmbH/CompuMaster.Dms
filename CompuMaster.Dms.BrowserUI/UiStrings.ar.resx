@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ActionAdd" xml:space="preserve"><value>إضافة</value></data>
+  <data name="ActionAddGroup" xml:space="preserve"><value>إضافة مجموعة</value></data>
+  <data name="ActionAddUser" xml:space="preserve"><value>إضافة مستخدم</value></data>
+  <data name="ActionCancel" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="ActionClose" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="ActionCopy" xml:space="preserve"><value>نسخ</value></data>
+  <data name="ActionCopyWebLink" xml:space="preserve"><value>انسخ رابط الويب</value></data>
+  <data name="ActionCreateFolder" xml:space="preserve"><value>إنشاء مجلد</value></data>
+  <data name="ActionDelete" xml:space="preserve"><value>حذف</value></data>
+  <data name="ActionDownload" xml:space="preserve"><value>تنزيل</value></data>
+  <data name="ActionEdit" xml:space="preserve"><value>تحرير</value></data>
+  <data name="ActionFileSharings" xml:space="preserve"><value>مشاركة الملف</value></data>
+  <data name="ActionFolderSharings" xml:space="preserve"><value>مشاركة المجلد</value></data>
+  <data name="ActionMove" xml:space="preserve"><value>نقل</value></data>
+  <data name="ActionOkay" xml:space="preserve"><value>موافق</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>فتح</value></data>
+  <data name="ActionProperties" xml:space="preserve"><value>الخصائص</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>تحديث</value></data>
+  <data name="ActionRename" xml:space="preserve"><value>إعادة تسمية</value></data>
+  <data name="ActionSave" xml:space="preserve"><value>حفظ</value></data>
+  <data name="ActionSharings" xml:space="preserve"><value>المشاركة</value></data>
+  <data name="ActionShowFiles" xml:space="preserve"><value>عرض الملفات</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>رفع</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>جميع الملفات (*.*)|*.*</value></data>
+  <data name="BrowseTitle" xml:space="preserve"><value>تصفح مجلدات DMS</value></data>
+  <data name="ColumnAuthorizations" xml:space="preserve"><value>الأذونات</value></data>
+  <data name="ColumnLastModification" xml:space="preserve"><value>التعديل الأخير</value></data>
+  <data name="ColumnLimitations" xml:space="preserve"><value>القيود</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="ColumnSize" xml:space="preserve"><value>الحجم</value></data>
+  <data name="ColumnType" xml:space="preserve"><value>النوع</value></data>
+  <data name="CredentialsOrServerError" xml:space="preserve"><value>بيانات اعتماد غير صالحة، أو خطأ في مثيل خادم DMS، أو خطأ في الشبكة</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>المالك الحالي: {0}</value></data>
+  <data name="DeleteFilesQuestion" xml:space="preserve"><value>هل تريد حقًا حذف الملفات التالية؟</value></data>
+  <data name="DeleteFilesTitle" xml:space="preserve"><value>DMS عن بعد - حذف الملفات</value></data>
+  <data name="DeleteFolderQuestion" xml:space="preserve"><value>هل تريد حقًا حذف المجلد التالي؟</value></data>
+  <data name="DeleteFolderTitle" xml:space="preserve"><value>DMS عن بعد - حذف المجلد</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>تم حذف الملف خارج هذا المتصفح: {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>تم حذف المجلد خارج هذا المتصفح: {0}</value></data>
+  <data name="DownloadSuccessful" xml:space="preserve"><value>تم التحميل بنجاح</value></data>
+  <data name="DownloadTitle" xml:space="preserve"><value>DMS عن بعد - تنزيل الملف</value></data>
+  <data name="DownloadToTitle" xml:space="preserve"><value>تنزيل إلى {0}</value></data>
+  <data name="DmsFolderNotFound" xml:space="preserve"><value>لم يتم العثور على مجلد DMS: {0}</value></data>
+  <data name="DuplicateFileNameConflict" xml:space="preserve"><value>الصراع: ملفات متعددة لها نفس اسم الملف</value></data>
+  <data name="ExactlyOneItemRequired" xml:space="preserve"><value>يجب تحديد عنصر واحد بالضبط</value></data>
+  <data name="EntityGroup" xml:space="preserve"><value>المجموعة</value></data>
+  <data name="EntityUser" xml:space="preserve"><value>المستخدم</value></data>
+  <data name="ExternalSharings" xml:space="preserve"><value>يشارك مع مستخدمين خارجيين عبر الرابط</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>لم يتم العثور على الملف</value></data>
+  <data name="FileProperties" xml:space="preserve"><value>خصائص الملف</value></data>
+  <data name="FilesAlreadyExist" xml:space="preserve"><value>الملفات التالية موجودة بالفعل. هل تريد الكتابة فوقها؟</value></data>
+  <data name="FolderProperties" xml:space="preserve"><value>خصائص المجلد</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>الإعدادات العامة</value></data>
+  <data name="InternalSharings" xml:space="preserve"><value>المشاركة مع المستخدمين/المجموعات الداخلية</value></data>
+  <data name="InvalidFolderMessage" xml:space="preserve"><value>مجلد غير صالح: {0}</value></data>
+  <data name="InvalidFolderTitle" xml:space="preserve"><value>مجلد DMS غير صالح أو لم يعد موجودًا</value></data>
+  <data name="LabelDownloadLink" xml:space="preserve"><value>رابط التحميل</value></data>
+  <data name="LabelExpiryDate" xml:space="preserve"><value>تاريخ انتهاء الصلاحية</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>اسم المجموعة</value></data>
+  <data name="LabelId" xml:space="preserve"><value>ID</value></data>
+  <data name="LabelMaxBytes" xml:space="preserve"><value>ماكس. بايت</value></data>
+  <data name="LabelMaxDownloads" xml:space="preserve"><value>ماكس. التنزيلات</value></data>
+  <data name="LabelMaxUploads" xml:space="preserve"><value>الحد الأقصى لمرات الرفع</value></data>
+  <data name="LabelMaxViews" xml:space="preserve"><value>ماكس. وجهات النظر</value></data>
+  <data name="LabelName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="LabelNumberBytes" xml:space="preserve"><value>بايت</value></data>
+  <data name="LabelNumberDownloads" xml:space="preserve"><value>التنزيلات</value></data>
+  <data name="LabelNumberUploads" xml:space="preserve"><value>مرات الرفع</value></data>
+  <data name="LabelNumberViews" xml:space="preserve"><value>وجهات النظر</value></data>
+  <data name="LabelPassword" xml:space="preserve"><value>كلمة المرور</value></data>
+  <data name="LabelUserName" xml:space="preserve"><value>اسم المستخدم</value></data>
+  <data name="LabelWebLink" xml:space="preserve"><value>رابط الويب</value></data>
+  <data name="Limits" xml:space="preserve"><value>حدود</value></data>
+  <data name="LinkSharingRequired" xml:space="preserve"><value>لم يتم تحديد مشاركة الرابط</value></data>
+  <data name="LimitationDownloads" xml:space="preserve"><value>التنزيلات: {0}</value></data>
+  <data name="LimitationPassword" xml:space="preserve"><value>كلمة المرور</value></data>
+  <data name="LimitationUploads" xml:space="preserve"><value>مرات الرفع: {0}</value></data>
+  <data name="NewFolderPrompt" xml:space="preserve"><value>ماذا يجب أن يسمى المجلد الجديد الموجود أسفل "{0}"؟</value></data>
+  <data name="NewFolderTitle" xml:space="preserve"><value>مجلد جديد</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>حدد المجلد الوجهة</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>الاسم في الوجهة</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>أدخل اسم الوجهة لـ "{0}":</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>أدخل اسمًا جديدًا لـ "{0}":</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>أدخل اسمًا بدون فاصل الدليل.</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>المصدر والوجهة هما نفس الشيء. اختر اسمًا أو مجلدًا مختلفًا.</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>الملف "{0}" موجود بالفعل. استبداله؟</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>المجلد "{0}" موجود بالفعل. دمج محتوياته مع المصدر؟ ستبقى العناصر الموجودة في الوجهة فقط.</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>لا يمكن نسخ جذر المتصفح أو إعادة تسميته أو نقله.</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>الوجهة خارج جذر المتصفح.</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>تم إكمال {0} من {1} العناصر المحددة. فشل العنصر التالي: {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>توقف. تم إكمال {0} من {1} العناصر المحددة.</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>لم يتم تحديد أي ملف</value></data>
+  <data name="NoFilesSelected" xml:space="preserve"><value>لم يتم تحديد أي ملفات</value></data>
+  <data name="NoFolderSelected" xml:space="preserve"><value>لم يتم تحديد أي مجلد</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>{مخفي}</value></data>
+  <data name="UnknownValue" xml:space="preserve"><value>غير معروف</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>تم إلغاء العملية من قبل المستخدم</value></data>
+  <data name="OutsideRequiredFolder" xml:space="preserve"><value>الحفظ خارج المجلد "{0}" غير مدعوم</value></data>
+  <data name="PermissionDelete" xml:space="preserve"><value>حذف</value></data>
+  <data name="PermissionDownload" xml:space="preserve"><value>تنزيل</value></data>
+  <data name="PermissionEdit" xml:space="preserve"><value>تحرير</value></data>
+  <data name="PermissionShare" xml:space="preserve"><value>مشاركة</value></data>
+  <data name="PermissionUpload" xml:space="preserve"><value>رفع</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>عرض</value></data>
+  <data name="Permissions" xml:space="preserve"><value>الأذونات</value></data>
+  <data name="PropertiesTitle" xml:space="preserve"><value>خصائص {0}</value></data>
+  <data name="PropertiesArchivedDate" xml:space="preserve"><value>تاريخ المؤرشفة: </value></data>
+  <data name="PropertiesCollisionWarning" xml:space="preserve"><value>تحذير: تم اكتشاف تعارض مع ملف آخر يحمل نفس الاسم</value></data>
+  <data name="PropertiesDetails" xml:space="preserve"><value>التفاصيل</value></data>
+  <data name="PropertiesExtendedInformation" xml:space="preserve"><value>معلومات موسعة</value></data>
+  <data name="PropertiesFileSize" xml:space="preserve"><value>حجم الملف: </value></data>
+  <data name="PropertiesFullPath" xml:space="preserve"><value>المسار الكامل: </value></data>
+  <data name="PropertiesLastModification" xml:space="preserve"><value>التعديل الأخير: </value></data>
+  <data name="PropertiesLockedBy" xml:space="preserve"><value>مقفل بواسطة: </value></data>
+  <data name="PropertiesLocks" xml:space="preserve"><value>الأقفال: </value></data>
+  <data name="PropertiesOwner" xml:space="preserve"><value>المالك: </value></data>
+  <data name="PropertiesParentCollection" xml:space="preserve"><value>جمع الوالدين: </value></data>
+  <data name="PropertiesParentFolder" xml:space="preserve"><value>المجلد الأصلي: </value></data>
+  <data name="PropertiesReferencedCollectionIds" xml:space="preserve"><value>المشار إليها من معرفات المجموعة</value></data>
+  <data name="PropertiesReferencedFolderIds" xml:space="preserve"><value>المشار إليها من معرفات المجلد</value></data>
+  <data name="PropertiesSharings" xml:space="preserve"><value>أسهم</value></data>
+  <data name="PropertiesVersionDate" xml:space="preserve"><value>تاريخ الإصدار: </value></data>
+  <data name="PropertiesVersionNumber" xml:space="preserve"><value>رقم الإصدار: </value></data>
+  <data name="RootSharingUnsupported" xml:space="preserve"><value>مشاركة المجلد الجذر غير مدعومة</value></data>
+  <data name="RootFolderCannotBeDeleted" xml:space="preserve"><value>لا يمكن حذف المجلد الجذر</value></data>
+  <data name="ShareSetupTitle" xml:space="preserve"><value>إعدادات مشاركة DMS - {0}</value></data>
+  <data name="SharingsTitle" xml:space="preserve"><value>إعدادات مشاركة DMS</value></data>
+  <data name="Statistics" xml:space="preserve"><value>الإحصائيات</value></data>
+  <data name="UploadSuccessful" xml:space="preserve"><value>اكتمل الرفع بنجاح</value></data>
+  <data name="UploadTitle" xml:space="preserve"><value>DMS البعيد — رفع الملفات</value></data>
+  <data name="UploadLinkNameRequired" xml:space="preserve"><value>مطلوب اسم لتحميل الروابط</value></data>
+  <data name="UserSharingRequired" xml:space="preserve"><value>لم يتم تحديد مشاركة مستخدم أو مجموعة</value></data>
+  <data name="ViewOrUploadRequired" xml:space="preserve"><value>مطلوب إذن العرض أو التحميل</value></data>
+  <data name="ViewRequiredForDownload" xml:space="preserve"><value>مطلوب إذن العرض عند تحديد التنزيل</value></data>
+  <data name="AuthorizationObjectRequired" xml:space="preserve"><value>لم يتم تحديد أي كائن إذن</value></data>
+  <data name="LinkSetupTitle" xml:space="preserve"><value>إعدادات الارتباط الخارجي لـ DMS</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>تغيير مثيل DMS...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>غير قادر على تغيير مثيل DMS</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>المثيل: {0} (تغيير...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>حدد مثيل DMS لفتحه:</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>حدد مثيل DMS</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>لا توجد مثيلات DMS متاحة لهذا الحساب.</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>عملية المتصفح قيد التشغيل بالفعل.</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>مطلوب مجموعة أو مجلد.</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>معرف المثيل مطلوب.</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>مطلوب تصريح واحد على الأقل</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>لا</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>نعم</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>لم يتم تنفيذ DialogObjectMode لإنشاء المشاركة</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>لم يتم تنفيذ DialogObjectMode للتحميل</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>لم يتم تنفيذ DialogObjectMode لحفظ المشاركة</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>لم يتم تنفيذ DialogObjectMode لتحديث المشاركة</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>مطلوب تنفيذ DmsProvider لـ {0}</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>خطأ: {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} بايت</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>قيمة غير صالحة: {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>يجب أن يكون مجلد التنزيلات الافتراضي المحلي "{0}" مجلدًا فرعيًا للدليل "{1}"</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>يجب أن يكون مجلد التحميلات الافتراضي المحلي "{0}" مجلدًا فرعيًا للدليل "{1}"</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>يتطلب OCS تحديد أذونات العرض والتنزيل معًا</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>لم يتم العثور على DmsLink الأصلي بالمعرف "{0}" في DmsResourceItem</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>لم يتم العثور على عنصر DmsShareBase الأصلي بالمعرف "{0}" في DmsResourceItem</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>السماح بالحذف: </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>السماح بالتنزيل: </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>السماح بالتحرير: </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>السماح بالتحميل: </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>السماح بالمشاهدة: </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>معرف المجموعة المعينة: </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>معرف المجلد المعين: </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>معرف المجموعة: </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>رابط التنزيل: </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>تنتهي صلاحيته في: </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>معرف الملف: </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>معرف المجلد: </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>لديه مجلدات فرعية: </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>لديه مشاركات المجموعة: </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>لديه مشاركات المجموعة المخفية: </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>يحتوي على مشاركات مستخدم مخفية: </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>لديه مشاركات المستخدم: </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>التجزئة/العلامة الإلكترونية: </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>تم تمكين التدقيق: </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>جمع ذكي: </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>المجموعة العامة: </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>مشترك: </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>الرابط: </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>الحد الأقصى للبايت: </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>الحد الأقصى للتنزيلات: </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>الحد الأقصى للتحميلات: </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>كلمة المرور: </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>البايتات التي تم تحميلها: </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>عدد التحميلات: </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>عنوان URL على الويب: </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>حل تحديد بدء التشغيل قبل إنشاء المتصفح.</value></data>
+  <data name="RootValue" xml:space="preserve"><value>الجذر</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>من المتوقع أن يبدأ SelectedNodeFolderPath "{0}" بـ RootNodeFolderPath "{1}"</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>قام موفر DMS بإرجاع رابط تم إنشاؤه بدون معرف.</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>لم يُرجع موفر DMS أي رابط تم إنشاؤه.</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>لا يدعم الموفر تحديد مثيل DMS.</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>مثيل DMS المحدد غير متوفر.</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>فئة مشتقة غير معروفة من DmsShareBase</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>استخدم المُنشئ الذي يقبل معرف المثيل.</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>الملف {0} من {1}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>تمت معالجة {0:N0} من {1:N0} بايت المصدر</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} بايتات المصدر التي تمت معالجتها؛ إجمالي غير معروف</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>تقدم البايت غير متوفر.</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>جارٍ الرفع…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>في انتظار تأكيد الموفر...</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>مكتمل</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>فشل</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>تم الإلغاء</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>لم يبدأ</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>طلب الإلغاء؛ في انتظار النقل النشط.</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>اكتمل {0} من {1} من الملفات</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>تبقى التحميلات المكتملة على الخادم. قد يؤدي التحميل المتقطع إلى ترك ملف جزئي.</value></data>
+</root>
