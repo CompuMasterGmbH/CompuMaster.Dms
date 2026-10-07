@@ -18,6 +18,16 @@ Empty/invalid local paths may cause `ArgumentException` or `NotSupportedExceptio
 
 ## Cross-platform evidence
 
-`LocalFileSystemContractTest` exercises the actual raw/processed WebDAV APIs with successful fake HTTP responses and owned local fixtures. It checks synchronous/asynchronous directory-at-target conflicts, preservation of the directory, staging cleanup, and missing local parents. It logs only platform/operation/exception type, never server identities or paths. Isolated CI runs the same tests on Windows, Linux, and macOS; exact observed types are evidence for those runners, not a universal promise for every file system. Windows is verified locally; Linux and macOS verification is recorded from the current PR's isolated jobs when they finish.
+`LocalFileSystemContractTest` exercises the actual raw/processed WebDAV APIs with successful fake HTTP responses and owned local fixtures. It checks synchronous/asynchronous directory-at-target conflicts, preservation of the directory, staging cleanup, and missing local parents. Its retained JSON records only platform/framework/operation/exception type, never server identities or paths. Isolated CI runs the same tests on Windows, Linux, and macOS; exact observed types are evidence for those runners, not a universal promise for every file system.
+
+[Run 37672925992](https://github.com/CompuMasterGmbH/CompuMaster.Dms/actions/runs/37672925992), source `c278748e0bb31f9db5aa979c6d51fbdd5513fb8d`, retained these .NET 8 directory-at-target observations in each OS's isolated test artifact:
+
+| Runner | Synchronous raw/processed writes | Asynchronous raw/processed finalization |
+| --- | --- | --- |
+| Windows | `System.UnauthorizedAccessException` | `System.IO.IOException` |
+| Ubuntu | `System.UnauthorizedAccessException` | `System.IO.IOException` |
+| macOS | `System.UnauthorizedAccessException` | `System.IO.IOException` |
+
+All six contract tests passed on each runner, including the missing-parent cases. The synchronous Unix result demonstrates why a generic `FileStream(CreateNew)` example must not be substituted for evidence from the actual DMS path.
 
 The motivating `FileStream(CreateNew)` example can map to `UnauthorizedAccessException` on Windows and `IOException` on Unix. This is not proof that every DMS download path reaches that exact primitive: asynchronous WebDAV reserves an adjacent stage and conflicts at finalization instead. The public contracts therefore document the applicable path conflict rather than copying an unrelated application's exception assertion.

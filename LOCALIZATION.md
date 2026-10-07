@@ -21,7 +21,7 @@ The agreed languages are English, German, French, Spanish, simplified Chinese, t
 
 The demos share their login/startup resource implementation; WebDAV, ownCloud Classic, Nextcloud, and Scopevisio each embed the resources under their own assembly namespace. Localizing a form's construction does not read/write credentials or change profile keys. Persisted credential behavior is unchanged. Stable branded demo-window titles and product/provider names remain recognizable across cultures, including the exact Nextcloud demo title used by visual-review tooling.
 
-Arabic/Hebrew text resources are separate from full RTL GUI support. This chat preserves the existing layout direction. Issue #66 records the later mirroring/control-order/directional-icon/mixed-text design; implementing `RightToLeft` or `RightToLeftLayout` is deferred. A translated text pack does not claim full bidirectional GUI acceptance.
+Arabic/Hebrew text resources are separate from full RTL GUI support. This chat preserves the existing layout direction. [The deferred RTL design](RTL_LAYOUT_PLAN.md) records the per-control mirroring matrix, intentional exceptions, mixed-text/clipboard identity, focus, accessibility, and later verification for #66. Implementing `RightToLeft` or `RightToLeftLayout` is deferred. A translated text pack does not claim full bidirectional GUI acceptance.
 
 ## Pack verification and glossary
 

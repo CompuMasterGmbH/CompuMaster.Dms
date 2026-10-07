@@ -31,7 +31,7 @@ Consequently, asynchronous SDK renewal alone did not repair synchronous DMS use.
 
 ## DMS integration
 
-The internal session adapter uses the existing SDK asynchronous information and
+The temporary internal session adapter uses the existing SDK asynchronous information and
 renewal operations for both synchronous and asynchronous calls. Synchronous callers
 block through `GetAwaiter().GetResult()` without aggregate wrapping; asynchronous
 callers retain cancellation. No second token refresh algorithm or business-operation
@@ -40,6 +40,14 @@ customer/organization selection, certificate behavior and initial authorization
 remain unchanged. All regular REST subclients receive the same session adapter.
 The installed internal I/O implementation is a provider detail, not a public
 contract promising a particular SDK concrete type.
+
+Reusable synchronous SDK renewal belongs in Teamwork. [Teamwork issue #7](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork/issues/7)
+tracks unifying its sync/native session behavior and then removing this DMS bridge.
+Integration order is a focused Teamwork change, immutable combined SDK/DMS tests,
+separately authorized publication, exact released-package consumption, and bridge
+replacement. DMS-specific localized reauthorization mapping remains in DMS. This
+PR neither changes nor publishes upstream libraries; its exact released baseline
+is recorded above. SDK-owned refresh admission and transport behavior remain reused.
 
 A missing refresh credential, HTTP 401 from the refresh endpoint, an OAuth
 `invalid_grant` response, or authorization still rejected after renewal produces
