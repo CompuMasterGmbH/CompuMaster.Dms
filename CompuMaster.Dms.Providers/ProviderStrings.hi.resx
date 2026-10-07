@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ACycleWasFoundInTheCenterDeviceFolder" xml:space="preserve"><value>सेंटरडिवाइस फ़ोल्डर पदानुक्रम में फ़ोल्डर आईडी {0} पर एक चक्र पाया गया।</value></data>
+  <data name="ADMSInstanceDisplayNameIsRequired" xml:space="preserve"><value>एक डीएमएस इंस्टेंस डिस्प्ले नाम आवश्यक है।</value></data>
+  <data name="ADMSInstanceIDIsRequired" xml:space="preserve"><value>एक डीएमएस इंस्टेंस आईडी आवश्यक है।</value></data>
+  <data name="ADirectoryCanTBeCopiedOrMoved" xml:space="preserve"><value>किसी निर्देशिका को स्वयं में कॉपी या स्थानांतरित नहीं किया जा सकता है।</value></data>
+  <data name="ADirectoryMergeCannotConsumeTheSameFolder" xml:space="preserve"><value>एक निर्देशिका मर्ज एक ही फ़ोल्डर पहचान का दो बार उपभोग नहीं कर सकता है।</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto" xml:space="preserve"><value>किसी फ़ोल्डर को उसकी अपनी पदानुक्रम में कॉपी या स्थानांतरित नहीं किया जा सकता है, इसमें यह भी शामिल है कि गंतव्य माता-पिता कब बनाए जाएंगे।</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto2" xml:space="preserve"><value>किसी फ़ोल्डर को किसी अन्य पथ सहित कॉपी या स्थानांतरित नहीं किया जा सकता है।</value></data>
+  <data name="AGroupIDIsRequired" xml:space="preserve"><value>एक समूह आईडी आवश्यक है</value></data>
+  <data name="APositiveNumericOCSShareIDIsRequired" xml:space="preserve"><value>एक सकारात्मक संख्यात्मक OCS शेयर आईडी आवश्यक है</value></data>
+  <data name="AResourceSnapshotCannotBeNull" xml:space="preserve"><value>संसाधन स्नैपशॉट शून्य नहीं हो सकता.</value></data>
+  <data name="ASelectedFolderIdentifierIsRequired" xml:space="preserve"><value>एक चयनित फ़ोल्डर पहचानकर्ता आवश्यक है.</value></data>
+  <data name="AUserIDIsRequired" xml:space="preserve"><value>एक यूजर आईडी आवश्यक है</value></data>
+  <data name="ActionFailedForDirectory" xml:space="preserve"><value>निर्देशिका "{1}" के लिए कार्रवाई {0} विफल रही</value></data>
+  <data name="ActionFailedForFile" xml:space="preserve"><value>फ़ाइल "{1}" के लिए कार्रवाई {0} विफल रही</value></data>
+  <data name="ActionFailedForSourceDirectoryAndDestination" xml:space="preserve"><value>स्रोत निर्देशिका "{1}" और गंतव्य "{2}" के लिए कार्रवाई {0} विफल रही</value></data>
+  <data name="ActionFailedForSourceFileAndDestination" xml:space="preserve"><value>स्रोत फ़ाइल "{1}" और गंतव्य "{2}" के लिए कार्रवाई {0} विफल रही</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>सभी उपयोगकर्ता</value></data>
+  <data name="AllowDeleteNotSupportedByProvider" xml:space="preserve"><value>डिलीट करने की अनुमति प्रदाता द्वारा समर्थित नहीं है</value></data>
+  <data name="AllowEditNotSupportedByProvider" xml:space="preserve"><value>अनुमतिसंपादन प्रदाता द्वारा समर्थित नहीं है</value></data>
+  <data name="AllowShareNotSupportedByProvider" xml:space="preserve"><value>अलाउशेयर प्रदाता द्वारा समर्थित नहीं है</value></data>
+  <data name="AtLeastOneSharingPermissionIsRequired" xml:space="preserve"><value>कम से कम एक साझाकरण अनुमति आवश्यक है</value></data>
+  <data name="AuthentificationForUserFailed" xml:space="preserve"><value>उपयोगकर्ता "{0}" के लिए प्रमाणीकरण विफल: {1}</value></data>
+  <data name="AuthentificationForUserFailed2" xml:space="preserve"><value>उपयोगकर्ता "{0}" के लिए प्रमाणीकरण विफल: {1} {2}</value></data>
+  <data name="ButRemoteItemExists" xml:space="preserve"><value>{0}, लेकिन दूरस्थ आइटम मौजूद है: {1}</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedInThe" xml:space="preserve"><value>सेंटरडिवाइस संग्रह का नाम केवल रूट में ही बदला जा सकता है।</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining" xml:space="preserve"><value>सेंटरडिवाइस संग्रह का नाम केवल रूट में रहते हुए ही बदला जा सकता है।</value></data>
+  <data name="CenterDeviceCollectionsCanTBeCopiedBecauseThey" xml:space="preserve"><value>सेंटरडिवाइस संग्रह की प्रतिलिपि नहीं बनाई जा सकती क्योंकि वे नियमित फ़ोल्डर के बजाय शीर्ष-स्तरीय साझाकरण कंटेनर हैं।</value></data>
+  <data name="CenterDeviceCollectionsCannotBeCopied" xml:space="preserve"><value>सेंटरडिवाइस संग्रह की प्रतिलिपि नहीं बनाई जा सकती।</value></data>
+  <data name="CenterDeviceFilesAndFoldersMustRemainInsideA" xml:space="preserve"><value>सेंटरडिवाइस फ़ाइलें और फ़ोल्डर्स एक संग्रह या फ़ोल्डर के अंदर रहना चाहिए।</value></data>
+  <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>सेंटरडिवाइस फ़ोल्डर्स को एक संग्रह या अन्य फ़ोल्डर के अंदर रहना चाहिए।</value></data>
+  <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>संग्रह मेटाडेटा अनुरोधित पहचानकर्ता से मेल नहीं खाता।</value></data>
+  <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>संग्रह WebDAV द्वारा समर्थित नहीं हैं</value></data>
+  <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>संग्रह "{0}" केवल रूट फ़ोल्डर में स्थित होना चाहिए, लेकिन "{1}" में है</value></data>
+  <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>संग्रह रूट फ़ोल्डर में स्थित होना चाहिए: {0}</value></data>
+  <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>इस डीएमएस प्रदाता के लिए कस्टम वेबसेवा यूआरएल समर्थित नहीं हैं</value></data>
+  <data name="DMSClientNumber" xml:space="preserve"><value>डीएमएस क्लाइंट नंबर</value></data>
+  <data name="CustomerDmsInstanceDeleted" xml:space="preserve"><value>ग्राहक का DMS इंस्टेंस हटा दिया गया है.</value></data>
+  <data name="DMSPassword" xml:space="preserve"><value>डीएमएस पासवर्ड</value></data>
+  <data name="DMSUsername" xml:space="preserve"><value>डीएमएस उपयोगकर्ता नाम</value></data>
+  <data name="DirectoryAlreadyExists" xml:space="preserve"><value>निर्देशिका पहले से मौजूद है: {0}</value></data>
+  <data name="DirectoryNotFound" xml:space="preserve"><value>निर्देशिका नहीं मिली: {0}</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>डाउनलोड विफल रहा</value></data>
+  <data name="DownloadFailedNotCompletedSuccessfull" xml:space="preserve"><value>डाउनलोड विफल: पूर्ण/सफल नहीं</value></data>
+  <data name="DownloadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>डाउनलोड-लिंक निर्माण से कोई पहचानकर्ता नहीं लौटा।</value></data>
+  <data name="EitherAllowViewOrAllowUploadMustBeSet" xml:space="preserve"><value>या तो अनुमति दृश्य या अनुमति अपलोड सेट होना चाहिए</value></data>
+  <data name="Failed" xml:space="preserve"><value>{0} विफल: {1}</value></data>
+  <data name="FileAlreadyExists" xml:space="preserve"><value>फ़ाइल पहले से मौजूद है: {0}</value></data>
+  <data name="FileMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>फ़ाइल मेटाडेटा अनुरोधित पहचानकर्ता से मेल नहीं खाता।</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>फ़ाइल नहीं मिली: {0}</value></data>
+  <data name="FilesDonTContainDirectoryCaches" xml:space="preserve"><value>फ़ाइलों में निर्देशिका कैश नहीं है</value></data>
+  <data name="FilesInRootFolderNotSupportedByDMS" xml:space="preserve"><value>रूट फ़ोल्डर में फ़ाइलें डीएमएस प्रदाता द्वारा समर्थित नहीं हैं</value></data>
+  <data name="FolderIDNoLongerBelongsToItsExpected" xml:space="preserve"><value>फ़ोल्डर आईडी {0} अब इसके अपेक्षित सेंटरडिवाइस संग्रह से संबंधित नहीं है।</value></data>
+  <data name="FolderMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>फ़ोल्डर मेटाडेटा अनुरोधित पहचानकर्ता से मेल नहीं खाता।</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>निषिद्ध: {0}</value></data>
+  <data name="GroupSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>समूह साझाकरण इस OCS सर्वर द्वारा समर्थित नहीं है</value></data>
+  <data name="InvalidItemType" xml:space="preserve"><value>अमान्य आइटम प्रकार: {0}</value></data>
+  <data name="InvalidItemTypeStatus" xml:space="preserve"><value>अमान्य आइटम प्रकार स्थिति</value></data>
+  <data name="InvalidItemTypeStatusForIsRoot" xml:space="preserve"><value>IsRoot के लिए अमान्य आइटम प्रकार स्थिति</value></data>
+  <data name="ItemTypeExpectedButWas" xml:space="preserve"><value>आइटम प्रकार {0} अपेक्षित था, लेकिन {1} था</value></data>
+  <data name="ItemTypeExpectedButWas2" xml:space="preserve"><value>आइटम प्रकार {0}{1} अपेक्षित था, लेकिन {2} था</value></data>
+  <data name="ItemTypeOrExpectedButWas" xml:space="preserve"><value>आइटम प्रकार {0} या {1} अपेक्षित था, लेकिन {2} था</value></data>
+  <data name="LinkCreationRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>लिंक निर्माण के लिए चयनित संसाधन पहचानकर्ता की आवश्यकता होती है।</value></data>
+  <data name="LinkSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>लिंक साझाकरण इस OCS सर्वर द्वारा समर्थित नहीं है</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed" xml:space="preserve"><value>{0} पर WebDAV संसाधन की लिस्टिंग विफल: {1}</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed2" xml:space="preserve"><value>{0} पर WebDAV संसाधन की लिस्टिंग विफल: {1} {2}</value></data>
+  <data name="LoginCredentialsCanTExistForDMSProvider" xml:space="preserve"><value>डीएमएस प्रदाता "कोई नहीं" के लिए लॉगिन क्रेडेंशियल मौजूद नहीं हो सकते</value></data>
+  <data name="LoginCredentialsProviderWebDAVExpectedButWas" xml:space="preserve"><value>लॉगिन क्रेडेंशियल प्रदाता WebDAV अपेक्षित था, लेकिन {0} था</value></data>
+  <data name="MoreThanOneMatchingOCSShareWasFound" xml:space="preserve"><value>एक से अधिक मेल खाते OCS शेयर पाए गए</value></data>
+  <data name="MoveFailedForFileIDRollbackWasAttempted" xml:space="preserve"><value>फ़ाइल आईडी {0} के लिए स्थानांतरण विफल रहा; रोलबैक का प्रयास किया गया।</value></data>
+  <data name="MoveFailedForFolderIDRollbackWasAttempted" xml:space="preserve"><value>फ़ोल्डर आईडी {0} के लिए स्थानांतरण विफल; रोलबैक का प्रयास किया गया।</value></data>
+  <data name="MovingADocumentWithMultipleOrUnknownDirectory" xml:space="preserve"><value>एकाधिक या अज्ञात निर्देशिका संदर्भों वाले दस्तावेज़ को स्थानांतरित करने के लिए एक चयनित स्रोत पैरेंट की आवश्यकता होती है।</value></data>
+  <data name="MustBe" xml:space="preserve"><value>&gt;= 0 होना चाहिए</value></data>
+  <data name="MustBeAPathWithoutTrailingDirectorySeparator" xml:space="preserve"><value>निर्देशिका विभाजक चार का अनुसरण किए बिना एक पथ होना चाहिए: {0}</value></data>
+  <data name="NegativeSizeValuesAreNotAllowed" xml:space="preserve"><value>नकारात्मक आकार मानों की अनुमति नहीं है</value></data>
+  <data name="NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre" xml:space="preserve"><value>कोई संगठन नहीं मिला, आमतौर पर स्कोपविसियो उपयोगकर्ता प्राधिकरण की आवश्यकता होती है: रेचटेप्रोफिल संपर्क - सभी रेचटे या सीआरएम - सभी रेचटे</value></data>
+  <data name="NotYetImplementedDMSProvider" xml:space="preserve"><value>अभी तक लागू नहीं किया गया DMS प्रदाता: {0}</value></data>
+  <data name="OCSCapabilityDiscoveryFailed" xml:space="preserve"><value>OCS क्षमता खोज विफल रही.</value></data>
+  <data name="OCSLinkShareWasNotFound" xml:space="preserve"><value>OCS लिंक शेयर {0} नहीं मिला</value></data>
+  <data name="OCSShareListingDidNotReturnAnArray" xml:space="preserve"><value>OCS शेयर सूची ने कोई सरणी नहीं लौटाई।</value></data>
+  <data name="OCSShareListingFailed" xml:space="preserve"><value>OCS शेयर लिस्टिंग विफल रही.</value></data>
+  <data name="PublicUploadsAreNotSupportedByThisOCS" xml:space="preserve"><value>सार्वजनिक अपलोड इस OCS सर्वर द्वारा समर्थित नहीं हैं</value></data>
+  <data name="PublicUploadsCanOnlyBeEnabledForFolders" xml:space="preserve"><value>सार्वजनिक अपलोड केवल फ़ोल्डरों के लिए सक्षम किया जा सकता है</value></data>
+  <data name="RemoteItemExistsMultipleTimes" xml:space="preserve"><value>रिमोट आइटम कई बार मौजूद होता है: {0}</value></data>
+  <data name="RemoteRessourceWithUnsupportedType" xml:space="preserve"><value>असमर्थित प्रकार वाला दूरस्थ संसाधन: {0}</value></data>
+  <data name="RessourceNotFound" xml:space="preserve"><value>संसाधन नहीं मिला: {0}</value></data>
+  <data name="RootDirectoryCanTBeTheSourceOf" xml:space="preserve"><value>रूट निर्देशिका किसी प्रतिलिपि या स्थानांतरण कार्रवाई का स्रोत नहीं हो सकती</value></data>
+  <data name="RootDirectoryCanTBeTheTargetOf" xml:space="preserve"><value>रूट निर्देशिका किसी प्रतिलिपि या स्थानांतरण कार्रवाई का लक्ष्य नहीं हो सकती</value></data>
+  <data name="RootFolderCanTBeDeleted" xml:space="preserve"><value>रूट फ़ोल्डर को हटाया नहीं जा सकता</value></data>
+  <data name="ScopevisioUserAuthenticationFailed" xml:space="preserve"><value>स्कोपविज़ियो उपयोगकर्ता प्रमाणीकरण विफल रहा।</value></data>
+  <data name="SharingForFilesNotSupported" xml:space="preserve"><value>उन फ़ाइलों के लिए साझाकरण समर्थित नहीं है</value></data>
+  <data name="SharingForRootDirectoryNotSupported" xml:space="preserve"><value>रूट निर्देशिका के लिए साझाकरण समर्थित नहीं है</value></data>
+  <data name="SharingIsNotSupportedByThisWebDAVServer" xml:space="preserve"><value>इस WebDAV सर्वर द्वारा साझाकरण समर्थित नहीं है</value></data>
+  <data name="SharingRequiresANonemptyUserOrGroupIdentifier" xml:space="preserve"><value>साझा करने के लिए एक गैर-रिक्त उपयोगकर्ता या समूह पहचानकर्ता की आवश्यकता होती है।</value></data>
+  <data name="SharingRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>साझा करने के लिए चयनित संसाधन पहचानकर्ता की आवश्यकता होती है.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameDocumentReplacement" xml:space="preserve"><value>स्रोत और गंतव्य एक ही दस्तावेज़ की पहचान करते हैं; प्रतिस्थापन से स्रोत दस्तावेज़ और उसके अन्य संदर्भ हट जाएंगे।</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameFolder" xml:space="preserve"><value>स्रोत और गंतव्य एक ही फ़ोल्डर की पहचान करते हैं।</value></data>
+  <data name="SourceAndDestinationPathsMustDiffer" xml:space="preserve"><value>स्रोत और गंतव्य पथ अलग-अलग होने चाहिए।</value></data>
+  <data name="SubItemsOfFoundOutsideOfThisPath" xml:space="preserve"><value>{0} के उप आइटम इस पथ के बाहर पाए गए: {1}</value></data>
+  <data name="TaskNotFinished" xml:space="preserve"><value>कार्य समाप्त नहीं हुआ</value></data>
+  <data name="TaskNotStarted" xml:space="preserve"><value>कार्य प्रारंभ नहीं हुआ</value></data>
+  <data name="TaskStatusInvalid" xml:space="preserve"><value>कार्य स्थिति अमान्य</value></data>
+  <data name="TheCollectionOfCenterDeviceFolderIDIsUnknown" xml:space="preserve"><value>सेंटरडिवाइस फ़ोल्डर आईडी {0} का संग्रह अज्ञात है।</value></data>
+  <data name="TheCollectionSUploadLinkHasNoIdentifier" xml:space="preserve"><value>संग्रह के अपलोड लिंक में कोई पहचानकर्ता नहीं है.</value></data>
+  <data name="TheCopiedFileCouldnTBePromotedTo" xml:space="preserve"><value>कॉपी की गई फ़ाइल को उसके अंतिम नाम तक प्रचारित नहीं किया जा सका; रोलबैक का प्रयास किया गया।</value></data>
+  <data name="TheCopySucceededButTheReplacedFileWith" xml:space="preserve"><value>प्रतिलिपि सफल हो गई, लेकिन आईडी {0} के साथ बदली गई फ़ाइल अस्थायी नाम {1} के अंतर्गत बनी हुई है।</value></data>
+  <data name="TheDMSInstanceIsNotAvailableToThe" xml:space="preserve"><value>डीएमएस उदाहरण अधिकृत उपयोगकर्ता के लिए उपलब्ध नहीं है।</value></data>
+  <data name="TheDMSProviderMustBeAuthorizedBeforeAccessing" xml:space="preserve"><value>डीएमएस इंस्टेंसेस तक पहुंचने से पहले डीएमएस प्रदाता को अधिकृत होना चाहिए।</value></data>
+  <data name="TheDownloadLinkResponseContainsNoAccessControl" xml:space="preserve"><value>डाउनलोड-लिंक प्रतिक्रिया में कोई एक्सेस-कंट्रोल मेटाडेटा नहीं है।</value></data>
+  <data name="TheFolderListingFailedWithHTTP" xml:space="preserve"><value>फ़ोल्डर सूची HTTP {0} के साथ विफल रही।</value></data>
+  <data name="TheFolderListingResponseHasNoFoldersArray" xml:space="preserve"><value>फ़ोल्डर सूची प्रतिक्रिया में कोई फ़ोल्डर सरणी नहीं है।</value></data>
+  <data name="TheLinkOperationRequiresAnIdentifier" xml:space="preserve"><value>लिंक ऑपरेशन के लिए एक पहचानकर्ता की आवश्यकता होती है।</value></data>
+  <data name="TheMatchingOCSShareWasNotFound" xml:space="preserve"><value>मेल खाता OCS शेयर नहीं मिला</value></data>
+  <data name="TheMoveSucceededButTheReplacedFileWith" xml:space="preserve"><value>यह कदम सफल हुआ, लेकिन आईडी {0} के साथ बदली गई फ़ाइल अस्थायी नाम {1} के अंतर्गत बनी हुई है।</value></data>
+  <data name="TheNativeGroupResponseContainsNoGroupList" xml:space="preserve"><value>मूल समूह प्रतिक्रिया में कोई समूह सूची नहीं है।</value></data>
+  <data name="TheNativeGroupSnapshotDoesNotMatchThe" xml:space="preserve"><value>मूल समूह स्नैपशॉट अनुरोधित पहचानकर्ता से मेल नहीं खाता है।</value></data>
+  <data name="TheNativeUserResponseContainsANullUser" xml:space="preserve"><value>मूल उपयोगकर्ता प्रतिक्रिया में एक शून्य उपयोगकर्ता शामिल है।</value></data>
+  <data name="TheNativeUserResponseContainsNoUserList" xml:space="preserve"><value>मूल उपयोगकर्ता प्रतिक्रिया में कोई उपयोगकर्ता सूची नहीं है।</value></data>
+  <data name="TheNativeUserSnapshotDoesNotMatchThe" xml:space="preserve"><value>मूल उपयोगकर्ता स्नैपशॉट अनुरोधित पहचानकर्ता से मेल नहीं खाता है।</value></data>
+  <data name="TheOCSServerReturnedAnUnexpectedShareType" xml:space="preserve"><value>OCS सर्वर ने लिंक शेयर के लिए एक अप्रत्याशित शेयर प्रकार लौटाया</value></data>
+  <data name="TheOperationFailedCompensationOfConfirmedChangesWas" xml:space="preserve"><value>ऑपरेशन विफल रहा; पुष्ट परिवर्तनों की क्षतिपूर्ति का प्रयास किया गया। बाधित अनुरोध के लिए सर्वर-स्टेट समाधान की आवश्यकता हो सकती है।</value></data>
+  <data name="TheOperationSucceededButReplacedDocumentIDRemains" xml:space="preserve"><value>ऑपरेशन सफल हुआ, लेकिन प्रतिस्थापित दस्तावेज़ आईडी {0} अस्थायी नाम {1} के अंतर्गत बना हुआ है।</value></data>
+  <data name="TheParentDMSResourceItemIsRequired" xml:space="preserve"><value>मूल डीएमएस संसाधन आइटम आवश्यक है</value></data>
+  <data name="TheRemoteResourceMustBeAFile" xml:space="preserve"><value>दूरस्थ संसाधन एक फ़ाइल होनी चाहिए.</value></data>
+  <data name="TheResolvedFileHasNoIdentifier" xml:space="preserve"><value>हल की गई फ़ाइल में कोई पहचानकर्ता नहीं है.</value></data>
+  <data name="TheResolvedResourceHasNoIdentifier" xml:space="preserve"><value>हल किए गए संसाधन का कोई पहचानकर्ता नहीं है: {0}</value></data>
+  <data name="TheRetryLoopEndedUnexpectedly" xml:space="preserve"><value>पुनः प्रयास लूप अप्रत्याशित रूप से समाप्त हो गया।</value></data>
+  <data name="TheSelectedDirectoryPathNoLongerHasThe" xml:space="preserve"><value>चयनित निर्देशिका पथ में अब अपेक्षित प्रकार नहीं है।</value></data>
+  <data name="TheSelectedFilePathNoLongerIdentifiesA" xml:space="preserve"><value>चयनित फ़ाइल पथ अब किसी फ़ाइल की पहचान नहीं करता है.</value></data>
+  <data name="TheSelectedResourceIsNotACollectionOr" xml:space="preserve"><value>चयनित संसाधन कोई संग्रह या फ़ोल्डर नहीं है.</value></data>
+  <data name="TheSelectedResourceIsNotAFile" xml:space="preserve"><value>चयनित संसाधन कोई फ़ाइल नहीं है.</value></data>
+  <data name="TheSharingOperationFailedForOneOrMore" xml:space="preserve"><value>एक या अधिक उपयोगकर्ताओं या समूहों के लिए साझाकरण कार्रवाई विफल रही।</value></data>
+  <data name="TheSourceItemHasAnUnexpectedResourceType" xml:space="preserve"><value>स्रोत आइटम में एक अप्रत्याशित संसाधन प्रकार है।</value></data>
+  <data name="TheSourceItemIsnTADirectory" xml:space="preserve"><value>स्रोत आइटम कोई निर्देशिका नहीं है.</value></data>
+  <data name="TheSourceItemMustProvideItsFullRemote" xml:space="preserve"><value>स्रोत आइटम को अपना पूर्ण दूरस्थ पथ प्रदान करना होगा।</value></data>
+  <data name="TheUploadLinkResponseContainsNoMetadata" xml:space="preserve"><value>अपलोड-लिंक प्रतिक्रिया में कोई मेटाडेटा नहीं है।</value></data>
+  <data name="ThisOCSAPICannotRepresentViewAndDownload" xml:space="preserve"><value>यह OCS API दृश्य और डाउनलोड अनुमतियों को अलग-अलग प्रस्तुत नहीं कर सकता</value></data>
+  <data name="ThisProviderDoesNotSupportAsynchronousMoveOperations" xml:space="preserve"><value>यह प्रदाता एसिंक्रोनस मूव ऑपरेशंस का समर्थन नहीं करता है।</value></data>
+  <data name="UnknownItemTypeAdditionalImplementationRequired" xml:space="preserve"><value>अज्ञात आइटम प्रकार, अतिरिक्त कार्यान्वयन की आवश्यकता है</value></data>
+  <data name="UnsupportedSourceItemType" xml:space="preserve"><value>असमर्थित स्रोत आइटम प्रकार.</value></data>
+  <data name="UnsupportedSourceItemType2" xml:space="preserve"><value>असमर्थित स्रोत आइटम प्रकार: {0}</value></data>
+  <data name="UpdateOfLinkRequiresAnIDInDmsLink" xml:space="preserve"><value>लिंक को अपडेट करने के लिए DmsLink में एक आईडी की आवश्यकता होती है</value></data>
+  <data name="UpdatingOfSharePropertiesNotSupported" xml:space="preserve"><value>शेयर संपत्तियों का अद्यतनीकरण समर्थित नहीं है</value></data>
+  <data name="UploadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>अपलोड-लिंक निर्माण से कोई पहचानकर्ता नहीं लौटा।</value></data>
+  <data name="UploadLinkMaxBytesMustBeAPositiveMultiple" xml:space="preserve"><value>अपलोड-लिंक मैक्सबाइट्स 1 GiB (1073741824 बाइट्स) का धनात्मक गुणज होना चाहिए।</value></data>
+  <data name="UploadLinksSupportedOnlyWithCollections" xml:space="preserve"><value>अपलोड लिंक केवल संग्रह के साथ समर्थित हैं</value></data>
+  <data name="UserGroupSharingIsSupportedOnlyForCollections" xml:space="preserve"><value>उपयोगकर्ता/समूह साझाकरण केवल संग्रहों और फ़ोल्डरों के लिए समर्थित है।</value></data>
+  <data name="UserSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>उपयोगकर्ता साझाकरण इस OCS सर्वर द्वारा समर्थित नहीं है</value></data>
+  <data name="CopyTaskFailed" xml:space="preserve"><value>प्रतिलिपि कार्य विफल रहा</value></data>
+  <data name="CreateFolderFailed" xml:space="preserve"><value>फ़ोल्डर बनाना विफल रहा</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>हटाना विफल</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>स्थानांतरण विफल</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>अपलोड विफल रहा</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>आपका सत्र अब नवीनीकृत नहीं किया जा सकता. जारी रखने के लिए फिर से साइन इन करें.</value></data>
+</root>

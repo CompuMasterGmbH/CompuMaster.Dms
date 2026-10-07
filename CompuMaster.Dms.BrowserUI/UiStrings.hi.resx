@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ActionAdd" xml:space="preserve"><value>जोड़ें</value></data>
+  <data name="ActionAddGroup" xml:space="preserve"><value>समूह जोड़ें</value></data>
+  <data name="ActionAddUser" xml:space="preserve"><value>उपयोगकर्ता जोड़ें</value></data>
+  <data name="ActionCancel" xml:space="preserve"><value>रद्द करें</value></data>
+  <data name="ActionClose" xml:space="preserve"><value>बंद करें</value></data>
+  <data name="ActionCopy" xml:space="preserve"><value>कॉपी करें</value></data>
+  <data name="ActionCopyWebLink" xml:space="preserve"><value>वेब लिंक कॉपी करें</value></data>
+  <data name="ActionCreateFolder" xml:space="preserve"><value>फ़ोल्डर बनाएँ</value></data>
+  <data name="ActionDelete" xml:space="preserve"><value>हटाएँ</value></data>
+  <data name="ActionDownload" xml:space="preserve"><value>डाउनलोड करें</value></data>
+  <data name="ActionEdit" xml:space="preserve"><value>संपादित करें</value></data>
+  <data name="ActionFileSharings" xml:space="preserve"><value>फ़ाइल साझाकरण</value></data>
+  <data name="ActionFolderSharings" xml:space="preserve"><value>फ़ोल्डर साझाकरण</value></data>
+  <data name="ActionMove" xml:space="preserve"><value>स्थानांतरित करें</value></data>
+  <data name="ActionOkay" xml:space="preserve"><value>ठीक है</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>खोलें</value></data>
+  <data name="ActionProperties" xml:space="preserve"><value>गुण</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>रिफ़्रेश करें</value></data>
+  <data name="ActionRename" xml:space="preserve"><value>नाम बदलें</value></data>
+  <data name="ActionSave" xml:space="preserve"><value>सहेजें</value></data>
+  <data name="ActionSharings" xml:space="preserve"><value>साझाकरण</value></data>
+  <data name="ActionShowFiles" xml:space="preserve"><value>फ़ाइलें दिखाएँ</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>अपलोड करें</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>सभी फ़ाइलें (*.*)|*.*</value></data>
+  <data name="BrowseTitle" xml:space="preserve"><value>डीएमएस फ़ोल्डर ब्राउज़ करें</value></data>
+  <data name="ColumnAuthorizations" xml:space="preserve"><value>अनुमतियाँ</value></data>
+  <data name="ColumnLastModification" xml:space="preserve"><value>अंतिम संशोधन</value></data>
+  <data name="ColumnLimitations" xml:space="preserve"><value>सीमाएँ</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>नाम</value></data>
+  <data name="ColumnSize" xml:space="preserve"><value>आकार</value></data>
+  <data name="ColumnType" xml:space="preserve"><value>प्रकार</value></data>
+  <data name="CredentialsOrServerError" xml:space="preserve"><value>अमान्य क्रेडेंशियल, डीएमएस सर्वर इंस्टेंस त्रुटि, या नेटवर्क त्रुटि</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>वर्तमान मालिक: {0}</value></data>
+  <data name="DeleteFilesQuestion" xml:space="preserve"><value>क्या आप सचमुच निम्नलिखित फ़ाइलें हटाना चाहते हैं?</value></data>
+  <data name="DeleteFilesTitle" xml:space="preserve"><value>रिमोट डीएमएस - फ़ाइलें हटाएँ</value></data>
+  <data name="DeleteFolderQuestion" xml:space="preserve"><value>क्या आप सचमुच निम्नलिखित फ़ोल्डर को हटाना चाहते हैं?</value></data>
+  <data name="DeleteFolderTitle" xml:space="preserve"><value>रिमोट डीएमएस - फ़ोल्डर हटाएँ</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>फ़ाइल इस ब्राउज़र के बाहर हटा दी गई थी: {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>इस ब्राउज़र के बाहर फ़ोल्डर हटा दिया गया था: {0}</value></data>
+  <data name="DownloadSuccessful" xml:space="preserve"><value>डाउनलोड सफलतापूर्वक पूरा हुआ</value></data>
+  <data name="DownloadTitle" xml:space="preserve"><value>रिमोट डीएमएस - फ़ाइल डाउनलोड</value></data>
+  <data name="DownloadToTitle" xml:space="preserve"><value>{0} पर डाउनलोड करें</value></data>
+  <data name="DmsFolderNotFound" xml:space="preserve"><value>DMS फ़ोल्डर नहीं मिला: {0}</value></data>
+  <data name="DuplicateFileNameConflict" xml:space="preserve"><value>विरोध: एकाधिक फ़ाइलों का फ़ाइल नाम समान होता है</value></data>
+  <data name="ExactlyOneItemRequired" xml:space="preserve"><value>बिल्कुल एक आइटम का चयन किया जाना चाहिए</value></data>
+  <data name="EntityGroup" xml:space="preserve"><value>समूह</value></data>
+  <data name="EntityUser" xml:space="preserve"><value>उपयोगकर्ता</value></data>
+  <data name="ExternalSharings" xml:space="preserve"><value>लिंक के माध्यम से बाहरी उपयोगकर्ताओं के साथ साझा करता है</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>फ़ाइल नहीं मिली</value></data>
+  <data name="FileProperties" xml:space="preserve"><value>फ़ाइल गुण</value></data>
+  <data name="FilesAlreadyExist" xml:space="preserve"><value>निम्नलिखित फ़ाइलें पहले से मौजूद हैं. क्या आप उन्हें अधिलेखित करना चाहते हैं?</value></data>
+  <data name="FolderProperties" xml:space="preserve"><value>फ़ोल्डर गुण</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>सामान्य सेटिंग्स</value></data>
+  <data name="InternalSharings" xml:space="preserve"><value>आंतरिक उपयोगकर्ताओं/समूहों के साथ साझा करता है</value></data>
+  <data name="InvalidFolderMessage" xml:space="preserve"><value>अमान्य फ़ोल्डर: {0}</value></data>
+  <data name="InvalidFolderTitle" xml:space="preserve"><value>डीएमएस फ़ोल्डर अमान्य है या अब मौजूद नहीं है</value></data>
+  <data name="LabelDownloadLink" xml:space="preserve"><value>डाउनलोड लिंक</value></data>
+  <data name="LabelExpiryDate" xml:space="preserve"><value>समाप्ति तिथि</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>समूह का नाम</value></data>
+  <data name="LabelId" xml:space="preserve"><value>ID</value></data>
+  <data name="LabelMaxBytes" xml:space="preserve"><value>अधिकतम. बाइट्स</value></data>
+  <data name="LabelMaxDownloads" xml:space="preserve"><value>अधिकतम. डाउनलोड</value></data>
+  <data name="LabelMaxUploads" xml:space="preserve"><value>अधिकतम अपलोड</value></data>
+  <data name="LabelMaxViews" xml:space="preserve"><value>अधिकतम. विचार</value></data>
+  <data name="LabelName" xml:space="preserve"><value>नाम</value></data>
+  <data name="LabelNumberBytes" xml:space="preserve"><value>बाइट्स</value></data>
+  <data name="LabelNumberDownloads" xml:space="preserve"><value>डाउनलोड</value></data>
+  <data name="LabelNumberUploads" xml:space="preserve"><value>अपलोड</value></data>
+  <data name="LabelNumberViews" xml:space="preserve"><value>दृश्य</value></data>
+  <data name="LabelPassword" xml:space="preserve"><value>पासवर्ड</value></data>
+  <data name="LabelUserName" xml:space="preserve"><value>उपयोगकर्ता नाम</value></data>
+  <data name="LabelWebLink" xml:space="preserve"><value>वेब लिंक</value></data>
+  <data name="Limits" xml:space="preserve"><value>सीमाएँ</value></data>
+  <data name="LinkSharingRequired" xml:space="preserve"><value>कोई लिंक साझाकरण चयनित नहीं है</value></data>
+  <data name="LimitationDownloads" xml:space="preserve"><value>डाउनलोड: {0}</value></data>
+  <data name="LimitationPassword" xml:space="preserve"><value>पासवर्ड</value></data>
+  <data name="LimitationUploads" xml:space="preserve"><value>अपलोड: {0}</value></data>
+  <data name="NewFolderPrompt" xml:space="preserve"><value>"{0}" के नीचे के नए फ़ोल्डर को क्या कहा जाना चाहिए?</value></data>
+  <data name="NewFolderTitle" xml:space="preserve"><value>नया फ़ोल्डर</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>गंतव्य फ़ोल्डर चुनें</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>गंतव्य पर नाम</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>"{0}" के लिए गंतव्य नाम दर्ज करें:</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>"{0}" के लिए एक नया नाम दर्ज करें:</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>निर्देशिका विभाजक के बिना एक नाम दर्ज करें.</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>स्रोत और गंतव्य एक ही हैं. कोई भिन्न नाम या फ़ोल्डर चुनें.</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>फ़ाइल "{0}" पहले से मौजूद है। इसे बदलें?</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>फ़ोल्डर "{0}" पहले से मौजूद है। इसकी सामग्री को स्रोत के साथ मर्ज करें? केवल गंतव्य स्थान पर पाई गई वस्तुएँ ही रहेंगी।</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>ब्राउज़र रूट को कॉपी, नाम बदला या स्थानांतरित नहीं किया जा सकता है।</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>गंतव्य ब्राउज़र रूट के बाहर है.</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>{1} में से {0} चयनित आइटम पूरे हो गए। अगला आइटम विफल: {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>रुक गया. {1} में से {0} चयनित आइटम पूरे हो गए।</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>कोई फ़ाइल चयनित नहीं</value></data>
+  <data name="NoFilesSelected" xml:space="preserve"><value>कोई फ़ाइल चयनित नहीं</value></data>
+  <data name="NoFolderSelected" xml:space="preserve"><value>कोई फ़ोल्डर चयनित नहीं</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>{छिपा हुआ}</value></data>
+  <data name="UnknownValue" xml:space="preserve"><value>अज्ञात</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>उपयोगकर्ता द्वारा कार्रवाई रद्द कर दी गई</value></data>
+  <data name="OutsideRequiredFolder" xml:space="preserve"><value>"{0}" फ़ोल्डर के बाहर सहेजना समर्थित नहीं है</value></data>
+  <data name="PermissionDelete" xml:space="preserve"><value>हटाएँ</value></data>
+  <data name="PermissionDownload" xml:space="preserve"><value>डाउनलोड करें</value></data>
+  <data name="PermissionEdit" xml:space="preserve"><value>संपादित करें</value></data>
+  <data name="PermissionShare" xml:space="preserve"><value>साझा करें</value></data>
+  <data name="PermissionUpload" xml:space="preserve"><value>अपलोड करें</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>देखें</value></data>
+  <data name="Permissions" xml:space="preserve"><value>अनुमतियाँ</value></data>
+  <data name="PropertiesTitle" xml:space="preserve"><value>गुण {0}</value></data>
+  <data name="PropertiesArchivedDate" xml:space="preserve"><value>संग्रहित तिथि: </value></data>
+  <data name="PropertiesCollisionWarning" xml:space="preserve"><value>चेतावनी: इसी नाम की किसी अन्य फ़ाइल के साथ टकराव का पता चला है</value></data>
+  <data name="PropertiesDetails" xml:space="preserve"><value>विवरण</value></data>
+  <data name="PropertiesExtendedInformation" xml:space="preserve"><value>विस्तृत जानकारी</value></data>
+  <data name="PropertiesFileSize" xml:space="preserve"><value>फ़ाइल का आकार: </value></data>
+  <data name="PropertiesFullPath" xml:space="preserve"><value>पूरा पथ: </value></data>
+  <data name="PropertiesLastModification" xml:space="preserve"><value>अंतिम संशोधन: </value></data>
+  <data name="PropertiesLockedBy" xml:space="preserve"><value>द्वारा लॉक किया गया: </value></data>
+  <data name="PropertiesLocks" xml:space="preserve"><value>ताले: </value></data>
+  <data name="PropertiesOwner" xml:space="preserve"><value>मालिक: </value></data>
+  <data name="PropertiesParentCollection" xml:space="preserve"><value>जनक संग्रह: </value></data>
+  <data name="PropertiesParentFolder" xml:space="preserve"><value>मूल फ़ोल्डर: </value></data>
+  <data name="PropertiesReferencedCollectionIds" xml:space="preserve"><value>संग्रह आईडी से संदर्भित</value></data>
+  <data name="PropertiesReferencedFolderIds" xml:space="preserve"><value>फ़ोल्डर आईडी से संदर्भित</value></data>
+  <data name="PropertiesSharings" xml:space="preserve"><value>शेयर</value></data>
+  <data name="PropertiesVersionDate" xml:space="preserve"><value>संस्करण दिनांक: </value></data>
+  <data name="PropertiesVersionNumber" xml:space="preserve"><value>संस्करण संख्या: </value></data>
+  <data name="RootSharingUnsupported" xml:space="preserve"><value>रूट फ़ोल्डर साझा करना समर्थित नहीं है</value></data>
+  <data name="RootFolderCannotBeDeleted" xml:space="preserve"><value>रूट फ़ोल्डर को हटाया नहीं जा सकता</value></data>
+  <data name="ShareSetupTitle" xml:space="preserve"><value>डीएमएस साझाकरण सेटिंग्स - {0}</value></data>
+  <data name="SharingsTitle" xml:space="preserve"><value>डीएमएस साझाकरण सेटिंग्स</value></data>
+  <data name="Statistics" xml:space="preserve"><value>सांख्यिकी</value></data>
+  <data name="UploadSuccessful" xml:space="preserve"><value>अपलोड सफलतापूर्वक पूरा हुआ</value></data>
+  <data name="UploadTitle" xml:space="preserve"><value>रिमोट DMS — फ़ाइल अपलोड</value></data>
+  <data name="UploadLinkNameRequired" xml:space="preserve"><value>अपलोड लिंक के लिए एक नाम आवश्यक है</value></data>
+  <data name="UserSharingRequired" xml:space="preserve"><value>कोई उपयोगकर्ता या समूह साझाकरण चयनित नहीं है</value></data>
+  <data name="ViewOrUploadRequired" xml:space="preserve"><value>देखने या अपलोड करने की अनुमति आवश्यक है</value></data>
+  <data name="ViewRequiredForDownload" xml:space="preserve"><value>डाउनलोड चयनित होने पर दृश्य अनुमति आवश्यक है</value></data>
+  <data name="AuthorizationObjectRequired" xml:space="preserve"><value>कोई अनुमति वस्तु चयनित नहीं है</value></data>
+  <data name="LinkSetupTitle" xml:space="preserve"><value>डीएमएस बाहरी लिंक सेटिंग्स</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>डीएमएस उदाहरण बदलें...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>डीएमएस उदाहरण बदलने में असमर्थ</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>उदाहरण: {0} (परिवर्तन...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>खोलने के लिए DMS इंस्टेंस का चयन करें:</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>डीएमएस उदाहरण का चयन करें</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>इस खाते के लिए कोई डीएमएस उदाहरण उपलब्ध नहीं हैं।</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>एक ब्राउज़र ऑपरेशन पहले से ही चल रहा है.</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>एक संग्रह या फ़ोल्डर आवश्यक है.</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>एक उदाहरण पहचानकर्ता आवश्यक है.</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>कम से कम एक प्राधिकरण आवश्यक है</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>नहीं</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>हाँ</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>साझाकरण बनाने के लिए DialogObjectMode लागू नहीं किया गया</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>डायलॉगऑब्जेक्टमोड लोडिंग के लिए लागू नहीं किया गया</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>साझाकरण को सहेजने के लिए DialogObjectMode लागू नहीं किया गया</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>साझाकरण को अद्यतन करने के लिए DialogObjectMode लागू नहीं किया गया</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>{0} के लिए DmsProvider कार्यान्वयन आवश्यक है</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>त्रुटि: {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} बाइट्स</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>अमान्य मान: {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>स्थानीय डिफ़ॉल्ट डाउनलोड फ़ोल्डर "{0}" निर्देशिका "{1}" का एक उप फ़ोल्डर होना चाहिए</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>स्थानीय डिफ़ॉल्ट अपलोड फ़ोल्डर "{0}" निर्देशिका "{1}" का एक उप फ़ोल्डर होना चाहिए</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS को दृश्य और डाउनलोड अनुमतियों को एक साथ चुनने की आवश्यकता होती है</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>आईडी "{0}" के साथ मूल DmsLink DmsResourceItem में नहीं मिला</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>आईडी "{0}" वाला मूल DmsShareBase आइटम DmsResourceItem में नहीं मिला</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>हटाने की अनुमति दें: </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>डाउनलोड की अनुमति दें: </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>संपादन की अनुमति दें: </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>अपलोड की अनुमति दें: </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>देखने की अनुमति दें: </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>असाइन की गई संग्रह आईडी: </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>निर्दिष्ट फ़ोल्डर आईडी: </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>संग्रह आईडी: </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>डाउनलोड यूआरएल: </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>पर समाप्त होता है: </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>फ़ाइल आईडी: </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>फ़ोल्डर आईडी: </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>चाइल्ड फ़ोल्डर हैं: </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>समूह के शेयर हैं: </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>छिपे हुए समूह शेयर हैं: </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>इसमें छिपे हुए उपयोगकर्ता शेयर हैं: </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>उपयोगकर्ता के शेयर हैं: </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>हैश/ईटैग: </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>ऑडिटिंग सक्षम: </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>बुद्धिमान संग्रह: </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>सार्वजनिक संग्रह: </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>साझा: </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>लिंक: </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>अधिकतम बाइट्स: </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>अधिकतम डाउनलोड: </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>अधिकतम अपलोड: </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>पासवर्ड: </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>अपलोड किए गए बाइट्स: </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>अपलोड संख्या: </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>वेब यूआरएल: </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>ब्राउज़र बनाने से पहले स्टार्टअप चयन का समाधान करें।</value></data>
+  <data name="RootValue" xml:space="preserve"><value>जड़</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>चयनितNodeFolderPath "{0}" के RootNodeFolderPath "{1}" से शुरू होने की उम्मीद है</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>डीएमएस प्रदाता ने बिना आईडी के बनाया गया लिंक लौटा दिया।</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>डीएमएस प्रदाता ने कोई निर्मित लिंक नहीं लौटाया।</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>प्रदाता डीएमएस इंस्टेंस के चयन का समर्थन नहीं करता है।</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>चयनित डीएमएस उदाहरण उपलब्ध नहीं है.</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>DmsShareBase से अज्ञात व्युत्पन्न वर्ग</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>इंस्टेंस पहचानकर्ता को स्वीकार करने वाले कंस्ट्रक्टर का उपयोग करें।</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>{1} की फ़ाइल {0}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{1:N0} स्रोत बाइट्स में से {0:N0} संसाधित</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} स्रोत बाइट्स संसाधित; पूर्णतः अज्ञात</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>बाइट प्रगति अनुपलब्ध है.</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>अपलोड हो रहा है…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>प्रदाता की पुष्टि की प्रतीक्षा की जा रही है...</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>पूरा हुआ</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>असफल</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>रद्द कर दिया गया</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>शुरू नहीं हुआ</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>रद्द करने का अनुरोध किया गया; सक्रिय स्थानांतरण की प्रतीक्षा में.</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{1} में से {0} फ़ाइलें पूरी हो गईं</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>पूर्ण अपलोड सर्वर पर बने रहते हैं। किसी बाधित अपलोड के कारण आंशिक फ़ाइल छूट सकती है.</value></data>
+</root>
