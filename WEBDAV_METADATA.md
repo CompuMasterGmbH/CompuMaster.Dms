@@ -25,3 +25,19 @@ References:
 - [ownCloud documented resource properties](https://doc.owncloud.com/server/10.15/developer_manual/webdav_api/search.html).
 
 `ChildDirectoryMetadataReportsEmptyNonemptyOrUnknownAcrossListingPaths` uses the same owned-fixture helper at Level 2 to compare an empty folder and a nonempty parent across sync/async individual/child listing paths and a direct named property response. It records a capability status rather than inventing zero when the server does not support the extension. The isolated metadata test checks both listing APIs and asserts exactly four requests for four listings, protecting against per-directory startup probes. Existing browser lazy-tree/async-navigation tests cover known false/true/count values, unknown placeholders, deferred expansion, and creation/deletion/refresh.
+
+## Configured-server observations
+
+[Full Level 2 run 37656986484](https://github.com/CompuMasterGmbH/CompuMaster.Dms/actions/runs/37656986484), functional source `8d4569e`, passed all twelve provider/OS combinations. Each WebDAV fixture passed owner/listing parity, nullable empty/nonempty metadata checks and two sequential 32 MiB uploads. This proves the assertions rather than a universal capability for every server version.
+
+[Reporting run 37672925992](https://github.com/CompuMasterGmbH/CompuMaster.Dms/actions/runs/37672925992), source `c278748`, retains actual named-property status and nullable-value JSON without owner identities. The first completed fixture for each configured endpoint reports:
+
+| Configured fixture / runner | File and folder cloud owner properties | `DAV:owner` | `nc:contained-folder-count` | Mapped parent / empty folder |
+| --- | --- | --- | --- | --- |
+| Generic WebDAV / Windows | Both 200; owner ID and display text available | 404 | 404 | Unknown / unknown |
+| ownCloud / Ubuntu | Both 200; owner ID and display text available | 404 | 404 | Unknown / unknown |
+| Nextcloud / macOS | Both 200; owner ID and display text available | 404 | 200 | Count 1, true / count 0, false |
+
+Every listed fixture passed all 30 tests, including the three targeted metadata/upload cases. The configured generic WebDAV endpoint happens to support cloud owner extensions; generic protocol support does not guarantee them. Other reporting OS jobs remain queued/running at this checkpoint; the previous complete functional run passed all three OSes. These observations identify the configured endpoints rather than every server installation.
+
+An independently other-owned recipient fixture and the affected Nextcloud demo's manual startup review remain separate evidence gaps. Known/unknown property rendering is verified with isolated GUI fixtures. No login identity is substituted for resource ownership, and a server without usable child counts retains lazy expansion.
