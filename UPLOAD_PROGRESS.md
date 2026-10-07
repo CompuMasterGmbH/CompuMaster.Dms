@@ -11,6 +11,9 @@ protocol overhead. It is not a server acknowledgement. `TotalBytes` and the byte
 counter are nullable; unknown differs from a known zero. Seekable streams report
 the length remaining at their initial position; rewinding does not double-count
 source progress. Nonseekable streams report consumed bytes with an unknown total.
+If a transport skips source ranges before reading, consumed-byte telemetry becomes
+unknown rather than treating skipped bytes as transferred. Seeking to the end for
+metadata does not itself consume bytes, and a zero-length read never signals EOF.
 Snapshots use 64-bit counters and stream telemetry is throttled to 100 ms or
 256 KiB increments. Finalization is reported after the source reaches its end;
 `Completed` is reported only after the original provider upload task succeeds.
