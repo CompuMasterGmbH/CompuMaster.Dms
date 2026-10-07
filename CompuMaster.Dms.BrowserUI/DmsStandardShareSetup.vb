@@ -135,6 +135,13 @@ Public Class DmsStandardShareSetup
                     Me.CheckBoxAllowDelete.Enabled = False
                     Me.CheckBoxAllowShare.Enabled = False
                 End If
+            Case "WebDavDmsProvider"
+                Me.CheckBoxAllowView.Enabled = False
+                Me.CheckBoxAllowDownload.Enabled = False
+                Me.CheckBoxAllowEdit.Enabled = True
+                Me.CheckBoxAllowUpload.Enabled = True
+                Me.CheckBoxAllowDelete.Enabled = True
+                Me.CheckBoxAllowShare.Enabled = True
             Case Else
                 Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
         End Select
@@ -159,7 +166,7 @@ Public Class DmsStandardShareSetup
 
     Private Sub SwitchControlsBasedOnCheckboxesForAllowedActions()
         Select Case Me.DmsProvider.GetType.Name
-            Case "ScopevisioTeamworkDmsProvider"
+            Case "ScopevisioTeamworkDmsProvider", "WebDavDmsProvider"
             Case Else
                 Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
         End Select
@@ -272,6 +279,13 @@ Public Class DmsStandardShareSetup
                 Case "ScopevisioTeamworkDmsProvider"
                     If Me.CheckBoxAllowDownload.Checked And Not Me.CheckBoxAllowView.Checked Then
                         Throw New DmsUserInputInvalidException(UiStrings.GetText("ViewRequiredForDownload"))
+                    End If
+                Case "WebDavDmsProvider"
+                    If Me.CheckBoxAllowView.Checked <> Me.CheckBoxAllowDownload.Checked Then
+                        Throw New DmsUserInputInvalidException("OCS requires View and Download permissions to be selected together")
+                    End If
+                    If Not (Me.CheckBoxAllowView.Checked OrElse Me.CheckBoxAllowEdit.Checked OrElse Me.CheckBoxAllowUpload.Checked OrElse Me.CheckBoxAllowDelete.Checked OrElse Me.CheckBoxAllowShare.Checked) Then
+                        Throw New DmsUserInputMissingException("At least one authorization is required")
                     End If
                 Case Else
                     Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
