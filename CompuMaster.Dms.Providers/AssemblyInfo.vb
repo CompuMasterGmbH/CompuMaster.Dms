@@ -5,3 +5,5 @@ Imports System.Runtime.CompilerServices
 
 <Assembly: InternalsVisibleTo("CompuMaster.Dms.BrowserUI")>
 <Assembly: InternalsVisibleTo("CompuMaster.Dms.Test.Providers")>
+
+<Assembly: System.Resources.NeutralResourcesLanguage("en")>

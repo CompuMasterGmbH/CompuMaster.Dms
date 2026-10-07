@@ -146,4 +146,62 @@
   <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>Wählen Sie die DMS-Instanz aus:</value></data>
   <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>DMS-Instanz auswählen</value></data>
   <data name="NoDmsInstances" xml:space="preserve"><value>Für dieses Konto sind keine DMS-Instanzen verfügbar.</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>Eine Browser-Aktion wird bereits ausgeführt.</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>Eine Sammlung oder ein Ordner ist erforderlich.</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>Eine Instanz-ID ist erforderlich.</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>Mindestens eine Berechtigung ist erforderlich</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>Nein</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>Ja</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>Das Erstellen von Freigaben ist für diesen Dialogmodus nicht implementiert</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>Das Laden ist für diesen Dialogmodus nicht implementiert</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>Das Speichern von Freigaben ist für diesen Dialogmodus nicht implementiert</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>Das Aktualisieren von Freigaben ist für diesen Dialogmodus nicht implementiert</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>Eine DMS-Provider-Implementierung für {0} ist erforderlich</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>FEHLER: {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} Bytes</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>Ungültiger Wert: {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>Das lokale Download-Verzeichnis "{0}" muss unterhalb von Verzeichnis "{1}" liegen</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>Das lokale Upload-Verzeichnis "{0}" muss unterhalb von Verzeichnis "{1}" liegen</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS erfordert, dass Ansicht und Download gemeinsam erlaubt werden</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>Der ursprüngliche Link mit ID "{0}" wurde in der DMS-Ressource nicht gefunden</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>Die ursprüngliche Freigabe mit ID "{0}" wurde in der DMS-Ressource nicht gefunden</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>Löschen erlaubt: </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>Download erlaubt: </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>Bearbeiten erlaubt: </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>Upload erlaubt: </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>Ansicht erlaubt: </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>Zugeordnete Sammlungs-ID: </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>Zugeordnete Ordner-ID: </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>Sammlungs-ID: </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>Download-Adresse: </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>Gültig bis: </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>Datei-ID: </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>Ordner-ID: </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>Unterordner vorhanden: </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>Gruppenfreigaben vorhanden: </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>Verborgene Gruppenfreigaben: </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>Verborgene Benutzerfreigaben: </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>Benutzerfreigaben vorhanden: </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>Hash/ETag: </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>Protokollierung aktiviert: </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>Intelligente Sammlung: </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>Öffentliche Sammlung: </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>Freigegeben: </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>Link: </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>Maximale Bytes: </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>Maximale Downloads: </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>Maximale Uploads: </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>Passwort: </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>Hochgeladene Bytes: </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>Anzahl Uploads: </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>Webadresse: </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>Wählen Sie die Startinstanz vor dem Erstellen des Browsers aus.</value></data>
+  <data name="RootValue" xml:space="preserve"><value>Stammverzeichnis</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>Der ausgewählte Ordnerpfad "{0}" muss mit dem Stammpfad "{1}" beginnen</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>Der DMS-Provider hat einen erstellten Link ohne ID zurückgegeben.</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>Der DMS-Provider hat keinen erstellten Link zurückgegeben.</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>Der Provider unterstützt keine Auswahl einer DMS-Instanz.</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>Die ausgewählte DMS-Instanz ist nicht verfügbar.</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Unbekannter Freigabetyp</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Verwenden Sie den Konstruktor mit einer Instanz-ID.</value></data>
 </root>

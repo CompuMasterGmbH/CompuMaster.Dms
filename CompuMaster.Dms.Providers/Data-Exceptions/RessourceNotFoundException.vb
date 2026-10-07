@@ -8,12 +8,12 @@
         Inherits System.Exception
 
         Public Sub New(remotePath As String)
-            MyBase.New("Ressource not found: " & remotePath)
+            MyBase.New(ProviderStrings.Format("RessourceNotFound", remotePath))
             Me.RemotePath = remotePath
         End Sub
 
         Public Sub New(remotePath As String, innerException As Exception)
-            MyBase.New("Ressource not found: " & remotePath, innerException)
+            MyBase.New(ProviderStrings.Format("RessourceNotFound", remotePath), innerException)
             Me.RemotePath = remotePath
         End Sub
 

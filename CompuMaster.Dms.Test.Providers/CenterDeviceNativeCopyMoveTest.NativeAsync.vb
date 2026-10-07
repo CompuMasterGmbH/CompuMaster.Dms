@@ -10,7 +10,7 @@ Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 Public Class CenterDeviceNativeCopyMoveTest
     <TestCase(False), TestCase(True)>
     Public Async Function PublicOperationPreservesSelectedFileId(moving As Boolean) As Task

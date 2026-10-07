@@ -286,7 +286,7 @@ Namespace Data
             Get
                 If IsRoot Then
                     If IsCollection OrElse IsFolder Then
-                        Throw New InvalidOperationException("Invalid item type status for IsRoot")
+                        Throw New InvalidOperationException(ProviderStrings.GetText("InvalidItemTypeStatusForIsRoot"))
                     End If
                     Return ItemTypes.Root
                 ElseIf IsFolder AndAlso Not IsCollection Then
@@ -296,7 +296,7 @@ Namespace Data
                 ElseIf Not IsFolder AndAlso Not IsCollection Then
                     Return ItemTypes.File
                 Else
-                    Throw New InvalidOperationException("Invalid item type status")
+                    Throw New InvalidOperationException(ProviderStrings.GetText("InvalidItemTypeStatus"))
                 End If
             End Get
             Set(value As ItemTypes)

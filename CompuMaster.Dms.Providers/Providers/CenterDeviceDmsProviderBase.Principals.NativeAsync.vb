@@ -48,14 +48,14 @@ Namespace Providers
             Dim users As New Dictionary(Of String, DmsUser)(StringComparer.Ordinal)
             Dim groups As New Dictionary(Of String, DmsGroup)(StringComparer.Ordinal)
             For Each resource In resources
-                If resource Is Nothing Then Throw New ArgumentException("A resource snapshot cannot be null.", NameOf(resources))
+                If resource Is Nothing Then Throw New ArgumentException(ProviderStrings.GetText("AResourceSnapshotCannotBeNull"), NameOf(resources))
                 cancellationToken.ThrowIfCancellationRequested()
                 Dim selectedUsers As New List(Of DmsUser) From {resource.ExtendedInfosOwner, resource.ExtendedInfosLastModificationUser, resource.ExtendedInfosLockedByUser}
                 If resource.ExtendedInfosUserSharings IsNot Nothing Then selectedUsers.AddRange(resource.ExtendedInfosUserSharings.Select(Function(share) share.User))
                 For Each user In selectedUsers
                     If Not String.IsNullOrWhiteSpace(user.ID) AndAlso Not users.ContainsKey(user.ID) Then
                         Dim snapshot = Await Me.LoadNativeUserSnapshotAsync(user.ID, cancellationToken).ConfigureAwait(False)
-                        If Not String.Equals(snapshot.ID, user.ID, StringComparison.Ordinal) Then Throw New InvalidOperationException("The native user snapshot does not match the requested identifier.")
+                        If Not String.Equals(snapshot.ID, user.ID, StringComparison.Ordinal) Then Throw New InvalidOperationException(ProviderStrings.GetText("TheNativeUserSnapshotDoesNotMatchThe"))
                         users.Add(user.ID, snapshot)
                     End If
                 Next
@@ -64,7 +64,7 @@ Namespace Providers
                         Dim id = share.Group.ID
                         If Not String.IsNullOrWhiteSpace(id) AndAlso Not groups.ContainsKey(id) Then
                             Dim snapshot = Await Me.LoadNativeGroupSnapshotAsync(id, cancellationToken).ConfigureAwait(False)
-                            If Not String.Equals(snapshot.ID, id, StringComparison.Ordinal) Then Throw New InvalidOperationException("The native group snapshot does not match the requested identifier.")
+                            If Not String.Equals(snapshot.ID, id, StringComparison.Ordinal) Then Throw New InvalidOperationException(ProviderStrings.GetText("TheNativeGroupSnapshotDoesNotMatchThe"))
                             groups.Add(id, snapshot)
                         End If
                     Next

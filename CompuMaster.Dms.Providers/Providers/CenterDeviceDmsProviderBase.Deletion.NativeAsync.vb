@@ -40,7 +40,7 @@ Namespace Providers
             Dim id As String
             Select Case remoteItem.ItemType
                 Case DmsResourceItem.ItemTypes.Root
-                    Throw New DmsUserErrorMessageException("Root folder can't be deleted")
+                    Throw New DmsUserErrorMessageException(ProviderStrings.GetText("RootFolderCanTBeDeleted"))
                 Case DmsResourceItem.ItemTypes.Collection : id = remoteItem.ExtendedInfosCollectionID
                 Case DmsResourceItem.ItemTypes.Folder : id = remoteItem.ExtendedInfosFolderID
                 Case DmsResourceItem.ItemTypes.File : id = remoteItem.ExtendedInfosFileID
@@ -54,7 +54,7 @@ Namespace Providers
                 If resolved.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteItem.FullName)
                 ValidateNativeDeletionType(resolved, remoteItem.ItemType, Nothing)
                 Dim resolvedId = If(resolved.ItemType = DmsResourceItem.ItemTypes.File, resolved.ExtendedInfosFileID, If(resolved.ItemType = DmsResourceItem.ItemTypes.Folder, resolved.ExtendedInfosFolderID, resolved.ExtendedInfosCollectionID))
-                If String.IsNullOrEmpty(resolvedId) Then Throw New InvalidOperationException("The resolved resource has no identifier: " & remoteItem.FullName)
+                If String.IsNullOrEmpty(resolvedId) Then Throw New InvalidOperationException(ProviderStrings.Format("TheResolvedResourceHasNoIdentifier", remoteItem.FullName))
                 Await Me.DeleteRemoteItemAsync(resolved, cancellationToken).ConfigureAwait(False)
                 Return
             End If
@@ -63,7 +63,7 @@ Namespace Providers
                     For Each link In remoteItem.ExtendedInfosLinks
                         cancellationToken.ThrowIfCancellationRequested()
                         If link.AllowUpload Then
-                            If String.IsNullOrEmpty(link.ID) Then Throw New InvalidOperationException("The collection's upload link has no identifier.")
+                            If String.IsNullOrEmpty(link.ID) Then Throw New InvalidOperationException(ProviderStrings.GetText("TheCollectionSUploadLinkHasNoIdentifier"))
                             Await Me.DeleteNativeUploadLinkAsync(link.ID, cancellationToken).ConfigureAwait(False)
                         End If
                     Next
@@ -94,7 +94,7 @@ Namespace Providers
         ''' <inheritdoc/>
         Public Overrides Async Function DeleteRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             cancellationToken.ThrowIfCancellationRequested()
-            If remotePath = Nothing OrElse remotePath.Trim(Me.DirectorySeparator) = "" Then Throw New DmsUserErrorMessageException("Root folder can't be deleted")
+            If remotePath = Nothing OrElse remotePath.Trim(Me.DirectorySeparator) = "" Then Throw New DmsUserErrorMessageException(ProviderStrings.GetText("RootFolderCanTBeDeleted"))
             Dim parent = Await Me.OpenNativeTransferDirectoryAsync(Me.ParentDirectoryPath(remotePath), cancellationToken).ConfigureAwait(False)
             Dim name = Me.ItemName(remotePath)
             If Not remotePath.EndsWith(Me.DirectorySeparator) Then
@@ -128,7 +128,7 @@ Namespace Providers
             If alternativeExpectedItemType.HasValue AndAlso alternativeExpectedItemType.Value = Nothing Then Throw New ArgumentNullException(NameOf(alternativeExpectedItemType))
             If remoteItem Is Nothing Then Throw New ArgumentNullException(NameOf(remoteItem))
             If remoteItem.ItemType <> expectedItemType AndAlso (Not alternativeExpectedItemType.HasValue OrElse remoteItem.ItemType <> alternativeExpectedItemType.Value) Then
-                Throw New ArgumentException("ItemType " & expectedItemType.ToString() & If(alternativeExpectedItemType.HasValue, " or " & alternativeExpectedItemType.Value.ToString(), "") & " expected, but was " & remoteItem.ItemType.ToString(), NameOf(remoteItem))
+                Throw New ArgumentException(ProviderStrings.Format("ItemTypeExpectedButWas2", expectedItemType.ToString(), If(alternativeExpectedItemType.HasValue, " or " & alternativeExpectedItemType.Value.ToString(), ""), remoteItem.ItemType.ToString()), NameOf(remoteItem))
             End If
         End Sub
 

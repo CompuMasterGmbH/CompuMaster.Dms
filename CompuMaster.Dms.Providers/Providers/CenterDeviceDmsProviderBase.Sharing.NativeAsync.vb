@@ -29,11 +29,11 @@ Namespace Providers
         Private Async Function ApplyNativeSharingAsync(resource As DmsResourceItem, users As List(Of String), groups As List(Of String), remove As Boolean, cancellationToken As CancellationToken) As Task
             If resource Is Nothing Then Throw New ArgumentNullException(NameOf(resource))
             cancellationToken.ThrowIfCancellationRequested()
-            If resource.ItemType <> DmsResourceItem.ItemTypes.Collection AndAlso resource.ItemType <> DmsResourceItem.ItemTypes.Folder Then Throw New NotSupportedException("User/group sharing is supported only for collections and folders.")
+            If resource.ItemType <> DmsResourceItem.ItemTypes.Collection AndAlso resource.ItemType <> DmsResourceItem.ItemTypes.Folder Then Throw New NotSupportedException(ProviderStrings.GetText("UserGroupSharingIsSupportedOnlyForCollections"))
             Dim id = If(resource.ItemType = DmsResourceItem.ItemTypes.Collection, resource.ExtendedInfosCollectionID, resource.ExtendedInfosFolderID)
-            If String.IsNullOrEmpty(id) Then Throw New InvalidOperationException("Sharing requires the selected resource identifier.")
+            If String.IsNullOrEmpty(id) Then Throw New InvalidOperationException(ProviderStrings.GetText("SharingRequiresTheSelectedResourceIdentifier"))
             Dim principals = If(users, groups)
-            If principals Is Nothing OrElse principals.Count = 0 OrElse principals.Any(Function(value) String.IsNullOrWhiteSpace(value)) Then Throw New ArgumentException("Sharing requires a nonempty user or group identifier.")
+            If principals Is Nothing OrElse principals.Count = 0 OrElse principals.Any(Function(value) String.IsNullOrWhiteSpace(value)) Then Throw New ArgumentException(ProviderStrings.GetText("SharingRequiresANonemptyUserOrGroupIdentifier"))
             Try
                 Dim response = Await Me.ChangeNativeSharingAsync(resource, users, groups, remove, cancellationToken).ConfigureAwait(False)
                 ValidateSharingResponse(response)
@@ -73,13 +73,13 @@ Namespace Providers
         ''' <inheritdoc/>
         Public Overrides Function UpdateSharingAsync(shareInfo As DmsShareForGroup, Optional cancellationToken As CancellationToken = Nothing) As Task
             cancellationToken.ThrowIfCancellationRequested()
-            Throw New NotSupportedException("Updating of share properties not supported")
+            Throw New NotSupportedException(ProviderStrings.GetText("UpdatingOfSharePropertiesNotSupported"))
         End Function
 
         ''' <inheritdoc/>
         Public Overrides Function UpdateSharingAsync(shareInfo As DmsShareForUser, Optional cancellationToken As CancellationToken = Nothing) As Task
             cancellationToken.ThrowIfCancellationRequested()
-            Throw New NotSupportedException("Updating of share properties not supported")
+            Throw New NotSupportedException(ProviderStrings.GetText("UpdatingOfSharePropertiesNotSupported"))
         End Function
 
         ''' <summary>Retrieves visible groups through native asynchronous HTTP I/O.</summary>
@@ -101,7 +101,7 @@ Namespace Providers
             cancellationToken.ThrowIfCancellationRequested()
             Dim metadata = Await Me.LoadNativeGroupsAsync(cancellationToken).ConfigureAwait(False)
             Dim result As New List(Of DmsGroup)()
-            If metadata?.Groups Is Nothing Then Throw New InvalidOperationException("The native group response contains no group list.")
+            If metadata?.Groups Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheNativeGroupResponseContainsNoGroupList"))
             For Each group In metadata.Groups
                 cancellationToken.ThrowIfCancellationRequested()
                 result.Add(New DmsGroup With {.ID = group.Id, .Name = Me.NormalizeGroupDisplayName(group.Id, group.Name)})
@@ -114,7 +114,7 @@ Namespace Providers
             cancellationToken.ThrowIfCancellationRequested()
             Dim metadata = Await Me.LoadNativeUsersAsync(cancellationToken).ConfigureAwait(False)
             Dim result As New List(Of DmsUser)()
-            If metadata?.Users Is Nothing Then Throw New InvalidOperationException("The native user response contains no user list.")
+            If metadata?.Users Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheNativeUserResponseContainsNoUserList"))
             For Each user In metadata.Users
                 cancellationToken.ThrowIfCancellationRequested()
                 result.Add(New DmsUser With {.ID = user.Id, .DisplayName = If(user.GetFullName(), String.Empty).Trim(), .EMailAddress = user.Email})

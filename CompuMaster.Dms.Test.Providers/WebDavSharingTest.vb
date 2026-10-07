@@ -15,7 +15,7 @@ Imports CompuMaster.Ocs.Core
 Imports CompuMaster.Ocs.Types
 Imports NUnit.Framework
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 Public Class WebDavSharingTest
 
     <TestCase(False, 0), TestCase(True, 0), TestCase(False, 400), TestCase(True, 400), TestCase(False, 501), TestCase(True, 501)>

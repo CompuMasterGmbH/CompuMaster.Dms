@@ -11,7 +11,7 @@
         Inherits System.Exception
 
         Public Sub New(remotePath As String)
-            MyBase.New("Remote item exists multiple times: " & remotePath)
+            MyBase.New(ProviderStrings.Format("RemoteItemExistsMultipleTimes", remotePath))
             Me.RemotePath = remotePath
         End Sub
 

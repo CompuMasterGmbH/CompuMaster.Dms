@@ -261,7 +261,7 @@ Namespace Providers
         ''' <inheritdoc/>
         Public Overrides Sub DownloadFile(remoteFile As DmsResourceItem, localFilePath As String)
             If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
-            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException(ProviderStrings.GetText("TheRemoteResourceMustBeAFile"), NameOf(remoteFile))
             If String.IsNullOrEmpty(remoteFile.ExtendedInfosFileID) Then
                 MyBase.DownloadFile(remoteFile, localFilePath)
                 Return
@@ -348,17 +348,17 @@ Namespace Providers
         End Function
 
         Private Function GetFolderDirectoryById(folderId As String, expectedCollectionId As String, visitedFolderIds As HashSet(Of String)) As CenterDevice.IO.DirectoryInfo
-            If Not visitedFolderIds.Add(folderId) Then Throw New InvalidOperationException("A cycle was found in the CenterDevice folder hierarchy at folder ID " & folderId & ".")
+            If Not visitedFolderIds.Add(folderId) Then Throw New InvalidOperationException(ProviderStrings.Format("ACycleWasFoundInTheCenterDeviceFolder", folderId))
 
             Dim Folder = Me.IOClient.ApiClient.Folder.GetFolder(Me.IOClient.CurrentAuthenticationContextUserID, folderId, Nothing)
             If Not String.IsNullOrEmpty(expectedCollectionId) AndAlso Not String.IsNullOrEmpty(Folder.Collection) AndAlso Not String.Equals(Folder.Collection, expectedCollectionId, StringComparison.Ordinal) Then
-                Throw New InvalidOperationException("Folder ID " & folderId & " no longer belongs to its expected CenterDevice collection.")
+                Throw New InvalidOperationException(ProviderStrings.Format("FolderIDNoLongerBelongsToItsExpected", folderId))
             End If
 
             Dim CollectionId As String = If(String.IsNullOrEmpty(Folder.Collection), expectedCollectionId, Folder.Collection)
             Dim ParentDirectory As CenterDevice.IO.DirectoryInfo
             If String.IsNullOrEmpty(Folder.Parent) OrElse String.Equals(Folder.Parent, CenterDevice.Rest.RestApiConstants.NONE, StringComparison.Ordinal) Then
-                If String.IsNullOrEmpty(CollectionId) Then Throw New InvalidOperationException("The collection of CenterDevice folder ID " & folderId & " is unknown.")
+                If String.IsNullOrEmpty(CollectionId) Then Throw New InvalidOperationException(ProviderStrings.Format("TheCollectionOfCenterDeviceFolderIDIsUnknown", folderId))
                 ParentDirectory = New CenterDevice.IO.DirectoryInfo(Me.IOClient, Me.IOClient.RootDirectory, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, CollectionId))
             Else
                 ParentDirectory = Me.GetFolderDirectoryById(Folder.Parent, CollectionId, visitedFolderIds)
@@ -404,7 +404,7 @@ Namespace Providers
                     Dim DestinationParent As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(Me.ParentDirectoryPath(remoteDestinationPath), RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
                     Me.CopyFileExact(SourceFile, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath, allowOverwrite)
                 Case DmsResourceItem.ItemTypes.Folder
-                    If Me.ParentDirectoryPath(remoteDestinationPath) = Nothing Then Throw New NotSupportedException("CenterDevice folders must remain inside a collection or another folder.")
+                    If Me.ParentDirectoryPath(remoteDestinationPath) = Nothing Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceFoldersMustRemainInsideACollectionOr"))
                     Dim SourceDirectory As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSource)
                     Dim ExistingDestination As DmsResourceItem = Me.ListRemoteItem(remoteDestinationPath)
                     If ExistingDestination IsNot Nothing Then
@@ -415,9 +415,9 @@ Namespace Providers
                         Me.CopyDirectoryTree(SourceDirectory, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath)
                     End If
                 Case DmsResourceItem.ItemTypes.Collection
-                    Throw New NotSupportedException("CenterDevice collections can't be copied because they are top-level sharing containers rather than regular folders.")
+                    Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCanTBeCopiedBecauseThey"))
                 Case Else
-                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", remoteSource.ItemType.ToString()))
             End Select
         End Sub
 
@@ -439,7 +439,7 @@ Namespace Providers
                     Dim DestinationParent As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(Me.ParentDirectoryPath(remoteDestinationPath), RessourceNotFoundHandling.ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound)
                     Me.MoveFileExact(SourceFile, DestinationParent, Me.ItemName(remoteDestinationPath), remoteSource.FullName, remoteDestinationPath, allowOverwrite)
                 Case DmsResourceItem.ItemTypes.Folder
-                    If Me.ParentDirectoryPath(remoteDestinationPath) = Nothing Then Throw New NotSupportedException("CenterDevice folders must remain inside a collection or another folder.")
+                    If Me.ParentDirectoryPath(remoteDestinationPath) = Nothing Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceFoldersMustRemainInsideACollectionOr"))
                     Dim SourceDirectory As CenterDevice.IO.DirectoryInfo = Me.GetDirectoryItem(remoteSource)
                     Dim ExistingDestination As DmsResourceItem = Me.ListRemoteItem(remoteDestinationPath)
                     If ExistingDestination IsNot Nothing Then
@@ -452,12 +452,12 @@ Namespace Providers
                     End If
                 Case DmsResourceItem.ItemTypes.Collection
                     If Me.ParentDirectoryPath(remoteSource.FullName) <> Nothing OrElse Me.ParentDirectoryPath(remoteDestinationPath) <> Nothing Then
-                        Throw New NotSupportedException("CenterDevice collections can only be renamed while remaining in the root.")
+                        Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining"))
                     End If
                     If Me.ListRemoteItem(remoteDestinationPath) IsNot Nothing Then Throw New DirectoryAlreadyExistsException(remoteDestinationPath)
                     Me.GetDirectoryItem(remoteSource).Rename(Me.ItemName(remoteDestinationPath))
                 Case Else
-                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", remoteSource.ItemType.ToString()))
             End Select
         End Sub
 
@@ -563,12 +563,12 @@ Namespace Providers
                 Catch rollbackException As Exception
                     RollbackErrors.Add(rollbackException)
                 End Try
-                Throw New FileActionFailedException("copy", sourcePath, destinationPath, New AggregateException("The copied file couldn't be promoted to its final name; rollback was attempted.", RollbackErrors))
+                Throw New FileActionFailedException("copy", sourcePath, destinationPath, New AggregateException(ProviderStrings.GetText("TheCopiedFileCouldnTBePromotedTo"), RollbackErrors))
             End Try
             Try
                 ExistingDestination.Delete()
             Catch ex As Exception
-                Throw New FileActionFailedException("copy", sourcePath, destinationPath, New InvalidOperationException("The copy succeeded, but the replaced file with ID " & ExistingDestination.ID & " remains under temporary name " & BackupName & ".", ex))
+                Throw New FileActionFailedException("copy", sourcePath, destinationPath, New InvalidOperationException(ProviderStrings.Format("TheCopySucceededButTheReplacedFileWith", ExistingDestination.ID, BackupName), ex))
             End Try
         End Sub
 
@@ -599,14 +599,14 @@ Namespace Providers
                 Try
                     ExistingDestination.Delete()
                 Catch ex As Exception
-                    Throw New FileActionFailedException("move", sourcePath, destinationPath, New InvalidOperationException("The move succeeded, but the replaced file with ID " & ExistingDestination.ID & " remains under temporary name " & BackupName & ".", ex))
+                    Throw New FileActionFailedException("move", sourcePath, destinationPath, New InvalidOperationException(ProviderStrings.Format("TheMoveSucceededButTheReplacedFileWith", ExistingDestination.ID, BackupName), ex))
                 End Try
             End If
         End Sub
 
         Private Shared Sub RejectSameDocumentAction(sourceId As String, destinationId As String, destinationPath As String)
             If Not String.IsNullOrEmpty(sourceId) AndAlso String.Equals(sourceId, destinationId, StringComparison.Ordinal) Then
-                Throw New ArgumentException("Source and destination identify the same document; replacement would delete the source document and its other references.", NameOf(destinationPath))
+                Throw New ArgumentException(ProviderStrings.GetText("SourceAndDestinationIdentifyTheSameDocumentReplacement"), NameOf(destinationPath))
             End If
         End Sub
 
@@ -643,7 +643,7 @@ Namespace Providers
                 Catch rollbackException As Exception
                     RollbackErrors.Add(rollbackException)
                 End Try
-                Throw New FileActionFailedException("move", sourcePath, destinationPath, New AggregateException("Move failed for file ID " & sourceFile.ID & "; rollback was attempted.", RollbackErrors))
+                Throw New FileActionFailedException("move", sourcePath, destinationPath, New AggregateException(ProviderStrings.Format("MoveFailedForFileIDRollbackWasAttempted", sourceFile.ID), RollbackErrors))
             End Try
         End Sub
 
@@ -680,7 +680,7 @@ Namespace Providers
                 Catch rollbackException As Exception
                     RollbackErrors.Add(rollbackException)
                 End Try
-                Throw New DirectoryActionFailedException("move", sourcePath, destinationPath, New AggregateException("Move failed for folder ID " & sourceDirectory.FolderID & "; rollback was attempted.", RollbackErrors))
+                Throw New DirectoryActionFailedException("move", sourcePath, destinationPath, New AggregateException(ProviderStrings.Format("MoveFailedForFolderIDRollbackWasAttempted", sourceDirectory.FolderID), RollbackErrors))
             End Try
         End Sub
 
@@ -720,7 +720,7 @@ Namespace Providers
             Dim Source As DmsResourceItem = Me.ListRemoteItem(remoteSourcePath)
             If Source Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(remoteSourcePath)
             If Source.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteSourcePath)
-            If Source.ItemType <> DmsResourceItem.ItemTypes.Folder AndAlso Source.ItemType <> DmsResourceItem.ItemTypes.Collection Then Throw New ArgumentException("The source item isn't a directory.", NameOf(remoteSourcePath))
+            If Source.ItemType <> DmsResourceItem.ItemTypes.Folder AndAlso Source.ItemType <> DmsResourceItem.ItemTypes.Collection Then Throw New ArgumentException(ProviderStrings.GetText("TheSourceItemIsnTADirectory"), NameOf(remoteSourcePath))
             Me.MoveItem(Source, remoteDestinationPath, False)
         End Sub
 
@@ -734,7 +734,7 @@ Namespace Providers
                 End If
             End If
             If Source.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteSourcePath)
-            If Source.ItemType <> expectedType Then Throw New ArgumentException("The source item has an unexpected resource type.", NameOf(remoteSourcePath))
+            If Source.ItemType <> expectedType Then Throw New ArgumentException(ProviderStrings.GetText("TheSourceItemHasAnUnexpectedResourceType"), NameOf(remoteSourcePath))
             Return Source
         End Function
 
@@ -785,7 +785,7 @@ Namespace Providers
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Select Case remoteItem.ItemType
                 Case DmsResourceItem.ItemTypes.Root
-                    Throw New DmsUserErrorMessageException("Root folder can't be deleted")
+                    Throw New DmsUserErrorMessageException(ProviderStrings.GetText("RootFolderCanTBeDeleted"))
                 Case DmsResourceItem.ItemTypes.Collection
                     If remoteItem.ExtendedInfosHasLinks Then
                         For Each link As DmsLink In remoteItem.ExtendedInfosLinks
@@ -867,7 +867,7 @@ Namespace Providers
                     'if this situation wouldn't be catched, then otherwise creation of collection in another parent directory would lead
                     'to a new collection below root directory (instead of the expected parent directory)
                     '=> considered as a bug in CenterDevice API / CenterDevice architecture
-                    Throw New NotSupportedException("Collections """ & remoteCollectionName & """ must be located in root folder only, but is in """ & ParentRemoteDirName & """")
+                    Throw New NotSupportedException(ProviderStrings.Format("CollectionsMustBeLocatedInRootFolderOnly", remoteCollectionName, ParentRemoteDirName))
                 End If
                 Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
@@ -960,7 +960,7 @@ Namespace Providers
             ElseIf res.FolderID <> Nothing Then
                 Result.ItemType = DmsResourceItem.ItemTypes.Folder
             Else
-                Throw New NotImplementedException("Unknown item type, additional implementation required")
+                Throw New NotImplementedException(ProviderStrings.GetText("UnknownItemTypeAdditionalImplementationRequired"))
             End If
             Result.FullName = res.FullName
             Result.Name = res.Name
@@ -1249,17 +1249,17 @@ Namespace Providers
         ''' <inheritdoc/>
         ''' <remarks>Upload links target collections. Their <see cref="DmsLink.MaxBytes"/> limit must be a positive multiple of 1 GiB.</remarks>
         Public Overrides Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
-            If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
-            If shareInfo.AllowDelete Then Throw New NotSupportedException("AllowDelete not supported by provider")
-            If shareInfo.AllowShare Then Throw New NotSupportedException("AllowShare not supported by provider")
+            If shareInfo.AllowEdit Then Throw New NotSupportedException(ProviderStrings.GetText("AllowEditNotSupportedByProvider"))
+            If shareInfo.AllowDelete Then Throw New NotSupportedException(ProviderStrings.GetText("AllowDeleteNotSupportedByProvider"))
+            If shareInfo.AllowShare Then Throw New NotSupportedException(ProviderStrings.GetText("AllowShareNotSupportedByProvider"))
             If Not (shareInfo.AllowView Xor shareInfo.AllowUpload) Then
-                Throw New ArgumentException("Either AllowView or AllowUpload must be set", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("EitherAllowViewOrAllowUploadMustBeSet"), NameOf(shareInfo))
             End If
             Try
                 If shareInfo.AllowUpload Then
                     'Create upload link
                     If Not dmsResource.ItemType = DmsResourceItem.ItemTypes.Collection OrElse dmsResource.ExtendedInfosCollectionID = Nothing Then
-                        Throw New NotSupportedException("Upload links supported only with collections")
+                        Throw New NotSupportedException(ProviderStrings.GetText("UploadLinksSupportedOnlyWithCollections"))
                     End If
                     ValidateUploadLinkMaxBytes(shareInfo.MaxBytes)
                     Dim CreatedUploadLink As UploadLinkCreationResponse
@@ -1302,9 +1302,9 @@ Namespace Providers
                         Case DmsResourceItem.ItemTypes.File
                             CreatedLink = Me.IOClient.ApiClient.Links.CreateDocumentLink(Me.IOClient.CurrentAuthenticationContextUserID, dmsResource.ExtendedInfosFileID, AccessControl)
                         Case DmsResourceItem.ItemTypes.Root
-                            Throw New NotSupportedException("Sharing for root directory not supported")
+                            Throw New NotSupportedException(ProviderStrings.GetText("SharingForRootDirectoryNotSupported"))
                         Case Else
-                            Throw New NotImplementedException("Invalid item type: " & dmsResource.ItemType)
+                            Throw New NotImplementedException(ProviderStrings.Format("InvalidItemType", dmsResource.ItemType))
                     End Select
                     'Refresh caches + update current DmsResourceItem
                     Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(dmsResource)
@@ -1314,7 +1314,7 @@ Namespace Providers
                     Return Result
                 End If
             Catch ex As ForbiddenException
-                Throw New Data.DmsUserErrorMessageException("Forbidden: " & ex.ErrorResponse.Message)
+                Throw New Data.DmsUserErrorMessageException(ProviderStrings.Format("Forbidden", ex.ErrorResponse.Message))
             Catch ex As BadRequestException
                 If ex.ErrorResponse.Data.ContainsKey("explanation") Then
                     Throw New Data.DmsUserErrorMessageException(CType(ex.ErrorResponse.Data("explanation"), String))
@@ -1340,7 +1340,7 @@ Namespace Providers
             'CenterDevice REST API v2.29, section 5.7.1: max-bytes is a positive multiple of 1 GiB.
             Const Gibibyte As Long = 1073741824L
             If maxBytes.HasValue AndAlso (maxBytes.Value <= 0 OrElse maxBytes.Value Mod Gibibyte <> 0) Then
-                Throw New ArgumentOutOfRangeException(NameOf(maxBytes), "Upload-link MaxBytes must be a positive multiple of 1 GiB (1073741824 bytes).")
+                Throw New ArgumentOutOfRangeException(NameOf(maxBytes), ProviderStrings.GetText("UploadLinkMaxBytesMustBeAPositiveMultiple"))
             End If
         End Sub
 
@@ -1362,9 +1362,9 @@ Namespace Providers
                                                                    listOfAddedGroups
                                                                    )
                 Case DmsResourceItem.ItemTypes.File
-                    Throw New NotSupportedException("Sharing for files not supported")
+                    Throw New NotSupportedException(ProviderStrings.GetText("SharingForFilesNotSupported"))
                 Case DmsResourceItem.ItemTypes.Root
-                    Throw New NotSupportedException("Sharing for root directory not supported")
+                    Throw New NotSupportedException(ProviderStrings.GetText("SharingForRootDirectoryNotSupported"))
                 Case Else
                     Throw New NotImplementedException()
             End Select
@@ -1387,12 +1387,12 @@ Namespace Providers
         ''' <inheritdoc/>
         ''' <remarks>Upload-link <see cref="DmsLink.MaxBytes"/> values must be positive multiples of 1 GiB.</remarks>
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
-            If shareInfo.ID = Nothing Then Throw New InvalidOperationException("Update of link requires an ID in DmsLink")
-            If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
-            If shareInfo.AllowDelete Then Throw New NotSupportedException("AllowDelete not supported by provider")
-            If shareInfo.AllowShare Then Throw New NotSupportedException("AllowShare not supported by provider")
+            If shareInfo.ID = Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("UpdateOfLinkRequiresAnIDInDmsLink"))
+            If shareInfo.AllowEdit Then Throw New NotSupportedException(ProviderStrings.GetText("AllowEditNotSupportedByProvider"))
+            If shareInfo.AllowDelete Then Throw New NotSupportedException(ProviderStrings.GetText("AllowDeleteNotSupportedByProvider"))
+            If shareInfo.AllowShare Then Throw New NotSupportedException(ProviderStrings.GetText("AllowShareNotSupportedByProvider"))
             If Not (shareInfo.AllowView Xor shareInfo.AllowUpload) Then
-                Throw New ArgumentException("Either AllowView or AllowUpload must be set", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("EitherAllowViewOrAllowUploadMustBeSet"), NameOf(shareInfo))
             End If
             Try
                 If shareInfo.AllowUpload Then
@@ -1434,19 +1434,19 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForGroup)
-            Throw New NotSupportedException("Updating of share properties not supported")
+            Throw New NotSupportedException(ProviderStrings.GetText("UpdatingOfSharePropertiesNotSupported"))
         End Sub
 
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForUser)
-            Throw New NotSupportedException("Updating of share properties not supported")
+            Throw New NotSupportedException(ProviderStrings.GetText("UpdatingOfSharePropertiesNotSupported"))
         End Sub
 
         Public Overrides Sub DeleteLink(shareInfo As DmsLink)
-            If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
-            If shareInfo.AllowDelete Then Throw New NotSupportedException("AllowDelete not supported by provider")
-            If shareInfo.AllowShare Then Throw New NotSupportedException("AllowShare not supported by provider")
+            If shareInfo.AllowEdit Then Throw New NotSupportedException(ProviderStrings.GetText("AllowEditNotSupportedByProvider"))
+            If shareInfo.AllowDelete Then Throw New NotSupportedException(ProviderStrings.GetText("AllowDeleteNotSupportedByProvider"))
+            If shareInfo.AllowShare Then Throw New NotSupportedException(ProviderStrings.GetText("AllowShareNotSupportedByProvider"))
             If Not (shareInfo.AllowView Xor shareInfo.AllowUpload) Then
-                Throw New ArgumentException("Either AllowView or AllowUpload must be set", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("EitherAllowViewOrAllowUploadMustBeSet"), NameOf(shareInfo))
             End If
             If shareInfo.AllowUpload Then
                 'Delete upload link
@@ -1473,9 +1473,9 @@ Namespace Providers
                                                                    listOfDeletedGroups
                                                                    )
                 Case DmsResourceItem.ItemTypes.File
-                    Throw New NotSupportedException("Sharing for files not supported")
+                    Throw New NotSupportedException(ProviderStrings.GetText("SharingForFilesNotSupported"))
                 Case DmsResourceItem.ItemTypes.Root
-                    Throw New NotSupportedException("Sharing for root directory not supported")
+                    Throw New NotSupportedException(ProviderStrings.GetText("SharingForRootDirectoryNotSupported"))
                 Case Else
                     Throw New NotImplementedException()
             End Select
@@ -1487,7 +1487,7 @@ Namespace Providers
             If response Is Nothing Then Return 'The API also accepts a successful 204 response without content.
             If (response.FailedGroups IsNot Nothing AndAlso response.FailedGroups.Count > 0) OrElse
                 (response.FailedUsers IsNot Nothing AndAlso response.FailedUsers.Count > 0) Then
-                Throw New InvalidOperationException("The sharing operation failed for one or more users or groups.")
+                Throw New InvalidOperationException(ProviderStrings.GetText("TheSharingOperationFailedForOneOrMore"))
             End If
         End Sub
 

@@ -16,8 +16,8 @@ Namespace Data
         ''' <param name="isSelected">A value indicating whether the instance is currently selected.</param>
         ''' <exception cref="ArgumentException"><paramref name="id"/> or <paramref name="displayName"/> is empty.</exception>
         Public Sub New(id As String, displayName As String, isSelected As Boolean)
-            If String.IsNullOrWhiteSpace(id) Then Throw New ArgumentException("A DMS instance ID is required.", NameOf(id))
-            If String.IsNullOrWhiteSpace(displayName) Then Throw New ArgumentException("A DMS instance display name is required.", NameOf(displayName))
+            If String.IsNullOrWhiteSpace(id) Then Throw New ArgumentException(ProviderStrings.GetText("ADMSInstanceIDIsRequired"), NameOf(id))
+            If String.IsNullOrWhiteSpace(displayName) Then Throw New ArgumentException(ProviderStrings.GetText("ADMSInstanceDisplayNameIsRequired"), NameOf(displayName))
 
             Me.ID = id
             Me.DisplayName = displayName

@@ -158,7 +158,7 @@ Namespace Providers
             Dim groupGuid As Guid
             If groupId IsNot Nothing AndAlso groupId.StartsWith(prefix, StringComparison.Ordinal) AndAlso
                 Guid.TryParseExact(groupId.Substring(prefix.Length), "D", groupGuid) Then
-                Return If(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName = "de", "Alle Benutzer", "All users")
+                Return ProviderStrings.GetText("AllUsers")
             End If
 
             Return MyBase.NormalizeGroupDisplayName(groupId, groupName)
@@ -182,11 +182,11 @@ Namespace Providers
 
         Friend Shared Function CreateAuthorizationException(errorCode As Integer, errorContent As Object, originalException As Exception, isTokenRequest As Boolean) As Exception
             If isTokenRequest AndAlso errorCode = 401 Then
-                Return New Data.DmsUserAuthenticationException("Scopevisio user authentication failed.", originalException)
+                Return New Data.DmsUserAuthenticationException(ProviderStrings.GetText("ScopevisioUserAuthenticationFailed"), originalException)
             ElseIf errorCode = 403 AndAlso errorContent IsNot Nothing AndAlso errorContent.GetType Is GetType(String) AndAlso CType(errorContent, String).ToLowerInvariant.Contains("""message"":""no organisation found.""") Then
-                Return New Data.DmsSystemErrorException("No organisation found, usually Scopevisio user authorizations are required: Rechteprofil Kontakte – alle Rechte oder CRM – alle Rechte", originalException)
+                Return New Data.DmsSystemErrorException(ProviderStrings.GetText("NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre"), originalException)
             ElseIf errorCode = 403 AndAlso errorContent IsNot Nothing AndAlso errorContent.GetType Is GetType(String) AndAlso CType(errorContent, String).ToLowerInvariant.Contains("""message"":""customer is deleted""") Then
-                Return New Data.DmsSystemErrorException("DMS-Instanz des Kunden wurde gelöscht", originalException)
+                Return New Data.DmsSystemErrorException(ProviderStrings.GetText("CustomerDmsInstanceDeleted"), originalException)
             Else
                 Return New Data.DmsSystemErrorException(originalException.Message, originalException)
             End If
@@ -255,7 +255,7 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Sub SelectDmsInstance(instanceID As String) Implements IDmsInstanceProvider.SelectDmsInstance
-            If String.IsNullOrWhiteSpace(instanceID) Then Throw New ArgumentException("A DMS instance ID is required.", NameOf(instanceID))
+            If String.IsNullOrWhiteSpace(instanceID) Then Throw New ArgumentException(ProviderStrings.GetText("ADMSInstanceIDIsRequired"), NameOf(instanceID))
 
             Dim CurrentOrganisation As Organisation = Me.GetCurrentOrganisation()
             If CurrentOrganisation IsNot Nothing AndAlso
@@ -270,7 +270,7 @@ Namespace Providers
             Next
 
             If SelectedOrganisation Is Nothing Then
-                Throw New ArgumentOutOfRangeException(NameOf(instanceID), instanceID, "The DMS instance is not available to the authorized user.")
+                Throw New ArgumentOutOfRangeException(NameOf(instanceID), instanceID, ProviderStrings.GetText("TheDMSInstanceIsNotAvailableToThe"))
             End If
 
             Me.ApplyOrganisation(SelectedOrganisation)
@@ -343,7 +343,7 @@ Namespace Providers
         End Sub
 
         Private Function GetOpenScopeClient() As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient
-            If Me._OpenScopeClient Is Nothing Then Throw New InvalidOperationException("The DMS provider must be authorized before accessing DMS instances.")
+            If Me._OpenScopeClient Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheDMSProviderMustBeAuthorizedBeforeAccessing"))
             Return Me._OpenScopeClient
         End Function
 

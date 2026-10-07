@@ -8,25 +8,25 @@
         Inherits System.Exception
 
         Public Sub New(action As String, remotePath As String)
-            MyBase.New("Action " & action & " failed for file """ & remotePath & """")
+            MyBase.New(ProviderStrings.Format("ActionFailedForFile", action, remotePath))
             Me.RemotePathSource = remotePath
             Me.RemotePathDestination = remotePath
         End Sub
 
         Public Sub New(action As String, remotePath As String, innerException As Exception)
-            MyBase.New("Action " & action & " failed for file """ & remotePath & """", innerException)
+            MyBase.New(ProviderStrings.Format("ActionFailedForFile", action, remotePath), innerException)
             Me.RemotePathSource = remotePath
             Me.RemotePathDestination = remotePath
         End Sub
 
         Public Sub New(action As String, remoteSourcePath As String, remoteDestinationPath As String)
-            MyBase.New("Action " & action & " failed for source file """ & remoteSourcePath & """ and destination """ & remoteDestinationPath & """")
+            MyBase.New(ProviderStrings.Format("ActionFailedForSourceFileAndDestination", action, remoteSourcePath, remoteDestinationPath))
             Me.RemotePathSource = remoteSourcePath
             Me.RemotePathDestination = remoteDestinationPath
         End Sub
 
         Public Sub New(action As String, remoteSourcePath As String, remoteDestinationPath As String, innerException As Exception)
-            MyBase.New("Action " & action & " failed for source file """ & remoteSourcePath & """ and destination """ & remoteDestinationPath & """", innerException)
+            MyBase.New(ProviderStrings.Format("ActionFailedForSourceFileAndDestination", action, remoteSourcePath, remoteDestinationPath), innerException)
             Me.RemotePathSource = remoteSourcePath
             Me.RemotePathDestination = remoteDestinationPath
         End Sub

@@ -25,8 +25,8 @@ Namespace Providers
             Try
                 Await Me.CreateNativeDirectoryAsync(parent, Me.ItemName(remotePath), style, cancellationToken).ConfigureAwait(False)
             Catch ex As CenterDevice.Rest.Exceptions.RestClientException
-                If ex.ErrorResponse Is Nothing Then Throw New System.IO.IOException(operation & " failed: " & remotePath, ex)
-                Throw New System.IO.IOException(operation & " failed: " & remotePath, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
+                If ex.ErrorResponse Is Nothing Then Throw New System.IO.IOException(ProviderStrings.Format("Failed", operation, remotePath), ex)
+                Throw New System.IO.IOException(ProviderStrings.Format("Failed", operation, remotePath), New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
             Finally
                 parent.ResetDirectoriesCache()
                 'A cached collection's known-empty hint can also be stale after an uncertain child mutation.
@@ -47,7 +47,7 @@ Namespace Providers
         ''' <inheritdoc/>
         Public Overrides Function CreateCollectionAsync(remoteCollectionName As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             If Me.ParentDirectoryPath(remoteCollectionName) <> Nothing Then
-                Throw New NotSupportedException("Collections must be located in the root folder: " & remoteCollectionName)
+                Throw New NotSupportedException(ProviderStrings.Format("CollectionsMustBeLocatedInTheRootFolder", remoteCollectionName))
             End If
             Return Me.CreateNativeDirectoryAtPathAsync(remoteCollectionName, CenterDevice.IO.DirectoryInfo.DirectoryType.Collection, NameOf(CreateCollection), cancellationToken)
         End Function

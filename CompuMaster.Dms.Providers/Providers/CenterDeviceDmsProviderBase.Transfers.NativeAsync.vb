@@ -39,7 +39,7 @@ Namespace Providers
             Dim metadata = Await Me.LoadNativeFileByIdAsync(id, cancellationToken).ConfigureAwait(False)
             cancellationToken.ThrowIfCancellationRequested()
             If metadata Is Nothing Then Throw New Data.FileNotFoundException(id)
-            If Not String.Equals(metadata.Id, id, StringComparison.Ordinal) Then Throw New InvalidOperationException("File metadata does not match the requested identifier.")
+            If Not String.Equals(metadata.Id, id, StringComparison.Ordinal) Then Throw New InvalidOperationException(ProviderStrings.GetText("FileMetadataDoesNotMatchTheRequestedIdentifier"))
             Return New CenterDevice.IO.FileInfo(Me.IOClient, Nothing, metadata)
         End Function
 
@@ -107,7 +107,7 @@ Namespace Providers
         ''' <remarks>A supplied file identifier is preserved even for duplicate names. Streaming, cancellation, and partial-destination behavior match the path-based native download.</remarks>
         Public Overrides Async Function DownloadFileAsync(remoteFile As DmsResourceItem, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
-            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException(ProviderStrings.GetText("TheRemoteResourceMustBeAFile"), NameOf(remoteFile))
             cancellationToken.ThrowIfCancellationRequested()
             Dim file As CenterDevice.IO.FileInfo
             If String.IsNullOrEmpty(remoteFile.ExtendedInfosFileID) Then

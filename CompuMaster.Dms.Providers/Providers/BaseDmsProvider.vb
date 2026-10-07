@@ -209,7 +209,7 @@ Namespace Providers
                 Case DmsResourceItem.ItemTypes.Collection, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Root
 
                 Case DmsResourceItem.ItemTypes.File
-                    Throw New NotSupportedException("Files don't contain directory caches")
+                    Throw New NotSupportedException(ProviderStrings.GetText("FilesDonTContainDirectoryCaches"))
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -787,7 +787,7 @@ Namespace Providers
         ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Async Function DownloadFileAsync(remoteFile As DmsResourceItem, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
-            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException(ProviderStrings.GetText("TheRemoteResourceMustBeAFile"), NameOf(remoteFile))
             If Not Me.SupportsAsynchronousIo OrElse Me.SupportsNonUniqueRemoteItems Then
                 Await Me.RunSynchronousFallbackAsync(Sub() Me.DownloadFile(remoteFile, localFilePath), cancellationToken).ConfigureAwait(False)
             Else
@@ -808,7 +808,7 @@ Namespace Providers
         ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Sub DownloadFile(remoteFile As DmsResourceItem, localFilePath As String)
             If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
-            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException(ProviderStrings.GetText("TheRemoteResourceMustBeAFile"), NameOf(remoteFile))
             Me.DownloadFile(remoteFile.FullName, localFilePath, remoteFile.LastModificationOnLocalTime)
         End Sub
 
@@ -968,21 +968,21 @@ Namespace Providers
 
         Private Async Function CopyMoveArgumentsCheckAsync(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean) As Task
             If remoteSource Is Nothing Then Throw New ArgumentNullException(NameOf(remoteSource))
-            If String.IsNullOrEmpty(remoteSource.FullName) Then Throw New ArgumentException("The source item must provide its full remote path.", NameOf(remoteSource))
+            If String.IsNullOrEmpty(remoteSource.FullName) Then Throw New ArgumentException(ProviderStrings.GetText("TheSourceItemMustProvideItsFullRemote"), NameOf(remoteSource))
             If remoteDestinationPath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
-            If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException("Must be a path without trailing directory separator char: " & remoteDestinationPath, NameOf(remoteDestinationPath))
-            If remoteSource.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException("Root directory can't be the source of a copy or move action")
-            If String.Equals(remoteSource.FullName.TrimEnd(Me.DirectorySeparator), remoteDestinationPath.TrimEnd(Me.DirectorySeparator), StringComparison.Ordinal) Then Throw New ArgumentException("Source and destination paths must differ.", NameOf(remoteDestinationPath))
+            If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException(ProviderStrings.Format("MustBeAPathWithoutTrailingDirectorySeparator", remoteDestinationPath), NameOf(remoteDestinationPath))
+            If remoteSource.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException(ProviderStrings.GetText("RootDirectoryCanTBeTheSourceOf"))
+            If String.Equals(remoteSource.FullName.TrimEnd(Me.DirectorySeparator), remoteDestinationPath.TrimEnd(Me.DirectorySeparator), StringComparison.Ordinal) Then Throw New ArgumentException(ProviderStrings.GetText("SourceAndDestinationPathsMustDiffer"), NameOf(remoteDestinationPath))
             If remoteSource.ItemType = DmsResourceItem.ItemTypes.Folder OrElse remoteSource.ItemType = DmsResourceItem.ItemTypes.Collection Then
                 Dim prefix As String = remoteSource.FullName.TrimEnd(Me.DirectorySeparator) & Me.DirectorySeparator
-                If remoteDestinationPath.StartsWith(prefix, StringComparison.Ordinal) Then Throw New ArgumentException("A directory can't be copied or moved into itself.", NameOf(remoteDestinationPath))
+                If remoteDestinationPath.StartsWith(prefix, StringComparison.Ordinal) Then Throw New ArgumentException(ProviderStrings.GetText("ADirectoryCanTBeCopiedOrMoved"), NameOf(remoteDestinationPath))
             End If
 
             Await Me.ValidateCopyMoveIdentityAsync(remoteSource, remoteDestinationPath, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
             Dim destination = Await Me.ListRemoteItemAsync(remoteDestinationPath, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
             If destination IsNot Nothing Then
                 If destination.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteDestinationPath)
-                If destination.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException("Root directory can't be the target of a copy or move action")
+                If destination.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException(ProviderStrings.GetText("RootDirectoryCanTBeTheTargetOf"))
                 Dim matching As Integer
                 For Each candidate In Await Me.ListAllRemoteItemsAsync(Me.ParentDirectoryPath(remoteDestinationPath), SearchItemType.AllItems, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
                     If String.Equals(candidate.Name, Me.ItemName(remoteDestinationPath), StringComparison.Ordinal) Then matching += 1
@@ -1007,15 +1007,15 @@ Namespace Providers
                 ElseIf parentItem.ItemType = DmsResourceItem.ItemTypes.File Then
                     Throw New FileAlreadyExistsException(parent)
                 ElseIf parentItem.ItemType <> DmsResourceItem.ItemTypes.Folder AndAlso parentItem.ItemType <> DmsResourceItem.ItemTypes.Collection Then
-                    Throw New NotSupportedException("Remote ressource with unsupported type: " & parent)
+                    Throw New NotSupportedException(ProviderStrings.Format("RemoteRessourceWithUnsupportedType", parent))
                 End If
             ElseIf remoteSource.ItemType = DmsResourceItem.ItemTypes.File AndAlso Not Me.SupportsFilesInRootFolder Then
-                Throw New NotSupportedException("Files in root folder not supported by DMS provider")
+                Throw New NotSupportedException(ProviderStrings.GetText("FilesInRootFolderNotSupportedByDMS"))
             End If
             Select Case remoteSource.ItemType
                 Case DmsResourceItem.ItemTypes.File, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection
                 Case Else
-                    Throw New ArgumentOutOfRangeException(NameOf(remoteSource), "Unsupported source item type.")
+                    Throw New ArgumentOutOfRangeException(NameOf(remoteSource), ProviderStrings.GetText("UnsupportedSourceItemType"))
             End Select
         End Function
 
@@ -1062,23 +1062,23 @@ Namespace Providers
         ''' <param name="allowCreationOfRemoteDirectory"></param>
         Private Sub CopyMoveArgumentsCheck(remoteSource As DmsResourceItem, remoteDestinationPath As String, allowOverwrite As Boolean?, allowCreationOfRemoteDirectory As Boolean)
             If remoteSource Is Nothing Then Throw New ArgumentNullException(NameOf(remoteSource))
-            If String.IsNullOrEmpty(remoteSource.FullName) Then Throw New ArgumentException("The source item must provide its full remote path.", NameOf(remoteSource))
+            If String.IsNullOrEmpty(remoteSource.FullName) Then Throw New ArgumentException(ProviderStrings.GetText("TheSourceItemMustProvideItsFullRemote"), NameOf(remoteSource))
             If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
-            If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException("Must be a path without trailing directory separator char: " & remoteDestinationPath, NameOf(remoteDestinationPath))
-            If remoteSource.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException("Root directory can't be the source of a copy or move action")
+            If remoteDestinationPath.EndsWith(Me.DirectorySeparator) Then Throw New ArgumentException(ProviderStrings.Format("MustBeAPathWithoutTrailingDirectorySeparator", remoteDestinationPath), NameOf(remoteDestinationPath))
+            If remoteSource.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException(ProviderStrings.GetText("RootDirectoryCanTBeTheSourceOf"))
             If String.Equals(remoteSource.FullName.TrimEnd(Me.DirectorySeparator), remoteDestinationPath.TrimEnd(Me.DirectorySeparator), StringComparison.Ordinal) Then
-                Throw New ArgumentException("Source and destination paths must differ.", NameOf(remoteDestinationPath))
+                Throw New ArgumentException(ProviderStrings.GetText("SourceAndDestinationPathsMustDiffer"), NameOf(remoteDestinationPath))
             End If
 
             If remoteSource.ItemType = DmsResourceItem.ItemTypes.Folder OrElse remoteSource.ItemType = DmsResourceItem.ItemTypes.Collection Then
                 Dim SourcePrefix As String = remoteSource.FullName.TrimEnd(Me.DirectorySeparator) & Me.DirectorySeparator
-                If remoteDestinationPath.StartsWith(SourcePrefix, StringComparison.Ordinal) Then Throw New ArgumentException("A directory can't be copied or moved into itself.", NameOf(remoteDestinationPath))
+                If remoteDestinationPath.StartsWith(SourcePrefix, StringComparison.Ordinal) Then Throw New ArgumentException(ProviderStrings.GetText("ADirectoryCanTBeCopiedOrMoved"), NameOf(remoteDestinationPath))
             End If
 
             Dim DestinationItem As DmsResourceItem = Me.ListRemoteItem(remoteDestinationPath)
             If DestinationItem IsNot Nothing AndAlso DestinationItem.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(remoteDestinationPath)
             If DestinationItem IsNot Nothing Then
-                If DestinationItem.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException("Root directory can't be the target of a copy or move action")
+                If DestinationItem.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New NotSupportedException(ProviderStrings.GetText("RootDirectoryCanTBeTheTargetOf"))
                 Dim MatchingDestinationItems As Integer = 0
                 For Each Candidate As DmsResourceItem In Me.ListAllRemoteItems(Me.ParentDirectoryPath(remoteDestinationPath), SearchItemType.AllItems)
                     If String.Equals(Candidate.Name, Me.ItemName(remoteDestinationPath), StringComparison.Ordinal) Then MatchingDestinationItems += 1
@@ -1111,18 +1111,18 @@ Namespace Providers
                     Case DmsResourceItem.FoundItemResult.WithNameCollisions
                         Throw New RemotePathNotUniqueException(ParentDir)
                     Case Else
-                        Throw New NotSupportedException("Remote ressource with unsupported type: " & ParentDir)
+                        Throw New NotSupportedException(ProviderStrings.Format("RemoteRessourceWithUnsupportedType", ParentDir))
                 End Select
             Else 'If ParentDir = "" -> root dir
                 If remoteSource.ItemType = DmsResourceItem.ItemTypes.File AndAlso Me.SupportsFilesInRootFolder = False Then
-                    Throw New NotSupportedException("Files in root folder not supported by DMS provider")
+                    Throw New NotSupportedException(ProviderStrings.GetText("FilesInRootFolderNotSupportedByDMS"))
                 End If
             End If
             Select Case remoteSource.ItemType
                 Case DmsResourceItem.ItemTypes.File, DmsResourceItem.ItemTypes.Folder, DmsResourceItem.ItemTypes.Collection
                     'Supported source object.
                 Case Else
-                    Throw New ArgumentOutOfRangeException(NameOf(remoteSource), "Unsupported source item type.")
+                    Throw New ArgumentOutOfRangeException(NameOf(remoteSource), ProviderStrings.GetText("UnsupportedSourceItemType"))
             End Select
         End Sub
 
@@ -1202,7 +1202,7 @@ Namespace Providers
                         Me.CopyDirectoryItem(remoteSource.FullName, remoteDestinationPath)
                     End If
                 Case Else
-                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", remoteSource.ItemType.ToString()))
             End Select
         End Sub
 
@@ -1234,7 +1234,7 @@ Namespace Providers
                         Await Me.CopyDirectoryItemAsync(remoteSource.FullName, remoteDestinationPath)
                     End If
                 Case Else
-                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", remoteSource.ItemType.ToString()))
             End Select
         End Function
 
@@ -1440,7 +1440,7 @@ Namespace Providers
                         Await Me.MoveDirectoryItemAsync(remoteSource.FullName, remoteDestinationPath, cancellationToken).ConfigureAwait(False)
                     End If
                 Case Else
-                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", remoteSource.ItemType.ToString()))
             End Select
         End Function
 
@@ -1451,7 +1451,7 @@ Namespace Providers
         ''' <param name="cancellationToken">Cancels the request.</param>
         ''' <returns>A task that completes after the move.</returns>
         Protected Overridable Function MoveFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?, cancellationToken As CancellationToken) As Task
-            Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+            Throw New NotSupportedException(ProviderStrings.GetText("ThisProviderDoesNotSupportAsynchronousMoveOperations"))
         End Function
 
         ''' <summary>Moves a directory asynchronously in a provider implementation.</summary>
@@ -1460,7 +1460,7 @@ Namespace Providers
         ''' <param name="cancellationToken">Cancels the request.</param>
         ''' <returns>A task that completes after the move.</returns>
         Protected Overridable Function MoveDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String, cancellationToken As CancellationToken) As Task
-            Throw New NotSupportedException("This provider does not support asynchronous move operations.")
+            Throw New NotSupportedException(ProviderStrings.GetText("ThisProviderDoesNotSupportAsynchronousMoveOperations"))
         End Function
 
         ''' <summary>
@@ -1482,7 +1482,7 @@ Namespace Providers
                         Me.MoveDirectoryItem(remoteSource.FullName, remoteDestinationPath)
                     End If
                 Case Else
-                    Throw New NotSupportedException("Unsupported source item type: " & remoteSource.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", remoteSource.ItemType.ToString()))
             End Select
         End Sub
 
@@ -1602,7 +1602,7 @@ Namespace Providers
         Public Overridable Sub DeleteRemoteItem(remoteItem As DmsResourceItem, expectedItemType As DmsResourceItem.ItemTypes)
             If expectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(expectedItemType))
             If remoteItem.ItemType <> expectedItemType Then
-                Throw New ArgumentException("ItemType " & expectedItemType.ToString & " expected, but was " & remoteItem.ItemType.ToString, NameOf(remoteItem))
+                Throw New ArgumentException(ProviderStrings.Format("ItemTypeExpectedButWas", expectedItemType.ToString, remoteItem.ItemType.ToString), NameOf(remoteItem))
             Else
                 Me.DeleteRemoteItem(remoteItem)
             End If
@@ -1618,7 +1618,7 @@ Namespace Providers
             If expectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(expectedItemType))
             If alternativeExpectedItemType = Nothing Then Throw New ArgumentNullException(NameOf(alternativeExpectedItemType))
             If remoteItem.ItemType <> expectedItemType AndAlso remoteItem.ItemType <> alternativeExpectedItemType Then
-                Throw New ArgumentException("ItemType " & expectedItemType.ToString & " or " & alternativeExpectedItemType.ToString & " expected, but was " & remoteItem.ItemType.ToString, NameOf(remoteItem))
+                Throw New ArgumentException(ProviderStrings.Format("ItemTypeOrExpectedButWas", expectedItemType.ToString, alternativeExpectedItemType.ToString, remoteItem.ItemType.ToString), NameOf(remoteItem))
             Else
                 Me.DeleteRemoteItem(remoteItem)
             End If

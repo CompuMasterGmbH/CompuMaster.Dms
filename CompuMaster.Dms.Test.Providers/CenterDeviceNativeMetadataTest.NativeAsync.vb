@@ -12,7 +12,7 @@ Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 Imports RestSharp
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 Public Class CenterDeviceNativeMetadataTest
     <Test>
     Public Async Function MetadataListingUsesAsyncAuthorizationAndPreservesRequestFields() As Task

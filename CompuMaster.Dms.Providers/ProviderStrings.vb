@@ -1,10 +1,8 @@
 ﻿Imports System.Globalization
-Imports System.Reflection
 Imports System.Resources
 
-Friend NotInheritable Class UiStrings
-
-    Private Shared ReadOnly Resources As New ResourceManager("CompuMaster.Dms.BrowserUI.UiStrings", GetType(UiStrings).Assembly)
+Friend NotInheritable Class ProviderStrings
+    Private Shared ReadOnly Resources As New ResourceManager("CompuMaster.Dms.ProviderStrings", GetType(ProviderStrings).Assembly)
 
     Private Sub New()
     End Sub
@@ -15,10 +13,5 @@ Friend NotInheritable Class UiStrings
 
     Friend Shared Function Format(name As String, ParamArray arguments As Object()) As String
         Return String.Format(CultureInfo.CurrentCulture, GetText(name), arguments)
-    End Function
-
-    Friend Shared Function BooleanText(value As Boolean?) As String
-        If Not value.HasValue Then Return String.Empty
-        Return GetText(If(value.Value, "BooleanTrue", "BooleanFalse"))
     End Function
 End Class

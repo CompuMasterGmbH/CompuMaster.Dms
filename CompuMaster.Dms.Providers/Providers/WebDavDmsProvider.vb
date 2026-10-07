@@ -169,11 +169,11 @@ Namespace Providers
                 Me.TryInitializeOcsSharingClient(Url, loginCredentials.Username, loginCredentials.Password)
             Else
                 If PropfindTask.Exception IsNot Nothing Then
-                    Throw New InvalidOperationException("Authentification for user """ & loginCredentials.Username & """ failed: " & PropfindTask.Exception.Message)
+                    Throw New InvalidOperationException(ProviderStrings.Format("AuthentificationForUserFailed", loginCredentials.Username, PropfindTask.Exception.Message))
                 ElseIf PropfindTask.Result.StatusCode = 401 Then
-                    Throw New Data.DmsUserAuthenticationException("Authentification for user """ & loginCredentials.Username & """ failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description)
+                    Throw New Data.DmsUserAuthenticationException(ProviderStrings.Format("AuthentificationForUserFailed2", loginCredentials.Username, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 Else
-                    Throw New InvalidOperationException("Authentification for user """ & loginCredentials.Username & """ failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description)
+                    Throw New InvalidOperationException(ProviderStrings.Format("AuthentificationForUserFailed2", loginCredentials.Username, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 End If
             End If
         End Sub
@@ -298,12 +298,12 @@ Namespace Providers
                 Return Result
             Else
                 If PropfindTask.Exception IsNot Nothing Then
-                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remotePath & " failed: " & PropfindTask.Exception.Message)
+                    Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed", remotePath, PropfindTask.Exception.Message))
                 ElseIf PropfindTask.Result.StatusCode = 404 Then
                     'Directory/File not found
                     Return Nothing
                 Else
-                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remotePath & " failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description)
+                    Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed2", remotePath, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 End If
             End If
         End Function
@@ -319,7 +319,7 @@ Namespace Providers
                 Return result
             End If
             If response.StatusCode = 404 Then Return Nothing
-            Throw New InvalidOperationException("Listing of WebDAV resource at " & remotePath & " failed: " & response.StatusCode & " " & response.Description,
+            Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed2", remotePath, response.StatusCode, response.Description),
                                                 New ResponseStatusCodeException(response.StatusCode, response.Description))
         End Function
 
@@ -353,7 +353,7 @@ Namespace Providers
                     Result.FullName = Result.FullName.Substring(0, Result.FullName.Length - 1)
                 End If
             Else
-                Throw New InvalidOperationException("Sub items of " & Me.CustomWebApiUrl & " found outside of this path: " & res.Uri.ToString)
+                Throw New InvalidOperationException(ProviderStrings.Format("SubItemsOfFoundOutsideOfThisPath", Me.CustomWebApiUrl, res.Uri.ToString))
             End If
             If Result.Name = Nothing AndAlso Result.FullName <> Nothing Then
                 Result.Name = Result.FullName.Substring(Result.FullName.LastIndexOf(Me.DirectorySeparator) + 1)
@@ -627,7 +627,7 @@ Namespace Providers
                 End If
             Next
             If MatchingShare Is Nothing Then
-                Throw New KeyNotFoundException("OCS link share " & id & " was not found")
+                Throw New KeyNotFoundException(ProviderStrings.Format("OCSLinkShareWasNotFound", id))
             End If
             WebDavProvider.InitializeDmsLink(dmsLink, MatchingShare, password:=Nothing)
         End Sub
@@ -686,11 +686,11 @@ Namespace Providers
                 Return Result
             Else
                 If PropfindTask.Exception IsNot Nothing Then
-                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & PropfindTask.Exception.Message, PropfindTask.Exception)
+                    Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed", remoteFolderPath, PropfindTask.Exception.Message), PropfindTask.Exception)
                 ElseIf PropfindTask.Result.StatusCode = 404 Then
                     Throw New DirectoryNotFoundException(remoteFolderPath, New ResponseStatusCodeException(PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 Else
-                    Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & PropfindTask.Result.StatusCode & " " & PropfindTask.Result.Description, New ResponseStatusCodeException(PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
+                    Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed2", remoteFolderPath, PropfindTask.Result.StatusCode, PropfindTask.Result.Description), New ResponseStatusCodeException(PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 End If
             End If
         End Function
@@ -701,7 +701,7 @@ Namespace Providers
             If Not response.IsSuccessful Then
                 Dim failure As New ResponseStatusCodeException(response.StatusCode, response.Description)
                 If response.StatusCode = 404 Then Throw New DirectoryNotFoundException(remoteFolderPath, failure)
-                Throw New InvalidOperationException("Listing of WebDAV resource at " & remoteFolderPath & " failed: " & response.StatusCode & " " & response.Description, failure)
+                Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed2", remoteFolderPath, response.StatusCode, response.Description), failure)
             End If
             Dim result As New List(Of DmsResourceItem)
             Dim shares = Await Me.TryLoadOcsSharesAsync(remoteFolderPath, True, cancellationToken).ConfigureAwait(False)
@@ -777,7 +777,7 @@ Namespace Providers
                 fs = System.IO.File.OpenRead(localFilePath)
                 Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, fs, PutParams)
                 UploadTask.Wait()
-                CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File)
+                CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File)
             Finally
                 If fs IsNot Nothing Then
                     fs.Close()
@@ -792,7 +792,7 @@ Namespace Providers
                 Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
                 Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
                 Await request.ConfigureAwait(False)
-                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
             End Using
         End Function
 
@@ -803,7 +803,7 @@ Namespace Providers
                 Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
                 Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
                 Await request.ConfigureAwait(False)
-                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
             End Using
         End Function
 
@@ -812,7 +812,7 @@ Namespace Providers
             Dim PutParams As New Global.WebDav.PutFileParameters
             Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams)
             UploadTask.Wait()
-            CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, "Upload failed", ExceptionTypeForItemType.File)
+            CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File)
         End Sub
 
 
@@ -837,7 +837,7 @@ Namespace Providers
         ''' <exception cref="InvalidOperationException">The response did not complete successfully.</exception>
         Protected Overridable Sub WriteResponseStreamToDisk(response As Task(Of Global.WebDav.WebDavStreamResponse), localFilePath As String)
             response.Wait()
-            If response.IsCompleted = False OrElse response.Result.IsSuccessful = False Then Throw New InvalidOperationException("Download failed: not completed/successfull")
+            If response.IsCompleted = False OrElse response.Result.IsSuccessful = False Then Throw New InvalidOperationException(ProviderStrings.GetText("DownloadFailedNotCompletedSuccessfull"))
             Dim FileData As Byte() = StreamToByteArray(response.Result.Stream)
             System.IO.File.WriteAllBytes(localFilePath, FileData)
         End Sub
@@ -859,7 +859,7 @@ Namespace Providers
             Try
                 Using response = Await Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
                     If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
-                    If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    If Not response.IsSuccessful Then Throw New System.IO.IOException(ProviderStrings.GetText("DownloadFailed"), New ResponseStatusCodeException(response.StatusCode, response.Description))
                     Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
                         Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
                     End Using
@@ -910,7 +910,7 @@ Namespace Providers
             Try
                 Using response = Await Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
                     If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
-                    If Not response.IsSuccessful Then Throw New System.IO.IOException("Download failed", New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    If Not response.IsSuccessful Then Throw New System.IO.IOException(ProviderStrings.GetText("DownloadFailed"), New ResponseStatusCodeException(response.StatusCode, response.Description))
                     Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
                         Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
                     End Using
@@ -940,13 +940,13 @@ Namespace Providers
                 Case TaskStatus.Faulted, TaskStatus.RanToCompletion
                     'ok - continue checks below
                 Case TaskStatus.Created, TaskStatus.WaitingForActivation
-                    Throw New InvalidOperationException("Task not started")
+                    Throw New InvalidOperationException(ProviderStrings.GetText("TaskNotStarted"))
                 Case TaskStatus.WaitingForChildrenToComplete, TaskStatus.WaitingToRun, TaskStatus.Running
-                    Throw New InvalidOperationException("Task not finished")
+                    Throw New InvalidOperationException(ProviderStrings.GetText("TaskNotFinished"))
                 Case TaskStatus.Canceled
                     Throw New TaskCanceledException()
                 Case Else
-                    Throw New InvalidOperationException("Task status invalid")
+                    Throw New InvalidOperationException(ProviderStrings.GetText("TaskStatusInvalid"))
             End Select
             If completedTask.Status <> TaskStatus.RanToCompletion OrElse completedTask.IsFaulted OrElse completedTask.Result.IsSuccessful = False Then
                 If completedTask.Result Is Nothing Then
@@ -998,7 +998,7 @@ Namespace Providers
                                 Throw New RessourceNotFoundException(remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
                         End Select
                     ElseIf remoteSourcePath <> Nothing Then
-                        Throw New System.IO.IOException(ioExceptionMessage & ", but remote item exists: " & remoteSourcePath, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
+                        Throw New System.IO.IOException(ProviderStrings.Format("ButRemoteItemExists", ioExceptionMessage, remoteSourcePath), New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
                     Else
                         Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(completedTask.Result.StatusCode, completedTask.Result.Description))
                     End If
@@ -1058,7 +1058,7 @@ Namespace Providers
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             CopyTask.Wait()
-            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File)
+            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.File)
         End Sub
 
         Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
@@ -1067,7 +1067,7 @@ Namespace Providers
             CopyParams.CancellationToken = Me.CurrentAsyncCancellationToken
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             Await CopyTask
-            Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.File, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.File, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
@@ -1075,7 +1075,7 @@ Namespace Providers
             CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             CopyTask.Wait()
-            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory)
+            CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.Directory)
         End Sub
 
         Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
@@ -1084,13 +1084,13 @@ Namespace Providers
             CopyParams.CancellationToken = Me.CurrentAsyncCancellationToken
             Dim CopyTask = Me.WebDavClient.Copy(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, CopyParams)
             Await CopyTask
-            Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, "Copy task failed", ExceptionTypeForItemType.Directory, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.Directory, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = allowOverwrite.GetValueOrDefault})
             MoveTask.Wait()
-            CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.File)
+            CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("MoveFailed"), ExceptionTypeForItemType.File)
         End Sub
 
         ''' <inheritdoc/>
@@ -1098,13 +1098,13 @@ Namespace Providers
             Dim parameters As New Global.WebDav.MoveParameters With {.Overwrite = allowOverwrite.GetValueOrDefault(), .CancellationToken = cancellationToken}
             Dim request = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, parameters)
             Await request.ConfigureAwait(False)
-            Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("MoveFailed"), ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False})
             MoveTask.Wait()
-            CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.Directory)
+            CheckTaskResultForErrors(MoveTask, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("MoveFailed"), ExceptionTypeForItemType.Directory)
         End Sub
 
         ''' <inheritdoc/>
@@ -1112,39 +1112,39 @@ Namespace Providers
             Dim parameters As New Global.WebDav.MoveParameters With {.Overwrite = False, .CancellationToken = cancellationToken}
             Dim request = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, parameters)
             Await request.ConfigureAwait(False)
-            Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, "Move failed", ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("MoveFailed"), ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
         End Function
 
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteFilePath)
             DelTask.Wait()
-            CheckTaskResultForErrors(DelTask, Nothing, remoteFilePath, "Delete failed", ExceptionTypeForItemType.Unspecified)
+            CheckTaskResultForErrors(DelTask, Nothing, remoteFilePath, ProviderStrings.GetText("DeleteFailed"), ExceptionTypeForItemType.Unspecified)
         End Sub
 
         ''' <inheritdoc/>
         Public Overrides Async Function DeleteRemoteItemAsync(remotePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Dim request = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remotePath, New Global.WebDav.DeleteParameters With {.CancellationToken = cancellationToken})
             Await request.ConfigureAwait(False)
-            Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remotePath, "Delete failed", ExceptionTypeForItemType.Unspecified, cancellationToken).ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remotePath, ProviderStrings.GetText("DeleteFailed"), ExceptionTypeForItemType.Unspecified, cancellationToken).ConfigureAwait(False)
         End Function
 
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteItem.FullName)
             DelTask.Wait()
-            CheckTaskResultForErrors(DelTask, Nothing, remoteItem.FullName, "Delete failed", ExceptionTypeForItemType.Unspecified)
+            CheckTaskResultForErrors(DelTask, Nothing, remoteItem.FullName, ProviderStrings.GetText("DeleteFailed"), ExceptionTypeForItemType.Unspecified)
         End Sub
 
         Public Overrides Sub CreateFolder(remoteFilePath As String)
             Dim CreateTask = Me.WebDavClient.Mkcol(Me.CustomWebApiUrl & remoteFilePath)
             CreateTask.Wait()
-            CheckTaskResultForErrors(CreateTask, Nothing, remoteFilePath, "Create folder failed", ExceptionTypeForItemType.Directory)
+            CheckTaskResultForErrors(CreateTask, Nothing, remoteFilePath, ProviderStrings.GetText("CreateFolderFailed"), ExceptionTypeForItemType.Directory)
         End Sub
 
         ''' <inheritdoc/>
         Public Overrides Async Function CreateFolderAsync(remoteDirectoryPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Dim request = Me.WebDavClient.Mkcol(Me.CustomWebApiUrl & remoteDirectoryPath, New Global.WebDav.MkColParameters With {.CancellationToken = cancellationToken})
             Await request.ConfigureAwait(False)
-            Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteDirectoryPath, "Create folder failed", ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
+            Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteDirectoryPath, ProviderStrings.GetText("CreateFolderFailed"), ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
         End Function
 
         Public Overrides Sub CreateDirectory(remoteDirectoryPath As String)
@@ -1152,7 +1152,7 @@ Namespace Providers
         End Sub
 
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
-            Throw New NotSupportedException("Collections are not supported by WebDAV")
+            Throw New NotSupportedException(ProviderStrings.GetText("CollectionsAreNotSupportedByWebDAV"))
         End Sub
 
         Public Overrides ReadOnly Property DirectorySeparator As Char
@@ -1186,19 +1186,19 @@ Namespace Providers
         Public Overrides Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsLinkShares Then
-                Throw New NotSupportedException("Link sharing is not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("LinkSharingIsNotSupportedByThisOCS"))
             End If
             If shareInfo.AllowUpload AndAlso Not Client.Capabilities.SupportsPublicUpload Then
-                Throw New NotSupportedException("Public uploads are not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("PublicUploadsAreNotSupportedByThisOCS"))
             End If
             If shareInfo.AllowUpload AndAlso dmsResource.ItemType = DmsResourceItem.ItemTypes.File Then
-                Throw New NotSupportedException("Public uploads can only be enabled for folders")
+                Throw New NotSupportedException(ProviderStrings.GetText("PublicUploadsCanOnlyBeEnabledForFolders"))
             End If
 
             Dim Permissions As Integer = ToOcsPermissions(shareInfo)
             Dim CreatedShare As PublicShare = TryCast(Client.CreateLink(Me.ToOcsPath(dmsResource.FullName), Permissions, shareInfo.AllowUpload, shareInfo.Name, shareInfo.ExpiryDateLocalTime, EmptyStringToNothing(shareInfo.Password)), PublicShare)
             If CreatedShare Is Nothing Then
-                Throw New InvalidOperationException("The OCS server returned an unexpected share type for a link share")
+                Throw New InvalidOperationException(ProviderStrings.GetText("TheOCSServerReturnedAnUnexpectedShareType"))
             End If
 
             shareInfo.ParentDmsResourceItem = dmsResource
@@ -1213,10 +1213,10 @@ Namespace Providers
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsGroupShares Then
-                Throw New NotSupportedException("Group sharing is not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("GroupSharingIsNotSupportedByThisOCS"))
             End If
             If shareInfo.Group.ID = Nothing Then
-                Throw New ArgumentException("A group ID is required", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("AGroupIDIsRequired"), NameOf(shareInfo))
             End If
             Client.CreateGroupShare(Me.ToOcsPath(dmsResource.FullName), shareInfo.Group.ID, ToOcsPermissions(shareInfo))
         End Sub
@@ -1224,10 +1224,10 @@ Namespace Providers
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsUserShares Then
-                Throw New NotSupportedException("User sharing is not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("UserSharingIsNotSupportedByThisOCS"))
             End If
             If shareInfo.User.ID = Nothing Then
-                Throw New ArgumentException("A user ID is required", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("AUserIDIsRequired"), NameOf(shareInfo))
             End If
             Client.CreateUserShare(Me.ToOcsPath(dmsResource.FullName), shareInfo.User.ID, ToOcsPermissions(shareInfo))
         End Sub
@@ -1235,16 +1235,16 @@ Namespace Providers
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsLinkShares Then
-                Throw New NotSupportedException("Link sharing is not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("LinkSharingIsNotSupportedByThisOCS"))
             End If
             If shareInfo.AllowUpload AndAlso Not Client.Capabilities.SupportsPublicUpload Then
-                Throw New NotSupportedException("Public uploads are not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("PublicUploadsAreNotSupportedByThisOCS"))
             End If
             If shareInfo.ParentDmsResourceItem Is Nothing Then
-                Throw New ArgumentException("The parent DMS resource item is required", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("TheParentDMSResourceItemIsRequired"), NameOf(shareInfo))
             End If
             If shareInfo.AllowUpload AndAlso shareInfo.ParentDmsResourceItem.ItemType = DmsResourceItem.ItemTypes.File Then
-                Throw New NotSupportedException("Public uploads can only be enabled for folders")
+                Throw New NotSupportedException(ProviderStrings.GetText("PublicUploadsCanOnlyBeEnabledForFolders"))
             End If
 
             Client.UpdateLink(
@@ -1260,7 +1260,7 @@ Namespace Providers
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForGroup)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsGroupShares Then
-                Throw New NotSupportedException("Group sharing is not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("GroupSharingIsNotSupportedByThisOCS"))
             End If
             Client.UpdateSharePermissions(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.Group, shareInfo.Group.ID), ToOcsPermissions(shareInfo))
         End Sub
@@ -1268,7 +1268,7 @@ Namespace Providers
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForUser)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsUserShares Then
-                Throw New NotSupportedException("User sharing is not supported by this OCS server")
+                Throw New NotSupportedException(ProviderStrings.GetText("UserSharingIsNotSupportedByThisOCS"))
             End If
             Client.UpdateSharePermissions(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.User, shareInfo.User.ID), ToOcsPermissions(shareInfo))
         End Sub
@@ -1321,14 +1321,14 @@ Namespace Providers
 
         Private Function RequireOcsSharingClient() As IOcsSharingClient
             If Me.OcsSharingClient Is Nothing OrElse Me.OcsSharingClient.Capabilities Is Nothing OrElse Not Me.OcsSharingClient.Capabilities.SupportsAnySharing Then
-                Throw New NotSupportedException("Sharing is not supported by this WebDAV server")
+                Throw New NotSupportedException(ProviderStrings.GetText("SharingIsNotSupportedByThisWebDAVServer"))
             End If
             Return Me.OcsSharingClient
         End Function
 
         Private Shared Function ToOcsPermissions(shareInfo As DmsShareBase) As Integer
             If shareInfo.AllowView <> shareInfo.AllowDownload Then
-                Throw New NotSupportedException("This OCS API cannot represent view and download permissions separately")
+                Throw New NotSupportedException(ProviderStrings.GetText("ThisOCSAPICannotRepresentViewAndDownload"))
             End If
 
             Dim Result As Integer
@@ -1338,7 +1338,7 @@ Namespace Providers
             If shareInfo.AllowDelete Then Result = Result Or Convert.ToInt32(OcsPermission.Delete)
             If shareInfo.AllowShare Then Result = Result Or Convert.ToInt32(OcsPermission.Share)
             If Result = 0 Then
-                Throw New ArgumentException("At least one sharing permission is required", NameOf(shareInfo))
+                Throw New ArgumentException(ProviderStrings.GetText("AtLeastOneSharingPermissionIsRequired"), NameOf(shareInfo))
             End If
             Return Result
         End Function
@@ -1359,14 +1359,14 @@ Namespace Providers
 
                 If ShareInfo.Type = shareType AndAlso String.Equals(FoundShareWithID, shareWithID, StringComparison.Ordinal) Then
                     If Result.HasValue Then
-                        Throw New InvalidOperationException("More than one matching OCS share was found")
+                        Throw New InvalidOperationException(ProviderStrings.GetText("MoreThanOneMatchingOCSShareWasFound"))
                     End If
                     Result = ShareInfo.ShareId
                 End If
             Next
 
             If Not Result.HasValue Then
-                Throw New KeyNotFoundException("The matching OCS share was not found")
+                Throw New KeyNotFoundException(ProviderStrings.GetText("TheMatchingOCSShareWasNotFound"))
             End If
             Return Result.Value
         End Function
@@ -1374,7 +1374,7 @@ Namespace Providers
         Private Shared Function ParseOcsShareID(id As String) As Integer
             Dim Result As Integer
             If Not Integer.TryParse(id, Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, Result) OrElse Result <= 0 Then
-                Throw New ArgumentException("A positive numeric OCS share ID is required", NameOf(id))
+                Throw New ArgumentException(ProviderStrings.GetText("APositiveNumericOCSShareIDIsRequired"), NameOf(id))
             End If
             Return Result
         End Function

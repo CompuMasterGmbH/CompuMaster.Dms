@@ -114,7 +114,7 @@ Public Class DmsStandardShareSetup
         Try
             Await PendingOperation.RunAsync(Function() LoadControlsAsync())
         Catch ex As Exception
-            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Me.Close()
         End Try
     End Sub
@@ -155,7 +155,7 @@ Public Class DmsStandardShareSetup
                 Me.CheckBoxAllowDelete.Enabled = True
                 Me.CheckBoxAllowShare.Enabled = True
             Case Else
-                Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
+                Throw New NotImplementedException(UiStrings.Format("DmsProviderImplementationRequiredFor", Me.DmsProvider.GetType.Name))
         End Select
         Select Case _DialogMode
             Case DialogModes.CreateLink
@@ -180,7 +180,7 @@ Public Class DmsStandardShareSetup
         Select Case Me.DmsProvider.GetType.Name
             Case "ScopevisioTeamworkDmsProvider", "WebDavDmsProvider"
             Case Else
-                Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
+                Throw New NotImplementedException(UiStrings.Format("DmsProviderImplementationRequiredFor", Me.DmsProvider.GetType.Name))
         End Select
     End Sub
 
@@ -203,7 +203,7 @@ Public Class DmsStandardShareSetup
                     End If
                 Next
             Case Else
-                Throw New NotImplementedException("DialogObjectMode not implemented for loading")
+                Throw New NotImplementedException(UiStrings.GetText("DialogObjectModeNotImplementedForLoading"))
         End Select
     End Function
 
@@ -224,7 +224,7 @@ Public Class DmsStandardShareSetup
                 ComboBoxUsersOrGroups.SelectedIndex = 0
                 ComboBoxUsersOrGroups.Enabled = False
             Case Else
-                Throw New NotImplementedException("DialogObjectMode not implemented for loading")
+                Throw New NotImplementedException(UiStrings.GetText("DialogObjectModeNotImplementedForLoading"))
         End Select
         Me.CheckBoxAllowDelete.Checked = Me.DmsSharingDetails.AllowDelete
         Me.CheckBoxAllowDownload.Checked = Me.DmsSharingDetails.AllowDownload
@@ -248,7 +248,7 @@ Public Class DmsStandardShareSetup
                 Case DialogObjectModes.UserSharing
                     Result = New DmsShareForUser(Me.DmsItem, New DmsUser() With {.ID = SelectedId, .DisplayName = SelectedDisplayName}, False, False, False, False, False, False)
                 Case Else
-                    Throw New NotImplementedException("DialogObjectMode not implemented for saving sharing")
+                    Throw New NotImplementedException(UiStrings.GetText("DialogObjectModeNotImplementedForSavingSharing"))
             End Select
         Else
             Select Case Me._DialogObjectMode
@@ -257,7 +257,7 @@ Public Class DmsStandardShareSetup
                 Case DialogObjectModes.UserSharing
                     Result = CType(CType(Me.DmsSharingDetails, DmsShareForUser).Clone(), DmsShareForUser)
                 Case Else
-                    Throw New NotImplementedException("DialogObjectMode not implemented for saving sharing")
+                    Throw New NotImplementedException(UiStrings.GetText("DialogObjectModeNotImplementedForSavingSharing"))
             End Select
         End If
         'always keeps as it is: Me.DmsLinkDetails.ID
@@ -295,13 +295,13 @@ Public Class DmsStandardShareSetup
                     End If
                 Case "WebDavDmsProvider"
                     If Me.CheckBoxAllowView.Checked <> Me.CheckBoxAllowDownload.Checked Then
-                        Throw New DmsUserInputInvalidException("OCS requires View and Download permissions to be selected together")
+                        Throw New DmsUserInputInvalidException(UiStrings.GetText("OCSRequiresViewAndDownloadPermissionsToBe"))
                     End If
                     If Not (Me.CheckBoxAllowView.Checked OrElse Me.CheckBoxAllowEdit.Checked OrElse Me.CheckBoxAllowUpload.Checked OrElse Me.CheckBoxAllowDelete.Checked OrElse Me.CheckBoxAllowShare.Checked) Then
-                        Throw New DmsUserInputMissingException("At least one authorization is required")
+                        Throw New DmsUserInputMissingException(UiStrings.GetText("AtLeastOneAuthorizationIsRequired"))
                     End If
                 Case Else
-                    Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
+                    Throw New NotImplementedException(UiStrings.Format("DmsProviderImplementationRequiredFor", Me.DmsProvider.GetType.Name))
             End Select
             Me.SaveControlDataIntoDmsLink()
             Await PendingOperation.RunAsync(Function() SaveSharingAsync(), Sub()
@@ -309,7 +309,7 @@ Public Class DmsStandardShareSetup
                                                                               Me.Close()
                                                                           End Sub)
         Catch ex As Exception
-            MessageBox.Show(Me, "ERROR: " & If(TypeOf ex Is DmsUserErrorMessageException OrElse TypeOf ex Is NotSupportedException, ex.Message, ex.ToString()), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(Me, UiStrings.Format("ErrorMessage", If(TypeOf ex Is DmsUserErrorMessageException OrElse TypeOf ex Is NotSupportedException, ex.Message, ex.ToString())), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -321,7 +321,7 @@ Public Class DmsStandardShareSetup
                     Case DialogObjectModes.UserSharing
                         Await Me.DmsProvider.CreateSharingAsync(Me.DmsItem, CType(Me.DmsUpdatedSharingDetails, DmsShareForUser))
                     Case Else
-                        Throw New NotImplementedException("DialogObjectMode not implemented for creating sharing")
+                        Throw New NotImplementedException(UiStrings.GetText("DialogObjectModeNotImplementedForCreatingSharing"))
                 End Select
             Else
                 Select Case Me.DmsProvider.GetType.Name
@@ -334,7 +334,7 @@ Public Class DmsStandardShareSetup
                             Case DialogObjectModes.UserSharing
                                 Await Me.DmsProvider.UpdateSharingAsync(CType(Me.DmsUpdatedSharingDetails, DmsShareForUser))
                             Case Else
-                                Throw New NotImplementedException("DialogObjectMode not implemented for updating sharing")
+                                Throw New NotImplementedException(UiStrings.GetText("DialogObjectModeNotImplementedForUpdatingSharing"))
                         End Select
                 End Select
             End If
@@ -349,7 +349,7 @@ Public Class DmsStandardShareSetup
         Try
             SwitchControlsBasedOnCheckboxesForAllowedActions()
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 

@@ -32,7 +32,7 @@ Namespace Providers
             If String.IsNullOrEmpty(shareInfo.ID) OrElse shareInfo.FillLinkDetails Is Nothing Then Return
             If shareInfo.FillLinkDetails.Equals(New DmsLink.FillLinkDetailsFromId(AddressOf DelegatedFillUploadLinkDetails)) Then
                 Dim metadata = Await Me.LoadNativeUploadLinkAsync(shareInfo.ID, cancellationToken).ConfigureAwait(False)
-                If metadata Is Nothing Then Throw New InvalidOperationException("The upload-link response contains no metadata.")
+                If metadata Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheUploadLinkResponseContainsNoMetadata"))
                 cancellationToken.ThrowIfCancellationRequested()
                 shareInfo.Initialize(metadata.Password, DateTimeUtcToLocalTime(metadata.ExpiryDate), Nothing, metadata.MaxDocuments, metadata.MaxBytes,
                                      Nothing, Nothing, metadata.UploadsMade, metadata.UploadedBytes, metadata.Web, Nothing, Nothing,
@@ -40,7 +40,7 @@ Namespace Providers
                 shareInfo.Name = metadata.Name
             ElseIf shareInfo.FillLinkDetails.Equals(New DmsLink.FillLinkDetailsFromId(AddressOf DelegatedFillLinkDetails)) Then
                 Dim metadata = Await Me.LoadNativeDownloadLinkAsync(shareInfo.ID, cancellationToken).ConfigureAwait(False)
-                If metadata?.AccessControl Is Nothing Then Throw New InvalidOperationException("The download-link response contains no access-control metadata.")
+                If metadata?.AccessControl Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheDownloadLinkResponseContainsNoAccessControl"))
                 cancellationToken.ThrowIfCancellationRequested()
                 shareInfo.Initialize(metadata.AccessControl.Password, DateTimeUtcToLocalTime(metadata.AccessControl.ExpiryDate), metadata.AccessControl.MaxDownloads, Nothing, Nothing,
                                      metadata.Views, metadata.Downloads, Nothing, Nothing, metadata.Web, metadata.Download, metadata.Rest,
@@ -76,12 +76,12 @@ Namespace Providers
         Private Async Function ValidateNativeLinkSettingsAsync(shareInfo As DmsLink, requireIdentifier As Boolean, cancellationToken As CancellationToken) As Task
             If shareInfo Is Nothing Then Throw New ArgumentNullException(NameOf(shareInfo))
             cancellationToken.ThrowIfCancellationRequested()
-            If requireIdentifier AndAlso String.IsNullOrEmpty(shareInfo.ID) Then Throw New InvalidOperationException("The link operation requires an identifier.")
+            If requireIdentifier AndAlso String.IsNullOrEmpty(shareInfo.ID) Then Throw New InvalidOperationException(ProviderStrings.GetText("TheLinkOperationRequiresAnIdentifier"))
             If Not shareInfo.DetailsInitialized Then Await Me.RefreshLinkAsync(shareInfo, cancellationToken).ConfigureAwait(False)
-            If shareInfo.AllowEdit Then Throw New NotSupportedException("AllowEdit not supported by provider")
-            If shareInfo.AllowDelete Then Throw New NotSupportedException("AllowDelete not supported by provider")
-            If shareInfo.AllowShare Then Throw New NotSupportedException("AllowShare not supported by provider")
-            If Not (shareInfo.AllowView Xor shareInfo.AllowUpload) Then Throw New ArgumentException("Either AllowView or AllowUpload must be set", NameOf(shareInfo))
+            If shareInfo.AllowEdit Then Throw New NotSupportedException(ProviderStrings.GetText("AllowEditNotSupportedByProvider"))
+            If shareInfo.AllowDelete Then Throw New NotSupportedException(ProviderStrings.GetText("AllowDeleteNotSupportedByProvider"))
+            If shareInfo.AllowShare Then Throw New NotSupportedException(ProviderStrings.GetText("AllowShareNotSupportedByProvider"))
+            If Not (shareInfo.AllowView Xor shareInfo.AllowUpload) Then Throw New ArgumentException(ProviderStrings.GetText("EitherAllowViewOrAllowUploadMustBeSet"), NameOf(shareInfo))
         End Function
 
         Private Shared Function NativeLinkAccessControl(shareInfo As DmsLink) As LinkAccessControl
@@ -99,7 +99,7 @@ Namespace Providers
                 Case DmsResourceItem.ItemTypes.Collection : Return Me.IOClient.ApiClient.Links.CreateCollectionLinkAsync(Me.IOClient.CurrentAuthenticationContextUserID, resource.ExtendedInfosCollectionID, accessControl, cancellationToken)
                 Case DmsResourceItem.ItemTypes.Folder : Return Me.IOClient.ApiClient.Links.CreateFolderLinkAsync(Me.IOClient.CurrentAuthenticationContextUserID, resource.ExtendedInfosFolderID, accessControl, cancellationToken)
                 Case DmsResourceItem.ItemTypes.File : Return Me.IOClient.ApiClient.Links.CreateDocumentLinkAsync(Me.IOClient.CurrentAuthenticationContextUserID, resource.ExtendedInfosFileID, accessControl, cancellationToken)
-                Case Else : Throw New NotSupportedException("Sharing for root directory not supported")
+                Case Else : Throw New NotSupportedException(ProviderStrings.GetText("SharingForRootDirectoryNotSupported"))
             End Select
         End Function
 
@@ -126,18 +126,18 @@ Namespace Providers
                 Case DmsResourceItem.ItemTypes.Collection : id = dmsResource.ExtendedInfosCollectionID
                 Case DmsResourceItem.ItemTypes.Folder : id = dmsResource.ExtendedInfosFolderID
                 Case DmsResourceItem.ItemTypes.File : id = dmsResource.ExtendedInfosFileID
-                Case Else : Throw New NotSupportedException("Sharing for root directory not supported")
+                Case Else : Throw New NotSupportedException(ProviderStrings.GetText("SharingForRootDirectoryNotSupported"))
             End Select
-            If String.IsNullOrEmpty(id) Then Throw New InvalidOperationException("Link creation requires the selected resource identifier.")
+            If String.IsNullOrEmpty(id) Then Throw New InvalidOperationException(ProviderStrings.GetText("LinkCreationRequiresTheSelectedResourceIdentifier"))
             If shareInfo.AllowUpload Then
-                If dmsResource.ItemType <> DmsResourceItem.ItemTypes.Collection Then Throw New NotSupportedException("Upload links supported only with collections")
+                If dmsResource.ItemType <> DmsResourceItem.ItemTypes.Collection Then Throw New NotSupportedException(ProviderStrings.GetText("UploadLinksSupportedOnlyWithCollections"))
                 ValidateUploadLinkMaxBytes(shareInfo.MaxBytes)
             End If
             Try
                 Dim result As DmsLink
                 If shareInfo.AllowUpload Then
                     Dim created = Await Me.CreateNativeUploadLinkAsync(dmsResource, shareInfo, cancellationToken).ConfigureAwait(False)
-                    If String.IsNullOrEmpty(created?.Id) Then Throw New InvalidOperationException("Upload-link creation returned no identifier.")
+                    If String.IsNullOrEmpty(created?.Id) Then Throw New InvalidOperationException(ProviderStrings.GetText("UploadLinkCreationReturnedNoIdentifier"))
                     result = New DmsLink(dmsResource, created.Id, Me, AddressOf DelegatedFillUploadLinkDetails)
                     result.Initialize(shareInfo.Password, shareInfo.ExpiryDateLocalTime, Nothing, ConvertNarrowingToNullableInt32(shareInfo.MaxUploads), shareInfo.MaxBytes,
                                       Nothing, Nothing, 0, 0, created.Web, Nothing, Nothing, False, False, False, True, False, False)
@@ -145,7 +145,7 @@ Namespace Providers
                 Else
                     Dim accessControl = NativeLinkAccessControl(shareInfo)
                     Dim created = Await Me.CreateNativeDownloadLinkAsync(dmsResource, accessControl, cancellationToken).ConfigureAwait(False)
-                    If String.IsNullOrEmpty(created?.Id) Then Throw New InvalidOperationException("Download-link creation returned no identifier.")
+                    If String.IsNullOrEmpty(created?.Id) Then Throw New InvalidOperationException(ProviderStrings.GetText("DownloadLinkCreationReturnedNoIdentifier"))
                     result = New DmsLink(dmsResource, created.Id, Me, AddressOf DelegatedFillLinkDetails)
                     result.Initialize(accessControl.Password, DateTimeUtcToLocalTime(accessControl.ExpiryDate), accessControl.MaxDownloads, Nothing, Nothing,
                                       0, 0, Nothing, Nothing, created.Web, created.Download, Nothing, True, Not accessControl.ViewOnly, False, False, False, False)
@@ -154,7 +154,7 @@ Namespace Providers
                 dmsResource.ExtendedInfosLinks.Add(result)
                 Return result
             Catch ex As ForbiddenException
-                Throw New DmsUserErrorMessageException("Forbidden: " & ex.ErrorResponse.Message, ex)
+                Throw New DmsUserErrorMessageException(ProviderStrings.Format("Forbidden", ex.ErrorResponse.Message), ex)
             Catch ex As BadRequestException
                 Dim message = If(ex.ErrorResponse.Data IsNot Nothing AndAlso ex.ErrorResponse.Data.ContainsKey("explanation"), CStr(ex.ErrorResponse.Data("explanation")), ex.ErrorResponse.Message)
                 Throw New DmsUserErrorMessageException(message, ex)
