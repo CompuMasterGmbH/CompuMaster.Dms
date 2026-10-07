@@ -4,7 +4,8 @@
     [string]$TeamworkRoot = '.upstream/Teamwork',
     [ValidateRange(256, 4096)][int]$TransferMiB = 256,
     [Parameter(Mandatory = $true)][string]$ExclusiveWindowUntil,
-    [string]$Mode = 'verification'
+    [string]$Mode = 'verification',
+    [ValidateSet('packages', 'source')][string]$DependencyMode = 'source'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,12 +28,24 @@ $env:NATIVE_SCOPEVISIO_EVIDENCE_DIRECTORY = [IO.Path]::GetFullPath('native-live-
 [IO.Directory]::CreateDirectory($env:NATIVE_SCOPEVISIO_EVIDENCE_DIRECTORY) | Out-Null
 $testFilter = if ($Mode -eq 'upload_boundary') { 'TestCategory=ScopevisioNativeUploadBoundary' } else { 'TestCategory=ScopevisioNativeAsync' }
 if ($Mode -eq 'upload_boundary') { Write-Host 'Windows-only upload-boundary diagnostic; successful diagnostics do not satisfy large-transfer/cancellation acceptance.' }
-$arguments = @(
-    '-p:EnableNativeAsync=true',
-    '-p:GeneratePackageOnBuild=false',
-    "-p:CenterDeviceRestProject=$([IO.Path]::GetFullPath((Join-Path $SdkRoot 'CenterDevice.Rest/CenterDevice.Rest.csproj')))",
-    "-p:OpenScopeApiProject=$([IO.Path]::GetFullPath((Join-Path $OpenScopeRoot 'src/CompuMaster.Scopevisio.OpenApi/CompuMaster.Scopevisio.OpenApi.csproj')))",
-    "-p:TeamworkProject=$([IO.Path]::GetFullPath((Join-Path $TeamworkRoot 'Scopevisio.Teamwork/CompuMaster.Scopevisio.Teamwork.csproj')))"
-)
+$arguments = @('-p:EnableNativeAsync=true', '-p:GeneratePackageOnBuild=false')
+if ($DependencyMode -eq 'source') {
+    $arguments += @(
+        "-p:CenterDeviceRestProject=$([IO.Path]::GetFullPath((Join-Path $SdkRoot 'CenterDevice.Rest/CenterDevice.Rest.csproj')))",
+        "-p:OpenScopeApiProject=$([IO.Path]::GetFullPath((Join-Path $OpenScopeRoot 'src/CompuMaster.Scopevisio.OpenApi/CompuMaster.Scopevisio.OpenApi.csproj')))",
+        "-p:TeamworkProject=$([IO.Path]::GetFullPath((Join-Path $TeamworkRoot 'Scopevisio.Teamwork/CompuMaster.Scopevisio.Teamwork.csproj')))"
+    )
+} else {
+    & dotnet restore 'CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj' @arguments -v minimal
+    if ($LASTEXITCODE -ne 0) { throw 'Released native dependency restore failed.' }
+    $assets = Get-Content -LiteralPath 'CompuMaster.Dms.Test.Providers/obj/project.assets.json' -Raw | ConvertFrom-Json -AsHashtable
+    foreach ($packageId in @('CompuMaster.CenterDevice.Rest', 'CompuMaster.Scopevisio.OpenApi', 'CompuMaster.Scopevisio.Teamwork', 'CompuMaster.Ocs')) {
+        $key = "$packageId/2026.10.7"
+        if (!$assets.libraries.ContainsKey($key) -or $assets.libraries[$key].type -ne 'package') {
+            throw "Native live evidence requires released NuGet package $key, not an upstream source project."
+        }
+    }
+}
+Write-Host "Native live dependency mode: $DependencyMode."
 & dotnet test 'CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj' -c CI_CD --framework net8.0 --filter $testFilter --logger junit --results-directory native-live-results -v minimal @arguments
-if ($LASTEXITCODE -ne 0) { throw 'Native source-mode Scopevisio live tests failed; inspect test output and cleanup diagnostics.' }
+if ($LASTEXITCODE -ne 0) { throw 'Native Scopevisio live tests failed; inspect test output and cleanup diagnostics.' }

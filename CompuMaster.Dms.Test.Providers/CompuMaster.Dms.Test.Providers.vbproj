@@ -4,6 +4,7 @@
     <RootNamespace>CompuMaster.Dms.Test.Providers</RootNamespace>
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <Configurations>Debug;Release;CI_CD</Configurations>
+    <EnableNativeAsync Condition="'$(EnableNativeAsync)' == ''">true</EnableNativeAsync>
     <OutputType>Library</OutputType>
     <StartupObject />
   </PropertyGroup>
