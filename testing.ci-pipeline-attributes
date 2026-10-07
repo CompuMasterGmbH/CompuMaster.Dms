@@ -12,6 +12,8 @@
 # Native 256 MiB/hash/active-cancellation live tests run only in a manual Level 2
 # dispatch with an explicit coordinated exclusive-window end. A Level 2 push/PR
 # runs the extended default-package suite; it does not grant native server access.
+# Manual native_dependency_mode=packages verifies released NuGet dependencies;
+# source selects the separately pinned development chain. Keep this proof distinct.
 #
 # Assign NUnit tests in VB (method or entire fixture):
 #   <Test, Category("TestLevel1")>  - quick remote smoke test.
