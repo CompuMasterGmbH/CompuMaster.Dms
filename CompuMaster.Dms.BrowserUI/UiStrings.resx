@@ -204,4 +204,17 @@
   <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>The selected DMS instance is not available.</value></data>
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Unknown derived class from DmsShareBase</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Use the constructor accepting an instance identifier.</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>File {0} of {1}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} of {1:N0} source bytes processed</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} source bytes processed; total unknown</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>Byte progress is unavailable.</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>Uploading…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>Waiting for provider confirmation…</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>Not started</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>Cancellation requested; waiting for the active transfer.</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{0} of {1} files completed</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>Completed uploads remain on the server. An interrupted upload may leave a partial file.</value></data>
 </root>

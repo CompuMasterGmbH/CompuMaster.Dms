@@ -59,6 +59,12 @@ Namespace Providers
         End Function
 
         ''' <inheritdoc/>
+        Public Overrides Function UploadFileWithProgressAsync(remoteFilePath As String, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If progress Is Nothing Then Return Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken)
+            Return Me.UploadFileWithProgressAsync(remoteFilePath, Function() New System.IO.FileStream(localFilePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read, 81920, System.IO.FileOptions.Asynchronous Or System.IO.FileOptions.SequentialScan), progress, cancellationToken)
+        End Function
+
+        ''' <inheritdoc/>
         ''' <remarks>Uses bounded streaming I/O and can cancel active requests. Existing path-based version selection is preserved.</remarks>
         Public Overrides Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             If localFilePath Is Nothing Then Throw New ArgumentNullException(NameOf(localFilePath))

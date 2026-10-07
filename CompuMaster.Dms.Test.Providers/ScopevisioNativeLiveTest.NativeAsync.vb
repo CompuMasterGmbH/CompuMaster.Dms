@@ -81,7 +81,11 @@ Public Class ScopevisioNativeLiveTest
                                                   Next
                                               End Using
                                               Dim remote = OwnedCollection & "/large.bin"
-                                              Await provider.UploadFileAsync(remote, source, token)
+                                              Dim uploadProgress As New LiveUploadProgressCollector()
+                                              Await provider.UploadFileWithProgressAsync(remote, source, uploadProgress, token)
+                                              Assert.That(uploadProgress.Latest.Phase, [Is].EqualTo(DmsTransferPhase.Completed))
+                                              Assert.That(uploadProgress.Latest.BytesTransferred, [Is].EqualTo(size))
+                                              Assert.That(uploadProgress.Latest.TotalBytes, [Is].EqualTo(size))
                                               Dim selected = Await provider.ListRemoteItemAsync(remote, token)
                                               Assert.That(selected.ContentLength, [Is].EqualTo(size))
                                               Await provider.DownloadFileAsync(selected, downloaded, token)
@@ -166,4 +170,11 @@ Public Class ScopevisioNativeLiveTest
     Private Shared Function RequiredEnvironment(name As String) As String
         Return ScopevisioLiveTestResourceScope.RequiredEnvironment(name)
     End Function
+    Private Class LiveUploadProgressCollector
+        Implements IProgress(Of DmsTransferProgress)
+        Friend Latest As DmsTransferProgress
+        Public Sub Report(value As DmsTransferProgress) Implements IProgress(Of DmsTransferProgress).Report
+            Latest = value
+        End Sub
+    End Class
 End Class

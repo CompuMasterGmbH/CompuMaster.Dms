@@ -599,6 +599,45 @@ Namespace Providers
             Return Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, binaryData), cancellationToken)
         End Function
 
+        ''' <summary>Uploads a local file with optional progress reporting.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="localFilePath">The local source path.</param>
+        ''' <param name="progress">Receives immutable source-byte/phase snapshots; Nothing disables reporting.</param>
+        ''' <param name="cancellationToken">Cancels the request where supported by the provider.</param>
+        ''' <returns>A task that completes only after the provider confirms success.</returns>
+        ''' <remarks>The default implementation preserves a derived provider's existing local-file override and reports unknown byte counts. Providers supporting stream progress override this method. Existing UploadFileAsync overloads retain their signatures and behavior. A completed source-byte count does not imply server success.</remarks>
+        ''' <exception cref="System.IO.IOException">The source cannot be read or the transfer fails.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local source is denied.</exception>
+        ''' <exception cref="OperationCanceledException">The supported upload operation is cancelled.</exception>
+        Public Overridable Async Function UploadFileWithProgressAsync(remoteFilePath As String, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            cancellationToken.ThrowIfCancellationRequested()
+            progress?.Report(New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Transferring))
+            Await Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken).ConfigureAwait(False)
+            progress?.Report(New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Completed))
+        End Function
+
+        ''' <summary>Uploads source-stream contents with optional progress reporting.</summary>
+        ''' <param name="remoteFilePath">The remote destination path.</param>
+        ''' <param name="binaryData">Creates a readable stream whose ownership transfers to the provider.</param>
+        ''' <param name="progress">Receives source bytes consumed by the transport, optional totals, and provider phases.</param>
+        ''' <param name="cancellationToken">Cancels the supported request or queued fallback.</param>
+        ''' <returns>A task that completes only after the upload succeeds.</returns>
+        ''' <remarks>Unknown stream lengths remain Nothing. Callbacks must not throw. The existing provider's stream-factory implementation and active-cancellation limitations are preserved. Source bytes exclude protocol overhead and do not prove remote persistence.</remarks>
+        ''' <exception cref="ArgumentNullException">The stream factory is Nothing.</exception>
+        ''' <exception cref="System.IO.IOException">Reading the stream or transferring its contents fails.</exception>
+        ''' <exception cref="OperationCanceledException">The supported operation is cancelled.</exception>
+        Public Overridable Async Function UploadFileWithProgressAsync(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If binaryData Is Nothing Then Throw New ArgumentNullException(NameOf(binaryData))
+            cancellationToken.ThrowIfCancellationRequested()
+            progress?.Report(New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Transferring))
+            Dim tracked As UploadProgressStream = Nothing
+            Await Me.UploadFileAsync(remoteFilePath, Function()
+                                                       tracked = New UploadProgressStream(binaryData(), progress)
+                                                       Return tracked
+                                                   End Function, cancellationToken).ConfigureAwait(False)
+            progress?.Report(If(tracked Is Nothing, New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Completed), tracked.Snapshot(DmsTransferPhase.Completed)))
+        End Function
+
         Private Async Function EnsureUploadParentAsync(remoteFilePath As String, recursive As Boolean, cancellationToken As CancellationToken) As Task
             If remoteFilePath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
             Dim parentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)

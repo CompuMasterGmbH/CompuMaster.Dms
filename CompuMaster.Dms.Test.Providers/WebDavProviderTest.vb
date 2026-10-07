@@ -144,6 +144,37 @@ Public MustInherit Class WebDavProviderTestBase
         End Function)
     End Function
 
+    <Test, Category("TestLevel2")>
+    Public Async Function FileBackedBatchUploadReportsSourceBytesAndConfirmedCompletion() As Task
+        Await WithOwnedMetadataFixtureAsync("Upload_Progress", Async Function(provider, root)
+            Dim local = System.IO.Path.GetTempFileName()
+            Try
+                Using output As New System.IO.FileStream(local, System.IO.FileMode.Truncate, System.IO.FileAccess.Write)
+                    output.SetLength(32L * 1024L * 1024L)
+                End Using
+                For index As Integer = 1 To 2
+                    Dim observer As New LiveUploadProgressCollector()
+                    Dim remote = provider.CombinePath(root, "payload-" & index.ToString(Globalization.CultureInfo.InvariantCulture) & ".bin")
+                    Await provider.UploadFileWithProgressAsync(remote, local, observer)
+                    Assert.That(observer.Latest.Phase, [Is].EqualTo(Dms.Data.DmsTransferPhase.Completed))
+                    Assert.That(observer.Latest.BytesTransferred, [Is].EqualTo(32L * 1024L * 1024L))
+                    Assert.That(observer.Latest.TotalBytes, [Is].EqualTo(32L * 1024L * 1024L))
+                    Assert.That((Await provider.ListRemoteItemAsync(remote)).ContentLength, [Is].EqualTo(32L * 1024L * 1024L))
+                Next
+            Finally
+                System.IO.File.Delete(local)
+            End Try
+        End Function)
+    End Function
+
+    Private Class LiveUploadProgressCollector
+        Implements IProgress(Of Dms.Data.DmsTransferProgress)
+        Friend Latest As Dms.Data.DmsTransferProgress
+        Public Sub Report(value As Dms.Data.DmsTransferProgress) Implements IProgress(Of Dms.Data.DmsTransferProgress).Report
+            Latest = value
+        End Sub
+    End Class
+
     Private Shared Sub AssertChildMetadata(item As Dms.Data.DmsResourceItem, expected As Integer)
         If item.ChildDirectoryCount.HasValue Then
             Assert.That(item.ChildDirectoryCount.Value, [Is].EqualTo(expected))

@@ -1174,10 +1174,7 @@ Public Class DmsBrowser
                     Next
                     Dim RemoteFolderPath As String = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName
                     Dim LocalFiles As String() = f.FileNames
-                    Await Me.RunTransferAsync(Async Function()
-                        Await UploadFilesForUiAsync(Me.DmsProvider, RemoteFolderPath, LocalFiles)
-                        Await Me.RefreshFilesListAfterTransferAsync()
-                    End Function)
+                    Await Me.RunTransferAsync(Function() Me.UploadWithDialogAsync(RemoteFolderPath, LocalFiles))
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFileSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)

@@ -204,4 +204,17 @@
   <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>Die ausgewählte DMS-Instanz ist nicht verfügbar.</value></data>
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Unbekannter Freigabetyp</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Verwenden Sie den Konstruktor mit einer Instanz-ID.</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>Datei {0} von {1}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} von {1:N0} Quellbytes verarbeitet</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} Quellbytes verarbeitet; Gesamtgröße unbekannt</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>Byte-Fortschritt ist nicht verfügbar.</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>Hochladen…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>Warten auf Bestätigung des Providers…</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>Abgeschlossen</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>Fehlgeschlagen</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>Abgebrochen</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>Noch nicht begonnen</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>Abbruch angefordert; auf die laufende Übertragung wird gewartet.</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{0} von {1} Dateien abgeschlossen</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>Abgeschlossene Uploads bleiben auf dem Server. Ein unterbrochener Upload kann eine unvollständige Datei hinterlassen.</value></data>
 </root>
