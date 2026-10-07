@@ -14,8 +14,7 @@ Namespace Providers
         Protected Overrides Async Function LookupNativeUserDisplayNameAsync(userId As String, cancellationToken As CancellationToken) As Task(Of String)
             Dim name = Await MyBase.LookupNativeUserDisplayNameAsync(userId, cancellationToken).ConfigureAwait(False)
             If Not String.IsNullOrWhiteSpace(name) Then Return name
-            Dim teamwork = TryCast(Me.IOClient, Global.CompuMaster.Scopevisio.Teamwork.TeamworkIOClient)
-            Dim token = teamwork?.TeamworkRestClient.OpenscopeClient.Token?.AccessToken
+            Dim token = Me._OpenScopeClient?.Token?.AccessToken
             If String.IsNullOrWhiteSpace(token) Then Return String.Empty
             Dim client = If(Me._ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
             Dim address As New Uri(New Uri(Me.WebApiDefaultUrl), "user/" & Uri.EscapeDataString(userId))
@@ -72,7 +71,7 @@ Namespace Providers
                 isTokenRequest = False
                 Dim client As Global.CenterDevice.IO.IOClientBase = Nothing
                 If openScopeClient.Token IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(openScopeClient.Token.TeamworkTenantId) Then
-                    client = Await Global.CompuMaster.Scopevisio.Teamwork.TeamworkIOClient.CreateAsync(openScopeClient, cancellationToken).ConfigureAwait(False)
+                    client = Await ScopevisioSessionIOClient.CreateAsync(openScopeClient, cancellationToken).ConfigureAwait(False)
                 End If
                 cancellationToken.ThrowIfCancellationRequested()
                 Me._OpenScopeClient = openScopeClient

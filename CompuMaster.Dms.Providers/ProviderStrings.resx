@@ -156,4 +156,5 @@
   <data name="DeleteFailed" xml:space="preserve"><value>Delete failed</value></data>
   <data name="MoveFailed" xml:space="preserve"><value>Move failed</value></data>
   <data name="UploadFailed" xml:space="preserve"><value>Upload failed</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>Your session can no longer be renewed. Sign in again to continue.</value></data>
 </root>
