@@ -56,46 +56,52 @@ Namespace Providers
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
                 Return DmsProviders.WebDAV
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property Name As String
             Get
                 Return "WebDAV"
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiDefaultUrl As String
             Get
                 Return Nothing
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUrlCustomization As UrlCustomizationType
             Get
                 Return UrlCustomizationType.WebApiUrlMustBeCustomized
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUserCustomerReferenceRequirement As UserCustomerReferenceType
             Get
                 Return UserCustomerReferenceType.WithoutCustomerReference
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Protected Overrides Function CustomizedWebApiUrl(loginCredentials As BaseDmsLoginCredentials) As String
             Return loginCredentials.BaseUrl 'e.g. https://extranet.compumaster.de/owncloud/remote.php/dav/files/gitlab-runner-bierdeckel/
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property BrowseInRootFolderName() As String = ""
 
         ''' <summary>
         ''' The webdav url that is considered as root directory (always contains a trailing slash "/")
         ''' </summary>
-        ''' <returns></returns>
         Public Property CustomWebApiUrl As String
 
         Private Shared Function CreateHttpClient(ignoreSslErrors As Boolean, ByVal params As WebDavClientParams) As System.Net.Http.HttpClient
@@ -142,10 +148,15 @@ Namespace Providers
             Return httpClient
         End Function
 
+        ''' <summary>Authorizes this provider with its configured account credentials.</summary>
+        ''' <param name="loginCredentials">The credentials for the selected provider.</param>
         Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials)
             Me.Authorize(loginCredentials, False)
         End Sub
 
+        ''' <summary>Authorizes this provider with its configured account credentials.</summary>
+        ''' <param name="loginCredentials">The credentials for the selected provider.</param>
+        ''' <param name="ignoreSslErrors">Whether certificate validation is bypassed; False preserves normal certificate validation.</param>
         Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials, ignoreSslErrors As Boolean)
             Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
             Dim ClientParams As New Global.WebDav.WebDavClientParams() With
@@ -276,10 +287,12 @@ Namespace Providers
 
         Private _AuthorizedUser As String
 
+        ''' <inheritdoc/>
         Public Overrides Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
             'no caches present, so nothing to do here
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
             If remotePath Is Nothing Then
                 Throw New ArgumentNullException(NameOf(remotePath))
@@ -323,14 +336,17 @@ Namespace Providers
                                                 New ResponseStatusCodeException(response.StatusCode, response.Description))
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function FindCollectionById(id As String) As DmsResourceItem
             Throw New NotImplementedException
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function FindFolderById(id As String) As DmsResourceItem
             Throw New NotImplementedException
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function FindFileById(id As String) As DmsResourceItem
             Throw New NotImplementedException
         End Function
@@ -650,6 +666,7 @@ Namespace Providers
             End Try
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
             Dim PropfindParams As Global.WebDav.PropfindParameters = CreateResourcePropfindParameters(Global.WebDav.ApplyTo.Propfind.ResourceAndChildren)
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remoteFolderPath, PropfindParams)
@@ -765,6 +782,7 @@ Namespace Providers
         '    Return MyBase.ListAllFolderNames(remoteFolderPath)
         'End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function CreateNewCredentialsInstance() As BaseDmsLoginCredentials
             Return New WebDavLoginCredentials
         End Function
@@ -822,6 +840,9 @@ Namespace Providers
         End Sub
 
 
+        ''' <summary>Reads the remaining stream contents into a byte array.</summary>
+        ''' <param name="inputStream">The readable source stream, positioned at the first byte to read.</param>
+        ''' <returns>The bytes read from the current position to the end; the caller retains stream ownership.</returns>
         Protected Shared Function StreamToByteArray(inputStream As System.IO.Stream) As Byte()
             Dim bytes = New Byte(16383) {}
             Using memoryStream = New System.IO.MemoryStream()
@@ -935,10 +956,10 @@ Namespace Providers
         ''' <summary>
         ''' Check for successful run of a task
         ''' </summary>
-        ''' <param name="completedTask"></param>
+        ''' <param name="completedTask">The completed provider task whose failure is checked.</param>
         ''' <param name="remoteSourcePath">Optional value, required for actions requiring existance of source item</param>
-        ''' <param name="remoteDestinationPath"></param>
-        ''' <param name="ioExceptionMessage"></param>
+        ''' <param name="remoteDestinationPath">The remote destination path.</param>
+        ''' <param name="ioExceptionMessage">The context message used when wrapping a failed I/O task.</param>
         ''' <param name="conflictItemType">Decides on exception type if a HTTP status code 409 is reported</param>
         Protected Sub CheckTaskResultForErrors(completedTask As Task(Of WebDav.WebDavResponse), remoteSourcePath As String, remoteDestinationPath As String, ioExceptionMessage As String, conflictItemType As ExceptionTypeForItemType)
             If remoteDestinationPath = Nothing Then Throw New ArgumentNullException(NameOf(remoteDestinationPath))
@@ -1059,6 +1080,7 @@ Namespace Providers
             Throw New System.IO.IOException(ioExceptionMessage, statusError)
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
@@ -1067,6 +1089,7 @@ Namespace Providers
             CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.File)
         End Sub
 
+        ''' <inheritdoc/>
         Protected Overrides Async Function CopyFileItemAsync(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?) As Task
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.Overwrite = allowOverwrite.GetValueOrDefault
@@ -1076,6 +1099,7 @@ Namespace Providers
             Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.File, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
@@ -1084,6 +1108,7 @@ Namespace Providers
             CheckTaskResultForErrors(CopyTask, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.Directory)
         End Sub
 
+        ''' <inheritdoc/>
         Protected Overrides Async Function CopyDirectoryItemAsync(remoteSourcePath As String, remoteDestinationPath As String) As Task
             Dim CopyParams As New Global.WebDav.CopyParameters()
             CopyParams.ApplyTo = Global.WebDav.ApplyTo.Copy.ResourceAndAncestors
@@ -1093,6 +1118,7 @@ Namespace Providers
             Await CheckTaskResultForErrorsAsync(CopyTask.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("CopyTaskFailed"), ExceptionTypeForItemType.Directory, Me.CurrentAsyncCancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = allowOverwrite.GetValueOrDefault})
             MoveTask.Wait()
@@ -1107,6 +1133,7 @@ Namespace Providers
             Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("MoveFailed"), ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim MoveTask = Me.WebDavClient.Move(Me.CustomWebApiUrl & remoteSourcePath, Me.CustomWebApiUrl & remoteDestinationPath, New Global.WebDav.MoveParameters() With {.Overwrite = False})
             MoveTask.Wait()
@@ -1121,6 +1148,7 @@ Namespace Providers
             Await CheckTaskResultForErrorsAsync(request.Result, remoteSourcePath, remoteDestinationPath, ProviderStrings.GetText("MoveFailed"), ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteFilePath)
             DelTask.Wait()
@@ -1134,12 +1162,14 @@ Namespace Providers
             Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remotePath, ProviderStrings.GetText("DeleteFailed"), ExceptionTypeForItemType.Unspecified, cancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Dim DelTask = Me.WebDavClient.Delete(Me.CustomWebApiUrl & remoteItem.FullName)
             DelTask.Wait()
             CheckTaskResultForErrors(DelTask, Nothing, remoteItem.FullName, ProviderStrings.GetText("DeleteFailed"), ExceptionTypeForItemType.Unspecified)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateFolder(remoteFilePath As String)
             Dim CreateTask = Me.WebDavClient.Mkcol(Me.CustomWebApiUrl & remoteFilePath)
             CreateTask.Wait()
@@ -1153,20 +1183,24 @@ Namespace Providers
             Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteDirectoryPath, ProviderStrings.GetText("CreateFolderFailed"), ExceptionTypeForItemType.Directory, cancellationToken).ConfigureAwait(False)
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateDirectory(remoteDirectoryPath As String)
             Me.CreateFolder(remoteDirectoryPath)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
             Throw New NotSupportedException(ProviderStrings.GetText("CollectionsAreNotSupportedByWebDAV"))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property DirectorySeparator As Char
             Get
                 Return "/"c
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides Sub Authorize(dmsProfile As Data.IDmsLoginProfile)
             Dim Credentials As WebDavLoginCredentials = CType(Me.CreateNewCredentialsInstance(), WebDavLoginCredentials)
             Credentials.BaseUrl = dmsProfile.ServerAddress
@@ -1175,12 +1209,14 @@ Namespace Providers
             Me.Authorize(Credentials, dmsProfile.IgnoreSslErrors)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsCollections As Boolean
             Get
                 Return False
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsSharingSetup As Boolean
             Get
                 Return Me.OcsSharingClient IsNot Nothing AndAlso
@@ -1189,6 +1225,7 @@ Namespace Providers
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsLinkShares Then
@@ -1216,6 +1253,7 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsGroupShares Then
@@ -1227,6 +1265,7 @@ Namespace Providers
             Client.CreateGroupShare(Me.ToOcsPath(dmsResource.FullName), shareInfo.Group.ID, ToOcsPermissions(shareInfo))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsUserShares Then
@@ -1238,6 +1277,7 @@ Namespace Providers
             Client.CreateUserShare(Me.ToOcsPath(dmsResource.FullName), shareInfo.User.ID, ToOcsPermissions(shareInfo))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsLinkShares Then
@@ -1263,6 +1303,7 @@ Namespace Providers
                 password:=EmptyStringToNothing(shareInfo.Password))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForGroup)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsGroupShares Then
@@ -1271,6 +1312,7 @@ Namespace Providers
             Client.UpdateSharePermissions(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.Group, shareInfo.Group.ID), ToOcsPermissions(shareInfo))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForUser)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             If Not Client.Capabilities.SupportsUserShares Then
@@ -1279,18 +1321,22 @@ Namespace Providers
             Client.UpdateSharePermissions(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.User, shareInfo.User.ID), ToOcsPermissions(shareInfo))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteLink(shareInfo As DmsLink)
             Me.RequireOcsSharingClient().DeleteShare(ParseOcsShareID(shareInfo.ID))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForGroup)
             Me.RequireOcsSharingClient().DeleteShare(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.Group, shareInfo.Group.ID))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForUser)
             Me.RequireOcsSharingClient().DeleteShare(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.User, shareInfo.User.ID))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Function GetAllGroups() As List(Of DmsGroup)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             Dim Result As New List(Of DmsGroup)
@@ -1308,6 +1354,7 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function GetAllUsers() As List(Of DmsUser)
             Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
             Dim Result As New List(Of DmsUser)
@@ -1393,30 +1440,35 @@ Namespace Providers
             End If
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property CurrentContextUserID As String
             Get
                 Return Me._AuthorizedUser
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsSubFolderConfiguration As Boolean
             Get
                 Return True
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsRuntimeAccessToRemoteServer As RuntimeAccessTypes
             Get
                 Return RuntimeAccessTypes.ConfigurationAndRuntimeAccess
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
             Get
                 Return True
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
             Get
                 Return False

@@ -6,8 +6,17 @@ Namespace Data
 #Disable Warning CA1034 ' Nested types should not be visible
 #Disable Warning CA1815 ' Override equals and operator equals on value types
 
+    ''' <summary>Defines common permissions associated with a remote DMS resource.</summary>
     Public MustInherit Class DmsShareBase
 
+        ''' <summary>Initializes the common resource permissions.</summary>
+        ''' <param name="parentDmsResourceItem">The remote resource whose permissions are represented.</param>
+        ''' <param name="allowView">Whether the view permission is enabled.</param>
+        ''' <param name="allowDownload">Whether the download permission is enabled.</param>
+        ''' <param name="allowEdit">Whether the edit permission is enabled.</param>
+        ''' <param name="allowUpload">Whether the upload permission is enabled.</param>
+        ''' <param name="allowDelete">Whether the delete permission is enabled.</param>
+        ''' <param name="allowShare">Whether the share permission is enabled.</param>
         Protected Sub New(parentDmsResourceItem As DmsResourceItem, allowView As Boolean, allowDownload As Boolean, allowEdit As Boolean, allowUpload As Boolean, allowDelete As Boolean, allowShare As Boolean)
             Me.ParentDmsResourceItem = parentDmsResourceItem
             Me.AllowView = allowView
@@ -18,10 +27,14 @@ Namespace Data
             Me.AllowShare = allowShare
         End Sub
 
+        ''' <summary>Initializes permission or link details before they are read.</summary>
         Protected MustOverride Sub Initialize()
 
+        ''' <summary>Gets or sets the remote resource to which these permissions belong.</summary>
         Public Property ParentDmsResourceItem As DmsResourceItem
 
+        ''' <summary>Returns stable technical permission tokens for the enabled actions.</summary>
+        ''' <returns>The enabled View, Download, Edit, Upload, Delete and Share tokens in that order.</returns>
         Public Function AllowedActions() As List(Of String)
             Dim Result As New List(Of String)
             If AllowView Then Result.Add("View")
@@ -37,7 +50,6 @@ Namespace Data
         ''' <summary>
         ''' Allow view (=view only, no download)
         ''' </summary>
-        ''' <returns></returns>
         Public Property AllowView As Boolean
             Get
                 Me.Initialize()
@@ -52,7 +64,6 @@ Namespace Data
         ''' <summary>
         ''' Allow re-sharing
         ''' </summary>
-        ''' <returns></returns>
         Public Property AllowShare As Boolean
             Get
                 Me.Initialize()
@@ -67,7 +78,6 @@ Namespace Data
         ''' <summary>
         ''' Allow downloads
         ''' </summary>
-        ''' <returns></returns>
         Public Property AllowDownload As Boolean
             Get
                 Me.Initialize()
@@ -82,7 +92,6 @@ Namespace Data
         ''' <summary>
         ''' Allow edit/update of files or folders
         ''' </summary>
-        ''' <returns></returns>
         Public Property AllowEdit As Boolean
             Get
                 Me.Initialize()
@@ -97,7 +106,6 @@ Namespace Data
         ''' <summary>
         ''' Allow uploads
         ''' </summary>
-        ''' <returns></returns>
         Public Property AllowUpload As Boolean
             Get
                 Me.Initialize()
@@ -112,7 +120,6 @@ Namespace Data
         ''' <summary>
         ''' Allow deletions
         ''' </summary>
-        ''' <returns></returns>
         Public Property AllowDelete As Boolean
             Get
                 Me.Initialize()

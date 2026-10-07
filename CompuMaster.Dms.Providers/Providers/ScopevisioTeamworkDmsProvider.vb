@@ -42,43 +42,54 @@ Namespace Providers
 #End If
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
                 Return DmsProviders.Scopevisio
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property Name As String
             Get
                 Return "Scopevisio Teamwork"
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiDefaultUrl As String
             Get
                 Return "https://appload.scopevisio.com/rest/teamworkbridge/"
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUrlCustomization As UrlCustomizationType
             Get
                 Return UrlCustomizationType.WebApiUrlNotCustomizable
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUserCustomerReferenceRequirement As UserCustomerReferenceType
             Get
                 Return UserCustomerReferenceType.CustomerReferenceRequired
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Protected Overrides Function CustomizedWebApiUrl(loginCredentials As BaseDmsLoginCredentials) As String
             Return Me.WebApiDefaultUrl
         End Function
 
+        ''' <summary>Authorizes this provider with its configured account credentials.</summary>
+        ''' <param name="loginCredentials">The credentials for the selected provider.</param>
         Public Overloads Sub Authorize(loginCredentials As ScopevisioLoginCredentials)
             Me.Authorize(loginCredentials, False)
         End Sub
+        ''' <summary>Authorizes this provider with its configured account credentials.</summary>
+        ''' <param name="loginCredentials">The credentials for the selected provider.</param>
+        ''' <param name="ignoreSslErrors">Whether certificate validation is bypassed; False preserves normal certificate validation.</param>
         Public Overloads Sub Authorize(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean)
             Me.AuthorizeCore(loginCredentials, ignoreSslErrors)
         End Sub
@@ -192,6 +203,7 @@ Namespace Providers
             End If
         End Function
 
+        ''' <summary>Gets the authenticated Scopevisio account context.</summary>
         Public ReadOnly Property ApplicationContext As CompuMaster.Scopevisio.OpenApi.Model.AccountInfo
             Get
                 Dim session = TryCast(Me.IOClient, ScopevisioSessionIOClient)
@@ -200,10 +212,12 @@ Namespace Providers
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides Function CreateNewCredentialsInstance() As BaseDmsLoginCredentials
             Return New ScopevisioLoginCredentials
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub Authorize(dmsProfile As Data.IDmsLoginProfile)
             Dim Credentials As ScopevisioLoginCredentials = TryCast(dmsProfile, ScopevisioLoginCredentials)
             If Credentials Is Nothing Then

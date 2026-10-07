@@ -9,6 +9,7 @@ Imports CompuMaster.VisualBasicCompatibility
 Imports CompuMaster.VisualBasicCompatibility.Information
 Imports InfoBox
 
+''' <summary>Displays a remote DMS hierarchy and the configured file and folder actions.</summary>
 Public Class DmsBrowser
 
     Private Const DefaultDpi As Integer = 96
@@ -42,7 +43,7 @@ Public Class DmsBrowser
     ''' <summary>
     ''' A browser for DMS systems
     ''' </summary>
-    ''' <param name="dmsProfile"></param>
+    ''' <param name="dmsProfile">The login profile used to authorize the provider.</param>
     ''' <param name="formTitle">The form title</param>
     ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
     ''' <param name="initialRootFolder">The remote folder which shall be treated as root folder in browser dialog</param>
@@ -192,6 +193,7 @@ Public Class DmsBrowser
         End Get
     End Property
 
+    ''' <summary>Gets or sets the login profile used to create and authorize the browser provider.</summary>
     Public Property DmsProfile As CompuMaster.Dms.Data.IDmsLoginProfile
 
     ''' <summary>
@@ -211,6 +213,7 @@ Public Class DmsBrowser
 
     Private _DmsProviderOverride As CompuMaster.Dms.Providers.BaseDmsProvider
     Private DmsProviderInstance As BaseDmsProvider
+    ''' <summary>Gets the provider associated with this object.</summary>
     Public ReadOnly Property DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider
         Get
             If Me._DmsProviderOverride IsNot Nothing Then Return Me._DmsProviderOverride
@@ -228,8 +231,11 @@ Public Class DmsBrowser
         Me.AllowedActions = Me.AllowedActions
     End Function
 
+    ''' <summary>Specifies whether the browser returns selected resources or acts as a standalone browser.</summary>
     Public Enum DialogOperationModes As Byte
+        ''' <summary>Returns the selected resources when the browser is accepted.</summary>
         ReturnSelectedItems = 1
+        ''' <summary>Displays a browser without returning a selection.</summary>
         NoResults = 2
     End Enum
 
@@ -255,25 +261,36 @@ Public Class DmsBrowser
         End Set
     End Property
 
+    ''' <summary>Gets whether selected resources are returned to the caller.</summary>
     Public ReadOnly Property DialogOperationMode As DialogOperationModes
         Get
             Return Me.DialogOperationModeInternal
         End Get
     End Property
 
+        ''' <summary>Permits selection without enabling remote mutation actions.</summary>
     <Flags> Public Enum FileOrFolderActions As Integer
+        ''' <summary>Permits selection without enabling remote mutation actions.</summary>
         AllowSelectOnly = 0
+        ''' <summary>Allows switching between folder and file browsing.</summary>
         AllowSwitchBrowseMode = 1
+        ''' <summary>Allows creating remote folders where supported.</summary>
         AllowCreateFolders = 2
+        ''' <summary>Allows uploading files where supported.</summary>
         AllowUploadFiles = 4
+        ''' <summary>Allows downloading or opening files where supported.</summary>
         AllowDownloadFiles = 8
+        ''' <summary>Allows deleting remote files where supported.</summary>
         AllowDeleteFiles = 16
+        ''' <summary>Allows supported copy, rename and move operations.</summary>
         AllowCopyRenameMoveFiles = 32
+        ''' <summary>Allows supported sharing-management dialogs.</summary>
         AllowSharings = 64
         ''' <summary>Allows switching between DMS instances when a selection method and multiple instances are available.</summary>
         AllowSwitchDmsInstance = 128
     End Enum
     Private _AllowedActions As FileOrFolderActions
+    ''' <summary>Gets or sets the browser actions permitted by the caller; provider capabilities can further restrict them.</summary>
     Public Property AllowedActions As FileOrFolderActions
         Get
             Return _AllowedActions
@@ -319,11 +336,15 @@ Public Class DmsBrowser
         End Set
     End Property
 
+    ''' <summary>Specifies whether the browser selects files or folders.</summary>
     Public Enum BrowseModes As Byte
+        ''' <summary>Includes ordinary folders.</summary>
         Folders = 0
+        ''' <summary>Displays both folders and files.</summary>
         FoldersAndFiles = 1
     End Enum
     Private _BrowseMode As BrowseModes
+    ''' <summary>Gets or sets whether the browser displays/selects files or folders.</summary>
     Public Property BrowseMode As BrowseModes
         Get
             Return _BrowseMode
@@ -348,7 +369,9 @@ Public Class DmsBrowser
         End Set
     End Property
 
+    ''' <summary>Gets or sets the remote directory treated as the browser root.</summary>
     Public Property InitialFolder As String
+    ''' <summary>Gets or sets the initially selected remote directory.</summary>
     Public Property SelectedFolder As String
     Private RootNode As TreeNode
     Private _FileIcons As SystemIconsImageListWrapper = Nothing
@@ -376,6 +399,7 @@ Public Class DmsBrowser
         Me.TreeViewDmsFolders.ItemHeight = Math.Max(treeIconSize, Me.TreeViewDmsFolders.Font.Height + ScaleLogicalPixels(4, deviceDpi))
     End Sub
 
+    ''' <inheritdoc/>
     Protected Overrides Sub OnDpiChanged(e As DpiChangedEventArgs)
         MyBase.OnDpiChanged(e)
         ConfigureIconImageListsForDpi(e.DeviceDpiNew)
@@ -440,19 +464,16 @@ Public Class DmsBrowser
     ''' <summary>
     ''' When starting downloads, automatically open this local folder
     ''' </summary>
-    ''' <returns></returns>
     Public Property LocalDefaultFolderDownloads As String
 
     ''' <summary>
     ''' When starting uploads, automatically open this local folder
     ''' </summary>
-    ''' <returns></returns>
     Public Property LocalDefaultFolderUploads As String
 
     ''' <summary>
     ''' Files must be downloaded into a folder below of this folder (e.g. a customer base directory)
     ''' </summary>
-    ''' <returns></returns>
     Public Property LocalParentMustFolder As String
 
     Private Async Sub BrowseDmsFolders_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -2120,11 +2141,12 @@ Public Class DmsBrowser
         End If
     End Sub
 
+    ''' <inheritdoc/>
     ''' <summary>
     ''' Handle ESC key to cancel dialog
     ''' </summary>
-    ''' <param name="keyData"></param>
-    ''' <returns></returns>
+    ''' <param name="keyData">The pressed key and modifier flags.</param>
+    ''' <returns>True when the dialog handles the key; otherwise the inherited result.</returns>
     Protected Overrides Function ProcessDialogKey(keyData As Keys) As Boolean
         If Form.ModifierKeys = Keys.None AndAlso keyData = Keys.Escape Then
             Me.Close()
@@ -2203,6 +2225,7 @@ Public Class DmsBrowser
         Await provider.DownloadFileAsync(remoteFile, localFilePath)
     End Function
 
+    ''' <summary>Gets or sets the callback used to open a locally downloaded preview file.</summary>
     Public Property OpenDownloadedFileItem As OpenDownloadedFileAction = AddressOf _OpenDownloadedFile_Default
 
     Private Function _OpenDownloadedFile_Default(localTemporaryFile As CompuMaster.IO.TemporaryFile) As System.Diagnostics.Process

@@ -5,14 +5,17 @@ Imports CompuMaster.Dms.Data
 
 Namespace Providers
 
+    ''' <summary>Stores credentials for a Scopevisio customer and optional organization.</summary>
     Public Class ScopevisioLoginCredentials
         Inherits BaseDmsLoginCredentials
 
+        ''' <summary>Initializes the provider credential settings.</summary>
         Public Sub New()
             MyBase.New
             Me.DmsProvider = BaseDmsProvider.DmsProviders.Scopevisio
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Property BaseUrl As String
             Get
                 Return MyBase.BaseUrl
@@ -22,9 +25,12 @@ Namespace Providers
             End Set
         End Property
 
+        ''' <summary>Gets or sets the customer number required by the provider.</summary>
         Public Property ClientNumber As String
+        ''' <summary>Gets or sets the optional organization name used during initial authorization.</summary>
         Public Property OrganisationName As String
 
+        ''' <inheritdoc/>
         Public Overrides Sub Validate()
             MyBase.Validate()
             If Me.ClientNumber = Nothing Then Throw New MissingFieldException(ProviderStrings.GetText("DMSClientNumber"))

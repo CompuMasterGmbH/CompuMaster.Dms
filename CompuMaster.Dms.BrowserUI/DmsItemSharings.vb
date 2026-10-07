@@ -3,10 +3,12 @@ Imports CompuMaster.Dms.Data
 Imports System.Threading.Tasks
 Imports CompuMaster.Dms.Providers
 
+''' <summary>Displays and edits supported user, group and link shares for a DMS resource.</summary>
 Public Class DmsItemSharings
 
     Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
 
+    ''' <summary>Initializes the resource sharing dialog.</summary>
     Public Sub New()
         InitializeComponent()
         ApplyLocalizedText()
@@ -34,7 +36,9 @@ Public Class DmsItemSharings
         Me.LabelCurrentOwner.Text = UiStrings.GetText("CurrentOwner")
     End Sub
 
+    ''' <summary>Gets or sets the remote resource whose sharing settings are displayed.</summary>
     Public Property DmsItem As DmsResourceItem
+    ''' <summary>Gets or sets the provider associated with this object.</summary>
     Public Property DmsProvider As BaseDmsProvider
 
     Friend Event SharingsChanged As EventHandler
@@ -154,6 +158,7 @@ Public Class DmsItemSharings
         End If
     End Sub
 
+    ''' <summary>Gets the identifiers of groups shown as authorized for the resource.</summary>
     Public ReadOnly Property AuthorizedGroupIDs As List(Of String)
         Get
             Dim Result As New List(Of String)
@@ -166,6 +171,7 @@ Public Class DmsItemSharings
         End Get
     End Property
 
+    ''' <summary>Gets the identifiers of users shown as authorized for the resource.</summary>
     Public ReadOnly Property AuthorizedUserIDs As List(Of String)
         Get
             Dim Result As New List(Of String)
@@ -439,11 +445,12 @@ Public Class DmsItemSharings
         End If
     End Function
 
+    ''' <inheritdoc/>
     ''' <summary>
     ''' Handle ESC key to cancel dialog
     ''' </summary>
-    ''' <param name="keyData"></param>
-    ''' <returns></returns>
+    ''' <param name="keyData">The pressed key and modifier flags.</param>
+    ''' <returns>True when the dialog handles the key; otherwise the inherited result.</returns>
     Protected Overrides Function ProcessDialogKey(keyData As Keys) As Boolean
         If Form.ModifierKeys = Keys.None AndAlso keyData = Keys.Escape Then
             Me.Close()

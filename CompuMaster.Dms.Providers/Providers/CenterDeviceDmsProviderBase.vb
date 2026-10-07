@@ -22,34 +22,42 @@ Namespace Providers
     Partial Public MustInherit Class CenterDeviceDmsProviderBase
         Inherits Providers.BaseDmsProvider
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUrlCustomization As UrlCustomizationType
             Get
                 Return UrlCustomizationType.WebApiUrlNotCustomizable
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Protected Overrides Function CustomizedWebApiUrl(loginCredentials As BaseDmsLoginCredentials) As String
             Return Me.WebApiDefaultUrl
         End Function
 
         'Protected Property ApiToken As TokenResponse
         'Protected Property CenterDeviceClient As CenterDevice.Rest.Clients.CenterDeviceClient
+        ''' <summary>Gets or sets the authorized SDK I/O client used by derived provider implementations.</summary>
         Protected Friend Property IOClient As CenterDevice.IO.IOClientBase
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property BrowseInRootFolderName() As String = "/"
 
+        ''' <inheritdoc/>
         Public Overrides Function FindCollectionById(id As String) As DmsResourceItem
             Return Me.CreateDmsResourceItem(New CenterDevice.IO.DirectoryInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Collection.GetCollection(Me.IOClient.CurrentAuthenticationContextUserID, id)))
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function FindFolderById(id As String) As DmsResourceItem
             Return Me.CreateDmsResourceItem(New CenterDevice.IO.DirectoryInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Folder.GetFolder(Me.IOClient.CurrentAuthenticationContextUserID, id, Nothing)))
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function FindFileById(id As String) As DmsResourceItem
             Return Me.CreateDmsResourceItem(New CenterDevice.IO.FileInfo(Me.IOClient, Nothing, Me.IOClient.ApiClient.Document.GetDocumentMetadata(Me.IOClient.CurrentAuthenticationContextUserID, id)))
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function ListRemoteItem(remotePath As String) As DmsResourceItem
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remotePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
@@ -81,6 +89,7 @@ Namespace Providers
             End If
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub ResetCachesForRemoteItems(remoteFolderPath As String, searchType As SearchItemType)
             Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
             Select Case searchType
@@ -99,7 +108,7 @@ Namespace Providers
         ''' <summary>
         ''' Reset cache of parent directory of remoteItem
         ''' </summary>
-        ''' <param name="remoteItem"></param>
+        ''' <param name="remoteItem">The selected remote resource snapshot.</param>
         Protected Sub ResetParentDirectoryCache(remoteItem As DmsResourceItem)
             Dim IsFileItem As Boolean
             Select Case remoteItem.ItemType
@@ -124,6 +133,7 @@ Namespace Providers
             End If
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
             Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
             Dim Result As New List(Of DmsResourceItem)
@@ -184,6 +194,7 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function ListAllFolderNames(remoteFolderPath As String) As List(Of String)
             Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
             Dim Result As New List(Of String)
@@ -194,6 +205,7 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function ListAllFileNames(remoteFolderPath As String) As List(Of String)
             Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
             Dim Result As New List(Of String)
@@ -204,6 +216,7 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, localFilePath As String)
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
@@ -224,6 +237,7 @@ Namespace Providers
             ParentRemoteDir.ResetFilesCache()
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
@@ -244,6 +258,7 @@ Namespace Providers
             ParentRemoteDir.ResetFilesCache()
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
@@ -272,17 +287,20 @@ Namespace Providers
             If remoteFile.LastModificationOnLocalTime.HasValue AndAlso remoteFile.LastModificationOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, remoteFile.LastModificationOnLocalTime.Value)
         End Sub
 
+        ''' <summary>Specifies whether a missing resource returns no result or raises an exception.</summary>
         Protected Enum RessourceNotFoundHandling As Byte
+            ''' <summary>Returns Nothing if the requested resource or its parent directory is missing.</summary>
             ReturnWithNullIfItemOrParentDirectoryIsNotFound = 0
+            ''' <summary>Raises a resource-not-found exception if the resource or its parent directory is missing.</summary>
             ThrowNotFoundExceptionIfItemOrParentDirectoryIsNotFound = 1
         End Enum
 
         ''' <summary>
         ''' Get directory item
         ''' </summary>
-        ''' <param name="remoteDirectoryPath"></param>
-        ''' <param name="handlingIfNotFound"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteDirectoryPath">The remote directory path.</param>
+        ''' <param name="handlingIfNotFound">Whether a missing item returns Nothing or raises a not-found exception.</param>
+        ''' <returns>The SDK directory, or Nothing when the selected missing-resource policy permits it.</returns>
         Protected Function GetDirectoryItem(remoteDirectoryPath As String, handlingIfNotFound As RessourceNotFoundHandling) As CenterDevice.IO.DirectoryInfo
             Dim FoundDirItem As CenterDevice.IO.DirectoryInfo
             Try
@@ -303,9 +321,9 @@ Namespace Providers
         ''' <summary>
         ''' Get a file item
         ''' </summary>
-        ''' <param name="remoteFilePath"></param>
-        ''' <param name="handlingIfNotFound"></param>
-        ''' <returns></returns>
+        ''' <param name="remoteFilePath">The remote file path.</param>
+        ''' <param name="handlingIfNotFound">Whether a missing item returns Nothing or raises a not-found exception.</param>
+        ''' <returns>The SDK file, or Nothing when the selected missing-resource policy permits it.</returns>
         Protected Function GetFileItem(remoteFilePath As String, handlingIfNotFound As RessourceNotFoundHandling) As CenterDevice.IO.FileInfo
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo = GetDirectoryItem(ParentRemoteDirName, handlingIfNotFound)
@@ -316,10 +334,10 @@ Namespace Providers
         ''' <summary>
         ''' Get a file item
         ''' </summary>
-        ''' <param name="parentRemoteDir"></param>
-        ''' <param name="remoteFileName"></param>
-        ''' <param name="handlingIfNotFound"></param>
-        ''' <returns></returns>
+        ''' <param name="parentRemoteDir">The resolved provider directory containing the requested file.</param>
+        ''' <param name="remoteFileName">The remote file name within its parent directory.</param>
+        ''' <param name="handlingIfNotFound">Whether a missing item returns Nothing or raises a not-found exception.</param>
+        ''' <returns>The SDK file, or Nothing when the selected missing-resource policy permits it.</returns>
         Protected Function GetFileItem(parentRemoteDir As CenterDevice.IO.DirectoryInfo, remoteFileName As String, handlingIfNotFound As RessourceNotFoundHandling) As CenterDevice.IO.FileInfo
             Dim FoundFileItem As CenterDevice.IO.FileInfo
             Try
@@ -691,6 +709,7 @@ Namespace Providers
             Return first.CollectionID = second.CollectionID
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub CopyFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim Source As DmsResourceItem = Me.RequireLegacySourceItem(remoteSourcePath, DmsResourceItem.ItemTypes.File)
             Me.CopyItem(Source, remoteDestinationPath, allowOverwrite)
@@ -701,6 +720,7 @@ Namespace Providers
             Return Me.RunSynchronousFallbackAsync(Sub() Me.CopyFileItem(remoteSourcePath, remoteDestinationPath, allowOverwrite), Me.CurrentAsyncCancellationToken)
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub CopyDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim Source As DmsResourceItem = Me.RequireLegacySourceItem(remoteSourcePath, DmsResourceItem.ItemTypes.Folder)
             Me.CopyItem(Source, remoteDestinationPath, False)
@@ -711,11 +731,13 @@ Namespace Providers
             Return Me.RunSynchronousFallbackAsync(Sub() Me.CopyDirectoryItem(remoteSourcePath, remoteDestinationPath), Me.CurrentAsyncCancellationToken)
         End Function
 
+        ''' <inheritdoc/>
         Protected Overrides Sub MoveFileItem(remoteSourcePath As String, remoteDestinationPath As String, allowOverwrite As Boolean?)
             Dim Source As DmsResourceItem = Me.RequireLegacySourceItem(remoteSourcePath, DmsResourceItem.ItemTypes.File)
             Me.MoveItem(Source, remoteDestinationPath, allowOverwrite)
         End Sub
 
+        ''' <inheritdoc/>
         Protected Overrides Sub MoveDirectoryItem(remoteSourcePath As String, remoteDestinationPath As String)
             Dim Source As DmsResourceItem = Me.ListRemoteItem(remoteSourcePath)
             If Source Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(remoteSourcePath)
@@ -746,6 +768,7 @@ Namespace Providers
             End If
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteRemoteItem(remoteFilePath As String)
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
@@ -782,6 +805,7 @@ Namespace Providers
             End If
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteRemoteItem(remoteItem As DmsResourceItem)
             Select Case remoteItem.ItemType
                 Case DmsResourceItem.ItemTypes.Root
@@ -806,6 +830,7 @@ Namespace Providers
             Me.ResetParentDirectoryCache(remoteItem)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateFolder(remoteFilePath As String)
             Dim ioExceptionMessage As String = "CreateFolder failed: " & remoteFilePath
             Try
@@ -832,6 +857,7 @@ Namespace Providers
             End Try
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateDirectory(remoteDirectoryName As String)
             Dim ioExceptionMessage As String = "CreateDirectory failed: " & remoteDirectoryName
             Try
@@ -858,6 +884,7 @@ Namespace Providers
             End Try
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
             Dim ioExceptionMessage As String = "CreateCollection failed: " & remoteCollectionName
             Try
@@ -890,18 +917,21 @@ Namespace Providers
             End Try
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property DirectorySeparator As Char
             Get
                 Return "/"c
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsCollections As Boolean
             Get
                 Return True
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsSharingSetup As Boolean
             Get
                 Return True
@@ -1169,6 +1199,10 @@ Namespace Providers
             End If
         End Function
 
+        ''' <summary>Loads the details of an existing download link into the supplied snapshot.</summary>
+        ''' <param name="provider">The provider that owns the resource or identity.</param>
+        ''' <param name="linkId">The existing download-link identifier.</param>
+        ''' <param name="dmsLink">The link snapshot to populate.</param>
         Public Shared Sub DelegatedFillLinkDetails(provider As Object, linkId As String, dmsLink As DmsLink)
             Dim LinkData As CenterDevice.Rest.Clients.Link.Link = CType(provider, CenterDeviceDmsProviderBase).IOClient.GetLink(linkId)
             dmsLink.WebUrl = LinkData.Web
@@ -1183,6 +1217,10 @@ Namespace Providers
             dmsLink.ViewsCount = LinkData.Views
         End Sub
 
+        ''' <summary>Loads the details of an existing upload link into the supplied snapshot.</summary>
+        ''' <param name="provider">The provider that owns the resource or identity.</param>
+        ''' <param name="uploadLinkId">The existing upload-link identifier.</param>
+        ''' <param name="dmsLink">The link snapshot to populate.</param>
         Public Shared Sub DelegatedFillUploadLinkDetails(provider As Object, uploadLinkId As String, dmsLink As DmsLink)
             Dim UploadLink As CenterDevice.Rest.Clients.Link.UploadLink = CType(provider, CenterDeviceDmsProviderBase).IOClient.GetUploadLink(uploadLinkId)
             dmsLink.AllowDelete = False
@@ -1204,6 +1242,10 @@ Namespace Providers
             dmsLink.Name = UploadLink.Name
         End Sub
 
+        ''' <summary>Resolves a group name through the supplied CenterDevice-based provider.</summary>
+        ''' <param name="provider">The provider that owns the resource or identity.</param>
+        ''' <param name="groupId">The provider-owned group identifier.</param>
+        ''' <returns>The group display name returned by the provider.</returns>
         Public Shared Function DelegatedGetGroupName(provider As BaseDmsProvider, groupId As String) As String
             Dim centerDeviceProvider As CenterDeviceDmsProviderBase = CType(provider, CenterDeviceDmsProviderBase)
             Return centerDeviceProvider.NormalizeGroupDisplayName(groupId, centerDeviceProvider.IOClient.GroupName(groupId))
@@ -1242,6 +1284,10 @@ Namespace Providers
             Return DelegatedGetDisplayName(provider, userId)
         End Function
 
+        ''' <summary>Resolves the legacy user-email display value through the supplied provider.</summary>
+        ''' <param name="provider">The provider that owns the resource or identity.</param>
+        ''' <param name="userId">The provider-owned user identifier.</param>
+        ''' <returns>The provider-supplied user email address, when available.</returns>
         Public Shared Function DelegatedGetUserEMailAddress(provider As BaseDmsProvider, userId As String) As String
             Return CType(provider, CenterDeviceDmsProviderBase).IOClient.UserEMailAddress(userId)
         End Function
@@ -1372,12 +1418,14 @@ Namespace Providers
             Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(dmsResource)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
             Dim ListOfAddedUsers As List(Of String) = Nothing
             Dim ListOfAddedGroups As New List(Of String)(New String() {shareInfo.Group.ID})
             Me.CreateSharing(dmsResource, shareInfo, ListOfAddedGroups, ListOfAddedUsers)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser)
             Dim ListOfAddedUsers As New List(Of String)(New String() {shareInfo.User.ID})
             Dim ListOfAddedGroups As List(Of String) = Nothing
@@ -1433,14 +1481,17 @@ Namespace Providers
             End Try
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForGroup)
             Throw New NotSupportedException(ProviderStrings.GetText("UpdatingOfSharePropertiesNotSupported"))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForUser)
             Throw New NotSupportedException(ProviderStrings.GetText("UpdatingOfSharePropertiesNotSupported"))
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteLink(shareInfo As DmsLink)
             If shareInfo.AllowEdit Then Throw New NotSupportedException(ProviderStrings.GetText("AllowEditNotSupportedByProvider"))
             If shareInfo.AllowDelete Then Throw New NotSupportedException(ProviderStrings.GetText("AllowDeleteNotSupportedByProvider"))
@@ -1491,18 +1542,21 @@ Namespace Providers
             End If
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForGroup)
             Dim ListOfDeletedUsers As List(Of String) = Nothing
             Dim ListOfDeletedGroups As New List(Of String)(New String() {shareInfo.Group.ID})
             Me.DeleteSharing(shareInfo, ListOfDeletedGroups, ListOfDeletedUsers)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForUser)
             Dim ListOfDeletedUsers As New List(Of String)(New String() {shareInfo.User.ID})
             Dim ListOfDeletedGroups As List(Of String) = Nothing
             Me.DeleteSharing(shareInfo, ListOfDeletedGroups, ListOfDeletedUsers)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Function GetAllGroups() As List(Of DmsGroup)
             Dim GroupList As GroupList = Me.IOClient.ApiClient.Groups.GetAllGroups(Me.IOClient.CurrentAuthenticationContextUserID, CenterDevice.Model.Groups.GroupsFilter.AllVisibleGroupsForCurrentUser)
             Dim Result As New List(Of DmsGroup)
@@ -1515,6 +1569,7 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function GetAllUsers() As List(Of DmsUser)
             Dim UserList As UserList(Of BaseUserData) = Me.IOClient.ApiClient.Users.GetAllUsers(Me.IOClient.CurrentAuthenticationContextUserID, New String() {
             CenterDevice.Rest.Clients.User.UserStatus.ACTIVE
@@ -1530,30 +1585,35 @@ Namespace Providers
             Return Result
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property CurrentContextUserID As String
             Get
                 Return Me.IOClient.CurrentContextUserId
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsSubFolderConfiguration As Boolean
             Get
                 Return True
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsRuntimeAccessToRemoteServer As RuntimeAccessTypes
             Get
                 Return RuntimeAccessTypes.ConfigurationAndRuntimeAccess
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
             Get
                 Return False
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property SupportsNonUniqueRemoteItems As Boolean
             Get
                 Return True

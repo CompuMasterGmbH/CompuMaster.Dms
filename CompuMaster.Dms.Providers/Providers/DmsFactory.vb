@@ -7,8 +7,12 @@ Imports System.Threading.Tasks
 
 Namespace Providers
 
+    ''' <summary>Creates built-in DMS providers and optionally authorizes them.</summary>
     Public Module DmsFactory
 
+        ''' <summary>Creates a built-in provider and authorizes it with the supplied login profile.</summary>
+        ''' <param name="profile">The login profile used to select and authorize the provider.</param>
+        ''' <returns>The authorized provider; authorization failures propagate to the caller.</returns>
         Public Function CreateAuthorizedDmsProviderInstance(profile As IDmsLoginProfile) As BaseDmsProvider
             Dim Result As BaseDmsProvider
             Result = CreateDmsProviderInstance(profile.ProviderID)
@@ -27,6 +31,9 @@ Namespace Providers
             Return result
         End Function
 
+        ''' <summary>Creates an uninitialized built-in DMS provider.</summary>
+        ''' <param name="provider">The provider that owns the resource or identity.</param>
+        ''' <returns>The provider selected by the specified identifier.</returns>
         Public Function CreateDmsProviderInstance(provider As BaseDmsProvider.DmsProviders) As BaseDmsProvider
             Select Case provider
                 Case Providers.BaseDmsProvider.DmsProviders.None

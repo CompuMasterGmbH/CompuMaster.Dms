@@ -18,40 +18,50 @@ Namespace Providers
     Public Class CenterDeviceDmsProvider
         Inherits CenterDeviceDmsProviderBase
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property DmsProviderID As DmsProviders
             Get
                 Return DmsProviders.CenterDevice
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property Name As String
             Get
                 Return "CenterDevice"
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiDefaultUrl As String
             Get
                 Return "https://auth.centerdevice.de/authorize"
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUrlCustomization As UrlCustomizationType
             Get
                 Return UrlCustomizationType.WebApiUrlNotCustomizable
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Public Overrides ReadOnly Property WebApiUserCustomerReferenceRequirement As UserCustomerReferenceType
             Get
                 Return UserCustomerReferenceType.CustomerReferenceRequired
             End Get
         End Property
 
+        ''' <inheritdoc/>
         Protected Overrides Function CustomizedWebApiUrl(loginCredentials As BaseDmsLoginCredentials) As String
             Return Me.WebApiDefaultUrl
         End Function
 
+        ''' <summary>Authorizes this provider with its configured account credentials.</summary>
+        ''' <param name="loginCredentials">The credentials for the selected provider.</param>
+        ''' <param name="ignoreSslErrors">Whether certificate validation is bypassed; False preserves normal certificate validation.</param>
+        ''' <remarks>Direct CenterDevice initial authorization is not implemented. This legacy entry point must not be treated as a working browser-consent flow.</remarks>
         Public Overloads Sub Authorize(loginCredentials As CenterDeviceLoginCredentials, ignoreSslErrors As Boolean)
             'Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
             'Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration()
@@ -68,10 +78,12 @@ Namespace Providers
             Me.IOClient = New CenterDevice.IO.CenterDeviceIOClient(CenterDeviceRestClient, loginCredentials.Username)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Function CreateNewCredentialsInstance() As BaseDmsLoginCredentials
             Return New CenterDeviceLoginCredentials()
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub Authorize(dmsProfile As IDmsLoginProfile)
             Dim Credentials As CenterDeviceLoginCredentials = CType(Me.CreateNewCredentialsInstance(), CenterDeviceLoginCredentials)
             Credentials.Username = dmsProfile.UserName
