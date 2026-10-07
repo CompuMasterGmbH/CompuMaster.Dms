@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ACycleWasFoundInTheCenterDeviceFolder" xml:space="preserve"><value>在 CenterDevice 資料夾層次結構中的資料夾 ID {0} 處發現了一個循環。</value></data>
+  <data name="ADMSInstanceDisplayNameIsRequired" xml:space="preserve"><value>需要 DMS 實例顯示名稱。</value></data>
+  <data name="ADMSInstanceIDIsRequired" xml:space="preserve"><value>需要 DMS 實例 ID。</value></data>
+  <data name="ADirectoryCanTBeCopiedOrMoved" xml:space="preserve"><value>目錄不能被複製或移動到其自身。</value></data>
+  <data name="ADirectoryMergeCannotConsumeTheSameFolder" xml:space="preserve"><value>目錄合併不能兩次使用相同的資料夾標識。</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto" xml:space="preserve"><value>無法將資料夾複製或移動到自己的層次結構中，包括建立目標父資料夾時。</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto2" xml:space="preserve"><value>無法將資料夾複製或移動到其自身中，包括通過其他路徑。</value></data>
+  <data name="AGroupIDIsRequired" xml:space="preserve"><value>需要群組 ID</value></data>
+  <data name="APositiveNumericOCSShareIDIsRequired" xml:space="preserve"><value>需要正數位 OCS 共享 ID</value></data>
+  <data name="AResourceSnapshotCannotBeNull" xml:space="preserve"><value>資源快照不能為空。</value></data>
+  <data name="ASelectedFolderIdentifierIsRequired" xml:space="preserve"><value>需要選定的資料夾標識符。</value></data>
+  <data name="AUserIDIsRequired" xml:space="preserve"><value>需要使用者 ID</value></data>
+  <data name="ActionFailedForDirectory" xml:space="preserve"><value>對目錄「{1}」的操作 {0} 失敗</value></data>
+  <data name="ActionFailedForFile" xml:space="preserve"><value>文件「{1}」的操作 {0} 失敗</value></data>
+  <data name="ActionFailedForSourceDirectoryAndDestination" xml:space="preserve"><value>對於來源目錄“{1}”和目標“{2}”，操作 {0} 失敗</value></data>
+  <data name="ActionFailedForSourceFileAndDestination" xml:space="preserve"><value>對來源檔案「{1}」和目標「{2}」的操作 {0} 失敗</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>所有使用者</value></data>
+  <data name="AllowDeleteNotSupportedByProvider" xml:space="preserve"><value>提供者不支援AllowDelete</value></data>
+  <data name="AllowEditNotSupportedByProvider" xml:space="preserve"><value>提供者不支援允許編輯</value></data>
+  <data name="AllowShareNotSupportedByProvider" xml:space="preserve"><value>提供者不支援AllowShare</value></data>
+  <data name="AtLeastOneSharingPermissionIsRequired" xml:space="preserve"><value>至少需要一項共享權限</value></data>
+  <data name="AuthentificationForUserFailed" xml:space="preserve"><value>使用者「{0}」身份驗證失敗：{1}</value></data>
+  <data name="AuthentificationForUserFailed2" xml:space="preserve"><value>使用者「{0}」身份驗證失敗：{1} {2}</value></data>
+  <data name="ButRemoteItemExists" xml:space="preserve"><value>{0}，但遠端項目存在：{1}</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedInThe" xml:space="preserve"><value>CenterDevice 集合只能在根目錄中重新命名。</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining" xml:space="preserve"><value>CenterDevice 集合只能在保留在根目錄中的情況下重新命名。</value></data>
+  <data name="CenterDeviceCollectionsCanTBeCopiedBecauseThey" xml:space="preserve"><value>CenterDevice 集合無法複製，因為它們是頂級共用容器而不是常規資料夾。</value></data>
+  <data name="CenterDeviceCollectionsCannotBeCopied" xml:space="preserve"><value>CenterDevice 集合無法複製。</value></data>
+  <data name="CenterDeviceFilesAndFoldersMustRemainInsideA" xml:space="preserve"><value>CenterDevice 檔案和資料夾必須保留在集合或資料夾內。</value></data>
+  <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>CenterDevice 資料夾必須保留在集合或其他資料夾內。</value></data>
+  <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>集合元資料與請求的識別碼不符。</value></data>
+  <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>WebDAV 不支援集合</value></data>
+  <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>集合「{0}」必須僅位於根資料夾中，但位於「{1}」中</value></data>
+  <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>集合必須位於根資料夾：{0}</value></data>
+  <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>此 DMS 提供者不支援自訂 Web 服務 URL</value></data>
+  <data name="DMSClientNumber" xml:space="preserve"><value>DMS 客戶編號</value></data>
+  <data name="CustomerDmsInstanceDeleted" xml:space="preserve"><value>客戶的DMS實例已被刪除。</value></data>
+  <data name="DMSPassword" xml:space="preserve"><value>資料管理系統密碼</value></data>
+  <data name="DMSUsername" xml:space="preserve"><value>資料管理系統使用者名稱</value></data>
+  <data name="DirectoryAlreadyExists" xml:space="preserve"><value>目錄已存在：{0}</value></data>
+  <data name="DirectoryNotFound" xml:space="preserve"><value>找不到目錄：{0}</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>下載失敗</value></data>
+  <data name="DownloadFailedNotCompletedSuccessfull" xml:space="preserve"><value>下載失敗：未完成/成功</value></data>
+  <data name="DownloadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>下載連結建立未返回標識符。</value></data>
+  <data name="EitherAllowViewOrAllowUploadMustBeSet" xml:space="preserve"><value>必須設定AllowView 或AllowUpload</value></data>
+  <data name="Failed" xml:space="preserve"><value>{0} 失敗：{1}</value></data>
+  <data name="FileAlreadyExists" xml:space="preserve"><value>文件已存在：{0}</value></data>
+  <data name="FileMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>文件元資料與請求的識別碼不符。</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>未找到文件：{0}</value></data>
+  <data name="FilesDonTContainDirectoryCaches" xml:space="preserve"><value>檔案不包含目錄快取</value></data>
+  <data name="FilesInRootFolderNotSupportedByDMS" xml:space="preserve"><value>DMS 提供者不支援根資料夾中的文件</value></data>
+  <data name="FolderIDNoLongerBelongsToItsExpected" xml:space="preserve"><value>資料夾 ID {0} 不再屬於其預期的 CenterDevice 集合。</value></data>
+  <data name="FolderMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>資料夾元資料與請求的識別碼不符。</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>禁止：{0}</value></data>
+  <data name="GroupSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>此 OCS 伺服器不支援群組共享</value></data>
+  <data name="InvalidItemType" xml:space="preserve"><value>無效的項目類型：{0}</value></data>
+  <data name="InvalidItemTypeStatus" xml:space="preserve"><value>無效的項目類型狀態</value></data>
+  <data name="InvalidItemTypeStatusForIsRoot" xml:space="preserve"><value>IsRoot 的項目類型狀態無效</value></data>
+  <data name="ItemTypeExpectedButWas" xml:space="preserve"><value>ItemType 預期為 {0}，但實際為 {1}</value></data>
+  <data name="ItemTypeExpectedButWas2" xml:space="preserve"><value>ItemType 預期為 {0}{1}，但實際為 {2}</value></data>
+  <data name="ItemTypeOrExpectedButWas" xml:space="preserve"><value>ItemType 預期為 {0} 或 {1}，但實際為 {2}</value></data>
+  <data name="LinkCreationRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>連結建立需要選定的資源標識符。</value></data>
+  <data name="LinkSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>此 OCS 伺服器不支援連結共享</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed" xml:space="preserve"><value>列出 {0} 處的 WebDAV 資源失敗：{1}</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed2" xml:space="preserve"><value>列出 {0} 處的 WebDAV 資源失敗：{1} {2}</value></data>
+  <data name="LoginCredentialsCanTExistForDMSProvider" xml:space="preserve"><value>DMS 提供者「無」的登入憑證不能存在</value></data>
+  <data name="LoginCredentialsProviderWebDAVExpectedButWas" xml:space="preserve"><value>登入憑證提供者 WebDAV 符合預期，但結果是 {0}</value></data>
+  <data name="MoreThanOneMatchingOCSShareWasFound" xml:space="preserve"><value>找到多個匹配的 OCS 共享</value></data>
+  <data name="MoveFailedForFileIDRollbackWasAttempted" xml:space="preserve"><value>檔案 ID {0} 移動失敗；已嘗試回溯。</value></data>
+  <data name="MoveFailedForFolderIDRollbackWasAttempted" xml:space="preserve"><value>資料夾 ID {0} 移動失敗；已嘗試回滾。</value></data>
+  <data name="MovingADocumentWithMultipleOrUnknownDirectory" xml:space="preserve"><value>移動具有多個或未知目錄引用的文件需要選定的來源父級。</value></data>
+  <data name="MustBe" xml:space="preserve"><value>必須 &gt;= 0</value></data>
+  <data name="MustBeAPathWithoutTrailingDirectorySeparator" xml:space="preserve"><value>必須是不帶尾隨目錄分隔符號的路徑：{0}</value></data>
+  <data name="NegativeSizeValuesAreNotAllowed" xml:space="preserve"><value>不允許使用負大小值</value></data>
+  <data name="NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre" xml:space="preserve"><value>找不到組織，通常需要 Scopevisio 使用者授權：Rechteprofil Kontakte – alle Rechte 或 CRM – alle Rechte</value></data>
+  <data name="NotYetImplementedDMSProvider" xml:space="preserve"><value>尚未實施的 DMS 提供者：{0}</value></data>
+  <data name="OCSCapabilityDiscoveryFailed" xml:space="preserve"><value>OCS 能力發現失敗。</value></data>
+  <data name="OCSLinkShareWasNotFound" xml:space="preserve"><value>未找到 OCS 連結共享 {0}</value></data>
+  <data name="OCSShareListingDidNotReturnAnArray" xml:space="preserve"><value>OCS股票上市沒有回傳數組。</value></data>
+  <data name="OCSShareListingFailed" xml:space="preserve"><value>OCS股票上市失敗。</value></data>
+  <data name="PublicUploadsAreNotSupportedByThisOCS" xml:space="preserve"><value>此 OCS 伺服器不支援公開上傳</value></data>
+  <data name="PublicUploadsCanOnlyBeEnabledForFolders" xml:space="preserve"><value>只能對資料夾啟用公共上傳</value></data>
+  <data name="RemoteItemExistsMultipleTimes" xml:space="preserve"><value>遠端項目存在多次：{0}</value></data>
+  <data name="RemoteRessourceWithUnsupportedType" xml:space="preserve"><value>類型不受支援的遠端資源：{0}</value></data>
+  <data name="RessourceNotFound" xml:space="preserve"><value>未找到資源：{0}</value></data>
+  <data name="RootDirectoryCanTBeTheSourceOf" xml:space="preserve"><value>根目錄不能是複製或移動操作的來源</value></data>
+  <data name="RootDirectoryCanTBeTheTargetOf" xml:space="preserve"><value>根目錄不能作為複製或移動操作的目標</value></data>
+  <data name="RootFolderCanTBeDeleted" xml:space="preserve"><value>根資料夾無法刪除</value></data>
+  <data name="ScopevisioUserAuthenticationFailed" xml:space="preserve"><value>Scopevisio 用戶身份驗證失敗。</value></data>
+  <data name="SharingForFilesNotSupported" xml:space="preserve"><value>不支援共享文件</value></data>
+  <data name="SharingForRootDirectoryNotSupported" xml:space="preserve"><value>不支援根目錄共享</value></data>
+  <data name="SharingIsNotSupportedByThisWebDAVServer" xml:space="preserve"><value>此 WebDAV 伺服器不支援共享</value></data>
+  <data name="SharingRequiresANonemptyUserOrGroupIdentifier" xml:space="preserve"><value>共用需要非空用戶或群組標識符。</value></data>
+  <data name="SharingRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>共享需要選定的資源標識符。</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameDocumentReplacement" xml:space="preserve"><value>來源和目的地標識同一文件；替換將刪除來源文件及其其他引用。</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameFolder" xml:space="preserve"><value>來源和目標標識同一資料夾。</value></data>
+  <data name="SourceAndDestinationPathsMustDiffer" xml:space="preserve"><value>來源路徑和目標路徑必須不同。</value></data>
+  <data name="SubItemsOfFoundOutsideOfThisPath" xml:space="preserve"><value>在此路徑之外找到 {0} 的子項：{1}</value></data>
+  <data name="TaskNotFinished" xml:space="preserve"><value>任務未完成</value></data>
+  <data name="TaskNotStarted" xml:space="preserve"><value>任務未開始</value></data>
+  <data name="TaskStatusInvalid" xml:space="preserve"><value>任務狀態無效</value></data>
+  <data name="TheCollectionOfCenterDeviceFolderIDIsUnknown" xml:space="preserve"><value>CenterDevice 資料夾 ID {0} 的集合未知。</value></data>
+  <data name="TheCollectionSUploadLinkHasNoIdentifier" xml:space="preserve"><value>該集合的上傳連結沒有標識符。</value></data>
+  <data name="TheCopiedFileCouldnTBePromotedTo" xml:space="preserve"><value>複製的檔案無法升級為其最終名稱；已嘗試回溯。</value></data>
+  <data name="TheCopySucceededButTheReplacedFileWith" xml:space="preserve"><value>複製成功，但 ID 為 {0} 的替換檔案仍保留在臨時名稱 {1} 下。</value></data>
+  <data name="TheDMSInstanceIsNotAvailableToThe" xml:space="preserve"><value>授權使用者無法使用 DMS 實例。</value></data>
+  <data name="TheDMSProviderMustBeAuthorizedBeforeAccessing" xml:space="preserve"><value>DMS 提供者在存取 DMS 實例之前必須獲得授權。</value></data>
+  <data name="TheDownloadLinkResponseContainsNoAccessControl" xml:space="preserve"><value>下載連結回應不包含存取控制元資料。</value></data>
+  <data name="TheFolderListingFailedWithHTTP" xml:space="preserve"><value>資料夾清單因 HTTP {0} 失敗。</value></data>
+  <data name="TheFolderListingResponseHasNoFoldersArray" xml:space="preserve"><value>列出响应的文件夹没有文件夹数组。</value></data>
+  <data name="TheLinkOperationRequiresAnIdentifier" xml:space="preserve"><value>链接操作需要标识符。</value></data>
+  <data name="TheMatchingOCSShareWasNotFound" xml:space="preserve"><value>未找到匹配的 OCS 共享</value></data>
+  <data name="TheMoveSucceededButTheReplacedFileWith" xml:space="preserve"><value>移动成功，但 ID 为 {0} 的替换文件仍保留在临时名称 {1} 下。</value></data>
+  <data name="TheNativeGroupResponseContainsNoGroupList" xml:space="preserve"><value>本机组响应不包含组列表。</value></data>
+  <data name="TheNativeGroupSnapshotDoesNotMatchThe" xml:space="preserve"><value>本機組快照與請求的標識符不符。</value></data>
+  <data name="TheNativeUserResponseContainsANullUser" xml:space="preserve"><value>本机用户响应包含空用户。</value></data>
+  <data name="TheNativeUserResponseContainsNoUserList" xml:space="preserve"><value>本機用戶回應不包含用戶清單。</value></data>
+  <data name="TheNativeUserSnapshotDoesNotMatchThe" xml:space="preserve"><value>本机用户快照与请求的标识符不匹配。</value></data>
+  <data name="TheOCSServerReturnedAnUnexpectedShareType" xml:space="preserve"><value>OCS 服务器返回了意外的链接共享共享类型</value></data>
+  <data name="TheOperationFailedCompensationOfConfirmedChangesWas" xml:space="preserve"><value>操作失败；已尝试对已确认的更改进行补偿。中断的请求可能需要服务器状态协调。</value></data>
+  <data name="TheOperationSucceededButReplacedDocumentIDRemains" xml:space="preserve"><value>操作成功，但替换的文档 ID {0} 仍保留在临时名称 {1} 下。</value></data>
+  <data name="TheParentDMSResourceItemIsRequired" xml:space="preserve"><value>父 DMS 資源項目是必要的</value></data>
+  <data name="TheRemoteResourceMustBeAFile" xml:space="preserve"><value>遠端資源必須是文件。</value></data>
+  <data name="TheResolvedFileHasNoIdentifier" xml:space="preserve"><value>解析后的文件没有标识符。</value></data>
+  <data name="TheResolvedResourceHasNoIdentifier" xml:space="preserve"><value>解析的资源没有标识符：{0}</value></data>
+  <data name="TheRetryLoopEndedUnexpectedly" xml:space="preserve"><value>重試循環意外結束。</value></data>
+  <data name="TheSelectedDirectoryPathNoLongerHasThe" xml:space="preserve"><value>所選目錄路徑不再具有預期類型。</value></data>
+  <data name="TheSelectedFilePathNoLongerIdentifiesA" xml:space="preserve"><value>所選檔案路徑不再標識檔案。</value></data>
+  <data name="TheSelectedResourceIsNotACollectionOr" xml:space="preserve"><value>所选资源不是集合或文件夹。</value></data>
+  <data name="TheSelectedResourceIsNotAFile" xml:space="preserve"><value>所选资源不是文件。</value></data>
+  <data name="TheSharingOperationFailedForOneOrMore" xml:space="preserve"><value>一個或多個使用者或群組的共用操作失敗。</value></data>
+  <data name="TheSourceItemHasAnUnexpectedResourceType" xml:space="preserve"><value>源项目具有意外的资源类型。</value></data>
+  <data name="TheSourceItemIsnTADirectory" xml:space="preserve"><value>來源項目不是目錄。</value></data>
+  <data name="TheSourceItemMustProvideItsFullRemote" xml:space="preserve"><value>源项目必须提供其完整的远程路径。</value></data>
+  <data name="TheUploadLinkResponseContainsNoMetadata" xml:space="preserve"><value>上傳連結回應不包含元資料。</value></data>
+  <data name="ThisOCSAPICannotRepresentViewAndDownload" xml:space="preserve"><value>此 OCS API 無法單獨代表檢視和下載權限</value></data>
+  <data name="ThisProviderDoesNotSupportAsynchronousMoveOperations" xml:space="preserve"><value>此提供者不支援非同步移動操作。</value></data>
+  <data name="UnknownItemTypeAdditionalImplementationRequired" xml:space="preserve"><value>專案類型未知，需要額外實施</value></data>
+  <data name="UnsupportedSourceItemType" xml:space="preserve"><value>不受支援的來源項目類型。</value></data>
+  <data name="UnsupportedSourceItemType2" xml:space="preserve"><value>不支援的來源項目類型：{0}</value></data>
+  <data name="UpdateOfLinkRequiresAnIDInDmsLink" xml:space="preserve"><value>更新連結需要 DmsLink 中的 ID</value></data>
+  <data name="UpdatingOfSharePropertiesNotSupported" xml:space="preserve"><value>不支援更新共享屬性</value></data>
+  <data name="UploadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>上傳連結建立未返回標識符。</value></data>
+  <data name="UploadLinkMaxBytesMustBeAPositiveMultiple" xml:space="preserve"><value>上傳連結 MaxBytes 必須是 1 GiB（1073741824 位元組）的正倍數。</value></data>
+  <data name="UploadLinksSupportedOnlyWithCollections" xml:space="preserve"><value>僅集合支援上傳鏈接</value></data>
+  <data name="UserGroupSharingIsSupportedOnlyForCollections" xml:space="preserve"><value>僅集合和資料夾支援使用者/群組共用。</value></data>
+  <data name="UserSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>此 OCS 伺服器不支援用戶共享</value></data>
+  <data name="CopyTaskFailed" xml:space="preserve"><value>複製任務失敗</value></data>
+  <data name="CreateFolderFailed" xml:space="preserve"><value>建立資料夾失敗</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>刪除失敗</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>移動失敗</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>上傳失敗</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>您的會話無法再續訂。重新登入以繼續。</value></data>
+</root>

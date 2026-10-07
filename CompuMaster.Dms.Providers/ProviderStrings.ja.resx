@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ACycleWasFoundInTheCenterDeviceFolder" xml:space="preserve"><value>CenterDevice フォルダー階層内のフォルダー ID {0} でサイクルが見つかりました。</value></data>
+  <data name="ADMSInstanceDisplayNameIsRequired" xml:space="preserve"><value>DMS インスタンスの表示名は必須です。</value></data>
+  <data name="ADMSInstanceIDIsRequired" xml:space="preserve"><value>DMS インスタンス ID が必要です。</value></data>
+  <data name="ADirectoryCanTBeCopiedOrMoved" xml:space="preserve"><value>ディレクトリをコピーしたり、ディレクトリ自体に移動したりすることはできません。</value></data>
+  <data name="ADirectoryMergeCannotConsumeTheSameFolder" xml:space="preserve"><value>ディレクトリのマージでは、同じフォルダー ID を 2 回使用することはできません。</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto" xml:space="preserve"><value>宛先の親が作成される場合を含め、フォルダーを独自の階層にコピーまたは移動することはできません。</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto2" xml:space="preserve"><value>別のパスを経由する場合も含め、フォルダーをそれ自体にコピーまたは移動することはできません。</value></data>
+  <data name="AGroupIDIsRequired" xml:space="preserve"><value>グループIDが必要です</value></data>
+  <data name="APositiveNumericOCSShareIDIsRequired" xml:space="preserve"><value>正の数値の OCS 共有 ID が必要です</value></data>
+  <data name="AResourceSnapshotCannotBeNull" xml:space="preserve"><value>リソースのスナップショットを null にすることはできません。</value></data>
+  <data name="ASelectedFolderIdentifierIsRequired" xml:space="preserve"><value>選択したフォルダー識別子は必須です。</value></data>
+  <data name="AUserIDIsRequired" xml:space="preserve"><value>ユーザーIDが必要です</value></data>
+  <data name="ActionFailedForDirectory" xml:space="preserve"><value>ディレクトリ「{1}」に対するアクション {0} が失敗しました</value></data>
+  <data name="ActionFailedForFile" xml:space="preserve"><value>ファイル「{1}」に対するアクション {0} が失敗しました</value></data>
+  <data name="ActionFailedForSourceDirectoryAndDestination" xml:space="preserve"><value>ソース ディレクトリ "{1}" と宛先 "{2}" に対するアクション {0} が失敗しました</value></data>
+  <data name="ActionFailedForSourceFileAndDestination" xml:space="preserve"><value>ソース ファイル "{1}" と宛先 "{2}" に対するアクション {0} が失敗しました</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>すべてのユーザー</value></data>
+  <data name="AllowDeleteNotSupportedByProvider" xml:space="preserve"><value>プロバイダーはAllowDeleteをサポートしていません</value></data>
+  <data name="AllowEditNotSupportedByProvider" xml:space="preserve"><value>プロバイダーがAllowEditをサポートしていません</value></data>
+  <data name="AllowShareNotSupportedByProvider" xml:space="preserve"><value>プロバイダーがAllowShareをサポートしていません</value></data>
+  <data name="AtLeastOneSharingPermissionIsRequired" xml:space="preserve"><value>少なくとも 1 つの共有権限が必要です</value></data>
+  <data name="AuthentificationForUserFailed" xml:space="preserve"><value>ユーザー「{0}」の認証に失敗しました: {1}</value></data>
+  <data name="AuthentificationForUserFailed2" xml:space="preserve"><value>ユーザー「{0}」の認証に失敗しました: {1} {2}</value></data>
+  <data name="ButRemoteItemExists" xml:space="preserve"><value>{0}、しかしリモート項目が存在します: {1}</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedInThe" xml:space="preserve"><value>CenterDevice コレクションの名前はルートでのみ変更できます。</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining" xml:space="preserve"><value>CenterDevice コレクションの名前は、ルートに残っている間のみ変更できます。</value></data>
+  <data name="CenterDeviceCollectionsCanTBeCopiedBecauseThey" xml:space="preserve"><value>CenterDevice コレクションは、通常のフォルダーではなく最上位の共有コンテナーであるため、コピーできません。</value></data>
+  <data name="CenterDeviceCollectionsCannotBeCopied" xml:space="preserve"><value>CenterDevice コレクションはコピーできません。</value></data>
+  <data name="CenterDeviceFilesAndFoldersMustRemainInsideA" xml:space="preserve"><value>CenterDevice のファイルとフォルダーは、コレクションまたはフォルダー内に残す必要があります。</value></data>
+  <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>CenterDevice フォルダーは、コレクションまたは別のフォルダー内に残す必要があります。</value></data>
+  <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>コレクションのメタデータが要求された識別子と一致しません。</value></data>
+  <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>コレクションは WebDAV ではサポートされていません</value></data>
+  <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>コレクション「{0}」はルート フォルダーにのみ配置する必要がありますが、「{1}」にあります。</value></data>
+  <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>コレクションはルート フォルダーに配置する必要があります: {0}</value></data>
+  <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>カスタム Web サービス URL はこの DMS プロバイダーではサポートされていません</value></data>
+  <data name="DMSClientNumber" xml:space="preserve"><value>DMS クライアント番号</value></data>
+  <data name="CustomerDmsInstanceDeleted" xml:space="preserve"><value>顧客の DMS インスタンスは削除されました。</value></data>
+  <data name="DMSPassword" xml:space="preserve"><value>DMSパスワード</value></data>
+  <data name="DMSUsername" xml:space="preserve"><value>DMS ユーザー名</value></data>
+  <data name="DirectoryAlreadyExists" xml:space="preserve"><value>ディレクトリはすでに存在します: {0}</value></data>
+  <data name="DirectoryNotFound" xml:space="preserve"><value>ディレクトリが見つかりません: {0}</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>ダウンロードに失敗しました</value></data>
+  <data name="DownloadFailedNotCompletedSuccessfull" xml:space="preserve"><value>ダウンロード失敗: 未完了/成功</value></data>
+  <data name="DownloadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>ダウンロード リンクの作成では識別子が返されませんでした。</value></data>
+  <data name="EitherAllowViewOrAllowUploadMustBeSet" xml:space="preserve"><value>AllowView またはAllowUpload のいずれかを設定する必要があります</value></data>
+  <data name="Failed" xml:space="preserve"><value>{0} が失敗しました: {1}</value></data>
+  <data name="FileAlreadyExists" xml:space="preserve"><value>ファイルはすでに存在します: {0}</value></data>
+  <data name="FileMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>ファイルのメタデータが要求された識別子と一致しません。</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>ファイルが見つかりません: {0}</value></data>
+  <data name="FilesDonTContainDirectoryCaches" xml:space="preserve"><value>ファイルにはディレクトリ キャッシュが含まれていません</value></data>
+  <data name="FilesInRootFolderNotSupportedByDMS" xml:space="preserve"><value>ルート フォルダー内のファイルは DMS プロバイダーによってサポートされていません</value></data>
+  <data name="FolderIDNoLongerBelongsToItsExpected" xml:space="preserve"><value>フォルダー ID {0} は、予期された CenterDevice コレクションに属しなくなりました。</value></data>
+  <data name="FolderMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>フォルダーのメタデータが要求された識別子と一致しません。</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>禁止: {0}</value></data>
+  <data name="GroupSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>この OCS サーバーではグループ共有がサポートされていません</value></data>
+  <data name="InvalidItemType" xml:space="preserve"><value>無効な項目タイプ: {0}</value></data>
+  <data name="InvalidItemTypeStatus" xml:space="preserve"><value>無効な項目タイプのステータス</value></data>
+  <data name="InvalidItemTypeStatusForIsRoot" xml:space="preserve"><value>IsRoot の項目タイプのステータスが無効です</value></data>
+  <data name="ItemTypeExpectedButWas" xml:space="preserve"><value>ItemType {0} が予期されましたが、{1} でした</value></data>
+  <data name="ItemTypeExpectedButWas2" xml:space="preserve"><value>ItemType {0}{1} が予期されましたが、{2} でした</value></data>
+  <data name="ItemTypeOrExpectedButWas" xml:space="preserve"><value>ItemType {0} または {1} が予期されましたが、{2} でした</value></data>
+  <data name="LinkCreationRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>リンクの作成には、選択したリソース識別子が必要です。</value></data>
+  <data name="LinkSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>この OCS サーバーではリンク共有がサポートされていません</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed" xml:space="preserve"><value>{0} の WebDAV リソースのリストに失敗しました: {1}</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed2" xml:space="preserve"><value>{0} の WebDAV リソースのリストに失敗しました: {1} {2}</value></data>
+  <data name="LoginCredentialsCanTExistForDMSProvider" xml:space="preserve"><value>DMS プロバイダー「なし」にはログイン資格情報が存在できません</value></data>
+  <data name="LoginCredentialsProviderWebDAVExpectedButWas" xml:space="preserve"><value>ログイン資格情報プロバイダー WebDAV が予期されましたが、{0} でした</value></data>
+  <data name="MoreThanOneMatchingOCSShareWasFound" xml:space="preserve"><value>一致する OCS 共有が複数見つかりました</value></data>
+  <data name="MoveFailedForFileIDRollbackWasAttempted" xml:space="preserve"><value>ファイル ID {0} の移動に失敗しました。ロールバックが試行されました。</value></data>
+  <data name="MoveFailedForFolderIDRollbackWasAttempted" xml:space="preserve"><value>フォルダー ID {0} の移動に失敗しました。ロールバックが試行されました。</value></data>
+  <data name="MovingADocumentWithMultipleOrUnknownDirectory" xml:space="preserve"><value>複数のディレクトリ参照または不明なディレクトリ参照を持つドキュメントを移動するには、ソースの親を選択する必要があります。</value></data>
+  <data name="MustBe" xml:space="preserve"><value>&gt;= 0 である必要があります</value></data>
+  <data name="MustBeAPathWithoutTrailingDirectorySeparator" xml:space="preserve"><value>末尾のディレクトリ区切り文字のないパスである必要があります: {0}</value></data>
+  <data name="NegativeSizeValuesAreNotAllowed" xml:space="preserve"><value>負のサイズ値は許可されません</value></data>
+  <data name="NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre" xml:space="preserve"><value>組織が見つかりません。通常、Scopevisio ユーザー権限が必要です: Rechteprofil Kontakte – alle Rechte or CRM – alle Rechte</value></data>
+  <data name="NotYetImplementedDMSProvider" xml:space="preserve"><value>まだ実装されていない DMS プロバイダー: {0}</value></data>
+  <data name="OCSCapabilityDiscoveryFailed" xml:space="preserve"><value>OCS 機能の検出に失敗しました。</value></data>
+  <data name="OCSLinkShareWasNotFound" xml:space="preserve"><value>OCS リンク共有 {0} が見つかりませんでした</value></data>
+  <data name="OCSShareListingDidNotReturnAnArray" xml:space="preserve"><value>OCS 共有リストは配列を返しませんでした。</value></data>
+  <data name="OCSShareListingFailed" xml:space="preserve"><value>OCS 共有のリストに失敗しました。</value></data>
+  <data name="PublicUploadsAreNotSupportedByThisOCS" xml:space="preserve"><value>この OCS サーバーではパブリック アップロードがサポートされていません</value></data>
+  <data name="PublicUploadsCanOnlyBeEnabledForFolders" xml:space="preserve"><value>パブリックアップロードはフォルダーに対してのみ有効にできます</value></data>
+  <data name="RemoteItemExistsMultipleTimes" xml:space="preserve"><value>リモート項目が複数回存在します: {0}</value></data>
+  <data name="RemoteRessourceWithUnsupportedType" xml:space="preserve"><value>サポートされていないタイプのリモート リソース: {0}</value></data>
+  <data name="RessourceNotFound" xml:space="preserve"><value>リソースが見つかりません: {0}</value></data>
+  <data name="RootDirectoryCanTBeTheSourceOf" xml:space="preserve"><value>ルート ディレクトリをコピーまたは移動アクションのソースにすることはできません</value></data>
+  <data name="RootDirectoryCanTBeTheTargetOf" xml:space="preserve"><value>ルート ディレクトリをコピーまたは移動アクションのターゲットにすることはできません</value></data>
+  <data name="RootFolderCanTBeDeleted" xml:space="preserve"><value>ルートフォルダーは削除できません</value></data>
+  <data name="ScopevisioUserAuthenticationFailed" xml:space="preserve"><value>Scopevisio のユーザー認証に失敗しました。</value></data>
+  <data name="SharingForFilesNotSupported" xml:space="preserve"><value>ファイルの共有はサポートされていません</value></data>
+  <data name="SharingForRootDirectoryNotSupported" xml:space="preserve"><value>ルートディレクトリの共有はサポートされていません</value></data>
+  <data name="SharingIsNotSupportedByThisWebDAVServer" xml:space="preserve"><value>この WebDAV サーバーでは共有がサポートされていません</value></data>
+  <data name="SharingRequiresANonemptyUserOrGroupIdentifier" xml:space="preserve"><value>共有には空ではないユーザーまたはグループの識別子が必要です。</value></data>
+  <data name="SharingRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>共有には、選択したリソース識別子が必要です。</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameDocumentReplacement" xml:space="preserve"><value>ソースと宛先は同じドキュメントを識別します。置換すると、ソース文書とその他の参照が削除されます。</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameFolder" xml:space="preserve"><value>ソースと宛先は同じフォルダーを識別します。</value></data>
+  <data name="SourceAndDestinationPathsMustDiffer" xml:space="preserve"><value>送信元パスと宛先パスは異なっていなければなりません。</value></data>
+  <data name="SubItemsOfFoundOutsideOfThisPath" xml:space="preserve"><value>{0} のサブ項目がこのパスの外で見つかりました: {1}</value></data>
+  <data name="TaskNotFinished" xml:space="preserve"><value>タスクが完了していません</value></data>
+  <data name="TaskNotStarted" xml:space="preserve"><value>タスクが開始されていません</value></data>
+  <data name="TaskStatusInvalid" xml:space="preserve"><value>タスクのステータスが無効です</value></data>
+  <data name="TheCollectionOfCenterDeviceFolderIDIsUnknown" xml:space="preserve"><value>CenterDevice フォルダー ID {0} のコレクションは不明です。</value></data>
+  <data name="TheCollectionSUploadLinkHasNoIdentifier" xml:space="preserve"><value>コレクションのアップロード リンクには識別子がありません。</value></data>
+  <data name="TheCopiedFileCouldnTBePromotedTo" xml:space="preserve"><value>コピーされたファイルを最終的な名前に昇格させることができませんでした。ロールバックが試行されました。</value></data>
+  <data name="TheCopySucceededButTheReplacedFileWith" xml:space="preserve"><value>コピーは成功しましたが、ID {0} の置換されたファイルは一時的な名前 {1} のままになります。</value></data>
+  <data name="TheDMSInstanceIsNotAvailableToThe" xml:space="preserve"><value>許可されたユーザーは DMS インスタンスを利用できません。</value></data>
+  <data name="TheDMSProviderMustBeAuthorizedBeforeAccessing" xml:space="preserve"><value>DMS インスタンスにアクセスする前に、DMS プロバイダーを承認する必要があります。</value></data>
+  <data name="TheDownloadLinkResponseContainsNoAccessControl" xml:space="preserve"><value>ダウンロード リンクの応答には、アクセス制御メタデータが含まれません。</value></data>
+  <data name="TheFolderListingFailedWithHTTP" xml:space="preserve"><value>HTTP {0} でフォルダーの一覧表示に失敗しました。</value></data>
+  <data name="TheFolderListingResponseHasNoFoldersArray" xml:space="preserve"><value>フォルダー一覧の応答にはフォルダー配列がありません。</value></data>
+  <data name="TheLinkOperationRequiresAnIdentifier" xml:space="preserve"><value>リンク操作には識別子が必要です。</value></data>
+  <data name="TheMatchingOCSShareWasNotFound" xml:space="preserve"><value>一致する OCS 共有が見つかりませんでした</value></data>
+  <data name="TheMoveSucceededButTheReplacedFileWith" xml:space="preserve"><value>移動は成功しましたが、ID {0} の置換されたファイルは一時的な名前 {1} のままになります。</value></data>
+  <data name="TheNativeGroupResponseContainsNoGroupList" xml:space="preserve"><value>ネイティブ グループの応答にはグループ リストが含まれていません。</value></data>
+  <data name="TheNativeGroupSnapshotDoesNotMatchThe" xml:space="preserve"><value>ネイティブ グループのスナップショットは、要求された識別子と一致しません。</value></data>
+  <data name="TheNativeUserResponseContainsANullUser" xml:space="preserve"><value>ネイティブ ユーザーの応答に null ユーザーが含まれています。</value></data>
+  <data name="TheNativeUserResponseContainsNoUserList" xml:space="preserve"><value>ネイティブ ユーザーの応答にはユーザー リストが含まれていません。</value></data>
+  <data name="TheNativeUserSnapshotDoesNotMatchThe" xml:space="preserve"><value>ネイティブ ユーザー スナップショットは、要求された識別子と一致しません。</value></data>
+  <data name="TheOCSServerReturnedAnUnexpectedShareType" xml:space="preserve"><value>OCS サーバーがリンク共有に対して予期しない共有タイプを返しました</value></data>
+  <data name="TheOperationFailedCompensationOfConfirmedChangesWas" xml:space="preserve"><value>操作は失敗しました。確認された変更の補償が試みられました。リクエストが中断された場合は、サーバー状態の調整が必要になる場合があります。</value></data>
+  <data name="TheOperationSucceededButReplacedDocumentIDRemains" xml:space="preserve"><value>操作は成功しましたが、置換されたドキュメント ID {0} は一時的な名前 {1} のままになります。</value></data>
+  <data name="TheParentDMSResourceItemIsRequired" xml:space="preserve"><value>親 DMS リソース項目は必須です</value></data>
+  <data name="TheRemoteResourceMustBeAFile" xml:space="preserve"><value>リモート リソースはファイルである必要があります。</value></data>
+  <data name="TheResolvedFileHasNoIdentifier" xml:space="preserve"><value>解決されたファイルには識別子がありません。</value></data>
+  <data name="TheResolvedResourceHasNoIdentifier" xml:space="preserve"><value>解決されたリソースには識別子がありません: {0}</value></data>
+  <data name="TheRetryLoopEndedUnexpectedly" xml:space="preserve"><value>再試行ループが予期せず終了しました。</value></data>
+  <data name="TheSelectedDirectoryPathNoLongerHasThe" xml:space="preserve"><value>選択したディレクトリ パスは予期したタイプではなくなりました。</value></data>
+  <data name="TheSelectedFilePathNoLongerIdentifiesA" xml:space="preserve"><value>選択したファイル パスはファイルを識別しなくなりました。</value></data>
+  <data name="TheSelectedResourceIsNotACollectionOr" xml:space="preserve"><value>選択したリソースはコレクションまたはフォルダーではありません。</value></data>
+  <data name="TheSelectedResourceIsNotAFile" xml:space="preserve"><value>選択したリソースはファイルではありません。</value></data>
+  <data name="TheSharingOperationFailedForOneOrMore" xml:space="preserve"><value>1 人以上のユーザーまたはグループの共有操作が失敗しました。</value></data>
+  <data name="TheSourceItemHasAnUnexpectedResourceType" xml:space="preserve"><value>ソース項目に予期しないリソース タイプがあります。</value></data>
+  <data name="TheSourceItemIsnTADirectory" xml:space="preserve"><value>ソース項目はディレクトリではありません。</value></data>
+  <data name="TheSourceItemMustProvideItsFullRemote" xml:space="preserve"><value>ソース項目は完全なリモート パスを指定する必要があります。</value></data>
+  <data name="TheUploadLinkResponseContainsNoMetadata" xml:space="preserve"><value>アップロードリンクの応答にはメタデータは含まれません。</value></data>
+  <data name="ThisOCSAPICannotRepresentViewAndDownload" xml:space="preserve"><value>この OCS API は、表示権限とダウンロード権限を個別に表すことはできません</value></data>
+  <data name="ThisProviderDoesNotSupportAsynchronousMoveOperations" xml:space="preserve"><value>このプロバイダーは、非同期移動操作をサポートしていません。</value></data>
+  <data name="UnknownItemTypeAdditionalImplementationRequired" xml:space="preserve"><value>不明な項目タイプ、追加の実装が必要です</value></data>
+  <data name="UnsupportedSourceItemType" xml:space="preserve"><value>サポートされていないソース項目タイプです。</value></data>
+  <data name="UnsupportedSourceItemType2" xml:space="preserve"><value>サポートされていないソース項目タイプ: {0}</value></data>
+  <data name="UpdateOfLinkRequiresAnIDInDmsLink" xml:space="preserve"><value>リンクの更新には DmsLink の ID が必要です</value></data>
+  <data name="UpdatingOfSharePropertiesNotSupported" xml:space="preserve"><value>共有プロパティの更新はサポートされていません</value></data>
+  <data name="UploadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>アップロードリンクの作成では識別子が返されませんでした。</value></data>
+  <data name="UploadLinkMaxBytesMustBeAPositiveMultiple" xml:space="preserve"><value>アップロードリンクの MaxBytes は、1 GiB (1073741824 バイト) の正の倍数である必要があります。</value></data>
+  <data name="UploadLinksSupportedOnlyWithCollections" xml:space="preserve"><value>コレクションでのみサポートされるアップロード リンク</value></data>
+  <data name="UserGroupSharingIsSupportedOnlyForCollections" xml:space="preserve"><value>ユーザー/グループの共有は、コレクションとフォルダーでのみサポートされます。</value></data>
+  <data name="UserSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>ユーザー共有はこの OCS サーバーではサポートされていません</value></data>
+  <data name="CopyTaskFailed" xml:space="preserve"><value>コピータスクが失敗しました</value></data>
+  <data name="CreateFolderFailed" xml:space="preserve"><value>フォルダーの作成に失敗しました</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>削除に失敗しました</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>移動に失敗しました</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>アップロードに失敗しました</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>セッションは更新できなくなりました。続行するには、再度サインインしてください。</value></data>
+</root>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UserName" xml:space="preserve"><value>使用者名稱(&amp;U)</value></data>
+  <data name="Password" xml:space="preserve"><value>密碼(&amp;P)</value></data>
+  <data name="StartPath" xml:space="preserve"><value>起始資料夾</value></data>
+  <data name="SignIn" xml:space="preserve"><value>登入(&amp;S)</value></data>
+  <data name="Exit" xml:space="preserve"><value>結束(&amp;X)</value></data>
+  <data name="PersistCredentials" xml:space="preserve"><value>在此電腦上儲存登入資訊</value></data>
+  <data name="CustomerNumber" xml:space="preserve"><value>客戶編號</value></data>
+  <data name="ServerUrl" xml:space="preserve"><value>WebDAV 伺服器 URL</value></data>
+  <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>Nextcloud 伺服器 URL 必須是絕對 HTTP 或 HTTPS URL。</value></data>
+  <data name="OpenDmsFailed" xml:space="preserve"><value>無法開啟DMS</value></data>
+</root>

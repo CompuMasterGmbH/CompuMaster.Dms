@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ActionAdd" xml:space="preserve"><value>追加(&amp;A)</value></data>
+  <data name="ActionAddGroup" xml:space="preserve"><value>グループを追加</value></data>
+  <data name="ActionAddUser" xml:space="preserve"><value>ユーザーを追加</value></data>
+  <data name="ActionCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="ActionClose" xml:space="preserve"><value>閉じる</value></data>
+  <data name="ActionCopy" xml:space="preserve"><value>コピー</value></data>
+  <data name="ActionCopyWebLink" xml:space="preserve"><value>Web リンクをコピーする</value></data>
+  <data name="ActionCreateFolder" xml:space="preserve"><value>フォルダーを作成</value></data>
+  <data name="ActionDelete" xml:space="preserve"><value>削除</value></data>
+  <data name="ActionDownload" xml:space="preserve"><value>ダウンロード</value></data>
+  <data name="ActionEdit" xml:space="preserve"><value>編集</value></data>
+  <data name="ActionFileSharings" xml:space="preserve"><value>ファイルの共有</value></data>
+  <data name="ActionFolderSharings" xml:space="preserve"><value>フォルダーの共有</value></data>
+  <data name="ActionMove" xml:space="preserve"><value>移動</value></data>
+  <data name="ActionOkay" xml:space="preserve"><value>OK</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>開く</value></data>
+  <data name="ActionProperties" xml:space="preserve"><value>プロパティ</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>更新</value></data>
+  <data name="ActionRename" xml:space="preserve"><value>名前を変更</value></data>
+  <data name="ActionSave" xml:space="preserve"><value>保存</value></data>
+  <data name="ActionSharings" xml:space="preserve"><value>共有</value></data>
+  <data name="ActionShowFiles" xml:space="preserve"><value>ファイルを表示</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>アップロード</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>すべてのファイル (*.*)|*.*</value></data>
+  <data name="BrowseTitle" xml:space="preserve"><value>DMS フォルダーを参照する</value></data>
+  <data name="ColumnAuthorizations" xml:space="preserve"><value>権限</value></data>
+  <data name="ColumnLastModification" xml:space="preserve"><value>最終変更</value></data>
+  <data name="ColumnLimitations" xml:space="preserve"><value>制限事項</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>名前</value></data>
+  <data name="ColumnSize" xml:space="preserve"><value>サイズ</value></data>
+  <data name="ColumnType" xml:space="preserve"><value>種類</value></data>
+  <data name="CredentialsOrServerError" xml:space="preserve"><value>無効な認証情報、DMS サーバー インスタンス エラー、またはネットワーク エラー</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>現在の所有者: {0}</value></data>
+  <data name="DeleteFilesQuestion" xml:space="preserve"><value>本当に次のファイルを削除してもよろしいですか?</value></data>
+  <data name="DeleteFilesTitle" xml:space="preserve"><value>リモート DMS - ファイルの削除</value></data>
+  <data name="DeleteFolderQuestion" xml:space="preserve"><value>本当に次のフォルダーを削除してもよろしいですか?</value></data>
+  <data name="DeleteFolderTitle" xml:space="preserve"><value>リモート DMS - フォルダーの削除</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>ファイルはこのブラウザの外で削除されました: {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>フォルダーはこのブラウザーの外で削除されました: {0}</value></data>
+  <data name="DownloadSuccessful" xml:space="preserve"><value>ダウンロードが正常に完了しました</value></data>
+  <data name="DownloadTitle" xml:space="preserve"><value>リモート DMS - ファイルのダウンロード</value></data>
+  <data name="DownloadToTitle" xml:space="preserve"><value>{0} にダウンロード</value></data>
+  <data name="DmsFolderNotFound" xml:space="preserve"><value>DMS フォルダーが見つかりません: {0}</value></data>
+  <data name="DuplicateFileNameConflict" xml:space="preserve"><value>競合: 複数のファイルが同じファイル名を持っています</value></data>
+  <data name="ExactlyOneItemRequired" xml:space="preserve"><value>項目を 1 つだけ選択する必要があります</value></data>
+  <data name="EntityGroup" xml:space="preserve"><value>グループ</value></data>
+  <data name="EntityUser" xml:space="preserve"><value>ユーザー</value></data>
+  <data name="ExternalSharings" xml:space="preserve"><value>リンク経由で外部ユーザーと共有</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>ファイルが見つかりません</value></data>
+  <data name="FileProperties" xml:space="preserve"><value>ファイルのプロパティ</value></data>
+  <data name="FilesAlreadyExist" xml:space="preserve"><value>以下のファイルはすでに存在します。上書きしますか?</value></data>
+  <data name="FolderProperties" xml:space="preserve"><value>フォルダーのプロパティ</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>一般設定</value></data>
+  <data name="InternalSharings" xml:space="preserve"><value>内部ユーザー/グループとの共有</value></data>
+  <data name="InvalidFolderMessage" xml:space="preserve"><value>無効なフォルダー: {0}</value></data>
+  <data name="InvalidFolderTitle" xml:space="preserve"><value>DMS フォルダが無効であるか、存在しません</value></data>
+  <data name="LabelDownloadLink" xml:space="preserve"><value>ダウンロードリンク</value></data>
+  <data name="LabelExpiryDate" xml:space="preserve"><value>有効期限</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>グループ名</value></data>
+  <data name="LabelId" xml:space="preserve"><value>ID</value></data>
+  <data name="LabelMaxBytes" xml:space="preserve"><value>最大。バイト</value></data>
+  <data name="LabelMaxDownloads" xml:space="preserve"><value>最大。ダウンロード</value></data>
+  <data name="LabelMaxUploads" xml:space="preserve"><value>最大アップロード数</value></data>
+  <data name="LabelMaxViews" xml:space="preserve"><value>最大。ビュー</value></data>
+  <data name="LabelName" xml:space="preserve"><value>名前</value></data>
+  <data name="LabelNumberBytes" xml:space="preserve"><value>バイト</value></data>
+  <data name="LabelNumberDownloads" xml:space="preserve"><value>ダウンロード</value></data>
+  <data name="LabelNumberUploads" xml:space="preserve"><value>アップロード数</value></data>
+  <data name="LabelNumberViews" xml:space="preserve"><value>ビュー</value></data>
+  <data name="LabelPassword" xml:space="preserve"><value>パスワード</value></data>
+  <data name="LabelUserName" xml:space="preserve"><value>ユーザー名</value></data>
+  <data name="LabelWebLink" xml:space="preserve"><value>ウェブリンク</value></data>
+  <data name="Limits" xml:space="preserve"><value>限界</value></data>
+  <data name="LinkSharingRequired" xml:space="preserve"><value>リンク共有が選択されていません</value></data>
+  <data name="LimitationDownloads" xml:space="preserve"><value>ダウンロード: {0}</value></data>
+  <data name="LimitationPassword" xml:space="preserve"><value>パスワード</value></data>
+  <data name="LimitationUploads" xml:space="preserve"><value>アップロード数: {0}</value></data>
+  <data name="NewFolderPrompt" xml:space="preserve"><value>「{0}」の下にある新しいフォルダーは何と呼ぶべきですか?</value></data>
+  <data name="NewFolderTitle" xml:space="preserve"><value>新しいフォルダー</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>保存先フォルダを選択</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>目的地での名前</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>「{0}」の宛先名を入力してください:</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>「{0}」の新しい名前を入力してください:</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>ディレクトリ区切り文字を付けずに名前を入力します。</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>送信元と宛先が同じです。別の名前またはフォルダーを選択してください。</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>ファイル「{0}」はすでに存在します。交換しますか?</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>フォルダー「{0}」はすでに存在します。その内容をソースとマージしますか?目的地でのみ見つかったアイテムは残ります。</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>ブラウザのルートはコピー、名前変更、移動できません。</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>宛先はブラウザのルートの外にあります。</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>選択した {1} 件中 {0} 件の項目が完了しました。次の項目は失敗しました: {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>止まった。選択した {1} 件中 {0} 件の項目が完了しました。</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>ファイルが選択されていません</value></data>
+  <data name="NoFilesSelected" xml:space="preserve"><value>ファイルが選択されていません</value></data>
+  <data name="NoFolderSelected" xml:space="preserve"><value>フォルダが選択されていません</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>{非表示}</value></data>
+  <data name="UnknownValue" xml:space="preserve"><value>不明</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>ユーザーによって操作がキャンセルされました</value></data>
+  <data name="OutsideRequiredFolder" xml:space="preserve"><value>フォルダー「{0}」以外への保存はサポートされていません</value></data>
+  <data name="PermissionDelete" xml:space="preserve"><value>削除</value></data>
+  <data name="PermissionDownload" xml:space="preserve"><value>ダウンロード</value></data>
+  <data name="PermissionEdit" xml:space="preserve"><value>編集</value></data>
+  <data name="PermissionShare" xml:space="preserve"><value>共有</value></data>
+  <data name="PermissionUpload" xml:space="preserve"><value>アップロード</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>表示</value></data>
+  <data name="Permissions" xml:space="preserve"><value>権限</value></data>
+  <data name="PropertiesTitle" xml:space="preserve"><value>プロパティ {0}</value></data>
+  <data name="PropertiesArchivedDate" xml:space="preserve"><value>アーカイブ日: </value></data>
+  <data name="PropertiesCollisionWarning" xml:space="preserve"><value>警告: 同じ名前の別のファイルとの衝突が検出されました</value></data>
+  <data name="PropertiesDetails" xml:space="preserve"><value>詳細</value></data>
+  <data name="PropertiesExtendedInformation" xml:space="preserve"><value>拡張情報</value></data>
+  <data name="PropertiesFileSize" xml:space="preserve"><value>ファイルサイズ: </value></data>
+  <data name="PropertiesFullPath" xml:space="preserve"><value>フルパス: </value></data>
+  <data name="PropertiesLastModification" xml:space="preserve"><value>最終変更: </value></data>
+  <data name="PropertiesLockedBy" xml:space="preserve"><value>ロックされている人: </value></data>
+  <data name="PropertiesLocks" xml:space="preserve"><value>ロック: </value></data>
+  <data name="PropertiesOwner" xml:space="preserve"><value>所有者: </value></data>
+  <data name="PropertiesParentCollection" xml:space="preserve"><value>親コレクション: </value></data>
+  <data name="PropertiesParentFolder" xml:space="preserve"><value>親フォルダー: </value></data>
+  <data name="PropertiesReferencedCollectionIds" xml:space="preserve"><value>コレクションIDから参照</value></data>
+  <data name="PropertiesReferencedFolderIds" xml:space="preserve"><value>フォルダーIDから参照</value></data>
+  <data name="PropertiesSharings" xml:space="preserve"><value>株式</value></data>
+  <data name="PropertiesVersionDate" xml:space="preserve"><value>バージョンの日付: </value></data>
+  <data name="PropertiesVersionNumber" xml:space="preserve"><value>バージョン番号: </value></data>
+  <data name="RootSharingUnsupported" xml:space="preserve"><value>ルートフォルダーの共有はサポートされていません</value></data>
+  <data name="RootFolderCannotBeDeleted" xml:space="preserve"><value>ルートフォルダーは削除できません</value></data>
+  <data name="ShareSetupTitle" xml:space="preserve"><value>DMS 共有設定 - {0}</value></data>
+  <data name="SharingsTitle" xml:space="preserve"><value>DMS 共有設定</value></data>
+  <data name="Statistics" xml:space="preserve"><value>統計</value></data>
+  <data name="UploadSuccessful" xml:space="preserve"><value>アップロードが完了しました</value></data>
+  <data name="UploadTitle" xml:space="preserve"><value>リモート DMS — ファイルのアップロード</value></data>
+  <data name="UploadLinkNameRequired" xml:space="preserve"><value>アップロードリンクには名前が必要です</value></data>
+  <data name="UserSharingRequired" xml:space="preserve"><value>ユーザーまたはグループの共有が選択されていません</value></data>
+  <data name="ViewOrUploadRequired" xml:space="preserve"><value>表示またはアップロードのいずれかの権限が必要です</value></data>
+  <data name="ViewRequiredForDownload" xml:space="preserve"><value>ダウンロードを選択した場合は表示権限が必要です</value></data>
+  <data name="AuthorizationObjectRequired" xml:space="preserve"><value>権限オブジェクトが選択されていません</value></data>
+  <data name="LinkSetupTitle" xml:space="preserve"><value>DMS外部リンク設定</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>DMS インスタンスを変更します...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>DMS インスタンスを変更できません</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>インスタンス: {0} (変更...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>開く DMS インスタンスを選択します。</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>DMS インスタンスの選択</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>このアカウントで使用できる DMS インスタンスはありません。</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>ブラウザ操作はすでに実行中です。</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>コレクションまたはフォルダーが必要です。</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>インスタンス識別子は必須です。</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>少なくとも 1 つの承認が必要です</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>いいえ</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>はい</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>DialogObjectMode は共有を作成するために実装されていません</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>DialogObjectMode はロード用に実装されていません</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>DialogObjectMode は保存共有用に実装されていません</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>DialogObjectMode は共有を更新するために実装されていません</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>{0} には DmsProvider の実装が必要です</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>エラー: {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} バイト</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>無効な値: {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>ローカルのデフォルトのダウンロード フォルダー「{0}」は、ディレクトリ「{1}」のサブフォルダーである必要があります</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>ローカルのデフォルトのアップロード フォルダー「{0}」は、ディレクトリ「{1}」のサブフォルダーである必要があります</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS では、表示権限とダウンロード権限を同時に選択する必要があります</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>ID「{0}」のオリジン DmsLink が DmsResourceItem に見つかりません</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>ID「{0}」の元の DmsShareBase アイテムが DmsResourceItem に見つかりません</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>削除を許可する: </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>ダウンロードを許可します: </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>編集を許可します: </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>アップロードを許可: </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>閲覧を許可: </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>割り当てられたコレクション ID: </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>割り当てられたフォルダーID: </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>コレクションID: </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>ダウンロードURL: </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>有効期限: </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>ファイルID: </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>フォルダーID: </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>子フォルダーがあります: </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>グループ共有があります: </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>非表示のグループ共有があります: </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>非表示のユーザー共有があります: </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>ユーザー共有があります: </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>ハッシュ/ETag: </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>監査が有効になっています: </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>インテリジェントなコレクション: </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>パブリックコレクション: </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>共有: </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>リンク: </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>最大バイト数: </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>最大ダウンロード数: </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>最大アップロード数: </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>パスワード: </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>アップロードされたバイト数: </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>アップロード数: </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>ウェブ URL: </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>ブラウザを作成する前に、スタートアップの選択を解決します。</value></data>
+  <data name="RootValue" xml:space="preserve"><value>ルート</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>SelectedNodeFolderPath "{0}" は RootNodeFolderPath "{1}" で始まる必要があります</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>DMS プロバイダーは、作成されたリンクを ID なしで返しました。</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>DMS プロバイダーは作成されたリンクを返しませんでした。</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>プロバイダーは DMS インスタンスの選択をサポートしていません。</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>選択した DMS インスタンスは使用できません。</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>DmsShareBase からの不明な派生クラス</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>インスタンス識別子を受け入れるコンストラクターを使用します。</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>ファイル {0}/{1}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0}/{1:N0} ソース バイトが処理されました</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} ソースバイトが処理されました。まったく不明</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>バイトの進行状況は利用できません。</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>アップロード中…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>プロバイダーの確認を待っています…</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>完了</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>失敗しました</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>キャンセルされました</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>開始されていません</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>キャンセルがリクエストされました。アクティブな転送を待っています。</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{0}/{1} ファイルが完了しました</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>完了したアップロードはサーバー上に残ります。アップロードが中断されると、部分的なファイルが残る場合があります。</value></data>
+</root>

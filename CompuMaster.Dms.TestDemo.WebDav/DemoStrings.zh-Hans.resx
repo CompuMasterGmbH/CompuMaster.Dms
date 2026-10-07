@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UserName" xml:space="preserve"><value>用户名(&amp;U)</value></data>
+  <data name="Password" xml:space="preserve"><value>密码(&amp;P)</value></data>
+  <data name="StartPath" xml:space="preserve"><value>起始文件夹</value></data>
+  <data name="SignIn" xml:space="preserve"><value>登录(&amp;S)</value></data>
+  <data name="Exit" xml:space="preserve"><value>退出(&amp;X)</value></data>
+  <data name="PersistCredentials" xml:space="preserve"><value>在此计算机上保存登录信息</value></data>
+  <data name="CustomerNumber" xml:space="preserve"><value>客户编号</value></data>
+  <data name="ServerUrl" xml:space="preserve"><value>WebDAV 服务器 URL</value></data>
+  <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>Nextcloud 服务器 URL 必须是绝对 HTTP 或 HTTPS URL。</value></data>
+  <data name="OpenDmsFailed" xml:space="preserve"><value>无法打开DMS</value></data>
+</root>
