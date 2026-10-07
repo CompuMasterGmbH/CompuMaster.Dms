@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ActionAdd" xml:space="preserve"><value>הוספה</value></data>
+  <data name="ActionAddGroup" xml:space="preserve"><value>הוספת קבוצה</value></data>
+  <data name="ActionAddUser" xml:space="preserve"><value>הוספת משתמש</value></data>
+  <data name="ActionCancel" xml:space="preserve"><value>ביטול</value></data>
+  <data name="ActionClose" xml:space="preserve"><value>סגירה</value></data>
+  <data name="ActionCopy" xml:space="preserve"><value>העתקה</value></data>
+  <data name="ActionCopyWebLink" xml:space="preserve"><value>העתק קישור אינטרנט</value></data>
+  <data name="ActionCreateFolder" xml:space="preserve"><value>יצירת תיקייה</value></data>
+  <data name="ActionDelete" xml:space="preserve"><value>מחיקה</value></data>
+  <data name="ActionDownload" xml:space="preserve"><value>הורדה</value></data>
+  <data name="ActionEdit" xml:space="preserve"><value>עריכה</value></data>
+  <data name="ActionFileSharings" xml:space="preserve"><value>שיתוף קובץ</value></data>
+  <data name="ActionFolderSharings" xml:space="preserve"><value>שיתוף תיקייה</value></data>
+  <data name="ActionMove" xml:space="preserve"><value>העברה</value></data>
+  <data name="ActionOkay" xml:space="preserve"><value>אישור</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>פתיחה</value></data>
+  <data name="ActionProperties" xml:space="preserve"><value>מאפיינים</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>רענון</value></data>
+  <data name="ActionRename" xml:space="preserve"><value>שינוי שם</value></data>
+  <data name="ActionSave" xml:space="preserve"><value>שמירה</value></data>
+  <data name="ActionSharings" xml:space="preserve"><value>שיתוף</value></data>
+  <data name="ActionShowFiles" xml:space="preserve"><value>הצגת קבצים</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>העלאה</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>כל הקבצים (*.*)|*.*</value></data>
+  <data name="BrowseTitle" xml:space="preserve"><value>עיין בתיקיות DMS</value></data>
+  <data name="ColumnAuthorizations" xml:space="preserve"><value>הרשאות</value></data>
+  <data name="ColumnLastModification" xml:space="preserve"><value>שינוי אחרון</value></data>
+  <data name="ColumnLimitations" xml:space="preserve"><value>מגבלות</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>שם</value></data>
+  <data name="ColumnSize" xml:space="preserve"><value>גודל</value></data>
+  <data name="ColumnType" xml:space="preserve"><value>סוג</value></data>
+  <data name="CredentialsOrServerError" xml:space="preserve"><value>אישורים לא חוקיים, שגיאת מופע שרת DMS או שגיאת רשת</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>הבעלים הנוכחי: {0}</value></data>
+  <data name="DeleteFilesQuestion" xml:space="preserve"><value>האם אתה באמת רוצה למחוק את הקבצים הבאים?</value></data>
+  <data name="DeleteFilesTitle" xml:space="preserve"><value>DMS מרחוק - מחיקת קבצים</value></data>
+  <data name="DeleteFolderQuestion" xml:space="preserve"><value>האם אתה באמת רוצה למחוק את התיקיה הבאה?</value></data>
+  <data name="DeleteFolderTitle" xml:space="preserve"><value>DMS מרחוק - מחק תיקייה</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>הקובץ נמחק מחוץ לדפדפן הזה: {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>התיקיה נמחקה מחוץ לדפדפן זה: {0}</value></data>
+  <data name="DownloadSuccessful" xml:space="preserve"><value>ההורדה הושלמה בהצלחה</value></data>
+  <data name="DownloadTitle" xml:space="preserve"><value>DMS מרחוק - הורדת קובץ</value></data>
+  <data name="DownloadToTitle" xml:space="preserve"><value>הורד אל {0}</value></data>
+  <data name="DmsFolderNotFound" xml:space="preserve"><value>תיקיית DMS לא נמצאה: {0}</value></data>
+  <data name="DuplicateFileNameConflict" xml:space="preserve"><value>קונפליקט: לקבצים מרובים יש אותו שם קובץ</value></data>
+  <data name="ExactlyOneItemRequired" xml:space="preserve"><value>יש לבחור פריט אחד בדיוק</value></data>
+  <data name="EntityGroup" xml:space="preserve"><value>קבוצה</value></data>
+  <data name="EntityUser" xml:space="preserve"><value>משתמש</value></data>
+  <data name="ExternalSharings" xml:space="preserve"><value>משתף עם משתמשים חיצוניים באמצעות קישור</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>הקובץ לא נמצא</value></data>
+  <data name="FileProperties" xml:space="preserve"><value>מאפייני קובץ</value></data>
+  <data name="FilesAlreadyExist" xml:space="preserve"><value>הקבצים הבאים כבר קיימים. האם אתה רוצה להחליף אותם?</value></data>
+  <data name="FolderProperties" xml:space="preserve"><value>מאפייני תיקיה</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>הגדרות כלליות</value></data>
+  <data name="InternalSharings" xml:space="preserve"><value>משתפים עם משתמשים/קבוצות פנימיים</value></data>
+  <data name="InvalidFolderMessage" xml:space="preserve"><value>תיקיה לא חוקית: {0}</value></data>
+  <data name="InvalidFolderTitle" xml:space="preserve"><value>תיקיית DMS אינה חוקית או אינה קיימת עוד</value></data>
+  <data name="LabelDownloadLink" xml:space="preserve"><value>קישור להורדה</value></data>
+  <data name="LabelExpiryDate" xml:space="preserve"><value>תאריך תפוגה</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>שם הקבוצה</value></data>
+  <data name="LabelId" xml:space="preserve"><value>ID</value></data>
+  <data name="LabelMaxBytes" xml:space="preserve"><value>מקסימום בתים</value></data>
+  <data name="LabelMaxDownloads" xml:space="preserve"><value>מקסימום הורדות</value></data>
+  <data name="LabelMaxUploads" xml:space="preserve"><value>מספר העלאות מרבי</value></data>
+  <data name="LabelMaxViews" xml:space="preserve"><value>מקסימום צפיות</value></data>
+  <data name="LabelName" xml:space="preserve"><value>שם</value></data>
+  <data name="LabelNumberBytes" xml:space="preserve"><value>בתים</value></data>
+  <data name="LabelNumberDownloads" xml:space="preserve"><value>הורדות</value></data>
+  <data name="LabelNumberUploads" xml:space="preserve"><value>העלאות</value></data>
+  <data name="LabelNumberViews" xml:space="preserve"><value>צפיות</value></data>
+  <data name="LabelPassword" xml:space="preserve"><value>סיסמה</value></data>
+  <data name="LabelUserName" xml:space="preserve"><value>שם משתמש</value></data>
+  <data name="LabelWebLink" xml:space="preserve"><value>קישור אינטרנט</value></data>
+  <data name="Limits" xml:space="preserve"><value>גבולות</value></data>
+  <data name="LinkSharingRequired" xml:space="preserve"><value>לא נבחר שיתוף קישורים</value></data>
+  <data name="LimitationDownloads" xml:space="preserve"><value>הורדות: {0}</value></data>
+  <data name="LimitationPassword" xml:space="preserve"><value>סיסמה</value></data>
+  <data name="LimitationUploads" xml:space="preserve"><value>העלאות: {0}</value></data>
+  <data name="NewFolderPrompt" xml:space="preserve"><value>איך צריך לקרוא לתיקיה החדשה מתחת ל-"{0}"?</value></data>
+  <data name="NewFolderTitle" xml:space="preserve"><value>תיקייה חדשה</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>בחר תיקיית יעד</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>שם ביעד</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>הזן את שם היעד עבור "{0}":</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>הזן שם חדש עבור "{0}":</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>הזן שם ללא מפריד ספריות.</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>המקור והיעד זהים. בחר שם או תיקיה אחרת.</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>הקובץ "{0}" כבר קיים. להחליף אותו?</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>התיקיה "{0}" כבר קיימת. למזג את התוכן שלו עם המקור? פריטים שנמצאו רק ביעד יישארו.</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>לא ניתן להעתיק, לשנות או להעביר את שורש הדפדפן.</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>היעד נמצא מחוץ לשורש הדפדפן.</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>{0} מתוך {1} פריטים שנבחרו הושלמו. הפריט הבא נכשל: {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>נעצר. {0} מתוך {1} פריטים שנבחרו הושלמו.</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>לא נבחר קובץ</value></data>
+  <data name="NoFilesSelected" xml:space="preserve"><value>לא נבחרו קבצים</value></data>
+  <data name="NoFolderSelected" xml:space="preserve"><value>לא נבחרה תיקייה</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>{מוסתר}</value></data>
+  <data name="UnknownValue" xml:space="preserve"><value>לא ידוע</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>הפעולה בוטלה על ידי המשתמש</value></data>
+  <data name="OutsideRequiredFolder" xml:space="preserve"><value>שמירה מחוץ לתיקיה "{0}" אינה נתמכת</value></data>
+  <data name="PermissionDelete" xml:space="preserve"><value>מחיקה</value></data>
+  <data name="PermissionDownload" xml:space="preserve"><value>הורדה</value></data>
+  <data name="PermissionEdit" xml:space="preserve"><value>עריכה</value></data>
+  <data name="PermissionShare" xml:space="preserve"><value>שיתוף</value></data>
+  <data name="PermissionUpload" xml:space="preserve"><value>העלאה</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>צפייה</value></data>
+  <data name="Permissions" xml:space="preserve"><value>הרשאות</value></data>
+  <data name="PropertiesTitle" xml:space="preserve"><value>מאפיינים {0}</value></data>
+  <data name="PropertiesArchivedDate" xml:space="preserve"><value>תאריך בארכיון: </value></data>
+  <data name="PropertiesCollisionWarning" xml:space="preserve"><value>אזהרה: זוהתה התנגשות עם קובץ אחר באותו שם</value></data>
+  <data name="PropertiesDetails" xml:space="preserve"><value>פרטים</value></data>
+  <data name="PropertiesExtendedInformation" xml:space="preserve"><value>מידע מורחב</value></data>
+  <data name="PropertiesFileSize" xml:space="preserve"><value>גודל קובץ: </value></data>
+  <data name="PropertiesFullPath" xml:space="preserve"><value>הנתיב המלא: </value></data>
+  <data name="PropertiesLastModification" xml:space="preserve"><value>שינוי אחרון: </value></data>
+  <data name="PropertiesLockedBy" xml:space="preserve"><value>ננעל על ידי: </value></data>
+  <data name="PropertiesLocks" xml:space="preserve"><value>מנעולים: </value></data>
+  <data name="PropertiesOwner" xml:space="preserve"><value>בעלים: </value></data>
+  <data name="PropertiesParentCollection" xml:space="preserve"><value>אוסף הורים: </value></data>
+  <data name="PropertiesParentFolder" xml:space="preserve"><value>תיקיית אב: </value></data>
+  <data name="PropertiesReferencedCollectionIds" xml:space="preserve"><value>הפניה ממזהי אוסף</value></data>
+  <data name="PropertiesReferencedFolderIds" xml:space="preserve"><value>הפניה ממזהי תיקיה</value></data>
+  <data name="PropertiesSharings" xml:space="preserve"><value>מניות</value></data>
+  <data name="PropertiesVersionDate" xml:space="preserve"><value>תאריך גרסה: </value></data>
+  <data name="PropertiesVersionNumber" xml:space="preserve"><value>מספר גרסה: </value></data>
+  <data name="RootSharingUnsupported" xml:space="preserve"><value>שיתוף תיקיית השורש אינו נתמך</value></data>
+  <data name="RootFolderCannotBeDeleted" xml:space="preserve"><value>לא ניתן למחוק את תיקיית השורש</value></data>
+  <data name="ShareSetupTitle" xml:space="preserve"><value>הגדרות שיתוף DMS - {0}</value></data>
+  <data name="SharingsTitle" xml:space="preserve"><value>הגדרות שיתוף DMS</value></data>
+  <data name="Statistics" xml:space="preserve"><value>סטטיסטיקה</value></data>
+  <data name="UploadSuccessful" xml:space="preserve"><value>ההעלאה הושלמה בהצלחה</value></data>
+  <data name="UploadTitle" xml:space="preserve"><value>DMS מרוחק — העלאת קבצים</value></data>
+  <data name="UploadLinkNameRequired" xml:space="preserve"><value>נדרש שם עבור קישורי העלאה</value></data>
+  <data name="UserSharingRequired" xml:space="preserve"><value>לא נבחר שיתוף משתמש או קבוצה</value></data>
+  <data name="ViewOrUploadRequired" xml:space="preserve"><value>נדרשת הרשאת תצוגה או העלאה</value></data>
+  <data name="ViewRequiredForDownload" xml:space="preserve"><value>נדרשת הרשאת תצוגה כאשר הורד נבחר</value></data>
+  <data name="AuthorizationObjectRequired" xml:space="preserve"><value>לא נבחר אובייקט הרשאה</value></data>
+  <data name="LinkSetupTitle" xml:space="preserve"><value>הגדרות קישור חיצוני DMS</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>שנה מופע DMS...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>לא ניתן לשנות מופע DMS</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>מופע: {0} (שנה...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>בחר את מופע ה-DMS לפתיחה:</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>בחר מופע DMS</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>אין מופעי DMS זמינים עבור חשבון זה.</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>פעולת דפדפן כבר פועלת.</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>נדרש אוסף או תיקיה.</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>נדרש מזהה מופע.</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>נדרש אישור אחד לפחות</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>לא</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>כן</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>DialogObjectMode לא מיושם ליצירת שיתוף</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>DialogObjectMode לא מיושם לטעינה</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>DialogObjectMode לא מיושם לשמירת שיתוף</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>DialogObjectMode לא מיושם עבור עדכון שיתוף</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>נדרש יישום DmsProvider עבור {0}</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>שגיאה: {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} בייטים</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>ערך לא חוקי: {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>תיקיית ברירת המחדל המקומית להורדות "{0}" חייבת להיות תיקיית משנה של ספרייה "{1}</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>תיקיית ברירת המחדל המקומית להעלאות "{0}" חייבת להיות תת תיקיית משנה של ספרייה "{1}</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS דורש שהרשאות תצוגה והורדה ייבחרו יחד</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>מקור DmsLink עם מזהה "{0}" לא נמצא ב-DmsResourceItem</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>פריט מקור DmsShareBase עם המזהה "{0}" לא נמצא ב-DmsResourceItem</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>אפשר מחיקה: </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>אפשר הורדה: </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>אפשר עריכה: </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>אפשר העלאה: </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>אפשר צפייה: </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>מזהה אוסף שהוקצה: </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>מזהה תיקייה שהוקצה: </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>מזהה אוסף: </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>כתובת אתר להורדה: </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>יפוג בתאריך: </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>מזהה קובץ: </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>מזהה תיקייה: </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>יש תיקיות ילדים: </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>יש מניות בקבוצה: </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>יש שיתופים נסתרים של קבוצות: </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>יש שיתופי משתמשים נסתרים: </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>יש שיתופי משתמשים: </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>Hash/ETag: </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>הביקורת מופעלת: </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>אוסף אינטליגנטי: </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>אוסף ציבורי: </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>משותף: </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>קישור: </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>מקסימום בתים: </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>מקסימום הורדות: </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>מקסימום העלאות: </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>סיסמה: </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>בתים שהועלו: </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>ספירת העלאות: </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>כתובת אתר אינטרנט: </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>פתרו את בחירת ההפעלה לפני יצירת הדפדפן.</value></data>
+  <data name="RootValue" xml:space="preserve"><value>שורש</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>SelectedNodeFolderPath "{0}" צפוי להתחיל עם RootNodeFolderPath "{1}"</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>ספק ה-DMS החזיר קישור שנוצר ללא מזהה.</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>ספק ה-DMS לא החזיר קישור שנוצר.</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>הספק אינו תומך בבחירת מופע DMS.</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>מופע ה-DMS שנבחר אינו זמין.</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>מחלקה נגזרת לא ידועה מ-DmsShareBase</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>השתמש בבנאי שמקבל מזהה מופע.</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>קובץ {0} מתוך {1}: {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} מתוך {1:N0} בתים מקור עובד</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} בתים מקור עובד; לגמרי לא ידוע</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>התקדמות בייט אינה זמינה.</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>ההעלאה מתבצעת…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>ממתין לאישור הספק...</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>הושלם</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>נכשל</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>בוטלה</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>לא התחיל</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>התבקש ביטול; מחכה להעברה הפעילה.</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{0} מתוך {1} קבצים הושלמו</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>העלאות שהושלמו נשארות בשרת. העלאה מופרעת עלולה להשאיר קובץ חלקי.</value></data>
+</root>

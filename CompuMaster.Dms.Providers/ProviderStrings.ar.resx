@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ACycleWasFoundInTheCenterDeviceFolder" xml:space="preserve"><value>تم العثور على دورة في التسلسل الهرمي لمجلدات CenterDevice في معرف المجلد {0}.</value></data>
+  <data name="ADMSInstanceDisplayNameIsRequired" xml:space="preserve"><value>مطلوب اسم عرض مثيل DMS.</value></data>
+  <data name="ADMSInstanceIDIsRequired" xml:space="preserve"><value>مطلوب معرف مثيل DMS.</value></data>
+  <data name="ADirectoryCanTBeCopiedOrMoved" xml:space="preserve"><value>لا يمكن نسخ الدليل أو نقله إلى نفسه.</value></data>
+  <data name="ADirectoryMergeCannotConsumeTheSameFolder" xml:space="preserve"><value>لا يمكن أن يستهلك دمج الدليل هوية المجلد نفسه مرتين.</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto" xml:space="preserve"><value>لا يمكن نسخ مجلد أو نقله إلى التسلسل الهرمي الخاص به، بما في ذلك وقت إنشاء الأصول الوجهة.</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto2" xml:space="preserve"><value>لا يمكن نسخ مجلد أو نقله إلى نفسه، بما في ذلك من خلال مسار آخر.</value></data>
+  <data name="AGroupIDIsRequired" xml:space="preserve"><value>مطلوب معرف المجموعة</value></data>
+  <data name="APositiveNumericOCSShareIDIsRequired" xml:space="preserve"><value>مطلوب معرف مشاركة OCS رقمي موجب</value></data>
+  <data name="AResourceSnapshotCannotBeNull" xml:space="preserve"><value>لا يمكن أن تكون لقطة المورد فارغة.</value></data>
+  <data name="ASelectedFolderIdentifierIsRequired" xml:space="preserve"><value>معرف المجلد المحدد مطلوب.</value></data>
+  <data name="AUserIDIsRequired" xml:space="preserve"><value>معرف المستخدم مطلوب</value></data>
+  <data name="ActionFailedForDirectory" xml:space="preserve"><value>فشل الإجراء {0} للدليل "{1}"</value></data>
+  <data name="ActionFailedForFile" xml:space="preserve"><value>فشل الإجراء {0} للملف "{1}"</value></data>
+  <data name="ActionFailedForSourceDirectoryAndDestination" xml:space="preserve"><value>فشل الإجراء {0} للدليل المصدر "{1}" والوجهة "{2}"</value></data>
+  <data name="ActionFailedForSourceFileAndDestination" xml:space="preserve"><value>فشل الإجراء {0} للملف المصدر "{1}" والوجهة "{2}"</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>جميع المستخدمين</value></data>
+  <data name="AllowDeleteNotSupportedByProvider" xml:space="preserve"><value>لا يدعم الموفر السماح بالحذف</value></data>
+  <data name="AllowEditNotSupportedByProvider" xml:space="preserve"><value>لا يدعم الموفر السماح بالتحرير</value></data>
+  <data name="AllowShareNotSupportedByProvider" xml:space="preserve"><value>لا يدعم الموفر السماح بالمشاركة</value></data>
+  <data name="AtLeastOneSharingPermissionIsRequired" xml:space="preserve"><value>مطلوب إذن مشاركة واحد على الأقل</value></data>
+  <data name="AuthentificationForUserFailed" xml:space="preserve"><value>فشلت مصادقة المستخدم "{0}": {1}</value></data>
+  <data name="AuthentificationForUserFailed2" xml:space="preserve"><value>فشلت مصادقة المستخدم "{0}": {1} {2}</value></data>
+  <data name="ButRemoteItemExists" xml:space="preserve"><value>{0}، ولكن العنصر البعيد موجود: {1}</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedInThe" xml:space="preserve"><value>لا يمكن إعادة تسمية مجموعات CenterDevice إلا في الجذر.</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining" xml:space="preserve"><value>لا يمكن إعادة تسمية مجموعات CenterDevice إلا مع بقائها في الجذر.</value></data>
+  <data name="CenterDeviceCollectionsCanTBeCopiedBecauseThey" xml:space="preserve"><value>لا يمكن نسخ مجموعات CenterDevice لأنها عبارة عن حاويات مشاركة عالية المستوى وليست مجلدات عادية.</value></data>
+  <data name="CenterDeviceCollectionsCannotBeCopied" xml:space="preserve"><value>لا يمكن نسخ مجموعات CenterDevice.</value></data>
+  <data name="CenterDeviceFilesAndFoldersMustRemainInsideA" xml:space="preserve"><value>يجب أن تظل ملفات ومجلدات CenterDevice داخل مجموعة أو مجلد.</value></data>
+  <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>يجب أن تظل مجلدات CenterDevice داخل مجموعة أو مجلد آخر.</value></data>
+  <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>البيانات التعريفية للمجموعة لا تتطابق مع المعرف المطلوب.</value></data>
+  <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>المجموعات غير مدعومة بواسطة WebDAV</value></data>
+  <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>يجب أن تكون المجموعات "{0}" موجودة في المجلد الجذر فقط، ولكنها موجودة في "{1}"</value></data>
+  <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>يجب أن تكون المجموعات موجودة في المجلد الجذر: {0}</value></data>
+  <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>عناوين URL المخصصة لخدمة الويب غير مدعومة لموفر DMS هذا</value></data>
+  <data name="DMSClientNumber" xml:space="preserve"><value>رقم عميل DMS</value></data>
+  <data name="CustomerDmsInstanceDeleted" xml:space="preserve"><value>تم حذف مثيل DMS الخاص بالعميل.</value></data>
+  <data name="DMSPassword" xml:space="preserve"><value>كلمة مرور دي إم إس</value></data>
+  <data name="DMSUsername" xml:space="preserve"><value>اسم مستخدم دي إم إس</value></data>
+  <data name="DirectoryAlreadyExists" xml:space="preserve"><value>الدليل موجود بالفعل: {0}</value></data>
+  <data name="DirectoryNotFound" xml:space="preserve"><value>لم يتم العثور على الدليل: {0}</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>فشل التنزيل</value></data>
+  <data name="DownloadFailedNotCompletedSuccessfull" xml:space="preserve"><value>فشل التنزيل: غير مكتمل/ناجح</value></data>
+  <data name="DownloadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>لم يُرجع إنشاء رابط التنزيل أي معرف.</value></data>
+  <data name="EitherAllowViewOrAllowUploadMustBeSet" xml:space="preserve"><value>يجب تعيين إماAllowView أوAllowUpload</value></data>
+  <data name="Failed" xml:space="preserve"><value>فشل {0}: {1}</value></data>
+  <data name="FileAlreadyExists" xml:space="preserve"><value>الملف موجود بالفعل: {0}</value></data>
+  <data name="FileMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>بيانات تعريف الملف لا تتطابق مع المعرف المطلوب.</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>لم يتم العثور على الملف: {0}</value></data>
+  <data name="FilesDonTContainDirectoryCaches" xml:space="preserve"><value>لا تحتوي الملفات على ذاكرة تخزين مؤقت للدليل</value></data>
+  <data name="FilesInRootFolderNotSupportedByDMS" xml:space="preserve"><value>الملفات الموجودة في المجلد الجذر غير مدعومة من قبل موفر DMS</value></data>
+  <data name="FolderIDNoLongerBelongsToItsExpected" xml:space="preserve"><value>معرف المجلد {0} لم يعد ينتمي إلى مجموعة CenterDevice المتوقعة.</value></data>
+  <data name="FolderMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>بيانات تعريف المجلد لا تتطابق مع المعرف المطلوب.</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>ممنوع: {0}</value></data>
+  <data name="GroupSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>مشاركة المجموعة غير مدعومة من قبل خادم OCS هذا</value></data>
+  <data name="InvalidItemType" xml:space="preserve"><value>نوع العنصر غير صالح: {0}</value></data>
+  <data name="InvalidItemTypeStatus" xml:space="preserve"><value>حالة نوع العنصر غير صالحة</value></data>
+  <data name="InvalidItemTypeStatusForIsRoot" xml:space="preserve"><value>حالة نوع العنصر غير صالحة لـ IsRoot</value></data>
+  <data name="ItemTypeExpectedButWas" xml:space="preserve"><value>كان نوع العنصر {0} متوقعًا، ولكنه كان {1}</value></data>
+  <data name="ItemTypeExpectedButWas2" xml:space="preserve"><value>نوع العنصر {0}{1} كان متوقعًا، لكنه كان {2}</value></data>
+  <data name="ItemTypeOrExpectedButWas" xml:space="preserve"><value>نوع العنصر {0} أو {1} متوقع، ولكنه كان {2}</value></data>
+  <data name="LinkCreationRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>يتطلب إنشاء الارتباط معرف المورد المحدد.</value></data>
+  <data name="LinkSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>مشاركة الارتباط غير مدعومة من قبل خادم OCS هذا</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed" xml:space="preserve"><value>فشل إدراج مورد WebDAV في {0}: {1}</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed2" xml:space="preserve"><value>فشل إدراج مورد WebDAV في {0}: {1} {2}</value></data>
+  <data name="LoginCredentialsCanTExistForDMSProvider" xml:space="preserve"><value>لا يمكن أن توجد بيانات اعتماد تسجيل الدخول لموفر DMS "لا شيء"</value></data>
+  <data name="LoginCredentialsProviderWebDAVExpectedButWas" xml:space="preserve"><value>من المتوقع أن يكون موفر بيانات اعتماد تسجيل الدخول WebDAV، ولكنه كان {0}</value></data>
+  <data name="MoreThanOneMatchingOCSShareWasFound" xml:space="preserve"><value>تم العثور على أكثر من مشاركة OCS مطابقة</value></data>
+  <data name="MoveFailedForFileIDRollbackWasAttempted" xml:space="preserve"><value>فشل النقل لمعرف الملف {0}؛ تمت محاولة التراجع.</value></data>
+  <data name="MoveFailedForFolderIDRollbackWasAttempted" xml:space="preserve"><value>فشل النقل لمعرف المجلد {0}؛ تمت محاولة التراجع.</value></data>
+  <data name="MovingADocumentWithMultipleOrUnknownDirectory" xml:space="preserve"><value>يتطلب نقل مستند يحتوي على مراجع دليل متعددة أو غير معروفة مصدرًا أصليًا محددًا.</value></data>
+  <data name="MustBe" xml:space="preserve"><value>يجب أن يكون&gt; = 0</value></data>
+  <data name="MustBeAPathWithoutTrailingDirectorySeparator" xml:space="preserve"><value>يجب أن يكون مسارًا بدون حرف فاصل للدليل اللاحق: {0}</value></data>
+  <data name="NegativeSizeValuesAreNotAllowed" xml:space="preserve"><value>غير مسموح بقيم الحجم السالبة</value></data>
+  <data name="NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre" xml:space="preserve"><value>لم يتم العثور على أي منظمة، عادةً ما تكون تفويضات مستخدم Scopevisio مطلوبة: Rechteprofil Kontakte – alle Rechte oder CRM – alle Rechte</value></data>
+  <data name="NotYetImplementedDMSProvider" xml:space="preserve"><value>موفر DMS لم يتم تنفيذه بعد: {0}</value></data>
+  <data name="OCSCapabilityDiscoveryFailed" xml:space="preserve"><value>فشل اكتشاف قدرة OCS.</value></data>
+  <data name="OCSLinkShareWasNotFound" xml:space="preserve"><value>لم يتم العثور على مشاركة رابط OCS {0}</value></data>
+  <data name="OCSShareListingDidNotReturnAnArray" xml:space="preserve"><value>لم تقم قائمة مشاركة OCS بإرجاع صفيف.</value></data>
+  <data name="OCSShareListingFailed" xml:space="preserve"><value>فشلت قائمة مشاركة OCS.</value></data>
+  <data name="PublicUploadsAreNotSupportedByThisOCS" xml:space="preserve"><value>التحميلات العامة غير مدعومة من قبل خادم OCS هذا</value></data>
+  <data name="PublicUploadsCanOnlyBeEnabledForFolders" xml:space="preserve"><value>لا يمكن تمكين التحميلات العامة إلا للمجلدات</value></data>
+  <data name="RemoteItemExistsMultipleTimes" xml:space="preserve"><value>العنصر البعيد موجود عدة مرات: {0}</value></data>
+  <data name="RemoteRessourceWithUnsupportedType" xml:space="preserve"><value>المورد البعيد بنوع غير مدعوم: {0}</value></data>
+  <data name="RessourceNotFound" xml:space="preserve"><value>لم يتم العثور على المورد: {0}</value></data>
+  <data name="RootDirectoryCanTBeTheSourceOf" xml:space="preserve"><value>لا يمكن أن يكون الدليل الجذر هو مصدر إجراء النسخ أو النقل</value></data>
+  <data name="RootDirectoryCanTBeTheTargetOf" xml:space="preserve"><value>لا يمكن أن يكون الدليل الجذر هدفًا لإجراء النسخ أو النقل</value></data>
+  <data name="RootFolderCanTBeDeleted" xml:space="preserve"><value>لا يمكن حذف المجلد الجذر</value></data>
+  <data name="ScopevisioUserAuthenticationFailed" xml:space="preserve"><value>فشلت مصادقة مستخدم Scopevisio.</value></data>
+  <data name="SharingForFilesNotSupported" xml:space="preserve"><value>مشاركة الملفات غير مدعومة</value></data>
+  <data name="SharingForRootDirectoryNotSupported" xml:space="preserve"><value>المشاركة للدليل الجذر غير مدعومة</value></data>
+  <data name="SharingIsNotSupportedByThisWebDAVServer" xml:space="preserve"><value>المشاركة غير مدعومة من قبل خادم WebDAV هذا</value></data>
+  <data name="SharingRequiresANonemptyUserOrGroupIdentifier" xml:space="preserve"><value>تتطلب المشاركة معرف مستخدم أو مجموعة غير فارغ.</value></data>
+  <data name="SharingRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>تتطلب المشاركة معرف المورد المحدد.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameDocumentReplacement" xml:space="preserve"><value>المصدر والوجهة يحددان نفس الوثيقة؛ سيؤدي الاستبدال إلى حذف المستند المصدر ومراجعه الأخرى.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameFolder" xml:space="preserve"><value>يحدد المصدر والوجهة نفس المجلد.</value></data>
+  <data name="SourceAndDestinationPathsMustDiffer" xml:space="preserve"><value>يجب أن تختلف مسارات المصدر والوجهة.</value></data>
+  <data name="SubItemsOfFoundOutsideOfThisPath" xml:space="preserve"><value>العناصر الفرعية لـ {0} الموجودة خارج هذا المسار: {1}</value></data>
+  <data name="TaskNotFinished" xml:space="preserve"><value>المهمة لم تنته</value></data>
+  <data name="TaskNotStarted" xml:space="preserve"><value>لم تبدأ المهمة</value></data>
+  <data name="TaskStatusInvalid" xml:space="preserve"><value>حالة المهمة غير صالحة</value></data>
+  <data name="TheCollectionOfCenterDeviceFolderIDIsUnknown" xml:space="preserve"><value>مجموعة معرف مجلد CenterDevice {0} غير معروفة.</value></data>
+  <data name="TheCollectionSUploadLinkHasNoIdentifier" xml:space="preserve"><value>رابط تحميل المجموعة ليس له معرف.</value></data>
+  <data name="TheCopiedFileCouldnTBePromotedTo" xml:space="preserve"><value>لا يمكن ترقية الملف المنسوخ إلى اسمه النهائي؛ تمت محاولة التراجع.</value></data>
+  <data name="TheCopySucceededButTheReplacedFileWith" xml:space="preserve"><value>نجحت النسخة، لكن الملف الذي تم استبداله بالمعرف {0} يظل تحت الاسم المؤقت {1}.</value></data>
+  <data name="TheDMSInstanceIsNotAvailableToThe" xml:space="preserve"><value>مثيل DMS غير متاح للمستخدم المصرح له.</value></data>
+  <data name="TheDMSProviderMustBeAuthorizedBeforeAccessing" xml:space="preserve"><value>يجب أن يكون موفر DMS معتمدًا قبل الوصول إلى مثيلات DMS.</value></data>
+  <data name="TheDownloadLinkResponseContainsNoAccessControl" xml:space="preserve"><value>لا تحتوي استجابة رابط التنزيل على بيانات تعريف للتحكم في الوصول.</value></data>
+  <data name="TheFolderListingFailedWithHTTP" xml:space="preserve"><value>فشلت قائمة المجلدات مع HTTP {0}.</value></data>
+  <data name="TheFolderListingResponseHasNoFoldersArray" xml:space="preserve"><value>لا تحتوي استجابة قائمة المجلدات على مصفوفة مجلدات.</value></data>
+  <data name="TheLinkOperationRequiresAnIdentifier" xml:space="preserve"><value>تتطلب عملية الارتباط معرفًا.</value></data>
+  <data name="TheMatchingOCSShareWasNotFound" xml:space="preserve"><value>لم يتم العثور على مشاركة OCS المطابقة</value></data>
+  <data name="TheMoveSucceededButTheReplacedFileWith" xml:space="preserve"><value>نجحت عملية النقل، لكن الملف الذي تم استبداله بالمعرف {0} يظل تحت الاسم المؤقت {1}.</value></data>
+  <data name="TheNativeGroupResponseContainsNoGroupList" xml:space="preserve"><value>لا تحتوي استجابة المجموعة الأصلية على قائمة المجموعة.</value></data>
+  <data name="TheNativeGroupSnapshotDoesNotMatchThe" xml:space="preserve"><value>لقطة المجموعة الأصلية لا تتطابق مع المعرف المطلوب.</value></data>
+  <data name="TheNativeUserResponseContainsANullUser" xml:space="preserve"><value>تحتوي استجابة المستخدم الأصلية على مستخدم فارغ.</value></data>
+  <data name="TheNativeUserResponseContainsNoUserList" xml:space="preserve"><value>لا تحتوي استجابة المستخدم الأصلية على قائمة مستخدمين.</value></data>
+  <data name="TheNativeUserSnapshotDoesNotMatchThe" xml:space="preserve"><value>لقطة المستخدم الأصلية لا تتطابق مع المعرف المطلوب.</value></data>
+  <data name="TheOCSServerReturnedAnUnexpectedShareType" xml:space="preserve"><value>أرجع خادم OCS نوع مشاركة غير متوقع لمشاركة الارتباط</value></data>
+  <data name="TheOperationFailedCompensationOfConfirmedChangesWas" xml:space="preserve"><value>فشلت العملية؛ تمت محاولة التعويض عن التغييرات المؤكدة. قد يتطلب الطلب الذي تمت مقاطعته تسوية حالة الخادم.</value></data>
+  <data name="TheOperationSucceededButReplacedDocumentIDRemains" xml:space="preserve"><value>نجحت العملية، ولكن معرف المستند الذي تم استبداله {0} يظل تحت الاسم المؤقت {1}.</value></data>
+  <data name="TheParentDMSResourceItemIsRequired" xml:space="preserve"><value>عنصر مورد DMS الأصلي مطلوب</value></data>
+  <data name="TheRemoteResourceMustBeAFile" xml:space="preserve"><value>يجب أن يكون المورد البعيد ملفًا.</value></data>
+  <data name="TheResolvedFileHasNoIdentifier" xml:space="preserve"><value>الملف الذي تم حله ليس له معرف.</value></data>
+  <data name="TheResolvedResourceHasNoIdentifier" xml:space="preserve"><value>المورد الذي تم حله ليس له معرف: {0}</value></data>
+  <data name="TheRetryLoopEndedUnexpectedly" xml:space="preserve"><value>انتهت حلقة إعادة المحاولة بشكل غير متوقع.</value></data>
+  <data name="TheSelectedDirectoryPathNoLongerHasThe" xml:space="preserve"><value>لم يعد مسار الدليل المحدد يحتوي على النوع المتوقع.</value></data>
+  <data name="TheSelectedFilePathNoLongerIdentifiesA" xml:space="preserve"><value>لم يعد مسار الملف المحدد يحدد الملف.</value></data>
+  <data name="TheSelectedResourceIsNotACollectionOr" xml:space="preserve"><value>المورد المحدد ليس مجموعة أو مجلد.</value></data>
+  <data name="TheSelectedResourceIsNotAFile" xml:space="preserve"><value>المورد المحدد ليس ملفًا.</value></data>
+  <data name="TheSharingOperationFailedForOneOrMore" xml:space="preserve"><value>فشلت عملية المشاركة لمستخدم أو مجموعة واحدة أو أكثر.</value></data>
+  <data name="TheSourceItemHasAnUnexpectedResourceType" xml:space="preserve"><value>يحتوي العنصر المصدر على نوع مورد غير متوقع.</value></data>
+  <data name="TheSourceItemIsnTADirectory" xml:space="preserve"><value>العنصر المصدر ليس دليلاً.</value></data>
+  <data name="TheSourceItemMustProvideItsFullRemote" xml:space="preserve"><value>يجب أن يوفر العنصر المصدر مساره البعيد الكامل.</value></data>
+  <data name="TheUploadLinkResponseContainsNoMetadata" xml:space="preserve"><value>لا تحتوي استجابة رابط التحميل على بيانات وصفية.</value></data>
+  <data name="ThisOCSAPICannotRepresentViewAndDownload" xml:space="preserve"><value>لا يمكن لـ OCS API أن تمثل أذونات العرض والتنزيل بشكل منفصل</value></data>
+  <data name="ThisProviderDoesNotSupportAsynchronousMoveOperations" xml:space="preserve"><value>لا يدعم هذا الموفر عمليات النقل غير المتزامنة.</value></data>
+  <data name="UnknownItemTypeAdditionalImplementationRequired" xml:space="preserve"><value>نوع العنصر غير معروف، مطلوب تنفيذ إضافي</value></data>
+  <data name="UnsupportedSourceItemType" xml:space="preserve"><value>نوع العنصر المصدر غير مدعوم.</value></data>
+  <data name="UnsupportedSourceItemType2" xml:space="preserve"><value>نوع عنصر المصدر غير مدعوم: {0}</value></data>
+  <data name="UpdateOfLinkRequiresAnIDInDmsLink" xml:space="preserve"><value>يتطلب تحديث الارتباط معرفًا في DmsLink</value></data>
+  <data name="UpdatingOfSharePropertiesNotSupported" xml:space="preserve"><value>تحديث خصائص المشاركة غير مدعوم</value></data>
+  <data name="UploadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>لم يُرجع إنشاء رابط التحميل أي معرف.</value></data>
+  <data name="UploadLinkMaxBytesMustBeAPositiveMultiple" xml:space="preserve"><value>يجب أن يكون MaxBytes لرابط التحميل مضاعفًا موجبًا لـ 1 جيجا بايت (1073741824 بايت).</value></data>
+  <data name="UploadLinksSupportedOnlyWithCollections" xml:space="preserve"><value>روابط التحميل مدعومة فقط مع المجموعات</value></data>
+  <data name="UserGroupSharingIsSupportedOnlyForCollections" xml:space="preserve"><value>مشاركة المستخدم/المجموعة مدعومة فقط للمجموعات والمجلدات.</value></data>
+  <data name="UserSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>مشاركة المستخدم غير مدعومة من قبل خادم OCS هذا</value></data>
+  <data name="CopyTaskFailed" xml:space="preserve"><value>فشلت مهمة النسخ</value></data>
+  <data name="CreateFolderFailed" xml:space="preserve"><value>فشل إنشاء المجلد</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>فشل الحذف</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>فشل التحرك</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>فشل التحميل</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>لم يعد من الممكن تجديد جلستك. قم بتسجيل الدخول مرة أخرى للمتابعة.</value></data>
+</root>
