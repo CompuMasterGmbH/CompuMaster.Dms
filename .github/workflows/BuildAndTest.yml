@@ -16,6 +16,11 @@ on:
         description: 'Native-only Level 2 verification; skips the default-package matrix and requires coordinated exclusive Scopevisio access.'
         type: boolean
         default: false
+      native_dependency_mode:
+        description: 'Native verification against released NuGet packages, or the historical pinned source chain.'
+        type: choice
+        options: [packages, source]
+        default: packages
       exclusive_window_until:
         description: 'Confirmed exclusive-window end in ISO 8601 with UTC offset; each locked job needs 185 minutes remaining.'
         type: string
@@ -290,6 +295,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Checkout pinned SDK draft
+        if: inputs.native_dependency_mode == 'source'
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.CenterDevice.IO
@@ -297,6 +303,7 @@ jobs:
           path: .upstream/CenterDevice.IO
           persist-credentials: false
       - name: Checkout pinned OpenScope draft
+        if: inputs.native_dependency_mode == 'source'
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.Scopevisio.OpenApi
@@ -304,6 +311,7 @@ jobs:
           path: .upstream/OpenScope
           persist-credentials: false
       - name: Checkout pinned Teamwork draft
+        if: inputs.native_dependency_mode == 'source'
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork
@@ -313,13 +321,14 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
-      - name: Verify coordinated native live access and run source-mode tests
+      - name: Verify coordinated native live access and run selected dependency mode
         shell: pwsh
         env:
           EXCLUSIVE_WINDOW_UNTIL: ${{ inputs.exclusive_window_until }}
           TRANSFER_MIB: ${{ inputs.transfer_mib }}
           NATIVE_SCOPEVISIO_MODE: ${{ inputs.native_scopevisio_mode }}
-        run: ./.github/scripts/test-native-scopevisio-live.ps1 -ExclusiveWindowUntil $env:EXCLUSIVE_WINDOW_UNTIL -TransferMiB $env:TRANSFER_MIB -Mode $env:NATIVE_SCOPEVISIO_MODE
+          NATIVE_DEPENDENCY_MODE: ${{ inputs.native_dependency_mode }}
+        run: ./.github/scripts/test-native-scopevisio-live.ps1 -ExclusiveWindowUntil $env:EXCLUSIVE_WINDOW_UNTIL -TransferMiB $env:TRANSFER_MIB -Mode $env:NATIVE_SCOPEVISIO_MODE -DependencyMode $env:NATIVE_DEPENDENCY_MODE
       - name: Retain native live test evidence
         if: always()
         uses: actions/upload-artifact@v4
