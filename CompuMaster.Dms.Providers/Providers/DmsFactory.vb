@@ -40,7 +40,7 @@ Namespace Providers
                 Case Providers.BaseDmsProvider.DmsProviders.WebDAV
                     Return New WebDavDmsProvider
                 Case Else
-                    Throw New NotImplementedException("Not yet implemented DMS provider: " & provider.ToString)
+                    Throw New NotImplementedException(ProviderStrings.Format("NotYetImplementedDMSProvider", provider.ToString))
             End Select
         End Function
 

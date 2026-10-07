@@ -8,12 +8,12 @@
         Inherits System.Exception
 
         Public Sub New(remotePath As String)
-            MyBase.New("Directory already exists: " & remotePath)
+            MyBase.New(ProviderStrings.Format("DirectoryAlreadyExists", remotePath))
             Me.RemotePath = remotePath
         End Sub
 
         Public Sub New(remotePath As String, innerException As Exception)
-            MyBase.New("File already exists: " & remotePath, innerException)
+            MyBase.New(ProviderStrings.Format("FileAlreadyExists", remotePath), innerException)
             Me.RemotePath = remotePath
         End Sub
 

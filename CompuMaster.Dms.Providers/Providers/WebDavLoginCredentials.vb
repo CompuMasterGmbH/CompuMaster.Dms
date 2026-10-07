@@ -17,7 +17,7 @@ Namespace Providers
             Select Case Me.DmsProvider
                 Case BaseDmsProvider.DmsProviders.WebDAV
                 Case Else
-                    Throw New NotSupportedException("Login credentials provider WebDAV expected, but was " & Me.DmsProvider.ToString)
+                    Throw New NotSupportedException(ProviderStrings.Format("LoginCredentialsProviderWebDAVExpectedButWas", Me.DmsProvider.ToString))
             End Select
         End Sub
 

@@ -8,12 +8,12 @@
         Inherits System.Exception
 
         Public Sub New(remotePath As String)
-            MyBase.New("Directory not found: " & remotePath)
+            MyBase.New(ProviderStrings.Format("DirectoryNotFound", remotePath))
             Me.RemotePath = remotePath
         End Sub
 
         Public Sub New(remotePath As String, innerException As Exception)
-            MyBase.New("Directory not found: " & remotePath, innerException)
+            MyBase.New(ProviderStrings.Format("DirectoryNotFound", remotePath), innerException)
             Me.RemotePath = remotePath
         End Sub
 

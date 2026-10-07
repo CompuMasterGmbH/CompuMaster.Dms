@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ACycleWasFoundInTheCenterDeviceFolder" xml:space="preserve"><value>Die CenterDevice-Ordnerstruktur enthält einen Zyklus bei Ordner-ID {0}.</value></data>
+  <data name="ADMSInstanceDisplayNameIsRequired" xml:space="preserve"><value>Ein Anzeigename für die DMS-Instanz ist erforderlich.</value></data>
+  <data name="ADMSInstanceIDIsRequired" xml:space="preserve"><value>Eine DMS-Instanz-ID ist erforderlich.</value></data>
+  <data name="ADirectoryCanTBeCopiedOrMoved" xml:space="preserve"><value>Ein Verzeichnis kann nicht in sich selbst kopiert oder verschoben werden.</value></data>
+  <data name="ADirectoryMergeCannotConsumeTheSameFolder" xml:space="preserve"><value>Beim Zusammenführen darf derselbe Ordner nicht mehrfach verarbeitet werden.</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto" xml:space="preserve"><value>Ein Ordner kann nicht in seine eigene Ordnerstruktur kopiert oder verschoben werden, auch wenn Zielverzeichnisse neu erstellt würden.</value></data>
+  <data name="AFolderCannotBeCopiedOrMovedInto2" xml:space="preserve"><value>Ein Ordner kann auch über einen anderen Pfad nicht in sich selbst kopiert oder verschoben werden.</value></data>
+  <data name="AGroupIDIsRequired" xml:space="preserve"><value>Eine Gruppen-ID ist erforderlich</value></data>
+  <data name="APositiveNumericOCSShareIDIsRequired" xml:space="preserve"><value>Eine positive numerische OCS-Freigabe-ID ist erforderlich</value></data>
+  <data name="AResourceSnapshotCannotBeNull" xml:space="preserve"><value>Ein Ressourcen-Snapshot darf nicht leer sein.</value></data>
+  <data name="ASelectedFolderIdentifierIsRequired" xml:space="preserve"><value>Eine ID für den ausgewählten Ordner ist erforderlich.</value></data>
+  <data name="AUserIDIsRequired" xml:space="preserve"><value>Eine Benutzer-ID ist erforderlich</value></data>
+  <data name="ActionFailedForDirectory" xml:space="preserve"><value>Aktion {0} für Verzeichnis "{1}" fehlgeschlagen</value></data>
+  <data name="ActionFailedForFile" xml:space="preserve"><value>Aktion {0} für Datei "{1}" fehlgeschlagen</value></data>
+  <data name="ActionFailedForSourceDirectoryAndDestination" xml:space="preserve"><value>Aktion {0} für Quellverzeichnis "{1}" und Ziel "{2}" fehlgeschlagen</value></data>
+  <data name="ActionFailedForSourceFileAndDestination" xml:space="preserve"><value>Aktion {0} für Quelldatei "{1}" und Ziel "{2}" fehlgeschlagen</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>Alle Benutzer</value></data>
+  <data name="AllowDeleteNotSupportedByProvider" xml:space="preserve"><value>Der Provider unterstützt keine Löschberechtigung</value></data>
+  <data name="AllowEditNotSupportedByProvider" xml:space="preserve"><value>Der Provider unterstützt keine Bearbeitungsberechtigung</value></data>
+  <data name="AllowShareNotSupportedByProvider" xml:space="preserve"><value>Der Provider unterstützt keine Freigabeberechtigung</value></data>
+  <data name="AtLeastOneSharingPermissionIsRequired" xml:space="preserve"><value>Mindestens eine Freigabeberechtigung ist erforderlich</value></data>
+  <data name="AuthentificationForUserFailed" xml:space="preserve"><value>Anmeldung für Benutzer "{0}" fehlgeschlagen: {1}</value></data>
+  <data name="AuthentificationForUserFailed2" xml:space="preserve"><value>Anmeldung für Benutzer "{0}" fehlgeschlagen: {1} {2}</value></data>
+  <data name="ButRemoteItemExists" xml:space="preserve"><value>{0}, aber das entfernte Element ist vorhanden: {1}</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedInThe" xml:space="preserve"><value>CenterDevice-Sammlungen können nur im Stammverzeichnis umbenannt werden.</value></data>
+  <data name="CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining" xml:space="preserve"><value>CenterDevice-Sammlungen können nur umbenannt werden, wenn sie im Stammverzeichnis bleiben.</value></data>
+  <data name="CenterDeviceCollectionsCanTBeCopiedBecauseThey" xml:space="preserve"><value>CenterDevice-Sammlungen können nicht kopiert werden, da sie Freigabecontainer der obersten Ebene und keine gewöhnlichen Ordner sind.</value></data>
+  <data name="CenterDeviceCollectionsCannotBeCopied" xml:space="preserve"><value>CenterDevice-Sammlungen können nicht kopiert werden.</value></data>
+  <data name="CenterDeviceFilesAndFoldersMustRemainInsideA" xml:space="preserve"><value>CenterDevice-Dateien und -Ordner müssen in einer Sammlung oder einem Ordner bleiben.</value></data>
+  <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>CenterDevice-Ordner müssen in einer Sammlung oder einem anderen Ordner bleiben.</value></data>
+  <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>Die Sammlungsmetadaten passen nicht zur angefragten ID.</value></data>
+  <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>WebDAV unterstützt keine Sammlungen</value></data>
+  <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>Sammlung "{0}" muss im Stammverzeichnis liegen, befindet sich aber in "{1}"</value></data>
+  <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>Sammlungen müssen im Stammverzeichnis liegen: {0}</value></data>
+  <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>Dieser DMS-Provider unterstützt keine eigenen Webservice-URLs</value></data>
+  <data name="DMSClientNumber" xml:space="preserve"><value>DMS-Kundennummer</value></data>
+  <data name="CustomerDmsInstanceDeleted" xml:space="preserve"><value>DMS-Instanz des Kunden wurde gelöscht</value></data>
+  <data name="DMSPassword" xml:space="preserve"><value>DMS-Passwort</value></data>
+  <data name="DMSUsername" xml:space="preserve"><value>DMS-Benutzername</value></data>
+  <data name="DirectoryAlreadyExists" xml:space="preserve"><value>Verzeichnis bereits vorhanden: {0}</value></data>
+  <data name="DirectoryNotFound" xml:space="preserve"><value>Verzeichnis nicht gefunden: {0}</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>Download fehlgeschlagen</value></data>
+  <data name="DownloadFailedNotCompletedSuccessfull" xml:space="preserve"><value>Download fehlgeschlagen: nicht erfolgreich abgeschlossen</value></data>
+  <data name="DownloadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>Beim Erstellen des Download-Links wurde keine ID zurückgegeben.</value></data>
+  <data name="EitherAllowViewOrAllowUploadMustBeSet" xml:space="preserve"><value>Ansicht oder Upload muss erlaubt sein</value></data>
+  <data name="Failed" xml:space="preserve"><value>{0} fehlgeschlagen: {1}</value></data>
+  <data name="FileAlreadyExists" xml:space="preserve"><value>Datei bereits vorhanden: {0}</value></data>
+  <data name="FileMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>Die Dateimetadaten passen nicht zur angefragten ID.</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>Datei nicht gefunden: {0}</value></data>
+  <data name="FilesDonTContainDirectoryCaches" xml:space="preserve"><value>Dateien enthalten keinen Verzeichniscache</value></data>
+  <data name="FilesInRootFolderNotSupportedByDMS" xml:space="preserve"><value>Der DMS-Provider unterstützt keine Dateien im Stammverzeichnis</value></data>
+  <data name="FolderIDNoLongerBelongsToItsExpected" xml:space="preserve"><value>Ordner-ID {0} gehört nicht mehr zur erwarteten CenterDevice-Sammlung.</value></data>
+  <data name="FolderMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>Die Ordnermetadaten passen nicht zur angefragten ID.</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>Zugriff verweigert: {0}</value></data>
+  <data name="GroupSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>Dieser OCS-Server unterstützt keine Gruppenfreigaben</value></data>
+  <data name="InvalidItemType" xml:space="preserve"><value>Ungültiger Elementtyp: {0}</value></data>
+  <data name="InvalidItemTypeStatus" xml:space="preserve"><value>Ungültiger Elementtyp</value></data>
+  <data name="InvalidItemTypeStatusForIsRoot" xml:space="preserve"><value>Ungültiger Elementtyp für die Prüfung des Stammverzeichnisses</value></data>
+  <data name="ItemTypeExpectedButWas" xml:space="preserve"><value>Elementtyp {0} erwartet, gefunden wurde {1}</value></data>
+  <data name="ItemTypeExpectedButWas2" xml:space="preserve"><value>Elementtyp {0}{1} erwartet, gefunden wurde {2}</value></data>
+  <data name="ItemTypeOrExpectedButWas" xml:space="preserve"><value>Elementtyp {0} oder {1} erwartet, gefunden wurde {2}</value></data>
+  <data name="LinkCreationRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>Zum Erstellen eines Links ist die ID der ausgewählten Ressource erforderlich.</value></data>
+  <data name="LinkSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>Dieser OCS-Server unterstützt keine Linkfreigaben</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed" xml:space="preserve"><value>Abfrage der WebDAV-Ressource unter {0} fehlgeschlagen: {1}</value></data>
+  <data name="ListingOfWebDAVResourceAtFailed2" xml:space="preserve"><value>Abfrage der WebDAV-Ressource unter {0} fehlgeschlagen: {1} {2}</value></data>
+  <data name="LoginCredentialsCanTExistForDMSProvider" xml:space="preserve"><value>Für den DMS-Provider "None" gibt es keine Anmeldedaten</value></data>
+  <data name="LoginCredentialsProviderWebDAVExpectedButWas" xml:space="preserve"><value>Anmeldedaten für WebDAV erwartet, gefunden wurde {0}</value></data>
+  <data name="MoreThanOneMatchingOCSShareWasFound" xml:space="preserve"><value>Mehrere passende OCS-Freigaben gefunden</value></data>
+  <data name="MoveFailedForFileIDRollbackWasAttempted" xml:space="preserve"><value>Das Verschieben der Datei mit ID {0} ist fehlgeschlagen. Ein Rückgängigmachen wurde versucht.</value></data>
+  <data name="MoveFailedForFolderIDRollbackWasAttempted" xml:space="preserve"><value>Das Verschieben des Ordners mit ID {0} ist fehlgeschlagen. Ein Rückgängigmachen wurde versucht.</value></data>
+  <data name="MovingADocumentWithMultipleOrUnknownDirectory" xml:space="preserve"><value>Für das Verschieben eines Dokuments mit mehreren oder unbekannten Verzeichniszuordnungen muss ein Quellverzeichnis ausgewählt sein.</value></data>
+  <data name="MustBe" xml:space="preserve"><value>Muss mindestens 0 sein</value></data>
+  <data name="MustBeAPathWithoutTrailingDirectorySeparator" xml:space="preserve"><value>Der Pfad darf nicht mit einem Verzeichnistrennzeichen enden: {0}</value></data>
+  <data name="NegativeSizeValuesAreNotAllowed" xml:space="preserve"><value>Negative Größenangaben sind nicht erlaubt</value></data>
+  <data name="NoOrganisationFoundUsuallyScopevisioUserAuthorizationsAre" xml:space="preserve"><value>Keine Organisation gefunden. Üblicherweise fehlen Scopevisio-Berechtigungen: Rechteprofil Kontakte – alle Rechte oder CRM – alle Rechte</value></data>
+  <data name="NotYetImplementedDMSProvider" xml:space="preserve"><value>Noch nicht implementierter DMS-Provider: {0}</value></data>
+  <data name="OCSCapabilityDiscoveryFailed" xml:space="preserve"><value>Die OCS-Fähigkeiten konnten nicht ermittelt werden.</value></data>
+  <data name="OCSLinkShareWasNotFound" xml:space="preserve"><value>OCS-Linkfreigabe {0} nicht gefunden</value></data>
+  <data name="OCSShareListingDidNotReturnAnArray" xml:space="preserve"><value>Die OCS-Freigabeabfrage hat keine Liste zurückgegeben.</value></data>
+  <data name="OCSShareListingFailed" xml:space="preserve"><value>Die OCS-Freigaben konnten nicht abgefragt werden.</value></data>
+  <data name="PublicUploadsAreNotSupportedByThisOCS" xml:space="preserve"><value>Dieser OCS-Server unterstützt keine öffentlichen Uploads</value></data>
+  <data name="PublicUploadsCanOnlyBeEnabledForFolders" xml:space="preserve"><value>Öffentliche Uploads können nur für Ordner aktiviert werden</value></data>
+  <data name="RemoteItemExistsMultipleTimes" xml:space="preserve"><value>Das entfernte Element ist mehrfach vorhanden: {0}</value></data>
+  <data name="RemoteRessourceWithUnsupportedType" xml:space="preserve"><value>Entfernte Ressource mit nicht unterstütztem Typ: {0}</value></data>
+  <data name="RessourceNotFound" xml:space="preserve"><value>Ressource nicht gefunden: {0}</value></data>
+  <data name="RootDirectoryCanTBeTheSourceOf" xml:space="preserve"><value>Das Stammverzeichnis kann nicht kopiert oder verschoben werden</value></data>
+  <data name="RootDirectoryCanTBeTheTargetOf" xml:space="preserve"><value>Das Stammverzeichnis kann nicht das Ziel einer Kopier- oder Verschiebeaktion sein</value></data>
+  <data name="RootFolderCanTBeDeleted" xml:space="preserve"><value>Das Stammverzeichnis kann nicht gelöscht werden</value></data>
+  <data name="ScopevisioUserAuthenticationFailed" xml:space="preserve"><value>Die Scopevisio-Benutzeranmeldung ist fehlgeschlagen.</value></data>
+  <data name="SharingForFilesNotSupported" xml:space="preserve"><value>Dateifreigaben werden nicht unterstützt</value></data>
+  <data name="SharingForRootDirectoryNotSupported" xml:space="preserve"><value>Das Stammverzeichnis kann nicht freigegeben werden</value></data>
+  <data name="SharingIsNotSupportedByThisWebDAVServer" xml:space="preserve"><value>Dieser WebDAV-Server unterstützt keine Freigaben</value></data>
+  <data name="SharingRequiresANonemptyUserOrGroupIdentifier" xml:space="preserve"><value>Eine Freigabe erfordert eine nicht leere Benutzer- oder Gruppen-ID.</value></data>
+  <data name="SharingRequiresTheSelectedResourceIdentifier" xml:space="preserve"><value>Eine Freigabe erfordert die ID der ausgewählten Ressource.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameDocumentReplacement" xml:space="preserve"><value>Quelle und Ziel bezeichnen dasselbe Dokument. Ein Ersetzen würde das Quelldokument und seine weiteren Zuordnungen löschen.</value></data>
+  <data name="SourceAndDestinationIdentifyTheSameFolder" xml:space="preserve"><value>Quelle und Ziel bezeichnen denselben Ordner.</value></data>
+  <data name="SourceAndDestinationPathsMustDiffer" xml:space="preserve"><value>Quell- und Zielpfad müssen unterschiedlich sein.</value></data>
+  <data name="SubItemsOfFoundOutsideOfThisPath" xml:space="preserve"><value>Unterelemente von {0} außerhalb dieses Pfads gefunden: {1}</value></data>
+  <data name="TaskNotFinished" xml:space="preserve"><value>Aufgabe nicht abgeschlossen</value></data>
+  <data name="TaskNotStarted" xml:space="preserve"><value>Aufgabe nicht gestartet</value></data>
+  <data name="TaskStatusInvalid" xml:space="preserve"><value>Ungültiger Aufgabenstatus</value></data>
+  <data name="TheCollectionOfCenterDeviceFolderIDIsUnknown" xml:space="preserve"><value>Die Sammlung des CenterDevice-Ordners mit ID {0} ist unbekannt.</value></data>
+  <data name="TheCollectionSUploadLinkHasNoIdentifier" xml:space="preserve"><value>Der Upload-Link der Sammlung hat keine ID.</value></data>
+  <data name="TheCopiedFileCouldnTBePromotedTo" xml:space="preserve"><value>Die kopierte Datei konnte nicht unter ihrem endgültigen Namen gespeichert werden. Ein Rückgängigmachen wurde versucht.</value></data>
+  <data name="TheCopySucceededButTheReplacedFileWith" xml:space="preserve"><value>Das Kopieren war erfolgreich, aber die ersetzte Datei mit ID {0} ist noch unter dem temporären Namen {1} vorhanden.</value></data>
+  <data name="TheDMSInstanceIsNotAvailableToThe" xml:space="preserve"><value>Die DMS-Instanz steht dem angemeldeten Benutzer nicht zur Verfügung.</value></data>
+  <data name="TheDMSProviderMustBeAuthorizedBeforeAccessing" xml:space="preserve"><value>Vor dem Zugriff auf DMS-Instanzen muss der Provider angemeldet werden.</value></data>
+  <data name="TheDownloadLinkResponseContainsNoAccessControl" xml:space="preserve"><value>Die Download-Link-Antwort enthält keine Berechtigungsmetadaten.</value></data>
+  <data name="TheFolderListingFailedWithHTTP" xml:space="preserve"><value>Die Ordnerabfrage ist mit HTTP {0} fehlgeschlagen.</value></data>
+  <data name="TheFolderListingResponseHasNoFoldersArray" xml:space="preserve"><value>Die Antwort der Ordnerabfrage enthält keine Ordnerliste.</value></data>
+  <data name="TheLinkOperationRequiresAnIdentifier" xml:space="preserve"><value>Die Link-Aktion erfordert eine ID.</value></data>
+  <data name="TheMatchingOCSShareWasNotFound" xml:space="preserve"><value>Die passende OCS-Freigabe wurde nicht gefunden</value></data>
+  <data name="TheMoveSucceededButTheReplacedFileWith" xml:space="preserve"><value>Das Verschieben war erfolgreich, aber die ersetzte Datei mit ID {0} ist noch unter dem temporären Namen {1} vorhanden.</value></data>
+  <data name="TheNativeGroupResponseContainsNoGroupList" xml:space="preserve"><value>Die Gruppenantwort enthält keine Gruppenliste.</value></data>
+  <data name="TheNativeGroupSnapshotDoesNotMatchThe" xml:space="preserve"><value>Die Gruppenmetadaten passen nicht zur angefragten ID.</value></data>
+  <data name="TheNativeUserResponseContainsANullUser" xml:space="preserve"><value>Die Benutzerantwort enthält einen leeren Benutzereintrag.</value></data>
+  <data name="TheNativeUserResponseContainsNoUserList" xml:space="preserve"><value>Die Benutzerantwort enthält keine Benutzerliste.</value></data>
+  <data name="TheNativeUserSnapshotDoesNotMatchThe" xml:space="preserve"><value>Die Benutzermetadaten passen nicht zur angefragten ID.</value></data>
+  <data name="TheOCSServerReturnedAnUnexpectedShareType" xml:space="preserve"><value>Der OCS-Server hat für die Linkfreigabe einen unerwarteten Freigabetyp zurückgegeben</value></data>
+  <data name="TheOperationFailedCompensationOfConfirmedChangesWas" xml:space="preserve"><value>Die Aktion ist fehlgeschlagen. Bestätigte Änderungen wurden nach Möglichkeit rückgängig gemacht. Nach einer unterbrochenen Anfrage muss der Serverzustand gegebenenfalls geprüft werden.</value></data>
+  <data name="TheOperationSucceededButReplacedDocumentIDRemains" xml:space="preserve"><value>Die Aktion war erfolgreich, aber das ersetzte Dokument mit ID {0} ist noch unter dem temporären Namen {1} vorhanden.</value></data>
+  <data name="TheParentDMSResourceItemIsRequired" xml:space="preserve"><value>Die übergeordnete DMS-Ressource ist erforderlich</value></data>
+  <data name="TheRemoteResourceMustBeAFile" xml:space="preserve"><value>Die entfernte Ressource muss eine Datei sein.</value></data>
+  <data name="TheResolvedFileHasNoIdentifier" xml:space="preserve"><value>Die ermittelte Datei hat keine ID.</value></data>
+  <data name="TheResolvedResourceHasNoIdentifier" xml:space="preserve"><value>Die ermittelte Ressource hat keine ID: {0}</value></data>
+  <data name="TheRetryLoopEndedUnexpectedly" xml:space="preserve"><value>Die Wiederholungsversuche wurden unerwartet beendet.</value></data>
+  <data name="TheSelectedDirectoryPathNoLongerHasThe" xml:space="preserve"><value>Der ausgewählte Verzeichnispfad hat nicht mehr den erwarteten Typ.</value></data>
+  <data name="TheSelectedFilePathNoLongerIdentifiesA" xml:space="preserve"><value>Der ausgewählte Dateipfad bezeichnet keine Datei mehr.</value></data>
+  <data name="TheSelectedResourceIsNotACollectionOr" xml:space="preserve"><value>Die ausgewählte Ressource ist weder eine Sammlung noch ein Ordner.</value></data>
+  <data name="TheSelectedResourceIsNotAFile" xml:space="preserve"><value>Die ausgewählte Ressource ist keine Datei.</value></data>
+  <data name="TheSharingOperationFailedForOneOrMore" xml:space="preserve"><value>Die Freigabe ist für mindestens einen Benutzer oder eine Gruppe fehlgeschlagen.</value></data>
+  <data name="TheSourceItemHasAnUnexpectedResourceType" xml:space="preserve"><value>Das Quellelement hat einen unerwarteten Ressourcentyp.</value></data>
+  <data name="TheSourceItemIsnTADirectory" xml:space="preserve"><value>Das Quellelement ist kein Verzeichnis.</value></data>
+  <data name="TheSourceItemMustProvideItsFullRemote" xml:space="preserve"><value>Das Quellelement muss seinen vollständigen entfernten Pfad angeben.</value></data>
+  <data name="TheUploadLinkResponseContainsNoMetadata" xml:space="preserve"><value>Die Upload-Link-Antwort enthält keine Metadaten.</value></data>
+  <data name="ThisOCSAPICannotRepresentViewAndDownload" xml:space="preserve"><value>Diese OCS-API kann Ansicht und Download nicht getrennt erlauben</value></data>
+  <data name="ThisProviderDoesNotSupportAsynchronousMoveOperations" xml:space="preserve"><value>Dieser Provider unterstützt keine asynchronen Verschiebeaktionen.</value></data>
+  <data name="UnknownItemTypeAdditionalImplementationRequired" xml:space="preserve"><value>Unbekannter Elementtyp; zusätzliche Implementierung erforderlich</value></data>
+  <data name="UnsupportedSourceItemType" xml:space="preserve"><value>Nicht unterstützter Quellelementtyp.</value></data>
+  <data name="UnsupportedSourceItemType2" xml:space="preserve"><value>Nicht unterstützter Quellelementtyp: {0}</value></data>
+  <data name="UpdateOfLinkRequiresAnIDInDmsLink" xml:space="preserve"><value>Zum Aktualisieren eines Links ist dessen ID erforderlich</value></data>
+  <data name="UpdatingOfSharePropertiesNotSupported" xml:space="preserve"><value>Freigabeeigenschaften können nicht aktualisiert werden</value></data>
+  <data name="UploadLinkCreationReturnedNoIdentifier" xml:space="preserve"><value>Beim Erstellen des Upload-Links wurde keine ID zurückgegeben.</value></data>
+  <data name="UploadLinkMaxBytesMustBeAPositiveMultiple" xml:space="preserve"><value>MaxBytes für Upload-Links muss ein positives Vielfaches von 1 GiB (1073741824 Bytes) sein.</value></data>
+  <data name="UploadLinksSupportedOnlyWithCollections" xml:space="preserve"><value>Upload-Links werden nur für Sammlungen unterstützt</value></data>
+  <data name="UserGroupSharingIsSupportedOnlyForCollections" xml:space="preserve"><value>Benutzer- und Gruppenfreigaben werden nur für Sammlungen und Ordner unterstützt.</value></data>
+  <data name="UserSharingIsNotSupportedByThisOCS" xml:space="preserve"><value>Dieser OCS-Server unterstützt keine Benutzerfreigaben</value></data>
+  <data name="CopyTaskFailed" xml:space="preserve"><value>Kopieren fehlgeschlagen</value></data>
+  <data name="CreateFolderFailed" xml:space="preserve"><value>Ordner konnte nicht erstellt werden</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Löschen fehlgeschlagen</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>Verschieben fehlgeschlagen</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>Upload fehlgeschlagen</value></data>
+</root>

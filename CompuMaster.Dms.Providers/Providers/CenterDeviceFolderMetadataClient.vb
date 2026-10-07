@@ -48,10 +48,10 @@ Namespace Providers
             Me.ValidateResponse(Response, New GetFoldersResponseHandler())
             If Response.StatusCode = HttpStatusCode.NoContent Then Return New List(Of FolderWithChildMetadata)
             If Response.StatusCode <> HttpStatusCode.OK Then
-                Throw New InvalidOperationException("The folder listing failed with HTTP " & CInt(Response.StatusCode).ToString() & ".",
+                Throw New InvalidOperationException(ProviderStrings.Format("TheFolderListingFailedWithHTTP", CInt(Response.StatusCode).ToString()),
                                                     Response.ErrorException)
             End If
-            If Response.Data?.Folders Is Nothing Then Throw New InvalidOperationException("The folder listing response has no folders array.")
+            If Response.Data?.Folders Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheFolderListingResponseHasNoFoldersArray"))
             Return Response.Data.Folders
         End Function
     End Class

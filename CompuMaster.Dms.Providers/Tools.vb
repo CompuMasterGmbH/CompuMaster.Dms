@@ -21,7 +21,7 @@ Friend NotInheritable Class Tools
 
     Public Shared Function ByteSizeToUIDisplayText(value As Long) As String
         If value < 0 Then
-            Throw New ArgumentOutOfRangeException(NameOf(value), "Negative size values are not allowed")
+            Throw New ArgumentOutOfRangeException(NameOf(value), ProviderStrings.GetText("NegativeSizeValuesAreNotAllowed"))
         ElseIf value < 1300L Then
             'Output in Bytes
             Return value.ToString("#,##0") & " Bytes"
@@ -176,7 +176,7 @@ Friend NotInheritable Class Tools
     ''' <param name="inAcceptableDifference"></param>
     ''' <returns></returns>
     Public Shared Function DoubleValueIsEqual(value1 As Double, value2 As Double, inAcceptableDifference As Double) As Boolean
-        If inAcceptableDifference < 0.0 Then Throw New ArgumentOutOfRangeException(NameOf(inAcceptableDifference), "Must be >= 0")
+        If inAcceptableDifference < 0.0 Then Throw New ArgumentOutOfRangeException(NameOf(inAcceptableDifference), ProviderStrings.GetText("MustBe"))
         Dim Diff As Double = value1 - value2
         If Diff = 0.0 Then
             'Is equal

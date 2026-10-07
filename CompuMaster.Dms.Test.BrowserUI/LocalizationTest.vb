@@ -37,6 +37,37 @@ Public Class LocalizationTest
         CollectionAssert.AreEquivalent(neutralKeys, germanKeys)
     End Sub
 
+    <TestCase("en-US", "HasChildDirectories: True")>
+    <TestCase("de-DE", "Unterordner vorhanden: Ja")>
+    Public Sub PropertyLabelsAndBooleanValuesFollowUICultureWithoutChangingResourceIdentity(cultureName As String, expected As String)
+        RunWithCulture(cultureName,
+            Sub()
+                Dim item As New Global.CompuMaster.Dms.Data.DmsResourceItem With {
+                    .ItemType = Global.CompuMaster.Dms.Data.DmsResourceItem.ItemTypes.Folder,
+                    .FullName = "unchanged/path", .Name = "Server-provided name", .HasChildDirectories = True}
+                Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New Global.CompuMaster.Dms.Providers.NoDmsProvider())
+                    Dim details = browser.PropertiesDetails(item)
+                    Assert.That(details, Does.Contain(expected))
+                    Assert.That(details, Does.Contain("unchanged/path"))
+                    Assert.That(item.Name, [Is].EqualTo("Server-provided name"))
+                End Using
+            End Sub)
+    End Sub
+
+    <Test>
+    Public Sub GermanResourcesPreserveEveryNeutralPlaceholderAndFormatSpecifier()
+        Dim neutral = UiResourceManager.GetResourceSet(CultureInfo.InvariantCulture, True, False)
+        Dim german = UiResourceManager.GetResourceSet(CultureInfo.GetCultureInfo("de"), True, False)
+        For Each entry As DictionaryEntry In neutral
+            Dim key = CStr(entry.Key)
+            Dim original = CStr(entry.Value)
+            Dim translated = german.GetString(key)
+            Dim expected = Text.RegularExpressions.Regex.Matches(original, "\{\d+(?:[^}]*)\}").Cast(Of Text.RegularExpressions.Match)().Select(Function(match) match.Value).OrderBy(Function(value) value).ToArray()
+            Dim actual = Text.RegularExpressions.Regex.Matches(translated, "\{\d+(?:[^}]*)\}").Cast(Of Text.RegularExpressions.Match)().Select(Function(match) match.Value).OrderBy(Function(value) value).ToArray()
+            Assert.That(actual, [Is].EqualTo(expected), key)
+        Next
+    End Sub
+
     <TestCase("en-US", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>
     <TestCase("de-DE", "&Abbrechen", "Aktualisieren", "Allgemeine Einstellungen", "&Schließen", "Freigaben an interne Benutzer/Gruppen")>
     <TestCase("fr-FR", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>

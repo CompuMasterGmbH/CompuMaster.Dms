@@ -83,7 +83,7 @@ Public Class DmsLinkShareSetup
             End If
             LoadControls()
         Catch ex As Exception
-            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Me.Close()
         End Try
     End Sub
@@ -125,7 +125,7 @@ Public Class DmsLinkShareSetup
                 Me.CheckBoxAllowDelete.Enabled = True
                 Me.CheckBoxAllowShare.Enabled = True
             Case Else
-                Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
+                Throw New NotImplementedException(UiStrings.Format("DmsProviderImplementationRequiredFor", Me.DmsProvider.GetType.Name))
         End Select
         Select Case _DialogMode
             Case DialogModes.CreateLink
@@ -187,7 +187,7 @@ Public Class DmsLinkShareSetup
                 Me.TextBoxMaxViews.Enabled = False
                 Me.TextBoxDownloadUrl.Enabled = False
             Case Else
-                Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
+                Throw New NotImplementedException(UiStrings.Format("DmsProviderImplementationRequiredFor", Me.DmsProvider.GetType.Name))
         End Select
     End Sub
 
@@ -282,8 +282,8 @@ Public Class DmsLinkShareSetup
     End Function
 
     Private Shared Function SynchronizeCreatedLink(dmsItem As DmsResourceItem, CreatedLink As DmsLink) As DmsLink
-        If CreatedLink Is Nothing Then Throw New InvalidOperationException("The DMS provider returned no created link.")
-        If String.IsNullOrEmpty(CreatedLink.ID) Then Throw New InvalidOperationException("The DMS provider returned a created link without an ID.")
+        If CreatedLink Is Nothing Then Throw New InvalidOperationException(UiStrings.GetText("TheDMSProviderReturnedNoCreatedLink"))
+        If String.IsNullOrEmpty(CreatedLink.ID) Then Throw New InvalidOperationException(UiStrings.GetText("TheDMSProviderReturnedACreatedLinkWithout"))
 
         If dmsItem.ExtendedInfosLinks Is Nothing Then
             dmsItem.ExtendedInfosLinks = New List(Of DmsLink)
@@ -384,13 +384,13 @@ Public Class DmsLinkShareSetup
                     End If
                 Case "WebDavDmsProvider"
                     If Me.CheckBoxAllowView.Checked <> Me.CheckBoxAllowDownload.Checked Then
-                        Throw New DmsUserInputInvalidException("OCS requires View and Download permissions to be selected together")
+                        Throw New DmsUserInputInvalidException(UiStrings.GetText("OCSRequiresViewAndDownloadPermissionsToBe"))
                     End If
                     If Not (Me.CheckBoxAllowView.Checked OrElse Me.CheckBoxAllowEdit.Checked OrElse Me.CheckBoxAllowUpload.Checked OrElse Me.CheckBoxAllowDelete.Checked OrElse Me.CheckBoxAllowShare.Checked) Then
-                        Throw New DmsUserInputMissingException("At least one authorization is required")
+                        Throw New DmsUserInputMissingException(UiStrings.GetText("AtLeastOneAuthorizationIsRequired"))
                     End If
                 Case Else
-                    Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
+                    Throw New NotImplementedException(UiStrings.Format("DmsProviderImplementationRequiredFor", Me.DmsProvider.GetType.Name))
             End Select
             Me.SaveControlDataIntoDmsLink()
             Await PendingOperation.RunAsync(Async Function()
@@ -404,13 +404,13 @@ Public Class DmsLinkShareSetup
                                                               Me.Close()
                                                           End Sub)
         Catch ex As Data.DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.DmsUserInputMissingException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -423,7 +423,7 @@ Public Class DmsLinkShareSetup
         Try
             SwitchControlsBasedOnCheckboxesForAllowedActions()
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 

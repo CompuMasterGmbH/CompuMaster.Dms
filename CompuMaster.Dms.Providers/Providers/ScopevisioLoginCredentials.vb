@@ -18,7 +18,7 @@ Namespace Providers
                 Return MyBase.BaseUrl
             End Get
             Set(value As String)
-                Throw New NotSupportedException("Custom webservice URLs are not supported for this DMS provider")
+                Throw New NotSupportedException(ProviderStrings.GetText("CustomWebserviceURLsAreNotSupportedForThis"))
             End Set
         End Property
 
@@ -27,7 +27,7 @@ Namespace Providers
 
         Public Overrides Sub Validate()
             MyBase.Validate()
-            If Me.ClientNumber = Nothing Then Throw New MissingFieldException("DMS ClientNumber")
+            If Me.ClientNumber = Nothing Then Throw New MissingFieldException(ProviderStrings.GetText("DMSClientNumber"))
         End Sub
 
     End Class

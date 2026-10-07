@@ -63,7 +63,7 @@ Public Class DmsItemSharings
         Me.ListViewExternalSharings.Items.Add(ItemLine)
     End Sub
 
-    Private Shared Function LocalizedAllowedActions(sharing As DmsShareBase) As String
+    Friend Shared Function LocalizedAllowedActions(sharing As DmsShareBase, Optional separator As String = ", ") As String
         Dim actions As New List(Of String)
         For Each action As String In sharing.AllowedActions()
             Select Case action
@@ -83,7 +83,7 @@ Public Class DmsItemSharings
                     actions.Add(action)
             End Select
         Next
-        Return String.Join(", ", actions)
+        Return String.Join(separator, actions)
     End Function
 
     Private Async Sub DmsItemSharings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -97,7 +97,7 @@ Public Class DmsItemSharings
                                                 RefreshControls()
                                             End Function)
         Catch ex As Exception
-            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Me.Close()
         End Try
     End Sub
@@ -130,7 +130,7 @@ Public Class DmsItemSharings
             For Each LinkShare As DmsLink In Me.DmsItem.ExtendedInfosLinks
                 Dim Limitations As New List(Of String)
                 If Not LinkShare.Password = Nothing Then Limitations.Add(UiStrings.GetText("LimitationPassword"))
-                If LinkShare.ExpiryDateLocalTime.HasValue Then Limitations.Add(LinkShare.ExpiryDateLocalTime.Value.ToString("yyyy-MM-dd HH:mm:ss"))
+                If LinkShare.ExpiryDateLocalTime.HasValue Then Limitations.Add(LinkShare.ExpiryDateLocalTime.Value.ToString("g", Globalization.CultureInfo.CurrentCulture))
                 If LinkShare.MaxBytes.HasValue Then Limitations.Add(Tools.ByteSizeToUIDisplayText(LinkShare.MaxBytes.Value))
                 If LinkShare.MaxDownloads.HasValue Then Limitations.Add(UiStrings.Format("LimitationDownloads", LinkShare.MaxDownloads.Value))
                 If LinkShare.MaxUploads.HasValue Then Limitations.Add(UiStrings.Format("LimitationUploads", LinkShare.MaxUploads.Value))
@@ -193,9 +193,9 @@ Public Class DmsItemSharings
                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -224,9 +224,9 @@ Public Class DmsItemSharings
                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -250,13 +250,13 @@ Public Class DmsItemSharings
                         Me.ReplaceUpdatedSharingInDmsItem(UpdatedSharing.User.ID, UpdatedSharing)
                     End If
                 Case Else
-                    Throw New NotImplementedException("Unknown derived class from DmsShareBase")
+                    Throw New NotImplementedException(UiStrings.GetText("UnknownDerivedClassFromDmsShareBase"))
             End Select
             RefreshControls()
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -267,7 +267,7 @@ Public Class DmsItemSharings
             If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("UserSharingRequired"))
             Await PendingOperation.RunAsync(Function() DeleteSharingForUiAsync(CurrentSharing))
         Catch ex As Exception
-            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -284,7 +284,7 @@ Public Class DmsItemSharings
                     Me.ReplaceUpdatedSharingInDmsItem(RemoveUserSharing.User.ID, Nothing)
                     Me.DmsItem.ExtendedInfosHasUserSharings = (Not Me.DmsItem.ExtendedInfosUserSharings.Count = 0)
                 Case Else
-                    Throw New NotImplementedException("Unknown derived class from DmsShareBase")
+                    Throw New NotImplementedException(UiStrings.GetText("UnknownDerivedClassFromDmsShareBase"))
             End Select
             RefreshControls()
             RaiseEvent SharingsChanged(Me, EventArgs.Empty)
@@ -306,9 +306,9 @@ Public Class DmsItemSharings
                                                 End Function)
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -337,9 +337,9 @@ Public Class DmsItemSharings
                                                 End Function)
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -358,7 +358,7 @@ Public Class DmsItemSharings
                 Return
             End If
         Next
-        Throw New InvalidOperationException("Origin DmsLink with ID """ & id & """ not found in DmsResourceItem")
+        Throw New InvalidOperationException(UiStrings.Format("OriginDmsLinkWithIDNotFoundInDmsResourceItem", id))
     End Sub
 
     ''' <summary>
@@ -386,7 +386,7 @@ Public Class DmsItemSharings
                 Return
             End If
         Next
-        Throw New InvalidOperationException("Origin DmsShareBase item with ID """ & id & """ not found in DmsResourceItem")
+        Throw New InvalidOperationException(UiStrings.Format("OriginDmsShareBaseItemWithIDNotFoundIn", id))
     End Sub
 
     Private Async Sub ToolStripButtonExternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsDelete.Click
@@ -401,9 +401,9 @@ Public Class DmsItemSharings
                                                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
                                             End Function)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -413,9 +413,9 @@ Public Class DmsItemSharings
             System.Windows.Forms.Clipboard.Clear()
             System.Windows.Forms.Clipboard.SetText(Me.CurrentSelectedLink.WebUrl)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 

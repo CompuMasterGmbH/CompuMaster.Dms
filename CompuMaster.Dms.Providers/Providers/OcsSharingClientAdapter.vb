@@ -158,7 +158,7 @@ Namespace Providers
         Friend Shared Function ParseCapabilities(json As String, family As OcsServerFamily, shareeDiscovery As Boolean) As OcsSharingCapabilities
             Dim Document As JObject = JObject.Parse(json)
             Dim Status As String = CStr(Document.SelectToken("ocs.meta.statuscode"))
-            If Status <> "100" AndAlso Status <> "200" Then Throw New InvalidOperationException("OCS capability discovery failed.")
+            If Status <> "100" AndAlso Status <> "200" Then Throw New InvalidOperationException(ProviderStrings.GetText("OCSCapabilityDiscoveryFailed"))
             Dim Sharing As JToken = Document.SelectToken("ocs.data.capabilities.files_sharing")
             Dim Enabled As Boolean = CapabilityFlag(Sharing, "api_enabled", False) AndAlso CapabilityFlag(Sharing, "can_share", True)
             Dim Links As Boolean = Enabled AndAlso CapabilityFlag(Sharing, "public.enabled", False) AndAlso CapabilityFlag(Sharing, "public.can_create_public_link", True)
@@ -205,9 +205,9 @@ Namespace Providers
         Friend Shared Function ParseShareRecords(json As String) As List(Of OcsShareRecord)
             Dim Document As JObject = JObject.Parse(json)
             Dim Status As String = CStr(Document.SelectToken("ocs.meta.statuscode"))
-            If Status <> "100" AndAlso Status <> "200" Then Throw New InvalidOperationException("OCS share listing failed.")
+            If Status <> "100" AndAlso Status <> "200" Then Throw New InvalidOperationException(ProviderStrings.GetText("OCSShareListingFailed"))
             Dim Entries As JArray = TryCast(Document.SelectToken("ocs.data"), JArray)
-            If Entries Is Nothing Then Throw New InvalidOperationException("OCS share listing did not return an array.")
+            If Entries Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("OCSShareListingDidNotReturnAnArray"))
             Dim Result As New List(Of OcsShareRecord)
             For Each Entry As JObject In Entries
                 Dim SourcePath As String = CStr(Entry("path"))

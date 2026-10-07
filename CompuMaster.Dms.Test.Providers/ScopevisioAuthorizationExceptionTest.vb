@@ -5,7 +5,7 @@ Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 Public Class ScopevisioAuthorizationExceptionTest
 
     <TestCase(Nothing)>

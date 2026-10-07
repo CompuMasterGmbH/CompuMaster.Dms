@@ -146,4 +146,62 @@
   <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>Select the DMS instance to open:</value></data>
   <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>Select DMS instance</value></data>
   <data name="NoDmsInstances" xml:space="preserve"><value>No DMS instances are available for this account.</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>A browser operation is already running.</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>A collection or folder is required.</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>An instance identifier is required.</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>At least one authorization is required</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>False</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>True</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>DialogObjectMode not implemented for creating sharing</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>DialogObjectMode not implemented for loading</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>DialogObjectMode not implemented for saving sharing</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>DialogObjectMode not implemented for updating sharing</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>DmsProvider implementation required for {0}</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>ERROR: {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} Bytes</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>Invalid value: {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>Local default downloads folder "{0}" must be a sub folder of directory "{1}</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>Local default uploads folder "{0}" must be a sub folder of directory "{1}</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS requires View and Download permissions to be selected together</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>Origin DmsLink with ID "{0}" not found in DmsResourceItem</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>Origin DmsShareBase item with ID "{0}" not found in DmsResourceItem</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>AllowDelete: </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>AllowDownload: </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>AllowEdit: </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>AllowUpload: </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>AllowView: </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>Assigned Collection ID: </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>Assigned Folder ID: </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>Collection ID: </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>DownloadUrl: </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>ExpiresOn: </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>File ID: </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>Folder ID: </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>HasChildDirectories: </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>HasGroupSharings: </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>HasHiddenGroupSharings: </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>HasHiddenUserSharings: </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>HasUserSharings: </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>Hash/ETag: </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>IsAuditing: </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>IsIntelligent: </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>IsPublicCollection: </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>IsShared: </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>Link: </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>MaxBytes: </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>MaxDownloads: </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>MaxUploads: </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>Password: </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>UploadedBytes: </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>UploadsCount: </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>WebUrl: </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>Resolve the startup selection before creating the browser.</value></data>
+  <data name="RootValue" xml:space="preserve"><value>Root</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>SelectedNodeFolderPath "{0}" expected to start with RootNodeFolderPath "{1}"</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>The DMS provider returned a created link without an ID.</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>The DMS provider returned no created link.</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>The provider does not support selecting a DMS instance.</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>The selected DMS instance is not available.</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Unknown derived class from DmsShareBase</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Use the constructor accepting an instance identifier.</value></data>
 </root>

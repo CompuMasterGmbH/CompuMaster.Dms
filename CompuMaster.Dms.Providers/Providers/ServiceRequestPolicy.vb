@@ -84,7 +84,7 @@ Namespace Providers
                     Await Clock.DelayAsync(delay, activeToken).ConfigureAwait(False)
                 Next
             End Using
-            Throw New InvalidOperationException("The retry loop ended unexpectedly.")
+            Throw New InvalidOperationException(ProviderStrings.GetText("TheRetryLoopEndedUnexpectedly"))
         End Function
 
         Private Shared Function CloneReadRequest(original As HttpRequestMessage, body As Byte()) As HttpRequestMessage

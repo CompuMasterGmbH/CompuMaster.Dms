@@ -8,7 +8,7 @@ Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 Imports NUnit.Framework.Legacy
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 <Apartment(ApartmentState.STA)>
 Public Class DmsBrowserLazyTreeTest
 

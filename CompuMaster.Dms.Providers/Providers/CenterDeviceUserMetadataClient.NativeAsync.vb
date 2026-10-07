@@ -37,10 +37,10 @@ Namespace Providers
             cancellationToken.ThrowIfCancellationRequested()
             If response.StatusCode = HttpStatusCode.NoContent Then Return New UserList(Of BaseUserData) With {.Users = New List(Of BaseUserData)()}
             Me.ValidateResponse(response, New StatusCodeResponseHandler(Of UserList(Of NativeUserNameMetadata))(HttpStatusCode.OK))
-            If response.Data?.Users Is Nothing Then Throw New InvalidOperationException("The native user response contains no user list.")
+            If response.Data?.Users Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheNativeUserResponseContainsNoUserList"))
             Dim result As New UserList(Of BaseUserData) With {.Users = New List(Of BaseUserData)()}
             For Each userRecord In response.Data.Users
-                If userRecord Is Nothing Then Throw New InvalidOperationException("The native user response contains a null user.")
+                If userRecord Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheNativeUserResponseContainsANullUser"))
                 userRecord.ApplyApiNameFields()
                 result.Users.Add(userRecord)
             Next

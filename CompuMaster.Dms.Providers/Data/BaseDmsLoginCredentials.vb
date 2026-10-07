@@ -85,15 +85,15 @@ Namespace Data
 
         Public Overridable Sub Validate()
             If Me.DmsProvider = BaseDmsProvider.DmsProviders.None Then
-                Throw New NotSupportedException("Login credentials can't exist for DMS provider ""None""")
+                Throw New NotSupportedException(ProviderStrings.GetText("LoginCredentialsCanTExistForDMSProvider"))
             Else
                 'TODO: ask provider for required fields/behaviour --> ATTENTION: circular assembly dependencies!
                 'Select Case Data.Dms.Providers.CreateDmsProviderInstance().Type
                 '    Case ...
                 '        If Me.BaseUrl = Nothing Then Throw New MissingFieldException("DMS Endpoint URL (Base URL)")
                 'End Select
-                If Me.Username = Nothing Then Throw New MissingFieldException("DMS Username")
-                If Me.Password = Nothing Then Throw New MissingFieldException("DMS Password")
+                If Me.Username = Nothing Then Throw New MissingFieldException(ProviderStrings.GetText("DMSUsername"))
+                If Me.Password = Nothing Then Throw New MissingFieldException(ProviderStrings.GetText("DMSPassword"))
             End If
         End Sub
 

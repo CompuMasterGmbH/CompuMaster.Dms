@@ -12,7 +12,7 @@ Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 Public Class CenterDeviceNativeDeletionTest
     <TestCase(DmsResourceItem.ItemTypes.File), TestCase(DmsResourceItem.ItemTypes.Folder), TestCase(DmsResourceItem.ItemTypes.Collection)>
     Public Async Function IdentifierDeletionRetainsTheSelectedResource(kind As DmsResourceItem.ItemTypes) As Task

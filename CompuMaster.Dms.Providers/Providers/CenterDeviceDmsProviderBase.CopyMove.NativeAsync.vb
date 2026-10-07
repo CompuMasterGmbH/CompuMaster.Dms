@@ -30,7 +30,7 @@ Namespace Providers
                 path = Me.ParentDirectoryPath(path)
             Loop
             While parent IsNot Nothing
-                If Me.IsSameDirectory(source, parent) Then Throw New ArgumentException("A folder cannot be copied or moved into its own hierarchy, including when destination parents would be created.", NameOf(remoteDestinationPath))
+                If Me.IsSameDirectory(source, parent) Then Throw New ArgumentException(ProviderStrings.GetText("AFolderCannotBeCopiedOrMovedInto"), NameOf(remoteDestinationPath))
                 parent = parent.ParentDirectory
             End While
         End Function
@@ -102,15 +102,15 @@ Namespace Providers
             Dim parent As CenterDevice.IO.DirectoryInfo = Nothing
             Try
                 If source.ItemType = DmsResourceItem.ItemTypes.Collection Then
-                    If Not moving Then Throw New NotSupportedException("CenterDevice collections cannot be copied.")
-                    If Me.ParentDirectoryPath(source.FullName) <> Nothing OrElse Me.ParentDirectoryPath(destinationPath) <> Nothing Then Throw New NotSupportedException("CenterDevice collections can only be renamed in the root.")
+                    If Not moving Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCannotBeCopied"))
+                    If Me.ParentDirectoryPath(source.FullName) <> Nothing OrElse Me.ParentDirectoryPath(destinationPath) <> Nothing Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCanOnlyBeRenamedInThe"))
                     If Await Me.ListRemoteItemAsync(destinationPath, ct).ConfigureAwait(False) IsNot Nothing Then Throw New DirectoryAlreadyExistsException(destinationPath)
                     Await Me.RenameNativeDirectoryAsync(Await Me.GetNativeDirectoryForActionAsync(source, ct).ConfigureAwait(False), Me.ItemName(destinationPath), ct).ConfigureAwait(False)
                     Return
                 End If
                 parent = Await Me.OpenNativeTransferDirectoryAsync(Me.ParentDirectoryPath(destinationPath), ct).ConfigureAwait(False)
                 Await Me.ValidateNativeUniqueActionDirectoryAsync(parent, destinationPath, ct).ConfigureAwait(False)
-                If parent.IsRootDirectory Then Throw New NotSupportedException("CenterDevice files and folders must remain inside a collection or folder.")
+                If parent.IsRootDirectory Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceFilesAndFoldersMustRemainInsideA"))
                 Dim name = Me.ItemName(destinationPath)
                 If source.ItemType = DmsResourceItem.ItemTypes.File Then
                     Dim file = Await Me.GetNativeFileForActionAsync(source, moving, ct).ConfigureAwait(False)
@@ -119,12 +119,12 @@ Namespace Providers
                     Dim directory = Await Me.GetNativeDirectoryForActionAsync(source, ct).ConfigureAwait(False)
                     Dim ancestor = parent
                     While ancestor IsNot Nothing
-                        If Me.IsSameDirectory(directory, ancestor) Then Throw New ArgumentException("A folder cannot be copied or moved into itself, including through another path.", NameOf(destinationPath))
+                        If Me.IsSameDirectory(directory, ancestor) Then Throw New ArgumentException(ProviderStrings.GetText("AFolderCannotBeCopiedOrMovedInto2"), NameOf(destinationPath))
                         ancestor = ancestor.ParentDirectory
                     End While
                     Dim target = Await Me.FindNativeActionDirectoryAsync(parent, name, ct).ConfigureAwait(False)
                     If target IsNot Nothing Then
-                        If Me.IsSameDirectory(directory, target) Then Throw New ArgumentException("Source and destination identify the same folder.", NameOf(destinationPath))
+                        If Me.IsSameDirectory(directory, target) Then Throw New ArgumentException(ProviderStrings.GetText("SourceAndDestinationIdentifyTheSameFolder"), NameOf(destinationPath))
                         If overwrite <> True Then Throw New DirectoryAlreadyExistsException(destinationPath)
                         Await Me.MergeNativeDirectoryAsync(directory, target, moving, source.FullName, destinationPath, ct).ConfigureAwait(False)
                         If moving Then Await Me.DeleteNativeActionDirectoryAsync(directory, ct).ConfigureAwait(False)
@@ -134,7 +134,7 @@ Namespace Providers
                         Await Me.CopyNativeDirectoryTreeAsync(directory, parent, name, source.FullName, destinationPath, ct).ConfigureAwait(False)
                     End If
                 Else
-                    Throw New NotSupportedException("Unsupported source item type: " & source.ItemType.ToString())
+                    Throw New NotSupportedException(ProviderStrings.Format("UnsupportedSourceItemType2", source.ItemType.ToString()))
                 End If
             Finally
                 If parent IsNot Nothing Then
@@ -220,7 +220,7 @@ Namespace Providers
             Try
                 Await Me.DeleteNativeActionFileAsync(existing, ct).ConfigureAwait(False)
             Catch ex As Exception
-                Throw New FileActionFailedException(If(moving, "move", "copy"), sourcePath, destinationPath, New InvalidOperationException("The operation succeeded, but replaced document ID " & existing.ID & " remains under temporary name " & backup & ".", ex))
+                Throw New FileActionFailedException(If(moving, "move", "copy"), sourcePath, destinationPath, New InvalidOperationException(ProviderStrings.Format("TheOperationSucceededButReplacedDocumentIDRemains", existing.ID, backup), ex))
             End Try
         End Function
 
@@ -243,7 +243,7 @@ Namespace Providers
 
         Private Sub ThrowNativeActionFailure(action As String, sourcePath As String, destinationPath As String, errors As List(Of Exception))
             If errors.Count = 1 AndAlso TypeOf errors(0) Is OperationCanceledException Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(errors(0)).Throw()
-            Throw New FileActionFailedException(action, sourcePath, destinationPath, New AggregateException("The operation failed; compensation of confirmed changes was attempted. An interrupted request may require server-state reconciliation.", errors))
+            Throw New FileActionFailedException(action, sourcePath, destinationPath, New AggregateException(ProviderStrings.GetText("TheOperationFailedCompensationOfConfirmedChangesWas"), errors))
         End Sub
 
         Private Async Function MoveNativeFileToFinalNameAsync(file As CenterDevice.IO.FileInfo, parent As CenterDevice.IO.DirectoryInfo, name As String, sourcePath As String, destinationPath As String, ct As CancellationToken) As Task
@@ -345,7 +345,7 @@ Namespace Providers
                     Dim childSource = Me.CombinePath(sourcePath, child.Name)
                     Dim childDestination = Me.CombinePath(destinationPath, child.Name)
                     If target IsNot Nothing Then
-                        If Me.IsSameDirectory(child, target) Then Throw New InvalidOperationException("A directory merge cannot consume the same folder identity twice.")
+                        If Me.IsSameDirectory(child, target) Then Throw New InvalidOperationException(ProviderStrings.GetText("ADirectoryMergeCannotConsumeTheSameFolder"))
                         Await Me.MergeNativeDirectoryAsync(child, target, moving, childSource, childDestination, ct).ConfigureAwait(False)
                         If moving Then Await Me.DeleteNativeActionDirectoryAsync(child, ct).ConfigureAwait(False)
                     ElseIf moving Then

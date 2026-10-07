@@ -52,7 +52,7 @@ Public NotInheritable Class RemoteInstanceSelector
         Select Case startupInstanceMode
             Case StartupInstance.DefaultInstance
             Case StartupInstance.SpecifiedInstance
-                Throw New NotSupportedException("Use the constructor accepting an instance identifier.")
+                Throw New NotSupportedException(UiStrings.GetText("UseTheConstructorAcceptingAnInstanceIdentifier"))
             Case StartupInstance.SelectionDialog
                 If selectionDialog Is Nothing Then Throw New ArgumentNullException(NameOf(selectionDialog))
             Case Else
@@ -75,7 +75,7 @@ Public NotInheritable Class RemoteInstanceSelector
     ''' <exception cref="ArgumentException">The instance identifier is empty or whitespace.</exception>
     Public Sub New(instanceID As String, selectionDialog As SelectionDialogMethod)
         If instanceID Is Nothing Then Throw New ArgumentNullException(NameOf(instanceID))
-        If String.IsNullOrWhiteSpace(instanceID) Then Throw New ArgumentException("An instance identifier is required.", NameOf(instanceID))
+        If String.IsNullOrWhiteSpace(instanceID) Then Throw New ArgumentException(UiStrings.GetText("AnInstanceIdentifierIsRequired"), NameOf(instanceID))
         Me.InstanceID = instanceID
         Me.SelectedStartupInstance = StartupInstance.SpecifiedInstance
         Me.SelectionDialog = selectionDialog
@@ -109,7 +109,7 @@ Public NotInheritable Class RemoteInstanceSelector
         Dim instanceProvider As IDmsInstanceProvider = TryCast(provider, IDmsInstanceProvider)
         If instanceProvider Is Nothing Then
             If Me.SelectedStartupInstance = StartupInstance.SelectionDialog Then Return True
-            Throw New NotSupportedException("The provider does not support selecting a DMS instance.")
+            Throw New NotSupportedException(UiStrings.GetText("TheProviderDoesNotSupportSelectingADMS"))
         End If
 
         If Me.SelectedStartupInstance = StartupInstance.SpecifiedInstance Then
@@ -128,7 +128,7 @@ Public NotInheritable Class RemoteInstanceSelector
             If instanceID Is Nothing Then Return False
             If String.IsNullOrWhiteSpace(instanceID) OrElse
                Not instances.Any(Function(instance) String.Equals(instance.ID, instanceID, StringComparison.Ordinal)) Then
-                Throw New ArgumentOutOfRangeException(NameOf(instanceID), "The selected DMS instance is not available.")
+                Throw New ArgumentOutOfRangeException(NameOf(instanceID), UiStrings.GetText("TheSelectedDMSInstanceIsNotAvailable"))
             End If
         End If
 

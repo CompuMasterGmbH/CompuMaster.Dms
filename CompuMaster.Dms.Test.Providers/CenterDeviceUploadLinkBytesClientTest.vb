@@ -10,7 +10,7 @@ Imports Newtonsoft.Json.Linq
 Imports NUnit.Framework
 Imports RestSharp
 
-<TestFixture>
+<TestFixture, SetUICulture("en")>
 Public Class CenterDeviceUploadLinkBytesClientTest
 
     <Test>

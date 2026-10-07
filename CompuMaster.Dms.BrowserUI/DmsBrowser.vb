@@ -82,7 +82,7 @@ Public Class DmsBrowser
         If dmsProfile Is Nothing Then Throw New ArgumentNullException(NameOf(dmsProfile))
         If remoteInstance Is Nothing Then Throw New ArgumentNullException(NameOf(remoteInstance))
         If remoteInstance.SelectedStartupInstance = RemoteInstanceSelector.StartupInstance.SelectionDialog Then
-            Throw New NotSupportedException("Resolve the startup selection before creating the browser.")
+            Throw New NotSupportedException(UiStrings.GetText("ResolveTheStartupSelectionBeforeCreatingTheBrowser"))
         End If
         Me.DmsProfile = dmsProfile
         Me.InstanceSelectionDialog = remoteInstance.SelectionDialog
@@ -124,10 +124,10 @@ Public Class DmsBrowser
         Me.LocalParentMustFolder = localParentMustFolder
         If localParentMustFolder <> Nothing Then
             If Tools.IsParentDirectory(localParentMustFolder, localDefaultFolderDownloads) = False Then
-                Throw New ArgumentException("Local default downloads folder """ & localDefaultFolderDownloads & """ must be a sub folder of directory """ & localParentMustFolder & "", NameOf(localDefaultFolderDownloads))
+                Throw New ArgumentException(UiStrings.Format("LocalDefaultDownloadsFolderMustBeASub", localDefaultFolderDownloads, localParentMustFolder), NameOf(localDefaultFolderDownloads))
             End If
             If Tools.IsParentDirectory(localParentMustFolder, localDefaultFolderUploads) = False Then
-                Throw New ArgumentException("Local default uploads folder """ & localDefaultFolderUploads & """ must be a sub folder of directory """ & localParentMustFolder & "", NameOf(localDefaultFolderUploads))
+                Throw New ArgumentException(UiStrings.Format("LocalDefaultUploadsFolderMustBeASub", localDefaultFolderUploads, localParentMustFolder), NameOf(localDefaultFolderUploads))
             End If
         End If
         Me.LocalDefaultFolderDownloads = localDefaultFolderDownloads
@@ -249,7 +249,7 @@ Public Class DmsBrowser
                     Me.ButtonCancel.Visible = True
                     Me.ButtonClose.Visible = False
                 Case Else
-                    Throw New ArgumentOutOfRangeException(NameOf(value), "Invalid value: " & value.ToString)
+                    Throw New ArgumentOutOfRangeException(NameOf(value), UiStrings.Format("InvalidValue", value.ToString))
             End Select
             _DialogOperationModeInternal = value
         End Set
@@ -568,7 +568,7 @@ Public Class DmsBrowser
             If selectedID Is Nothing Then Return
             If String.IsNullOrWhiteSpace(selectedID) OrElse
                Not Instances.Any(Function(instance) String.Equals(instance.ID, selectedID, StringComparison.Ordinal)) Then
-                Throw New ArgumentOutOfRangeException(NameOf(selectedID), "The selected DMS instance is not available.")
+                Throw New ArgumentOutOfRangeException(NameOf(selectedID), UiStrings.GetText("TheSelectedDMSInstanceIsNotAvailable"))
             End If
             Dim CurrentInstance As DmsInstanceInfo = InstanceProvider.CurrentDmsInstance
             If CurrentInstance IsNot Nothing AndAlso String.Equals(CurrentInstance.ID, selectedID, StringComparison.Ordinal) Then Return
@@ -718,7 +718,7 @@ Public Class DmsBrowser
                     imageIndex = 2
                 End If
             Case Else
-                Throw New ArgumentException("A collection or folder is required.", NameOf(directory))
+                Throw New ArgumentException(UiStrings.GetText("ACollectionOrFolderIsRequired"), NameOf(directory))
         End Select
 
         Return New TreeNode(directory.Name) With {
@@ -775,7 +775,7 @@ Public Class DmsBrowser
                     Return SelectedNodeFolderPath
                 End If
             ElseIf SelectedNodeFolderPath.StartsWith(RootNodeFolderPath) = False Then
-                Throw New InvalidOperationException("SelectedNodeFolderPath """ & SelectedNodeFolderPath & """ expected to start with RootNodeFolderPath """ & RootNodeFolderPath & """")
+                Throw New InvalidOperationException(UiStrings.Format("SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath", SelectedNodeFolderPath, RootNodeFolderPath))
             Else
                 Return SelectedNodeFolderPath.Substring((RootNodeFolderPath & Me.DmsProvider.DirectorySeparator).Length)
             End If
@@ -847,7 +847,7 @@ Public Class DmsBrowser
                                       End Function)
             Me.TreeViewDmsFolders.Focus()
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1140,7 +1140,7 @@ Public Class DmsBrowser
     End Sub
 
     Friend Async Function RunTransferAsync(operation As Func(Of Task)) As Task
-        If TransferRunning Then Throw New InvalidOperationException("A browser operation is already running.")
+        If TransferRunning Then Throw New InvalidOperationException(UiStrings.GetText("ABrowserOperationIsAlreadyRunning"))
         Me.BeginTransfer()
         Try
             Await operation()
@@ -1190,9 +1190,9 @@ Public Class DmsBrowser
         Catch ex As Data.DirectoryNotFoundException
             Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1285,11 +1285,11 @@ Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.FileNotFoundException
             Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1302,11 +1302,11 @@ Public Class DmsBrowser
                 Await Me.RunTransferAsync(Function() Me.RunOperationAndRefreshAsync(Function() Me.DeleteFilesForUiAsync(SelectedFiles), Function() Me.RefreshFilesListAsync()))
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.RessourceNotFoundException
             Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1540,9 +1540,9 @@ Public Class DmsBrowser
             AddHandler DmsShareForm.SharingsChanged, AddressOf Me.DmsShareForm_SharingsChanged
             DmsShareForm.Show(Me)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1558,9 +1558,9 @@ Public Class DmsBrowser
                 DmsShareForm.Show(Me)
             Next
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1573,7 +1573,7 @@ Public Class DmsBrowser
             If Me.IsDisposed OrElse Me.Disposing Then Return
             Await RunTransferAsync(Function() RefreshSharingVisualsAsync(ChangedItem, Me.DmsProvider))
         Catch ex As Exception
-            If Not Me.IsDisposed Then MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            If Not Me.IsDisposed Then MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1691,11 +1691,11 @@ Public Class DmsBrowser
                                      End Function)
             InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFile.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1751,7 +1751,7 @@ Public Class DmsBrowser
                 UiStrings.GetText("PropertiesParentFolder") & dmsItem.Folder & System.Environment.NewLine &
                 UiStrings.GetText("PropertiesParentCollection") & dmsItem.Collection & System.Environment.NewLine
         If dmsItem.ItemType = DmsResourceItem.ItemTypes.File Then
-            Message &= UiStrings.GetText("PropertiesFileSize") & dmsItem.ContentLength.ToString("#,##0") & " Bytes" & System.Environment.NewLine
+            Message &= UiStrings.GetText("PropertiesFileSize") & UiStrings.Format("FileSizeBytes", dmsItem.ContentLength) & System.Environment.NewLine
         End If
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesDetails") & System.Environment.NewLine &
@@ -1773,43 +1773,43 @@ Public Class DmsBrowser
         End If
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesSharings") & System.Environment.NewLine &
-                "- IsShared: " & dmsItem.ExtendedInfosIsShared.ToString & System.Environment.NewLine
+                "- " & UiStrings.GetText("PropertiesIsShared") & UiStrings.BooleanText(dmsItem.ExtendedInfosIsShared) & System.Environment.NewLine
         If dmsItem.ItemType = DmsResourceItem.ItemTypes.Collection Then
-            Message &= "- IsPublicCollection: " & dmsItem.ExtendedInfosIsPublicCollection.ToString & System.Environment.NewLine
+            Message &= "- " & UiStrings.GetText("PropertiesIsPublicCollection") & UiStrings.BooleanText(dmsItem.ExtendedInfosIsPublicCollection) & System.Environment.NewLine
         End If
-        Message &= "- HasHiddenGroupSharings: " & dmsItem.ExtendedInfosHasHiddenGroupSharings & System.Environment.NewLine &
-                "- HasGroupSharings: " & dmsItem.ExtendedInfosHasGroupSharings & System.Environment.NewLine
+        Message &= "- " & UiStrings.GetText("PropertiesHasHiddenGroupSharings") & UiStrings.BooleanText(dmsItem.ExtendedInfosHasHiddenGroupSharings) & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesHasGroupSharings") & UiStrings.BooleanText(dmsItem.ExtendedInfosHasGroupSharings) & System.Environment.NewLine
         If dmsItem.ExtendedInfosGroupSharings IsNot Nothing Then
             For Each Sharing As DmsShareForGroup In dmsItem.ExtendedInfosGroupSharings
-                Message &= "  - " & Sharing.ToString & System.Environment.NewLine
+                Message &= "  - " & Sharing.Group.ToString() & " (" & DmsItemSharings.LocalizedAllowedActions(Sharing, "/") & ")" & System.Environment.NewLine
             Next
         End If
-        Message &= "- HasHiddenUserSharings: " & dmsItem.ExtendedInfosHasHiddenUserSharings & System.Environment.NewLine &
-                "- HasUserSharings: " & dmsItem.ExtendedInfosHasUserSharings & System.Environment.NewLine
+        Message &= "- " & UiStrings.GetText("PropertiesHasHiddenUserSharings") & UiStrings.BooleanText(dmsItem.ExtendedInfosHasHiddenUserSharings) & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesHasUserSharings") & UiStrings.BooleanText(dmsItem.ExtendedInfosHasUserSharings) & System.Environment.NewLine
         If dmsItem.ExtendedInfosUserSharings IsNot Nothing Then
             For Each Sharing As DmsShareForUser In dmsItem.ExtendedInfosUserSharings
-                Message &= "  - " & Sharing.ToString & System.Environment.NewLine
+                Message &= "  - " & Sharing.User.ToString() & " (" & DmsItemSharings.LocalizedAllowedActions(Sharing, "/") & ")" & System.Environment.NewLine
             Next
         End If
         If dmsItem.ExtendedInfosLinks IsNot Nothing Then
             For Each ViewLink As DmsLink In dmsItem.ExtendedInfosLinks
                 If ViewLink.ID <> Nothing Then
                     refreshLink(ViewLink)
-                    Message &= "- Link: " & ViewLink.ID & System.Environment.NewLine &
-                "  - WebUrl: " & ViewLink.WebUrl & System.Environment.NewLine &
-                "  - DownloadUrl: " & ViewLink.DownloadUrl & System.Environment.NewLine &
-                "  - Password: " & ViewLink.Password & System.Environment.NewLine &
-                "  - ExpiresOn: " & ViewLink.ExpiryDateLocalTime & System.Environment.NewLine &
-                "  - MaxDownloads: " & ViewLink.MaxDownloads & System.Environment.NewLine &
-                "  - MaxBytes: " & ViewLink.MaxBytes & System.Environment.NewLine &
-                "  - MaxUploads: " & ViewLink.MaxUploads & System.Environment.NewLine &
-                "  - UploadsCount: " & ViewLink.UploadsCount & System.Environment.NewLine &
-                "  - UploadedBytes: " & ViewLink.UploadedBytes & System.Environment.NewLine &
-                "  - AllowView: " & ViewLink.AllowView & System.Environment.NewLine &
-                "  - AllowDownload: " & ViewLink.AllowDownload & System.Environment.NewLine &
-                "  - AllowUpload: " & ViewLink.AllowUpload & System.Environment.NewLine &
-                "  - AllowEdit: " & ViewLink.AllowEdit & System.Environment.NewLine &
-                "  - AllowDelete: " & ViewLink.AllowDelete & System.Environment.NewLine
+                    Message &= "- " & UiStrings.GetText("PropertiesLink") & ViewLink.ID & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesWebUrl") & ViewLink.WebUrl & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesDownloadUrl") & ViewLink.DownloadUrl & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesPassword") & ViewLink.Password & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesExpiresOn") & ViewLink.ExpiryDateLocalTime & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesMaxDownloads") & ViewLink.MaxDownloads & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesMaxBytes") & ViewLink.MaxBytes & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesMaxUploads") & ViewLink.MaxUploads & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesUploadsCount") & ViewLink.UploadsCount & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesUploadedBytes") & ViewLink.UploadedBytes & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesAllowView") & UiStrings.BooleanText(ViewLink.AllowView) & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesAllowDownload") & UiStrings.BooleanText(ViewLink.AllowDownload) & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesAllowUpload") & UiStrings.BooleanText(ViewLink.AllowUpload) & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesAllowEdit") & UiStrings.BooleanText(ViewLink.AllowEdit) & System.Environment.NewLine &
+                "  - " & UiStrings.GetText("PropertiesAllowDelete") & UiStrings.BooleanText(ViewLink.AllowDelete) & System.Environment.NewLine
                 End If
             Next
         End If
@@ -1817,15 +1817,15 @@ Public Class DmsBrowser
                 UiStrings.GetText("PropertiesExtendedInformation") & System.Environment.NewLine &
                 "- " & UiStrings.GetText("PropertiesLastModification") & dmsItem.LastModificationOnLocalTime.ToString & System.Environment.NewLine
         Dim HasChildren As Boolean? = HasKnownChildDirectories(dmsItem)
-        Message &= "- HasChildDirectories: " & If(HasChildren.HasValue, HasChildren.Value.ToString(), "") & System.Environment.NewLine &
-                "- IsIntelligent: " & dmsItem.ExtendedInfosIsIntelligent.ToString & System.Environment.NewLine &
-                "- IsAuditing: " & dmsItem.ExtendedInfosIsAuditing.ToString & System.Environment.NewLine &
-                "- Hash/ETag: " & dmsItem.ProviderSpecificHashOrETag & System.Environment.NewLine &
-                "- File ID: " & dmsItem.ExtendedInfosFileID & System.Environment.NewLine &
-                "- Folder ID: " & dmsItem.ExtendedInfosFolderID & System.Environment.NewLine &
-                "- Collection ID: " & dmsItem.ExtendedInfosCollectionID & System.Environment.NewLine &
-                "- Assigned Collection ID: " & dmsItem.ExtendedInfosAssignedCollectionID & System.Environment.NewLine &
-                "- Assigned Folder ID: " & dmsItem.ExtendedInfosAssignedFolderID & System.Environment.NewLine
+        Message &= "- " & UiStrings.GetText("PropertiesHasChildDirectories") & UiStrings.BooleanText(HasChildren) & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesIsIntelligent") & UiStrings.BooleanText(dmsItem.ExtendedInfosIsIntelligent) & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesIsAuditing") & UiStrings.BooleanText(dmsItem.ExtendedInfosIsAuditing) & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesHash") & dmsItem.ProviderSpecificHashOrETag & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesFileId") & dmsItem.ExtendedInfosFileID & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesFolderId") & dmsItem.ExtendedInfosFolderID & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesCollectionId") & dmsItem.ExtendedInfosCollectionID & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesAssignedCollectionId") & dmsItem.ExtendedInfosAssignedCollectionID & System.Environment.NewLine &
+                "- " & UiStrings.GetText("PropertiesAssignedFolderId") & dmsItem.ExtendedInfosAssignedFolderID & System.Environment.NewLine
         If dmsItem.ExtendedInfosReferencedFromCollectionIDs IsNot Nothing Then
             Message &= "- " & UiStrings.GetText("PropertiesReferencedCollectionIds") & System.Environment.NewLine
             For Each item As String In dmsItem.ExtendedInfosReferencedFromCollectionIDs
@@ -1899,14 +1899,14 @@ Public Class DmsBrowser
                                          End Function)
                 InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFolder.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             Else
-                InfoBox.InformationBox.Show("Root", title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                InfoBox.InformationBox.Show(UiStrings.GetText("RootValue"), title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1917,11 +1917,11 @@ Public Class DmsBrowser
         Catch ex As Data.DirectoryNotFoundException
             Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -2032,11 +2032,11 @@ Public Class DmsBrowser
                 Await Me.RunTransferAsync(Function() Me.DeleteDirectoryForUiAsync(SelectedFolderNode))
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.RessourceNotFoundException
             Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -2163,11 +2163,11 @@ Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Data.FileNotFoundException
             Me.ShowMissingFile(ex.RemotePath)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
