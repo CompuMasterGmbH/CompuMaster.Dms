@@ -1,4 +1,12 @@
 ﻿$ErrorActionPreference = 'Stop'
+# Level 2 alone must never grant native server access. Check the workflow's
+# explicit opt-in independently of the repository-level parser checks below.
+$workflow = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '../workflows/BuildAndTest.yml'))
+$nativeJob = [regex]::Match($workflow, '(?ms)^  native-scopevisio-live:\r?\n(?<job>.*)\z').Groups['job'].Value
+$nativeGuard = [regex]::Match($nativeJob, '(?m)^    if: (?<guard>.*)$').Groups['guard'].Value.Trim()
+if ($nativeGuard -ne "github.event_name == 'workflow_dispatch' && inputs.run_native_scopevisio && needs.prepare-remote-test-matrix.outputs.level == '2'") {
+    throw 'Native live jobs must require manual dispatch, explicit native opt-in, and effective Level 2.'
+}
 $reader = Join-Path $PSScriptRoot 'read-test-level.ps1'
 $temporaryFile = [IO.Path]::GetTempFileName()
 try {
