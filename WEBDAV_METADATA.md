@@ -23,3 +23,5 @@ References:
 - [WebDAV ACL resource owner](https://www.rfc-editor.org/rfc/rfc3744.html#section-5.1).
 - [Nextcloud named properties and folder operations](https://docs.nextcloud.com/server/stable/developer_manual/client_apis/WebDAV/basic.html).
 - [ownCloud documented resource properties](https://doc.owncloud.com/server/10.15/developer_manual/webdav_api/search.html).
+
+`ChildDirectoryMetadataReportsEmptyNonemptyOrUnknownAcrossListingPaths` uses the same owned-fixture helper at Level 2 to compare an empty folder and a nonempty parent across sync/async individual/child listing paths and a direct named property response. It records a capability status rather than inventing zero when the server does not support the extension. The isolated metadata test checks both listing APIs and asserts exactly four requests for four listings, protecting against per-directory startup probes. Existing browser lazy-tree/async-navigation tests cover known false/true/count values, unknown placeholders, deferred expansion, and creation/deletion/refresh.
