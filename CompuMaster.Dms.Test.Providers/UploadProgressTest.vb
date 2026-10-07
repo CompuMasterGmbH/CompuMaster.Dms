@@ -60,6 +60,25 @@ Public Class UploadProgressTest
     End Sub
 
     <Test>
+    Public Sub EmptyReadsAndSeekingCannotFabricateConsumedBytes()
+        Dim observer As New Collector()
+        Using empty As New UploadProgressStream(New MemoryStream(), observer)
+            empty.Read(New Byte(0) {}, 0, 0)
+            Assert.That(observer.Values.Last().Phase, [Is].EqualTo(DmsTransferPhase.Transferring))
+        End Using
+        Using stream As New UploadProgressStream(New MemoryStream(New Byte(99) {}), observer)
+            stream.Seek(0, SeekOrigin.End)
+            stream.Read(New Byte(0) {}, 0, 1)
+            Assert.That(observer.Values.Last().BytesTransferred, [Is].EqualTo(0L), "Seeking to EOF does not consume source bytes.")
+        End Using
+        Using stream As New UploadProgressStream(New MemoryStream(New Byte(99) {}), observer)
+            stream.Position = 50
+            stream.Read(New Byte(0) {}, 0, 1)
+            Assert.That(stream.Snapshot(DmsTransferPhase.Transferring).BytesTransferred, [Is].Null, "A skipped source range makes consumed-byte telemetry unreliable.")
+        End Using
+    End Sub
+
+    <Test>
     Public Async Function DefaultLocalFileProgressPreservesExistingProviderOverride() As Task
         Dim provider As New FileOverrideProvider()
         Dim observer As New Collector()

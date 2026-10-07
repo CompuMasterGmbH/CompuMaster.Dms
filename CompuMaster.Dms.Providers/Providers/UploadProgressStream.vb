@@ -13,6 +13,7 @@ Namespace Providers
         Private Reported As Long
         Private LastReport As Long
         Private FinalizingReported As Boolean
+        Private CounterUnknown As Boolean
 
         Friend Sub New(input As Stream, observer As IProgress(Of Data.DmsTransferProgress))
             If input Is Nothing Then Throw New ArgumentNullException(NameOf(input))
@@ -27,11 +28,15 @@ Namespace Providers
 
         Private Sub ReadCompleted(count As Integer, requested As Integer)
             If Input.CanSeek Then
-                Consumed = Math.Max(Consumed, Math.Max(0, Input.Position - StartPosition))
+                'Seeking for metadata is harmless, but skipped source ranges were not consumed.
+                If count > 0 Then
+                    If Input.Position - count > StartPosition + Consumed Then CounterUnknown = True
+                    Consumed = Math.Max(Consumed, Math.Max(0, Input.Position - StartPosition))
+                End If
             Else
                 Consumed += count
             End If
-            Dim finalizing = (count = 0 AndAlso requested > 0) OrElse (Total.HasValue AndAlso Consumed >= Total.Value)
+            Dim finalizing = requested > 0 AndAlso (count = 0 OrElse (Total.HasValue AndAlso Not CounterUnknown AndAlso Consumed >= Total.Value))
             If finalizing AndAlso Not FinalizingReported Then
                 FinalizingReported = True
                 Report(Data.DmsTransferPhase.Finalizing)
@@ -47,7 +52,8 @@ Namespace Providers
         End Sub
 
         Friend Function Snapshot(phase As Data.DmsTransferPhase) As Data.DmsTransferProgress
-            Return New Data.DmsTransferProgress(If(Total.HasValue, Math.Min(Consumed, Total.Value), Consumed), Total, phase)
+            Dim bytes As Long? = If(CounterUnknown, CType(Nothing, Long?), If(Total.HasValue, Math.Min(Consumed, Total.Value), Consumed))
+            Return New Data.DmsTransferProgress(bytes, Total, phase)
         End Function
 
         Public Overrides Function Read(buffer As Byte(), offset As Integer, count As Integer) As Integer
