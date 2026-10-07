@@ -145,7 +145,7 @@ Public Class WebDavOwnerMetadataTest
             Me.RequestBody = Await request.Content.ReadAsStringAsync()
             Me.RequestCount += 1
             If Me.RejectNamedProperties AndAlso Me.RequestCount = 1 Then
-                Return New HttpResponseMessage(HttpStatusCode.BadRequest)
+                Return New HttpResponseMessage(HttpStatusCode.BadRequest) With {.Content = New StringContent(String.Empty)}
             End If
             If Me.IgnoreIncludedProperties AndAlso Me.RequestBody.Contains("allprop") Then
                 Return New HttpResponseMessage(CType(207, HttpStatusCode)) With {.Content = New StringContent(OwnerProperties("", False), Encoding.UTF8, "application/xml")}

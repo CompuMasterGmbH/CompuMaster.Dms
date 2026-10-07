@@ -1,8 +1,11 @@
 ﻿Imports System.Windows.Forms
 Imports CompuMaster.Dms.Data
+Imports System.Threading.Tasks
 Imports CompuMaster.Dms.Providers
 
 Public Class DmsItemSharings
+
+    Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
 
     Public Sub New()
         InitializeComponent()
@@ -83,7 +86,23 @@ Public Class DmsItemSharings
         Return String.Join(", ", actions)
     End Function
 
-    Private Sub DmsItemSharings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Async Sub DmsItemSharings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Try
+            Await PendingOperation.RunAsync(Async Function()
+                                                If Me.DmsItem.ExtendedInfosLinks IsNot Nothing Then
+                                                    For Each Link As DmsLink In Me.DmsItem.ExtendedInfosLinks
+                                                        Await Link.RefreshAsync()
+                                                    Next
+                                                End If
+                                                RefreshControls()
+                                            End Function)
+        Catch ex As Exception
+            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.Close()
+        End Try
+    End Sub
+
+    Private Sub RefreshControls()
         Me.Text = Me.DmsProvider.Name & " - " & Me.DmsItem.FullName
         Me.LabelCurrentOwner.Text = String.Format(Me.LabelCurrentOwner.Text, Me.DmsItem.ExtendedInfosOwner.DisplayName)
         Me.ListViewInternalSharings.Items.Clear()
@@ -139,7 +158,7 @@ Public Class DmsItemSharings
         Get
             Dim Result As New List(Of String)
             For Each Item As ListViewItem In Me.ListViewInternalSharings.Items
-                If CType(Item.Tag, DmsShareBase).GetType = GetType(DmsShareForGroup) Then
+                If TypeOf Item.Tag Is DmsShareForGroup Then
                     Result.Add(CType(Item.Tag, DmsShareForGroup).Group.ID)
                 End If
             Next
@@ -151,7 +170,7 @@ Public Class DmsItemSharings
         Get
             Dim Result As New List(Of String)
             For Each Item As ListViewItem In Me.ListViewInternalSharings.Items
-                If CType(Item.Tag, DmsShareBase).GetType = GetType(DmsShareForUser) Then
+                If TypeOf Item.Tag Is DmsShareForUser Then
                     Result.Add(CType(Item.Tag, DmsShareForUser).User.ID)
                 End If
             Next
@@ -160,6 +179,7 @@ Public Class DmsItemSharings
     End Property
 
     Private Sub ToolStripButtonInternalSharingsAddGroup_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsAddGroup.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Dim HideGroupIDs As List(Of String) = AuthorizedGroupIDs
             Dim StandardSharingSetupForm As DmsStandardShareSetup
@@ -169,7 +189,7 @@ Public Class DmsItemSharings
                 Dim CreatedSharing As DmsShareForGroup = CType(StandardSharingSetupForm.DmsUpdatedSharingDetails, DmsShareForGroup)
                 Me.DmsItem.ExtendedInfosHasGroupSharings = True
                 Me.DmsItem.ExtendedInfosGroupSharings.Add(CreatedSharing)
-                DmsItemSharings_Load(Nothing, Nothing)
+                RefreshControls()
                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
@@ -179,11 +199,16 @@ Public Class DmsItemSharings
         End Try
     End Sub
 
-    Private Sub ToolStripButtonInternalSharingsAddUser_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsAddUser.Click
+    Private Async Sub ToolStripButtonInternalSharingsAddUser_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsAddUser.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Dim HideUserIDs As List(Of String) = Me.AuthorizedUserIDs
-            If Not HideUserIDs.Contains(Me.DmsProvider.CurrentContextUserID) Then
-                HideUserIDs.Add(Me.DmsProvider.CurrentContextUserID)
+            Dim CurrentUserID As String = Nothing
+            Await PendingOperation.RunAsync(Async Function()
+                                                CurrentUserID = Await Me.DmsProvider.GetCurrentContextUserIDAsync()
+                                            End Function)
+            If Not HideUserIDs.Contains(CurrentUserID) Then
+                HideUserIDs.Add(CurrentUserID)
             End If
             If Not Me.DmsItem.ExtendedInfosOwner.ID = Nothing AndAlso Not HideUserIDs.Contains(Me.DmsItem.ExtendedInfosOwner.ID) Then
                 HideUserIDs.Add(Me.DmsItem.ExtendedInfosOwner.ID)
@@ -195,7 +220,7 @@ Public Class DmsItemSharings
                 Dim CreatedSharing As DmsShareForUser = CType(StandardSharingSetupForm.DmsUpdatedSharingDetails, DmsShareForUser)
                 Me.DmsItem.ExtendedInfosHasUserSharings = True
                 Me.DmsItem.ExtendedInfosUserSharings.Add(CreatedSharing)
-                DmsItemSharings_Load(Nothing, Nothing)
+                RefreshControls()
                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
         Catch ex As Data.DmsUserErrorMessageException
@@ -206,6 +231,7 @@ Public Class DmsItemSharings
     End Sub
 
     Private Sub ToolStripButtonInternalSharingsEdit_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsEdit.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Dim CurrentSharing As DmsShareBase = Me.CurrentSelectedUserOrGroupSharing
             If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("UserSharingRequired"))
@@ -226,7 +252,7 @@ Public Class DmsItemSharings
                 Case Else
                     Throw New NotImplementedException("Unknown derived class from DmsShareBase")
             End Select
-            DmsItemSharings_Load(Nothing, Nothing)
+            RefreshControls()
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
@@ -234,34 +260,38 @@ Public Class DmsItemSharings
         End Try
     End Sub
 
-    Private Sub ToolStripButtonInternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsDelete.Click
+    Private Async Sub ToolStripButtonInternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonInternalSharingsDelete.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Dim CurrentSharing As DmsShareBase = Me.CurrentSelectedUserOrGroupSharing
             If CurrentSharing Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("UserSharingRequired"))
+            Await PendingOperation.RunAsync(Function() DeleteSharingForUiAsync(CurrentSharing))
+        Catch ex As Exception
+            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Async Function DeleteSharingForUiAsync(CurrentSharing As DmsShareBase) As Task
             Select Case CurrentSharing.GetType
                 Case GetType(DmsShareForGroup)
                     Dim RemoveGroupSharing As DmsShareForGroup = CType(CurrentSharing, DmsShareForGroup)
-                    Me.DmsProvider.DeleteSharing(RemoveGroupSharing)
+                    Await Me.DmsProvider.DeleteSharingAsync(RemoveGroupSharing)
                     Me.ReplaceUpdatedSharingInDmsItem(RemoveGroupSharing.Group.ID, Nothing)
                     Me.DmsItem.ExtendedInfosHasGroupSharings = (Not Me.DmsItem.ExtendedInfosGroupSharings.Count = 0)
                 Case GetType(DmsShareForUser)
                     Dim RemoveUserSharing As DmsShareForUser = CType(CurrentSharing, DmsShareForUser)
-                    Me.DmsProvider.DeleteSharing(RemoveUserSharing)
+                    Await Me.DmsProvider.DeleteSharingAsync(RemoveUserSharing)
                     Me.ReplaceUpdatedSharingInDmsItem(RemoveUserSharing.User.ID, Nothing)
                     Me.DmsItem.ExtendedInfosHasUserSharings = (Not Me.DmsItem.ExtendedInfosUserSharings.Count = 0)
                 Case Else
                     Throw New NotImplementedException("Unknown derived class from DmsShareBase")
             End Select
-            DmsItemSharings_Load(Nothing, Nothing)
+            RefreshControls()
             RaiseEvent SharingsChanged(Me, EventArgs.Empty)
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
-    End Sub
+    End Function
 
-    Private Sub ToolStripButtonExternalSharingsAdd_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsAdd.Click
+    Private Async Sub ToolStripButtonExternalSharingsAdd_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsAdd.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Dim LinkShareForm As New DmsLinkShareSetup
             LinkShareForm.DmsProvider = Me.DmsProvider
@@ -269,9 +299,11 @@ Public Class DmsItemSharings
             LinkShareForm.DmsItem = Me.DmsItem
             LinkShareForm.DialogMode = DmsLinkShareSetup.DialogModes.CreateLink
             If LinkShareForm.ShowDialog(Me) = DialogResult.OK Then
-                LinkShareForm.DmsUpdatedLinkDetails.Refresh()
-                DmsItemSharings_Load(Nothing, Nothing)
-                RaiseEvent SharingsChanged(Me, EventArgs.Empty)
+                Await PendingOperation.RunAsync(Async Function()
+                                                    Await LinkShareForm.DmsUpdatedLinkDetails.RefreshAsync()
+                                                    RefreshControls()
+                                                    RaiseEvent SharingsChanged(Me, EventArgs.Empty)
+                                                End Function)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -288,7 +320,8 @@ Public Class DmsItemSharings
         End If
     End Function
 
-    Private Sub ToolStripButtonExternalSharingsEdit_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsEdit.Click
+    Private Async Sub ToolStripButtonExternalSharingsEdit_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsEdit.Click
+        If PendingOperation.IsRunning Then Return
         Try
             If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("LinkSharingRequired"))
             Dim LinkShareForm As New DmsLinkShareSetup()
@@ -296,9 +329,12 @@ Public Class DmsItemSharings
             LinkShareForm.DmsLinkDetails = Me.CurrentSelectedLink
             LinkShareForm.DialogMode = DmsLinkShareSetup.DialogModes.UpdateLink
             If LinkShareForm.ShowDialog(Me) = DialogResult.OK Then
-                LinkShareForm.DmsUpdatedLinkDetails.Refresh()
-                Me.ReplaceUpdatedLinkInDmsItem(LinkShareForm.DmsUpdatedLinkDetails.ID, LinkShareForm.DmsUpdatedLinkDetails)
-                DmsItemSharings_Load(Nothing, Nothing)
+                Await PendingOperation.RunAsync(Async Function()
+                                                    Await LinkShareForm.DmsUpdatedLinkDetails.RefreshAsync()
+                                                    Me.ReplaceUpdatedLinkInDmsItem(LinkShareForm.DmsUpdatedLinkDetails.ID, LinkShareForm.DmsUpdatedLinkDetails)
+                                                    RefreshControls()
+                                                    RaiseEvent SharingsChanged(Me, EventArgs.Empty)
+                                                End Function)
             End If
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -353,14 +389,17 @@ Public Class DmsItemSharings
         Throw New InvalidOperationException("Origin DmsShareBase item with ID """ & id & """ not found in DmsResourceItem")
     End Sub
 
-    Private Sub ToolStripButtonExternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsDelete.Click
+    Private Async Sub ToolStripButtonExternalSharingsDelete_Click(sender As Object, e As EventArgs) Handles ToolStripButtonExternalSharingsDelete.Click
+        If PendingOperation.IsRunning Then Return
         Try
             If Me.CurrentSelectedLink Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("LinkSharingRequired"))
             Dim RemoveLink As DmsLink = Me.CurrentSelectedLink
-            If Not RemoveLink.ID = Nothing Then Me.DmsProvider.DeleteLink(RemoveLink)
-            Me.ReplaceUpdatedLinkInDmsItem(RemoveLink.ID, Nothing)
-            DmsItemSharings_Load(Nothing, Nothing)
-            RaiseEvent SharingsChanged(Me, EventArgs.Empty)
+            Await PendingOperation.RunAsync(Async Function()
+                                                If Not RemoveLink.ID = Nothing Then Await Me.DmsProvider.DeleteLinkAsync(RemoveLink)
+                                                Me.ReplaceUpdatedLinkInDmsItem(RemoveLink.ID, Nothing)
+                                                RefreshControls()
+                                                RaiseEvent SharingsChanged(Me, EventArgs.Empty)
+                                            End Function)
         Catch ex As Data.DmsUserErrorMessageException
             System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception

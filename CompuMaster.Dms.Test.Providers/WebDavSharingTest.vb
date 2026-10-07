@@ -3,6 +3,10 @@ Option Strict On
 
 Imports System.Linq
 Imports System.Reflection
+Imports System.Net
+Imports System.Net.Http
+Imports System.Threading
+Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
@@ -13,6 +17,135 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public Class WebDavSharingTest
+
+    <TestCase(False, 0), TestCase(True, 0), TestCase(False, 400), TestCase(True, 400), TestCase(False, 501), TestCase(True, 501)>
+    Public Async Function AsyncListingsRetainSyncOwnerAndNestedSharingMetadata(children As Boolean, rejectStatus As Integer) As Task
+        Dim client = ListingClient()
+        Dim handler As New ListingHandler(children, rejectStatus)
+        Dim provider = ListingProvider(client, handler)
+        Dim expected As List(Of DmsResourceItem)
+        Dim actual As List(Of DmsResourceItem)
+        If children Then
+            expected = provider.ListAllRemoteItems("Nested", BaseDmsProvider.SearchItemType.AllItems)
+            actual = Await provider.ListAllRemoteItemsAsync("Nested", BaseDmsProvider.SearchItemType.AllItems)
+        Else
+            expected = New List(Of DmsResourceItem) From {provider.ListRemoteItem("Nested/report.txt")}
+            actual = New List(Of DmsResourceItem) From {Await provider.ListRemoteItemAsync("Nested/report.txt")}
+        End If
+        Assert.That(actual.Select(Function(item) item.FullName), [Is].EqualTo(expected.Select(Function(item) item.FullName)))
+        Dim file = actual.Single(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File)
+        Dim reference = expected.Single(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File)
+        Assert.That(file.ExtendedInfosOwner.ID, [Is].EqualTo(reference.ExtendedInfosOwner.ID))
+        Assert.That(file.ExtendedInfosOwner.DisplayName, [Is].EqualTo(reference.ExtendedInfosOwner.DisplayName))
+        Assert.That(file.ExtendedInfosLinks.Select(Function(link) link.ID), [Is].EqualTo(New String() {"42"}))
+        Assert.That(file.ExtendedInfosUserSharings.Single().User.ID, [Is].EqualTo("recipient"))
+        Assert.That(file.ExtendedInfosGroupSharings.Single().Group.ID, [Is].EqualTo("reviewers"))
+        Assert.That(file.ExtendedInfosIsShared, [Is].True)
+        Assert.That(client.LastPath, [Is].EqualTo(If(children, "/Projects/Nested", "/Projects/Nested/report.txt")))
+        Assert.That(client.LastIncludeSubFiles, [Is].EqualTo(children))
+        Assert.That(client.GetSharesCallCount, [Is].EqualTo(2))
+        Assert.That(handler.RequestCount, [Is].EqualTo(If(rejectStatus = 0, 2, 4)))
+        Assert.That(handler.Bodies(If(rejectStatus = 0, 1, 2)), Does.Contain("owner-id"))
+        If rejectStatus = 0 Then Assert.That(file.ExtendedInfosOwner.ID, [Is].EqualTo("dav-owner"))
+    End Function
+
+    <TestCase(BaseDmsProvider.SearchItemType.Files, 1), TestCase(BaseDmsProvider.SearchItemType.Folders, 1), TestCase(BaseDmsProvider.SearchItemType.Collections, 0)>
+    Public Async Function AsyncChildFiltersPreserveTheSharingSnapshot(searchType As BaseDmsProvider.SearchItemType, expectedCount As Integer) As Task
+        Dim client = ListingClient()
+        Dim provider = ListingProvider(client, New ListingHandler(True, 0))
+        Dim items = Await provider.ListAllRemoteItemsAsync("Nested", searchType)
+        Assert.That(items.Count, [Is].EqualTo(expectedCount))
+        If items.Any(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File) Then Assert.That(items.Single().ExtendedInfosHasLinks, [Is].True)
+        Assert.That(client.GetSharesCallCount, [Is].EqualTo(1))
+    End Function
+
+    <Test>
+    Public Async Function SynchronousOcsMetadataRunsOffTheCallingThreadAndQueuedCancellationDoesNotDispatch() As Task
+        Dim owner = ListingClient()
+        Dim queued = ListingClient()
+        Dim entered As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
+        Using release As New ManualResetEventSlim(False), cancellation As New CancellationTokenSource()
+            owner.BeforeGetShares = Sub()
+                                        entered.TrySetResult(True)
+                                        If Not release.Wait(TimeSpan.FromSeconds(5)) Then Throw New TimeoutException("Isolated OCS fixture was not released.")
+                                    End Sub
+            Dim ownerProvider = ListingProvider(owner, New ListingHandler(False, 0))
+            Dim queuedProvider = ListingProvider(queued, New ListingHandler(False, 0))
+            Dim active As Task(Of DmsResourceItem) = Nothing
+            Try
+                active = ownerProvider.ListRemoteItemAsync("Nested/report.txt")
+                Assert.That(active.IsCompleted, [Is].False, "The synchronous OCS fixture must not block the caller until completion.")
+                Assert.That(Await Task.WhenAny(entered.Task, Task.Delay(3000)), [Is].SameAs(entered.Task))
+                Dim waiting = queuedProvider.ListRemoteItemAsync("Nested/report.txt", cancellation.Token)
+                cancellation.Cancel()
+                Assert.CatchAsync(Of OperationCanceledException)(CType(Async Function()
+                                                                           Await waiting
+                                                                       End Function, Func(Of Task)))
+                Assert.That(queued.GetSharesCallCount, [Is].Zero)
+            Finally
+                release.Set()
+                If active IsNot Nothing Then active.GetAwaiter().GetResult()
+            End Try
+        End Using
+    End Function
+
+    <Test>
+    Public Sub CancellationAfterActiveOcsMetadataDoesNotPublishItsSnapshot()
+        Dim client = ListingClient()
+        Using cancellation As New CancellationTokenSource()
+            client.BeforeGetShares = Sub() cancellation.Cancel()
+            Dim provider = ListingProvider(client, New ListingHandler(False, 0))
+            Assert.CatchAsync(Of OperationCanceledException)(CType(Async Function()
+                                                                       Await provider.ListRemoteItemAsync("Nested/report.txt", cancellation.Token)
+                                                                   End Function, Func(Of Task)))
+            Assert.That(client.GetSharesCallCount, [Is].EqualTo(1))
+        End Using
+    End Sub
+
+    Private Shared Function ListingClient() As FakeOcsSharingClient
+        Return New FakeOcsSharingClient(New OcsSharingCapabilities(OcsServerFamily.Nextcloud, True, True, True, True, True), New List(Of Share)) With {
+            .Records = OcsSharingClientAdapter.ParseShareRecords("{'ocs':{'meta':{'statuscode':100},'data':[" &
+                "{'id':42,'share_type':3,'permissions':1,'path':'/Projects/Nested/report.txt','file_target':'/report.txt','url':'https://fixture.invalid/share','uid_owner':'ocs-owner'}," &
+                "{'id':43,'share_type':0,'permissions':1,'path':'/Projects/Nested/report.txt','file_target':'/report.txt','share_with':'recipient'}," &
+                "{'id':44,'share_type':1,'permissions':1,'path':'/Projects/Nested/report.txt','file_target':'/report.txt','share_with':'reviewers'}," &
+                "{'id':45,'share_type':3,'permissions':1,'path':'/Projects/Other/report.txt','file_target':'/report.txt','url':'https://fixture.invalid/other'}]}}")
+        }
+    End Function
+
+    Private Shared Function ListingProvider(client As IOcsSharingClient, handler As HttpMessageHandler) As WebDavDmsProvider
+        Dim provider = CreateProvider(client, "/Projects")
+        provider.CustomWebApiUrl = "https://example.test/remote.php/dav/files/account/Projects/"
+        GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic).SetValue(provider, New WebDav.WebDavClient(New HttpClient(handler)))
+        Return provider
+    End Function
+
+    Private Class ListingHandler
+        Inherits HttpMessageHandler
+        Private ReadOnly Children As Boolean
+        Private ReadOnly RejectStatus As Integer
+        Public ReadOnly Bodies As New List(Of String)()
+        Public RequestCount As Integer
+        Public Sub New(children As Boolean, rejectStatus As Integer)
+            Me.Children = children
+            Me.RejectStatus = rejectStatus
+        End Sub
+        Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
+            RequestCount += 1
+            Dim body = Await request.Content.ReadAsStringAsync()
+            Bodies.Add(body)
+            Dim named = body.Contains("owner-id")
+            If named AndAlso RejectStatus <> 0 Then Return New HttpResponseMessage(CType(RejectStatus, HttpStatusCode)) With {.Content = New StringContent(String.Empty)}
+            Dim ownerProperties = If(named, "<oc:owner-id>dav-owner</oc:owner-id><oc:owner-display-name>DAV Owner</oc:owner-display-name>", String.Empty)
+            Dim xml = "<d:multistatus xmlns:d='DAV:' xmlns:oc='http://owncloud.org/ns'>"
+            If Children Then xml &= ListingResource("Nested/", True, ownerProperties) & ListingResource("Nested/child/", True, ownerProperties)
+            xml &= ListingResource("Nested/report.txt", False, ownerProperties) & "</d:multistatus>"
+            Return New HttpResponseMessage(CType(207, HttpStatusCode)) With {.Content = New StringContent(xml, System.Text.Encoding.UTF8, "application/xml")}
+        End Function
+        Private Shared Function ListingResource(path As String, folder As Boolean, owner As String) As String
+            Return "<d:response><d:href>https://example.test/remote.php/dav/files/account/Projects/" & path & "</d:href><d:propstat><d:prop><d:resourcetype>" & If(folder, "<d:collection/>", String.Empty) &
+                "</d:resourcetype>" & owner & "</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
+        End Function
+    End Class
 
     <TestCase(0)>
     <TestCase(1)>
@@ -361,12 +494,20 @@ Public Class WebDavSharingTest
         Public Property CreateLinkCallCount As Integer
         Public Property FindShareesCallCount As Integer
         Public Property SearchUsersCallCount As Integer
+        Public Property Records As List(Of OcsShareRecord)
+        Public Property BeforeGetShares As Action
+        Public Property LastIncludeSubFiles As Boolean
+        Public Property GetSharesCallCount As Integer
 
         Public Sub ProbeCapabilities() Implements IOcsSharingClient.ProbeCapabilities
         End Sub
 
         Public Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of OcsShareRecord) Implements IOcsSharingClient.GetShares
             Me.LastPath = path
+            Me.LastIncludeSubFiles = includeSubFiles
+            Me.GetSharesCallCount += 1
+            If Me.BeforeGetShares IsNot Nothing Then Me.BeforeGetShares.Invoke()
+            If Me.Records IsNot Nothing Then Return Me.Records
             Return Me.Shares.Select(AddressOf OcsShareRecord.FromLegacy).ToList()
         End Function
 

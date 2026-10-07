@@ -1,8 +1,11 @@
 ﻿Imports System.Windows.Forms
 Imports CompuMaster.Dms.Data
+Imports System.Threading.Tasks
 Imports CompuMaster.Dms.Providers
 
 Public Class DmsStandardShareSetup
+
+    Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
 
     <Obsolete("Use overloaded constructor")>
     Public Sub New()
@@ -107,7 +110,16 @@ Public Class DmsStandardShareSetup
         End Set
     End Property
 
-    Private Sub DmsStandardShare_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Async Sub DmsStandardShare_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Try
+            Await PendingOperation.RunAsync(Function() LoadControlsAsync())
+        Catch ex As Exception
+            MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.Close()
+        End Try
+    End Sub
+
+    Private Async Function LoadControlsAsync() As Task
         Me.Text = String.Format(Me.Text, DmsItem.FullName)
         If Me._DialogMode = Nothing Then
             If Me.DmsSharingDetails Is Nothing Then
@@ -154,7 +166,7 @@ Public Class DmsStandardShareSetup
                 Me.CheckBoxAllowUpload.Checked = True
                 Me.CheckBoxAllowShare.Checked = True
                 Me.ComboBoxUsersOrGroups.Enabled = True
-                Me.LoadUserOrGroupList()
+                Await Me.LoadUserOrGroupListAsync()
             Case DialogModes.UpdateLink
                 Me.ComboBoxUsersOrGroups.Enabled = False
                 Me.LoadDataIntoControls()
@@ -162,7 +174,7 @@ Public Class DmsStandardShareSetup
                 Throw New NullReferenceException(NameOf(Me.DialogMode))
         End Select
         Me.SwitchControlsBasedOnCheckboxesForAllowedActions()
-    End Sub
+    End Function
 
     Private Sub SwitchControlsBasedOnCheckboxesForAllowedActions()
         Select Case Me.DmsProvider.GetType.Name
@@ -172,20 +184,20 @@ Public Class DmsStandardShareSetup
         End Select
     End Sub
 
-    Private Sub LoadUserOrGroupList()
+    Private Async Function LoadUserOrGroupListAsync() As Task
         Select Case Me._DialogObjectMode
             Case DialogObjectModes.GroupSharing
                 ComboBoxUsersOrGroups.Items.Clear()
-                For Each Group As DmsGroup In Me.DmsProvider.GetAllGroups
-                    If Me.HideIDs.Contains(Group.ID) = False Then
+                For Each Group As DmsGroup In Await Me.DmsProvider.GetAllGroupsAsync()
+                    If Me.HideIDs Is Nothing OrElse Me.HideIDs.Contains(Group.ID) = False Then
                         Dim NewItem As New KeyValuePair(Of String, String)(Group.ID, Group.DisplayName)
                         ComboBoxUsersOrGroups.Items.Add(NewItem)
                     End If
                 Next
             Case DialogObjectModes.UserSharing
                 ComboBoxUsersOrGroups.Items.Clear()
-                For Each User As DmsUser In Me.DmsProvider.GetAllUsers
-                    If Me.HideIDs.Contains(User.ID) = False Then
+                For Each User As DmsUser In Await Me.DmsProvider.GetAllUsersAsync()
+                    If Me.HideIDs Is Nothing OrElse Me.HideIDs.Contains(User.ID) = False Then
                         Dim NewItem As New KeyValuePair(Of String, String)(User.ID, User.DisplayName)
                         ComboBoxUsersOrGroups.Items.Add(NewItem)
                     End If
@@ -193,7 +205,7 @@ Public Class DmsStandardShareSetup
             Case Else
                 Throw New NotImplementedException("DialogObjectMode not implemented for loading")
         End Select
-    End Sub
+    End Function
 
     Private Sub LoadDataIntoControls()
         Select Case Me._DialogObjectMode
@@ -273,7 +285,8 @@ Public Class DmsStandardShareSetup
         End If
     End Sub
 
-    Private Sub ButtonSave_Click(sender As Object, e As EventArgs) Handles ButtonSave.Click
+    Private Async Sub ButtonSave_Click(sender As Object, e As EventArgs) Handles ButtonSave.Click
+        If PendingOperation.IsRunning Then Return
         Try
             Select Case Me.DmsProvider.GetType.Name
                 Case "ScopevisioTeamworkDmsProvider"
@@ -291,12 +304,22 @@ Public Class DmsStandardShareSetup
                     Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
             End Select
             Me.SaveControlDataIntoDmsLink()
+            Await PendingOperation.RunAsync(Function() SaveSharingAsync(), Sub()
+                                                                              Me.DialogResult = DialogResult.OK
+                                                                              Me.Close()
+                                                                          End Sub)
+        Catch ex As Exception
+            MessageBox.Show(Me, "ERROR: " & If(TypeOf ex Is DmsUserErrorMessageException OrElse TypeOf ex Is NotSupportedException, ex.Message, ex.ToString()), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Async Function SaveSharingAsync() As Task
             If Me._DialogMode = DialogModes.CreateLink Then
                 Select Case Me._DialogObjectMode
                     Case DialogObjectModes.GroupSharing
-                        Me.DmsProvider.CreateSharing(Me.DmsItem, CType(Me.DmsUpdatedSharingDetails, DmsShareForGroup))
+                        Await Me.DmsProvider.CreateSharingAsync(Me.DmsItem, CType(Me.DmsUpdatedSharingDetails, DmsShareForGroup))
                     Case DialogObjectModes.UserSharing
-                        Me.DmsProvider.CreateSharing(Me.DmsItem, CType(Me.DmsUpdatedSharingDetails, DmsShareForUser))
+                        Await Me.DmsProvider.CreateSharingAsync(Me.DmsItem, CType(Me.DmsUpdatedSharingDetails, DmsShareForUser))
                     Case Else
                         Throw New NotImplementedException("DialogObjectMode not implemented for creating sharing")
                 End Select
@@ -307,28 +330,15 @@ Public Class DmsStandardShareSetup
                     Case Else
                         Select Case Me._DialogObjectMode
                             Case DialogObjectModes.GroupSharing
-                                Me.DmsProvider.UpdateSharing(CType(Me.DmsUpdatedSharingDetails, DmsShareForGroup))
+                                Await Me.DmsProvider.UpdateSharingAsync(CType(Me.DmsUpdatedSharingDetails, DmsShareForGroup))
                             Case DialogObjectModes.UserSharing
-                                Me.DmsProvider.UpdateSharing(CType(Me.DmsUpdatedSharingDetails, DmsShareForUser))
+                                Await Me.DmsProvider.UpdateSharingAsync(CType(Me.DmsUpdatedSharingDetails, DmsShareForUser))
                             Case Else
                                 Throw New NotImplementedException("DialogObjectMode not implemented for updating sharing")
                         End Select
                 End Select
             End If
-            Me.DialogResult = DialogResult.OK
-            Me.Close()
-        Catch ex As NotSupportedException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Data.DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Data.DmsUserInputMissingException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.Message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, "ERROR: " & ex.ToString, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
-    End Sub
+    End Function
 
     Private Sub ButtonCancel_Click(sender As Object, e As EventArgs) Handles ButtonCancel.Click
         Me.DialogResult = DialogResult.Cancel

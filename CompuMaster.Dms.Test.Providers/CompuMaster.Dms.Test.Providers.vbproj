@@ -40,5 +40,8 @@
   <ItemGroup>
     <ProjectReference Include="..\CompuMaster.Dms.Providers\CompuMaster.Dms.Providers.vbproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(EnableNativeAsync)' != 'true'">
+    <Compile Remove="*.NativeAsync.vb" />
+  </ItemGroup>
 
 </Project>

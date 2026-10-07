@@ -1,0 +1,57 @@
+﻿name: Native async source validation
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'Repository default reads testing.ci-pipeline-attributes; Level 1 is quick, Level 2 includes extended isolated cases.'
+        type: choice
+        options: ['repository', '1', '2']
+        default: 'repository'
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-native-async:
+    name: Native async isolated tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Checkout pinned SDK draft
+        uses: actions/checkout@v5
+        with:
+          repository: CompuMasterGmbH/CompuMaster.CenterDevice.IO
+          ref: 4a944d0e1c8650e273bacb7833e978be111a6d12
+          path: .upstream/CenterDevice.IO
+          persist-credentials: false
+      - name: Checkout pinned OpenScope draft
+        uses: actions/checkout@v5
+        with:
+          repository: CompuMasterGmbH/CompuMaster.Scopevisio.OpenApi
+          ref: 4de198023f78408dab83a6b8d3853bf4491d6741
+          path: .upstream/OpenScope
+          persist-credentials: false
+      - name: Checkout pinned Teamwork draft
+        uses: actions/checkout@v5
+        with:
+          repository: CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork
+          ref: 91b456246890c3140f581478760166a1489e9453
+          path: .upstream/Teamwork
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Build and test the native source chain without remote servers
+        shell: pwsh
+        env:
+          REQUESTED_TEST_LEVEL: ${{ inputs.test_level || 'repository' }}
+        run: ./.github/scripts/test-native-async.ps1 -TestLevel $env:REQUESTED_TEST_LEVEL

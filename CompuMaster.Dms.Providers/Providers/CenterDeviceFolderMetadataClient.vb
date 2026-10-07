@@ -14,12 +14,12 @@ Namespace Providers
 
     'The CenterDevice package's Folder.HasSubFoldersServerInfo property is private, so
     'its default JSON deserializer does not populate the requested server value.
-    Friend NotInheritable Class CenterDeviceFolderMetadataClient
+    Partial Friend Class CenterDeviceFolderMetadataClient
         Inherits CenterDevice.Rest.Clients.Folders.FoldersRestClient
 
         Friend Const ListingFields As String = "collection,id,name,parent,users,groups,link,has-subfolders"
 
-        Private Sub New(authInfoProvider As IOAuthInfoProvider, configuration As IRestClientConfiguration,
+        Friend Sub New(authInfoProvider As IOAuthInfoProvider, configuration As IRestClientConfiguration,
                         errorHandler As IRestClientErrorHandler, apiVersionPrefix As String)
             MyBase.New(authInfoProvider, configuration, errorHandler, apiVersionPrefix)
         End Sub
@@ -32,7 +32,7 @@ Namespace Providers
                 ReadClientField(Of String)(apiClient, "apiVersionPrefix"))
         End Function
 
-        Private Shared Function ReadClientField(Of T)(apiClient As CenterDeviceClientBase, name As String) As T
+        Friend Shared Function ReadClientField(Of T)(apiClient As CenterDeviceClientBase, name As String) As T
             Dim Field As FieldInfo = GetType(CenterDeviceClientBase).GetField(name, BindingFlags.Instance Or BindingFlags.NonPublic)
             If Field Is Nothing Then Throw New MissingFieldException(GetType(CenterDeviceClientBase).FullName, name)
             Return CType(Field.GetValue(apiClient), T)

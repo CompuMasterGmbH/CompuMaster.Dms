@@ -2,6 +2,8 @@
 Option Strict On
 
 Imports CompuMaster.Dms.Providers
+Imports System.Threading
+Imports System.Threading.Tasks
 
 Namespace Data
 
@@ -45,6 +47,11 @@ Namespace Data
         Public Delegate Sub FillLinkDetailsFromId(provider As Object, id As String, dmsLink As DmsLink)
 
         Private Initialized As Boolean
+        Friend ReadOnly Property DetailsInitialized As Boolean
+            Get
+                Return Me.Initialized
+            End Get
+        End Property
         Protected Overrides Sub Initialize()
             If Me.Initialized = False AndAlso Me.ID <> Nothing AndAlso Me.DmsProvider IsNot Nothing AndAlso Me.FillLinkDetails IsNot Nothing Then
                 Me.Refresh()
@@ -85,8 +92,20 @@ Namespace Data
         Public Sub Refresh()
             If Me.ID <> Nothing AndAlso Me.DmsProvider IsNot Nothing AndAlso Me.FillLinkDetails IsNot Nothing Then
                 Me.FillLinkDetails(Me.DmsProvider, Me.ID, Me)
+                Me.Initialized = True
             End If
         End Sub
+
+        ''' <summary>
+        ''' Refreshes the link details without blocking the caller.
+        ''' </summary>
+        ''' <param name="cancellationToken">Cancels waiting for provider access. Providers with synchronous callbacks cannot interrupt an active callback.</param>
+        ''' <returns>A task that completes when the link details have been refreshed.</returns>
+        Public Function RefreshAsync(Optional cancellationToken As CancellationToken = Nothing) As Task
+            cancellationToken.ThrowIfCancellationRequested()
+            If Me.DmsProvider Is Nothing Then Return Task.CompletedTask
+            Return Me.DmsProvider.RefreshLinkAsync(Me, cancellationToken)
+        End Function
 
         Public Overrides Function ToString() As String
             If Me.Name = Nothing Then

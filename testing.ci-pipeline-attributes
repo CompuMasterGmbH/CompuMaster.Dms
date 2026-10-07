@@ -1,0 +1,29 @@
+﻿# DMS test-level control. Change the value below to 1 or 2; do not rename this file.
+# PR/main CI and local test scripts read it. A manual workflow can override it.
+#
+# Level 1 (default): quick isolated regressions and provider smoke tests on all OS.
+# Remote checks cover login/listing/existence/path and a small file lifecycle:
+# upload/version/copy/move/download/delete, with owned setup and verified cleanup.
+# Target: about 5 minutes per provider/OS; up to 8 minutes is acceptable.
+# Compilation, SDK installation, reporting and queue waits are measured separately.
+#
+# Level 2 (cumulative): Level 1 plus extended copy/move/overwrite/failure variants,
+# sharing/link/identity cases and extended isolated tests.
+# Native 256 MiB/hash/active-cancellation live tests run only in a manual Level 2
+# dispatch with an explicit coordinated exclusive-window end. A Level 2 push/PR
+# runs the extended default-package suite; it does not grant native server access.
+#
+# Assign NUnit tests in VB (method or entire fixture):
+#   <Test, Category("TestLevel1")>  - quick remote smoke test.
+#   <Test, Category("TestLevel2")>  - extended remote or isolated test.
+# Remote fixtures also need Category("RemoteDms") and exactly one server category,
+# e.g. Category("Nextcloud"). Every remote test must resolve to exactly ONE level.
+# Do not put TestLevel2 on a base fixture and TestLevel1 on its methods: inherited
+# categories would select both levels. Put levels on methods for mixed fixtures.
+# Isolated tests without a level category belong to Level 1; mark only slower
+# isolated tests TestLevel2. Both levels always exclude RemoteDms in unlocked jobs.
+# The isolated NUnit partition audit guards remote classification and base coverage.
+# Server locks and complete setup/cleanup are mandatory at BOTH levels.
+# See TESTING.md for commands, scope, access-window and release requirements.
+
+TEST_LEVEL=1

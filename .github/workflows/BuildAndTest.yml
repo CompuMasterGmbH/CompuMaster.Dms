@@ -6,6 +6,29 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'Repository default reads testing.ci-pipeline-attributes. Level 1 is quick; Level 2 is extended with coordinated native live access.'
+        type: choice
+        options: ['repository', '1', '2']
+        default: 'repository'
+      run_native_scopevisio:
+        description: 'Native-only Level 2 verification; skips the default-package matrix and requires coordinated exclusive Scopevisio access.'
+        type: boolean
+        default: false
+      exclusive_window_until:
+        description: 'Confirmed exclusive-window end in ISO 8601 with UTC offset; each locked job needs 185 minutes remaining.'
+        type: string
+        default: ''
+      transfer_mib:
+        description: 'Actual live file transfer size in MiB (256 to 4096).'
+        type: number
+        default: 256
+      native_scopevisio_mode:
+        description: 'Verification runs all three OS; upload_boundary is a Windows-only diagnostic and does not satisfy large-transfer acceptance.'
+        type: choice
+        options: [verification, upload_boundary]
+        default: verification
 
 env:
   BUILD_CONFIGURATION: CI_CD
@@ -13,6 +36,7 @@ env:
 jobs:
   isolated-tests:
     name: Isolated tests (${{ matrix.os }})
+    needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -36,7 +60,7 @@ jobs:
         run: dotnet build --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
 
       - name: Run isolated tests
-        run: dotnet test --framework net8.0 --results-directory test-results --logger junit --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --filter "TestCategory!=RemoteDms"
+        run: dotnet test --framework net8.0 --results-directory test-results --logger junit --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --filter "${{ needs.prepare-remote-test-matrix.outputs.level == '2' && 'TestCategory!=RemoteDms' || 'TestCategory!=RemoteDms&TestCategory!=TestLevel2' }}"
 
       - name: Build Scopevisio Teamwork demo
         if: startsWith(matrix.os, 'windows')
@@ -60,7 +84,7 @@ jobs:
 
       - name: Run BrowserUI smoke tests
         if: startsWith(matrix.os, 'windows')
-        run: dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/${{ env.BUILD_CONFIGURATION }}/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll
+        run: dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/${{ env.BUILD_CONFIGURATION }}/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll --TestCaseFilter:"${{ needs.prepare-remote-test-matrix.outputs.level == '2' && 'TestCategory!=RemoteDms' || 'TestCategory!=RemoteDms&TestCategory!=TestLevel2' }}"
 
       - name: Publish isolated test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -107,6 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      level: ${{ steps.level.outputs.level }}
 
     env:
       TEST_WEBDAV_SERVERURL: ${{ secrets.TEST_WEBDAV_SERVERURL }}
@@ -114,6 +139,19 @@ jobs:
       TEST_WEBDAV_PASSWORD: ${{ secrets.TEST_WEBDAV_PASSWORD }}
 
     steps:
+      - uses: actions/checkout@v5
+      - id: level
+        name: Read and validate test-level control
+        shell: pwsh
+        env:
+          REQUESTED_TEST_LEVEL: ${{ inputs.test_level || 'repository' }}
+          NATIVE_ONLY: ${{ inputs.run_native_scopevisio }}
+        run: |
+          ./.github/scripts/test-test-level-configuration.ps1
+          $level = ./.github/scripts/read-test-level.ps1 -RequestedLevel $env:REQUESTED_TEST_LEVEL
+          if ($env:NATIVE_ONLY -eq 'true') { $level = '2' }
+          "level=$level" >> $env:GITHUB_OUTPUT
+          Write-Host "Selected test level: $level"
       - id: matrix
         name: Select configured remote test servers
         shell: bash
@@ -128,13 +166,15 @@ jobs:
           printf 'matrix=%s\n' "$matrix" >> "$GITHUB_OUTPUT"
 
   remote-integration-tests:
-    name: ${{ matrix.server.displayName }} integration tests (${{ matrix.os }})
+    # A native-only dispatch does not duplicate the default-package matrix.
+    if: github.event_name != 'workflow_dispatch' || !inputs.run_native_scopevisio
+    name: ${{ matrix.server.displayName }} integration tests (${{ matrix.os }}, Level ${{ needs.prepare-remote-test-matrix.outputs.level }})
     needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
 
-    # Every matrix entry identifies one physical remote server. Jobs for the same
-    # server are serialized across workflows and operating systems, while jobs
-    # using different servers can run independently. GitHub concurrency groups
+    # Every entry identifies one exclusive account/test dataset. Jobs for the same
+    # account are serialized across workflows and operating systems. Independent
+    # ownCloud/WebDAV accounts may share a host. GitHub concurrency groups
     # are repository-scoped and do not protect local or cross-repository runs.
     concurrency:
       group: ${{ matrix.server.lock }}
@@ -145,6 +185,7 @@ jobs:
       matrix: ${{ fromJSON(needs.prepare-remote-test-matrix.outputs.matrix) }}
 
     env:
+      DMS_TEST_LEVEL: ${{ needs.prepare-remote-test-matrix.outputs.level }}
       TEST_SCOPEVISIOTEAMWORK_USERNAME: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_USERNAME || '' }}
       TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO || '' }}
       TEST_SCOPEVISIOTEAMWORK_PASSWORD: ${{ matrix.server.id == 'scopevisio-teamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_PASSWORD || '' }}
@@ -176,7 +217,10 @@ jobs:
         run: dotnet restore CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj /p:configuration=${{ env.BUILD_CONFIGURATION }}
 
       - name: Run ${{ matrix.server.displayName }} integration tests
-        run: dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --results-directory test-results --logger junit --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --filter "TestCategory=${{ matrix.server.category }}"
+        shell: pwsh
+        env:
+          DMS_TEST_SERVER_CATEGORY: ${{ matrix.server.category }}
+        run: ./.github/scripts/test-remote-dms.ps1 -TestLevel $env:DMS_TEST_LEVEL -ServerCategory $env:DMS_TEST_SERVER_CATEGORY
 
       - name: Publish integration test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -217,3 +261,69 @@ jobs:
         with:
           name: NUnit ${{ matrix.server.id }} Test Results ${{ matrix.os }}
           path: test-results/TestResults.xml
+
+  native-scopevisio-live:
+    name: Native Scopevisio live tests (${{ matrix.os }})
+    if: github.event_name == 'workflow_dispatch' && needs.prepare-remote-test-matrix.outputs.level == '2'
+    needs: [isolated-tests, prepare-remote-test-matrix]
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    # The same DMS account lock covers preparation, execution, and cleanup.
+    # Manual opt-in also requires a coordinated window excluding other repositories/local runs.
+    concurrency:
+      group: dms-test-server-scopevisio-teamwork
+      queue: max
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        os: ${{ inputs.native_scopevisio_mode == 'upload_boundary' && fromJSON('["windows-latest"]') || fromJSON('["windows-latest","ubuntu-latest","macos-latest"]') }}
+    env:
+      NATIVE_SCOPEVISIO_EXCLUSIVE_CI: 'true'
+      TEST_SCOPEVISIOTEAMWORK_USERNAME: ${{ secrets.TEST_SCOPEVISIOTEAMWORK_USERNAME }}
+      TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO: ${{ secrets.TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO }}
+      TEST_SCOPEVISIOTEAMWORK_PASSWORD: ${{ secrets.TEST_SCOPEVISIOTEAMWORK_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Checkout pinned SDK draft
+        uses: actions/checkout@v5
+        with:
+          repository: CompuMasterGmbH/CompuMaster.CenterDevice.IO
+          ref: 4a944d0e1c8650e273bacb7833e978be111a6d12
+          path: .upstream/CenterDevice.IO
+          persist-credentials: false
+      - name: Checkout pinned OpenScope draft
+        uses: actions/checkout@v5
+        with:
+          repository: CompuMasterGmbH/CompuMaster.Scopevisio.OpenApi
+          ref: 4de198023f78408dab83a6b8d3853bf4491d6741
+          path: .upstream/OpenScope
+          persist-credentials: false
+      - name: Checkout pinned Teamwork draft
+        uses: actions/checkout@v5
+        with:
+          repository: CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork
+          ref: 91b456246890c3140f581478760166a1489e9453
+          path: .upstream/Teamwork
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Verify coordinated native live access and run source-mode tests
+        shell: pwsh
+        env:
+          EXCLUSIVE_WINDOW_UNTIL: ${{ inputs.exclusive_window_until }}
+          TRANSFER_MIB: ${{ inputs.transfer_mib }}
+          NATIVE_SCOPEVISIO_MODE: ${{ inputs.native_scopevisio_mode }}
+        run: ./.github/scripts/test-native-scopevisio-live.ps1 -ExclusiveWindowUntil $env:EXCLUSIVE_WINDOW_UNTIL -TransferMiB $env:TRANSFER_MIB -Mode $env:NATIVE_SCOPEVISIO_MODE
+      - name: Retain native live test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-scopevisio-live-${{ matrix.os }}
+          path: native-live-results
+          if-no-files-found: ignore
