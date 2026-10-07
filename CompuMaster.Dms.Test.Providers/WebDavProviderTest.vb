@@ -45,6 +45,52 @@ Public MustInherit Class WebDavProviderTestBase
         End Get
     End Property
 
+    <Test>
+    Public Sub CloudOcsPublicLinkRoundTrip()
+        If Not TypeOf Me Is OwnCloudWebDavProviderTest AndAlso Not TypeOf Me Is NextcloudWebDavProviderTest Then
+            Assert.Ignore("Generic WebDAV does not require an OCS sharing API.")
+        End If
+        Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
+        'Fail rather than silently skip all sharing tests if discovery regresses.
+        Assert.That(Provider.SupportsSharingSetup, [Is].True, "The cloud test server must expose OCS sharing to verify this feature.")
+        Const Path As String = "ZZZ_UnitTests_CM.Dms/OCS_Link_RoundTrip"
+        If Provider.FolderExists(Path) Then Provider.DeleteRemoteItem(Path)
+        Assert.That(Provider.FolderExists(Path), [Is].False, "Stale sharing test resources could not be removed.")
+        Dim OriginalFailure As Exception = Nothing
+        Try
+            Provider.CreateFolder(Path)
+            Dim Item As Dms.Data.DmsResourceItem = Provider.ListRemoteItem(Path)
+            Dim Link As Dms.Data.DmsLink = Provider.CreateLink(Item, New Dms.Data.DmsLink(Item, Provider) With {
+                .Name = "OCS round trip", .AllowView = True, .AllowDownload = True,
+                .Password = Guid.NewGuid().ToString("N"), .ExpiryDateLocalTime = Date.Today.AddDays(2)})
+            Assert.That(Link.ID, [Is].Not.Empty)
+            Assert.That(Link.WebUrl, [Is].Not.Empty)
+            Dim Reloaded As Dms.Data.DmsLink = Provider.ListRemoteItem(Path).ExtendedInfosLinks.Single()
+            Assert.That(Reloaded.ID, [Is].EqualTo(Link.ID))
+            Assert.That(Reloaded.AllowView, [Is].True)
+            Assert.That(Reloaded.AllowDownload, [Is].True)
+            Link.Name = "OCS updated"
+            Link.ExpiryDateLocalTime = Date.Today.AddDays(3)
+            Provider.UpdateLink(Link)
+            Reloaded = Provider.ListRemoteItem(Path).ExtendedInfosLinks.Single()
+            Assert.That(Reloaded.Name, [Is].EqualTo("OCS updated"))
+            Assert.That(Reloaded.ExpiryDateLocalTime.Value.Date, [Is].EqualTo(Date.Today.AddDays(3)))
+            Provider.DeleteLink(Link)
+            Assert.That(Provider.ListRemoteItem(Path).ExtendedInfosLinks, [Is].Empty)
+        Catch ex As Exception
+            OriginalFailure = ex
+            Throw
+        Finally
+            Try
+                If Provider.FolderExists(Path) Then Provider.DeleteRemoteItem(Path)
+                Assert.That(Provider.FolderExists(Path), [Is].False, "Sharing test directory cleanup failed.")
+            Catch cleanupFailure As Exception
+                If OriginalFailure IsNot Nothing Then Throw New AggregateException("Sharing test and cleanup both failed.", OriginalFailure, cleanupFailure)
+                Throw
+            End Try
+        End Try
+    End Sub
+
     Private Const TestDirName As String = "ZZZ_UnitTests_CM.Dms"
     Private Const TestDirNameSub1 As String = "ZZZ_UnitTests_CM.Dms/Folder"
     Private Const TestDirNameSub2 As String = "ZZZ_UnitTests_CM.Dms/Folder/Sub"

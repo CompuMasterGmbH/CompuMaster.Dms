@@ -28,6 +28,18 @@ There are following main modules for your use:
 * CompuMaster.Dms.TestDemo.Nextcloud – A dedicated Nextcloud demo using its own local credential store and accepting either the instance URL or a complete WebDAV URL.
 * CompuMaster.Dms.TestDemo.ScopevisioTeamwork – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with Scopevisio Teamwork (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 
+### WebDAV sharing capabilities
+
+The WebDAV provider keeps generic WebDAV servers provider-neutral. For recognized Nextcloud and ownCloud personal-file endpoints, it probes the Open Collaboration Services (OCS) API and enables user, group, and public-link sharing only when that probe succeeds. OCS permission bits are mapped without silently changing their meaning; view and download remain coupled because the classic OCS bit field cannot represent modern Nextcloud download restrictions separately. Server policies such as maximum link-name length remain server-validated because they differ between products and deployments.
+
+Sharing discovery requires both a successful OCS share-list request and the authenticated `cloud/capabilities` response. The adapter honors `api_enabled`, ownCloud's `can_share` and `public.can_create_public_link`, the current Nextcloud `group.enabled` or legacy `group_sharing`, and `public.enabled`/`public.upload`. Missing or malformed capability data does not enable optional operations. A failed discovery leaves ordinary WebDAV browsing available. Product identification alone never grants capabilities. Password, expiration, recipient and per-resource restrictions remain subject to server validation.
+
+OCS user IDs remain operation identifiers. Display names use the sharee display name or label, with the common ID fallback. The current OCS client does not expose a distinct login-name field for these responses; `LoginName` therefore stays unknown rather than copying the ID or guessing from additional information. Existing WebDAV owner metadata takes precedence over supplemental share-owner metadata.
+
+ownCloud Infinite Scale personal-file compatibility endpoints are only candidates for the same capability probe; they have not been verified against a real Infinite Scale server. Space endpoints (`/dav/spaces/<space-id>`) remain regular WebDAV endpoints because their sharing model uses LibreGraph roles and item identifiers; a future LibreGraph adapter can add that capability without changing the common DMS sharing API.
+
+The isolated sharing tests cover policy differences and identity mapping. The ownCloud Classic and Nextcloud CI fixtures additionally require successful sharing discovery and exercise public-link create/read/update/delete with verified test-owned directory cleanup. User/group mutations are covered in isolation, not yet against explicitly configured remote recipient accounts. See the upstream capability contracts for [Nextcloud](https://github.com/nextcloud/server/blob/master/apps/files_sharing/lib/Capabilities.php) and [ownCloud Classic](https://github.com/owncloud/core/blob/master/apps/files_sharing/lib/Capabilities.php).
+
 Development and remote integration-test guidance is documented in [TESTING.md](TESTING.md).
 See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between demo applications, environment variables, and local integration-test credential stores.
 

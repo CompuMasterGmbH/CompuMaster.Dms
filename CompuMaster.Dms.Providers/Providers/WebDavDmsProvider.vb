@@ -5,6 +5,8 @@ Imports System.Net
 Imports System.Net.Http
 Imports System.Runtime.ConstrainedExecution
 Imports System.Security.Claims
+Imports CompuMaster.Ocs.Core
+Imports CompuMaster.Ocs.Types
 Imports System.Xml.Linq
 Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
@@ -21,6 +23,26 @@ Namespace Providers
         Private Shared ReadOnly ChildFolderCountProperty As System.Xml.Linq.XName = System.Xml.Linq.XName.Get("contained-folder-count", "http://nextcloud.org/ns")
 
         Private WebDavClient As Global.WebDav.WebDavClient
+        Private OcsSharingClient As IOcsSharingClient
+        Private OcsRootPath As String = "/"
+
+        Friend Property OcsSharingClientForTesting As IOcsSharingClient
+            Get
+                Return Me.OcsSharingClient
+            End Get
+            Set(value As IOcsSharingClient)
+                Me.OcsSharingClient = value
+            End Set
+        End Property
+
+        Friend Property OcsRootPathForTesting As String
+            Get
+                Return Me.OcsRootPath
+            End Get
+            Set(value As String)
+                Me.OcsRootPath = value
+            End Set
+        End Property
 
         Private Shared ReadOnly OwnCloudOwnerId As XName = XName.Get("owner-id", "http://owncloud.org/ns")
         Private Shared ReadOnly OwnCloudOwnerDisplayName As XName = XName.Get("owner-display-name", "http://owncloud.org/ns")
@@ -136,6 +158,7 @@ Namespace Providers
             Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(ClientParams.BaseAddress)
             PropfindTask.Wait()
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
+                Me.TryInitializeOcsSharingClient(Url, loginCredentials.Username, loginCredentials.Password)
             Else
                 If PropfindTask.Exception IsNot Nothing Then
                     Throw New InvalidOperationException("Authentification for user """ & loginCredentials.Username & """ failed: " & PropfindTask.Exception.Message)
@@ -146,6 +169,102 @@ Namespace Providers
                 End If
             End If
         End Sub
+
+        Private Sub TryInitializeOcsSharingClient(webDavUrl As String, userID As String, password As String)
+            Me.OcsSharingClient = Nothing
+            Me.OcsRootPath = "/"
+
+            Dim OcsBaseUrl As String = Nothing
+            Dim RemoteRootPath As String = Nothing
+            If Not TryGetOcsConnectionInfo(webDavUrl, OcsBaseUrl, RemoteRootPath) Then
+                Return
+            End If
+
+            Try
+                Dim Candidate As IOcsSharingClient = New OcsSharingClientAdapter(OcsBaseUrl, userID, password)
+                Candidate.ProbeCapabilities()
+                If Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
+                    Me.OcsSharingClient = Candidate
+                    Me.OcsRootPath = RemoteRootPath
+                End If
+            Catch
+                'The authenticated endpoint is still a valid generic WebDAV endpoint when OCS is unavailable.
+                Me.OcsSharingClient = Nothing
+                Me.OcsRootPath = "/"
+            End Try
+        End Sub
+
+        Friend Shared Function TryGetOcsConnectionInfo(webDavUrl As String, ByRef ocsBaseUrl As String, ByRef remoteRootPath As String) As Boolean
+            ocsBaseUrl = Nothing
+            remoteRootPath = Nothing
+
+            Dim WebDavUri As Uri = Nothing
+            If Not Uri.TryCreate(webDavUrl, UriKind.Absolute, WebDavUri) Then
+                Return False
+            End If
+
+            Dim AbsolutePath As String = WebDavUri.AbsolutePath
+            Dim MatchedMarker As String = Nothing
+            Dim MarkerPosition As Integer = -1
+            Dim RelativeRootPath As String
+
+            For Each CandidateMarker As String In New String() {"/remote.php/dav/files/", "/dav/files/"}
+                MarkerPosition = AbsolutePath.IndexOf(CandidateMarker, StringComparison.OrdinalIgnoreCase)
+                If MarkerPosition >= 0 Then
+                    MatchedMarker = CandidateMarker
+                    Exit For
+                End If
+            Next
+
+            If MarkerPosition >= 0 Then
+                Dim PathBehindMarker As String = AbsolutePath.Substring(MarkerPosition + MatchedMarker.Length)
+                Dim FirstSeparatorPosition As Integer = PathBehindMarker.IndexOf("/"c)
+                If FirstSeparatorPosition < 0 Then
+                    RelativeRootPath = String.Empty
+                Else
+                    RelativeRootPath = PathBehindMarker.Substring(FirstSeparatorPosition + 1)
+                End If
+            Else
+                For Each CandidateMarker As String In New String() {"/remote.php/webdav", "/webdav"}
+                    MarkerPosition = FindPathMarker(AbsolutePath, CandidateMarker)
+                    If MarkerPosition >= 0 Then
+                        MatchedMarker = CandidateMarker
+                        Exit For
+                    End If
+                Next
+                If MatchedMarker Is Nothing Then
+                    Return False
+                End If
+                RelativeRootPath = AbsolutePath.Substring(MarkerPosition + MatchedMarker.Length).TrimStart("/"c)
+            End If
+
+            Dim BaseUriBuilder As New UriBuilder(WebDavUri) With {
+                .Path = AbsolutePath.Substring(0, MarkerPosition).TrimEnd("/"c),
+                .Query = String.Empty,
+                .Fragment = String.Empty
+            }
+            ocsBaseUrl = BaseUriBuilder.Uri.AbsoluteUri.TrimEnd("/"c)
+
+            RelativeRootPath = WebUtility.UrlDecode(RelativeRootPath).Trim("/"c)
+            If RelativeRootPath.Length = 0 Then
+                remoteRootPath = "/"
+            Else
+                remoteRootPath = "/" & RelativeRootPath
+            End If
+            Return True
+        End Function
+
+        Private Shared Function FindPathMarker(absolutePath As String, marker As String) As Integer
+            Dim MarkerPosition As Integer = absolutePath.IndexOf(marker, StringComparison.OrdinalIgnoreCase)
+            While MarkerPosition >= 0
+                Dim PositionBehindMarker As Integer = MarkerPosition + marker.Length
+                If PositionBehindMarker = absolutePath.Length OrElse absolutePath(PositionBehindMarker) = "/"c Then
+                    Return MarkerPosition
+                End If
+                MarkerPosition = absolutePath.IndexOf(marker, MarkerPosition + 1, StringComparison.OrdinalIgnoreCase)
+            End While
+            Return -1
+        End Function
 
         Private _AuthorizedUser As String
 
@@ -166,7 +285,9 @@ Namespace Providers
             End If
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
                 Dim Res As Global.WebDav.WebDavResource = PropfindTask.Result.Resources(0)
-                Return Me.CreateDmsResourceItem(Res)
+                Dim Result As DmsResourceItem = Me.CreateDmsResourceItem(Res)
+                Me.ApplyOcsSharingMetadata(Result, Me.TryLoadOcsShares(Result.FullName, includeSubFiles:=False))
+                Return Result
             Else
                 If PropfindTask.Exception IsNot Nothing Then
                     Throw New InvalidOperationException("Listing of WebDAV resource at " & remotePath & " failed: " & PropfindTask.Exception.Message)
@@ -257,6 +378,19 @@ Namespace Providers
             Return Result
         End Function
 
+        Private Function TryLoadOcsShares(remotePath As String, includeSubFiles As Boolean) As List(Of Share)
+            If Me.OcsSharingClient Is Nothing Then
+                Return Nothing
+            End If
+
+            Try
+                Return Me.OcsSharingClient.GetShares(Me.ToOcsPath(remotePath), includeReshares:=True, includeSubFiles:=includeSubFiles)
+            Catch
+                'Sharing metadata is supplemental and must not make otherwise valid WebDAV browsing fail.
+                Return Nothing
+            End Try
+        End Function
+
         Private Shared Function CreateResourcePropfindParameters(depth As Global.WebDav.ApplyTo.Propfind) As Global.WebDav.PropfindParameters
             'Some servers silently omit requested owner properties from allprop/include responses.
             Return New Global.WebDav.PropfindParameters With {
@@ -305,6 +439,166 @@ Namespace Providers
             End Try
         End Function
 
+        Private Function ToOcsPath(remotePath As String) As String
+            Dim RelativePath As String = Tools.NotNullOrEmptyStringValue(remotePath).Trim("/"c)
+            Dim RootPath As String = Tools.NotNullOrEmptyStringValue(Me.OcsRootPath).Trim("/"c)
+            If RootPath.Length = 0 AndAlso RelativePath.Length = 0 Then
+                Return "/"
+            ElseIf RootPath.Length = 0 Then
+                Return "/" & RelativePath
+            ElseIf RelativePath.Length = 0 Then
+                Return "/" & RootPath
+            Else
+                Return "/" & RootPath & "/" & RelativePath
+            End If
+        End Function
+
+        Friend Sub ApplyOcsSharingMetadata(dmsResource As DmsResourceItem, shares As IEnumerable(Of Share))
+            dmsResource.ExtendedInfosLinks = New List(Of DmsLink)
+            dmsResource.ExtendedInfosGroupSharings = New List(Of DmsShareForGroup)
+            dmsResource.ExtendedInfosUserSharings = New List(Of DmsShareForUser)
+            dmsResource.ExtendedInfosHasGroupSharings = False
+            dmsResource.ExtendedInfosHasHiddenGroupSharings = False
+            dmsResource.ExtendedInfosHasUserSharings = False
+            dmsResource.ExtendedInfosHasHiddenUserSharings = False
+            dmsResource.ExtendedInfosIsShared = False
+
+            If shares Is Nothing Then
+                Return
+            End If
+
+            Dim ExpectedPath As String = NormalizeOcsPath(Me.ToOcsPath(dmsResource.FullName))
+            For Each ShareInfo As Share In shares
+                If ShareInfo Is Nothing OrElse Not String.Equals(NormalizeOcsPath(ShareInfo.TargetPath), ExpectedPath, StringComparison.Ordinal) Then
+                    Continue For
+                End If
+
+                dmsResource.ExtendedInfosIsShared = True
+                If dmsResource.ExtendedInfosOwner.ID = Nothing AndAlso ShareInfo.AdvancedProperties IsNot Nothing AndAlso ShareInfo.AdvancedProperties.Owner <> Nothing Then
+                    dmsResource.ExtendedInfosOwner = New DmsUser With {
+                        .ID = ShareInfo.AdvancedProperties.Owner,
+                        .DisplayName = ShareInfo.AdvancedProperties.DisplaynameOwner
+                    }
+                End If
+
+                Select Case ShareInfo.Type
+                    Case OcsShareType.User
+                        Dim UserShareInfo As UserShare = TryCast(ShareInfo, UserShare)
+                        If UserShareInfo IsNot Nothing Then
+                            dmsResource.ExtendedInfosUserSharings.Add(Me.CreateDmsUserShare(dmsResource, UserShareInfo))
+                        End If
+                    Case OcsShareType.Group
+                        Dim GroupShareInfo As GroupShare = TryCast(ShareInfo, GroupShare)
+                        If GroupShareInfo IsNot Nothing Then
+                            dmsResource.ExtendedInfosGroupSharings.Add(Me.CreateDmsGroupShare(dmsResource, GroupShareInfo))
+                        End If
+                    Case OcsShareType.Link
+                        Dim PublicShareInfo As PublicShare = TryCast(ShareInfo, PublicShare)
+                        If PublicShareInfo IsNot Nothing Then
+                            dmsResource.ExtendedInfosLinks.Add(Me.CreateDmsLink(dmsResource, PublicShareInfo))
+                        End If
+                End Select
+            Next
+
+            dmsResource.ExtendedInfosHasUserSharings = dmsResource.ExtendedInfosUserSharings.Count > 0
+            dmsResource.ExtendedInfosHasGroupSharings = dmsResource.ExtendedInfosGroupSharings.Count > 0
+        End Sub
+
+        Private Shared Function NormalizeOcsPath(path As String) As String
+            Dim Result As String = WebUtility.UrlDecode(Tools.NotNullOrEmptyStringValue(path)).Trim()
+            If Not Result.StartsWith("/", StringComparison.Ordinal) Then
+                Result = "/" & Result
+            End If
+            If Result.Length > 1 Then
+                Result = Result.TrimEnd("/"c)
+            End If
+            Return Result
+        End Function
+
+        Private Function CreateDmsUserShare(dmsResource As DmsResourceItem, shareInfo As UserShare) As DmsShareForUser
+            Dim Permissions As Integer = Convert.ToInt32(shareInfo.Permissions)
+            Return New DmsShareForUser(
+                dmsResource,
+                New DmsUser With {
+                    .ID = shareInfo.SharedWith,
+                    .DisplayName = shareInfo.AdvancedProperties?.SharedWithDisplayname
+                },
+                HasOcsPermission(Permissions, OcsPermission.Read),
+                HasOcsPermission(Permissions, OcsPermission.Read),
+                HasOcsPermission(Permissions, OcsPermission.Update),
+                HasOcsPermission(Permissions, OcsPermission.Create),
+                HasOcsPermission(Permissions, OcsPermission.Delete),
+                HasOcsPermission(Permissions, OcsPermission.Share))
+        End Function
+
+        Private Function CreateDmsGroupShare(dmsResource As DmsResourceItem, shareInfo As GroupShare) As DmsShareForGroup
+            Dim Permissions As Integer = Convert.ToInt32(shareInfo.Permissions)
+            Return New DmsShareForGroup(
+                dmsResource,
+                New DmsGroup With {
+                    .ID = shareInfo.SharedWith,
+                    .Name = shareInfo.AdvancedProperties?.SharedWithDisplayname
+                },
+                HasOcsPermission(Permissions, OcsPermission.Read),
+                HasOcsPermission(Permissions, OcsPermission.Read),
+                HasOcsPermission(Permissions, OcsPermission.Update),
+                HasOcsPermission(Permissions, OcsPermission.Create),
+                HasOcsPermission(Permissions, OcsPermission.Delete),
+                HasOcsPermission(Permissions, OcsPermission.Share))
+        End Function
+
+        Private Function CreateDmsLink(dmsResource As DmsResourceItem, shareInfo As PublicShare) As DmsLink
+            Dim Result As New DmsLink(dmsResource, shareInfo.ShareId.ToString(Globalization.CultureInfo.InvariantCulture), Me, AddressOf FillOcsLinkDetails)
+            Me.InitializeDmsLink(Result, shareInfo, password:=Nothing)
+            Return Result
+        End Function
+
+        Private Sub InitializeDmsLink(dmsLink As DmsLink, shareInfo As PublicShare, password As String)
+            Dim Permissions As Integer = Convert.ToInt32(shareInfo.Permissions)
+            dmsLink.Name = shareInfo.Name
+            dmsLink.Initialize(
+                password,
+                shareInfo.Expiration,
+                Nothing,
+                Nothing,
+                Nothing,
+                Nothing,
+                Nothing,
+                Nothing,
+                Nothing,
+                shareInfo.Url,
+                Nothing,
+                Nothing,
+                HasOcsPermission(Permissions, OcsPermission.Read),
+                HasOcsPermission(Permissions, OcsPermission.Read),
+                HasOcsPermission(Permissions, OcsPermission.Update),
+                HasOcsPermission(Permissions, OcsPermission.Create),
+                HasOcsPermission(Permissions, OcsPermission.Delete),
+                HasOcsPermission(Permissions, OcsPermission.Share))
+        End Sub
+
+        Private Shared Sub FillOcsLinkDetails(provider As Object, id As String, dmsLink As DmsLink)
+            Dim WebDavProvider As WebDavDmsProvider = CType(provider, WebDavDmsProvider)
+            Dim ShareID As Integer = ParseOcsShareID(id)
+            Dim Shares As List(Of Share) = WebDavProvider.RequireOcsSharingClient().GetShares(WebDavProvider.ToOcsPath(dmsLink.ParentDmsResourceItem.FullName), True, False)
+            Dim MatchingShare As PublicShare = Nothing
+            For Each ShareInfo As Share In Shares
+                If ShareInfo.ShareId = ShareID Then
+                    MatchingShare = TryCast(ShareInfo, PublicShare)
+                    Exit For
+                End If
+            Next
+            If MatchingShare Is Nothing Then
+                Throw New KeyNotFoundException("OCS link share " & id & " was not found")
+            End If
+            WebDavProvider.InitializeDmsLink(dmsLink, MatchingShare, password:=Nothing)
+        End Sub
+
+        Private Shared Function HasOcsPermission(permissions As Integer, permission As OcsPermission) As Boolean
+            Dim PermissionValue As Integer = Convert.ToInt32(permission)
+            Return (permissions And PermissionValue) = PermissionValue
+        End Function
+
         Private Shared Function DavOwnerPrincipal(resource As Global.WebDav.WebDavResource) As String
             Dim ownerProperty As Global.WebDav.WebDavProperty = resource.Properties.FirstOrDefault(Function(item) item.Name = DavOwner)
             If ownerProperty Is Nothing OrElse String.IsNullOrWhiteSpace(ownerProperty.Value) Then Return Nothing
@@ -328,6 +622,7 @@ Namespace Providers
             End If
             If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
                 Dim Result As New List(Of DmsResourceItem)
+                Dim Shares As List(Of Share) = Me.TryLoadOcsShares(remoteFolderPath, includeSubFiles:=True)
                 For Each res In PropfindTask.Result.Resources
                     Dim AddThisItem As Boolean = False
                     Select Case searchType
@@ -345,6 +640,7 @@ Namespace Providers
                         If NewItem.ItemType = DmsResourceItem.ItemTypes.Folder AndAlso Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(NewItem.FullName) = Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(remoteFolderPath) Then
                             'don't list folder item
                         Else
+                            Me.ApplyOcsSharingMetadata(NewItem, Shares)
                             Result.Add(NewItem)
                         End If
                     End If
@@ -635,52 +931,213 @@ Namespace Providers
 
         Public Overrides ReadOnly Property SupportsSharingSetup As Boolean
             Get
-                Return False
+                Return Me.OcsSharingClient IsNot Nothing AndAlso
+                    Me.OcsSharingClient.Capabilities IsNot Nothing AndAlso
+                    Me.OcsSharingClient.Capabilities.SupportsAnySharing
             End Get
         End Property
 
         Public Overrides Function CreateLink(dmsResource As DmsResourceItem, shareInfo As DmsLink) As DmsLink
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            If Not Client.Capabilities.SupportsLinkShares Then
+                Throw New NotSupportedException("Link sharing is not supported by this OCS server")
+            End If
+            If shareInfo.AllowUpload AndAlso Not Client.Capabilities.SupportsPublicUpload Then
+                Throw New NotSupportedException("Public uploads are not supported by this OCS server")
+            End If
+            If shareInfo.AllowUpload AndAlso dmsResource.ItemType = DmsResourceItem.ItemTypes.File Then
+                Throw New NotSupportedException("Public uploads can only be enabled for folders")
+            End If
+
+            Dim Permissions As Integer = ToOcsPermissions(shareInfo)
+            Dim CreatedShare As PublicShare = TryCast(Client.CreateLink(Me.ToOcsPath(dmsResource.FullName), Permissions, shareInfo.AllowUpload, shareInfo.Name, shareInfo.ExpiryDateLocalTime, EmptyStringToNothing(shareInfo.Password)), PublicShare)
+            If CreatedShare Is Nothing Then
+                Throw New InvalidOperationException("The OCS server returned an unexpected share type for a link share")
+            End If
+
+            shareInfo.ParentDmsResourceItem = dmsResource
+            shareInfo.DmsProvider = Me
+            shareInfo.FillLinkDetails = AddressOf FillOcsLinkDetails
+            Dim Result As DmsLink = Me.CreateDmsLink(dmsResource, CreatedShare)
+            Me.InitializeDmsLink(Result, CreatedShare, shareInfo.Password)
+            Return Result
         End Function
 
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForGroup)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            If Not Client.Capabilities.SupportsGroupShares Then
+                Throw New NotSupportedException("Group sharing is not supported by this OCS server")
+            End If
+            If shareInfo.Group.ID = Nothing Then
+                Throw New ArgumentException("A group ID is required", NameOf(shareInfo))
+            End If
+            Client.CreateGroupShare(Me.ToOcsPath(dmsResource.FullName), shareInfo.Group.ID, ToOcsPermissions(shareInfo))
         End Sub
 
         Public Overrides Sub CreateSharing(dmsResource As DmsResourceItem, shareInfo As DmsShareForUser)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            If Not Client.Capabilities.SupportsUserShares Then
+                Throw New NotSupportedException("User sharing is not supported by this OCS server")
+            End If
+            If shareInfo.User.ID = Nothing Then
+                Throw New ArgumentException("A user ID is required", NameOf(shareInfo))
+            End If
+            Client.CreateUserShare(Me.ToOcsPath(dmsResource.FullName), shareInfo.User.ID, ToOcsPermissions(shareInfo))
         End Sub
 
         Public Overrides Sub UpdateLink(shareInfo As DmsLink)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            If Not Client.Capabilities.SupportsLinkShares Then
+                Throw New NotSupportedException("Link sharing is not supported by this OCS server")
+            End If
+            If shareInfo.AllowUpload AndAlso Not Client.Capabilities.SupportsPublicUpload Then
+                Throw New NotSupportedException("Public uploads are not supported by this OCS server")
+            End If
+            If shareInfo.ParentDmsResourceItem Is Nothing Then
+                Throw New ArgumentException("The parent DMS resource item is required", NameOf(shareInfo))
+            End If
+            If shareInfo.AllowUpload AndAlso shareInfo.ParentDmsResourceItem.ItemType = DmsResourceItem.ItemTypes.File Then
+                Throw New NotSupportedException("Public uploads can only be enabled for folders")
+            End If
+
+            Client.UpdateLink(
+                ParseOcsShareID(shareInfo.ID),
+                ToOcsPermissions(shareInfo),
+                shareInfo.AllowUpload,
+                shareInfo.Name,
+                shareInfo.ExpiryDateLocalTime,
+                clearExpiration:=Not shareInfo.ExpiryDateLocalTime.HasValue,
+                password:=EmptyStringToNothing(shareInfo.Password))
         End Sub
 
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForGroup)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            If Not Client.Capabilities.SupportsGroupShares Then
+                Throw New NotSupportedException("Group sharing is not supported by this OCS server")
+            End If
+            Client.UpdateSharePermissions(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.Group, shareInfo.Group.ID), ToOcsPermissions(shareInfo))
         End Sub
 
         Public Overrides Sub UpdateSharing(shareInfo As DmsShareForUser)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            If Not Client.Capabilities.SupportsUserShares Then
+                Throw New NotSupportedException("User sharing is not supported by this OCS server")
+            End If
+            Client.UpdateSharePermissions(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.User, shareInfo.User.ID), ToOcsPermissions(shareInfo))
         End Sub
 
         Public Overrides Sub DeleteLink(shareInfo As DmsLink)
-            Throw New NotImplementedException()
+            Me.RequireOcsSharingClient().DeleteShare(ParseOcsShareID(shareInfo.ID))
         End Sub
 
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForGroup)
-            Throw New NotImplementedException()
+            Me.RequireOcsSharingClient().DeleteShare(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.Group, shareInfo.Group.ID))
         End Sub
 
         Public Overrides Sub DeleteSharing(shareInfo As DmsShareForUser)
-            Throw New NotImplementedException()
+            Me.RequireOcsSharingClient().DeleteShare(Me.FindShareID(shareInfo.ParentDmsResourceItem, OcsShareType.User, shareInfo.User.ID))
         End Sub
 
         Public Overrides Function GetAllGroups() As List(Of DmsGroup)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            Dim Result As New List(Of DmsGroup)
+            If Client.Capabilities.SupportsShareeDiscovery Then
+                For Each ShareeInfo As Sharee In Client.FindSharees(String.Empty, "file")
+                    If ShareeInfo.ShareType = OcsShareType.Group AndAlso Not Result.Exists(Function(item) item.ID = ShareeInfo.ShareWith) Then
+                        Result.Add(New DmsGroup With {.ID = ShareeInfo.ShareWith, .Name = ShareeInfo.ShareWithDisplayName})
+                    End If
+                Next
+            Else
+                For Each GroupID As String In Client.SearchGroups()
+                    Result.Add(New DmsGroup With {.ID = GroupID, .Name = GroupID})
+                Next
+            End If
+            Return Result
         End Function
 
         Public Overrides Function GetAllUsers() As List(Of DmsUser)
-            Throw New NotImplementedException()
+            Dim Client As IOcsSharingClient = Me.RequireOcsSharingClient()
+            Dim Result As New List(Of DmsUser)
+            If Client.Capabilities.SupportsShareeDiscovery Then
+                For Each ShareeInfo As Sharee In Client.FindSharees(String.Empty, "file")
+                    If ShareeInfo.ShareType = OcsShareType.User AndAlso Not Result.Exists(Function(item) item.ID = ShareeInfo.ShareWith) Then
+                        Result.Add(New DmsUser With {.ID = ShareeInfo.ShareWith, .DisplayName = If(String.IsNullOrWhiteSpace(ShareeInfo.ShareWithDisplayName), ShareeInfo.Label, ShareeInfo.ShareWithDisplayName)})
+                    End If
+                Next
+            Else
+                For Each UserID As String In Client.SearchUsers()
+                    Result.Add(New DmsUser With {.ID = UserID})
+                Next
+            End If
+            Return Result
+        End Function
+
+        Private Function RequireOcsSharingClient() As IOcsSharingClient
+            If Me.OcsSharingClient Is Nothing OrElse Me.OcsSharingClient.Capabilities Is Nothing OrElse Not Me.OcsSharingClient.Capabilities.SupportsAnySharing Then
+                Throw New NotSupportedException("Sharing is not supported by this WebDAV server")
+            End If
+            Return Me.OcsSharingClient
+        End Function
+
+        Private Shared Function ToOcsPermissions(shareInfo As DmsShareBase) As Integer
+            If shareInfo.AllowView <> shareInfo.AllowDownload Then
+                Throw New NotSupportedException("This OCS API cannot represent view and download permissions separately")
+            End If
+
+            Dim Result As Integer
+            If shareInfo.AllowView Then Result = Result Or Convert.ToInt32(OcsPermission.Read)
+            If shareInfo.AllowEdit Then Result = Result Or Convert.ToInt32(OcsPermission.Update)
+            If shareInfo.AllowUpload Then Result = Result Or Convert.ToInt32(OcsPermission.Create)
+            If shareInfo.AllowDelete Then Result = Result Or Convert.ToInt32(OcsPermission.Delete)
+            If shareInfo.AllowShare Then Result = Result Or Convert.ToInt32(OcsPermission.Share)
+            If Result = 0 Then
+                Throw New ArgumentException("At least one sharing permission is required", NameOf(shareInfo))
+            End If
+            Return Result
+        End Function
+
+        Private Function FindShareID(dmsResource As DmsResourceItem, shareType As OcsShareType, shareWithID As String) As Integer
+            If dmsResource Is Nothing Then
+                Throw New ArgumentNullException(NameOf(dmsResource))
+            End If
+
+            Dim Result As Integer?
+            For Each ShareInfo As Share In Me.RequireOcsSharingClient().GetShares(Me.ToOcsPath(dmsResource.FullName), True, False)
+                Dim FoundShareWithID As String = Nothing
+                If shareType = OcsShareType.User Then
+                    FoundShareWithID = TryCast(ShareInfo, UserShare)?.SharedWith
+                ElseIf shareType = OcsShareType.Group Then
+                    FoundShareWithID = TryCast(ShareInfo, GroupShare)?.SharedWith
+                End If
+
+                If ShareInfo.Type = shareType AndAlso String.Equals(FoundShareWithID, shareWithID, StringComparison.Ordinal) Then
+                    If Result.HasValue Then
+                        Throw New InvalidOperationException("More than one matching OCS share was found")
+                    End If
+                    Result = ShareInfo.ShareId
+                End If
+            Next
+
+            If Not Result.HasValue Then
+                Throw New KeyNotFoundException("The matching OCS share was not found")
+            End If
+            Return Result.Value
+        End Function
+
+        Private Shared Function ParseOcsShareID(id As String) As Integer
+            Dim Result As Integer
+            If Not Integer.TryParse(id, Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, Result) OrElse Result <= 0 Then
+                Throw New ArgumentException("A positive numeric OCS share ID is required", NameOf(id))
+            End If
+            Return Result
+        End Function
+
+        Private Shared Function EmptyStringToNothing(value As String) As String
+            If value = String.Empty Then
+                Return Nothing
+            Else
+                Return value
+            End If
         End Function
 
         Public Overrides ReadOnly Property CurrentContextUserID As String

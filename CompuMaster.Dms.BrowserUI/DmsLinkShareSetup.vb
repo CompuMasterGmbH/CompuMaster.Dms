@@ -101,6 +101,14 @@ Public Class DmsLinkShareSetup
                     Me.CheckBoxAllowDelete.Enabled = False
                     Me.CheckBoxAllowShare.Enabled = False
                 End If
+            Case "WebDavDmsProvider"
+                Dim SharingItem As DmsResourceItem = If(Me._DialogMode = DialogModes.CreateLink, Me.DmsItem, Me.DmsLinkDetails?.ParentDmsResourceItem)
+                Me.CheckBoxAllowView.Enabled = False
+                Me.CheckBoxAllowDownload.Enabled = False
+                Me.CheckBoxAllowEdit.Enabled = True
+                Me.CheckBoxAllowUpload.Enabled = SharingItem IsNot Nothing AndAlso SharingItem.ItemType = DmsResourceItem.ItemTypes.Folder
+                Me.CheckBoxAllowDelete.Enabled = True
+                Me.CheckBoxAllowShare.Enabled = True
             Case Else
                 Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
         End Select
@@ -112,6 +120,9 @@ Public Class DmsLinkShareSetup
                 Me.CheckBoxAllowEdit.Checked = False
                 Me.CheckBoxAllowUpload.Checked = False
                 Me.CheckBoxAllowShare.Checked = False
+                If Me.DmsProvider.GetType.Name = "WebDavDmsProvider" Then
+                    Me.CheckBoxAllowDownload.Checked = True
+                End If
                 Me.CheckBoxExpiryDate.Checked = False
                 Me.CheckBoxPassword.Checked = False
                 Me.CheckBoxMaxBytes.Checked = False
@@ -149,6 +160,15 @@ Public Class DmsLinkShareSetup
                 Me.CheckBoxMaxViews.Enabled = False
                 Me.TextBoxMaxViews.Enabled = False
                 Me.TextBoxDownloadUrl.Enabled = Me.CheckBoxAllowDownload.Checked AndAlso Me._DialogMode = DialogModes.UpdateLink
+            Case "WebDavDmsProvider"
+                Me.TextBoxName.Enabled = True
+                Me.CheckBoxMaxUploads.Enabled = False
+                Me.TextBoxMaxUploads.Enabled = False
+                Me.CheckBoxMaxDownloads.Enabled = False
+                Me.TextBoxMaxDownloads.Enabled = False
+                Me.CheckBoxMaxViews.Enabled = False
+                Me.TextBoxMaxViews.Enabled = False
+                Me.TextBoxDownloadUrl.Enabled = False
             Case Else
                 Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
         End Select
@@ -331,6 +351,13 @@ Public Class DmsLinkShareSetup
                     End If
                     If Me.CheckBoxAllowUpload.Checked AndAlso Me.TextBoxName.Text = Nothing Then
                         Throw New DmsUserInputMissingException(UiStrings.GetText("UploadLinkNameRequired"))
+                    End If
+                Case "WebDavDmsProvider"
+                    If Me.CheckBoxAllowView.Checked <> Me.CheckBoxAllowDownload.Checked Then
+                        Throw New DmsUserInputInvalidException("OCS requires View and Download permissions to be selected together")
+                    End If
+                    If Not (Me.CheckBoxAllowView.Checked OrElse Me.CheckBoxAllowEdit.Checked OrElse Me.CheckBoxAllowUpload.Checked OrElse Me.CheckBoxAllowDelete.Checked OrElse Me.CheckBoxAllowShare.Checked) Then
+                        Throw New DmsUserInputMissingException("At least one authorization is required")
                     End If
                 Case Else
                     Throw New NotImplementedException("DmsProvider implementation required for " & Me.DmsProvider.GetType.Name)
