@@ -269,7 +269,7 @@ jobs:
 
   native-scopevisio-live:
     name: Native Scopevisio live tests (${{ matrix.os }})
-    if: github.event_name == 'workflow_dispatch' && needs.prepare-remote-test-matrix.outputs.level == '2'
+    if: github.event_name == 'workflow_dispatch' && inputs.run_native_scopevisio && needs.prepare-remote-test-matrix.outputs.level == '2'
     needs: [isolated-tests, prepare-remote-test-matrix]
     permissions:
       contents: read
