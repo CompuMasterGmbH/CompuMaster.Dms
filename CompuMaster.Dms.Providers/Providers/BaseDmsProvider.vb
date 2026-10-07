@@ -554,6 +554,13 @@ Namespace Providers
         ''' </summary>
         ''' <param name="remoteFilePath"></param>
         ''' <param name="localFilePath"></param>
+        ''' <exception cref="System.IO.IOException">The local source cannot be read. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
+        ''' <exception cref="System.IO.FileNotFoundException">The local source file does not exist.</exception>
         Public MustOverride Sub UploadFile(remoteFilePath As String, localFilePath As String)
 
         ''' <summary>Uploads a local file without blocking the calling thread.</summary>
@@ -562,6 +569,13 @@ Namespace Providers
         ''' <param name="cancellationToken">Cancels the upload and any wait for service capacity.</param>
         ''' <returns>A task that completes when the upload finishes.</returns>
         ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued upload, but cannot interrupt an active synchronous upload.</remarks>
+        ''' <exception cref="System.IO.IOException">The local source cannot be read. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
+        ''' <exception cref="System.IO.FileNotFoundException">The local source file does not exist.</exception>
         Public Overridable Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Return Me.RunSynchronousFallbackAsync(Sub() Me.UploadFile(remoteFilePath, localFilePath), cancellationToken)
         End Function
@@ -603,6 +617,13 @@ Namespace Providers
         ''' <param name="createDirectoryStructureIfMissing">Creates missing remote parent folders when true.</param>
         ''' <param name="cancellationToken">Cancels a queued upload.</param>
         ''' <returns>A task that completes when the upload finishes.</returns>
+        ''' <exception cref="System.IO.IOException">The local source cannot be read. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
+        ''' <exception cref="System.IO.FileNotFoundException">The local source file does not exist.</exception>
         Public Overridable Async Function UploadFileAsync(remoteFilePath As String, localFilePath As String, createDirectoryStructureIfMissing As Boolean, Optional cancellationToken As CancellationToken = Nothing) As Task
             If Not createDirectoryStructureIfMissing Then
                 Await Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken).ConfigureAwait(False)
@@ -677,6 +698,13 @@ Namespace Providers
         ''' </summary>
         ''' <param name="remoteFilePath"></param>
         ''' <param name="localFilePath"></param>
+        ''' <exception cref="System.IO.IOException">The local source cannot be read. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
+        ''' <exception cref="System.IO.FileNotFoundException">The local source file does not exist.</exception>
         Public Sub UploadFile(remoteFilePath As String, localFilePath As String, createDirectoryStructureIfMissing As Boolean)
             If remoteFilePath = Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
             Dim ParentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)
@@ -721,6 +749,12 @@ Namespace Providers
         ''' <param name="remoteFilePath"></param>
         ''' <param name="localFilePath"></param>
         ''' <param name="lastModificationDateOnLocalTime"></param>
+        ''' <exception cref="System.IO.IOException">The local destination, staging file, replacement, or timestamp cannot be written. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public MustOverride Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
 
         ''' <summary>Downloads a remote file without blocking the calling thread.</summary>
@@ -730,6 +764,12 @@ Namespace Providers
         ''' <param name="cancellationToken">Cancels the download and any wait for service capacity.</param>
         ''' <returns>A task that completes when the download finishes.</returns>
         ''' <remarks>Providers without native asynchronous I/O serialize this operation across provider instances for the same backend. Cancellation stops a queued download, but cannot interrupt an active synchronous download.</remarks>
+        ''' <exception cref="System.IO.IOException">The local destination, staging file, replacement, or timestamp cannot be written. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Function DownloadFileAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, Optional cancellationToken As CancellationToken = Nothing) As Task
             Return Me.RunSynchronousFallbackAsync(Sub() Me.DownloadFile(remoteFilePath, localFilePath, lastModificationDateOnLocalTime), cancellationToken)
         End Function
@@ -739,6 +779,12 @@ Namespace Providers
         ''' <param name="localFilePath">The local destination path.</param>
         ''' <param name="cancellationToken">Cancels a queued or native download.</param>
         ''' <returns>A task that completes when the download finishes.</returns>
+        ''' <exception cref="System.IO.IOException">The local destination, staging file, replacement, or timestamp cannot be written. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Async Function DownloadFileAsync(remoteFile As DmsResourceItem, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
             If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))
@@ -754,6 +800,12 @@ Namespace Providers
         ''' </summary>
         ''' <param name="remoteFile">The remote file to download.</param>
         ''' <param name="localFilePath">The local destination path.</param>
+        ''' <exception cref="System.IO.IOException">The local destination, staging file, replacement, or timestamp cannot be written. A path conflict can include a directory occupying the file path; the exact exception mapping depends on the operating system, runtime, and file system.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Access to the local path is denied, or the platform reports a directory at the file path as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory does not exist.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds the limits of the operating system or runtime.</exception>
+        ''' <exception cref="ArgumentException">The local path is empty or invalid for the runtime.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Sub DownloadFile(remoteFile As DmsResourceItem, localFilePath As String)
             If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
             If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException("The remote resource must be a file.", NameOf(remoteFile))

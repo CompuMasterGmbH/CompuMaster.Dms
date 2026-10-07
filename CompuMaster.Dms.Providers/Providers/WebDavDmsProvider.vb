@@ -769,6 +769,7 @@ Namespace Providers
             Return New WebDavLoginCredentials
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, localFilePath As String)
             Dim PutParams As New Global.WebDav.PutFileParameters
             Dim fs As System.IO.FileStream = Nothing
@@ -806,6 +807,7 @@ Namespace Providers
             End Using
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
             Dim PutParams As New Global.WebDav.PutFileParameters
             Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams)
@@ -826,6 +828,13 @@ Namespace Providers
             End Using
         End Function
 
+        ''' <summary>Writes the successful response contents to a local file.</summary>
+        ''' <param name="response">The pending response whose stream is read.</param>
+        ''' <param name="localFilePath">The local file to create or overwrite.</param>
+        ''' <exception cref="System.IO.IOException">Reading or writing fails, including platform-dependent path conflicts.</exception>
+        ''' <exception cref="UnauthorizedAccessException">The local file is inaccessible or its path denotes a directory on a runtime that reports access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">The local parent directory is absent.</exception>
+        ''' <exception cref="InvalidOperationException">The response did not complete successfully.</exception>
         Protected Overridable Sub WriteResponseStreamToDisk(response As Task(Of Global.WebDav.WebDavStreamResponse), localFilePath As String)
             response.Wait()
             If response.IsCompleted = False OrElse response.Result.IsSuccessful = False Then Throw New InvalidOperationException("Download failed: not completed/successfull")
@@ -833,6 +842,7 @@ Namespace Providers
             System.IO.File.WriteAllBytes(localFilePath, FileData)
         End Sub
 
+        ''' <inheritdoc/>
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Using response = Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file without processing from the server
                 response.Wait()
@@ -866,6 +876,15 @@ Namespace Providers
             End Try
         End Function
 
+        ''' <summary>Downloads a server-processed remote file to a local destination.</summary>
+        ''' <param name="remoteFilePath">The remote source path.</param>
+        ''' <param name="localFilePath">The local file to create or overwrite.</param>
+        ''' <exception cref="System.IO.IOException">Transfer, staging, or final replacement fails; a directory at the file destination can cause a platform-dependent conflict.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Local access is denied, including path conflicts reported as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory is absent.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds platform or runtime limits.</exception>
+        ''' <exception cref="ArgumentException">The local destination path is invalid.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Sub DownloadProcessedFile(remoteFilePath As String, localFilePath As String)
             Using response = Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file that can be processed by the server
                 response.Wait()
@@ -879,6 +898,12 @@ Namespace Providers
         ''' <param name="localFilePath">The local destination path.</param>
         ''' <param name="cancellationToken">Cancels the request or response transfer.</param>
         ''' <returns>A task that completes when the processed file is saved.</returns>
+        ''' <exception cref="System.IO.IOException">Transfer, staging, or final replacement fails; a directory at the file destination can cause a platform-dependent conflict.</exception>
+        ''' <exception cref="UnauthorizedAccessException">Local access is denied, including path conflicts reported as access denied.</exception>
+        ''' <exception cref="System.IO.DirectoryNotFoundException">A required local parent directory is absent.</exception>
+        ''' <exception cref="System.IO.PathTooLongException">The local path exceeds platform or runtime limits.</exception>
+        ''' <exception cref="ArgumentException">The local destination path is invalid.</exception>
+        ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Async Function DownloadProcessedFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Dim parameters As New Global.WebDav.GetFileParameters With {.CancellationToken = cancellationToken}
             Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
