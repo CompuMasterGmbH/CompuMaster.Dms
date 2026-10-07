@@ -133,6 +133,11 @@ Public MustInherit Class WebDavProviderTestBase
             Dim status = resource.PropertyStatuses.FirstOrDefault(Function(candidate) candidate.Name = name)
             Dim count = resource.Properties.FirstOrDefault(Function(prop) prop.Name = name)
             TestContext.WriteLine("Child-folder capability: property status=" & If(status Is Nothing, "unreported", status.StatusCode.ToString(Globalization.CultureInfo.InvariantCulture)) & ", mappedKnown=" & empty.ChildDirectoryCount.HasValue.ToString())
+            CapabilityEvidence.Record(Me.GetType().Name & "-children", New With {
+                .ProviderFixture = Me.GetType().Name,
+                .NamedPropertyStatus = If(status Is Nothing, CType(Nothing, Integer?), status.StatusCode),
+                .ParentCount = parent.ChildDirectoryCount, .ParentHasChildren = parent.HasChildDirectories,
+                .EmptyCount = empty.ChildDirectoryCount, .EmptyHasChildren = empty.HasChildDirectories})
             If count IsNot Nothing AndAlso (status Is Nothing OrElse status.IsSuccessful) Then
                 Dim numeric As Integer
                 If Integer.TryParse(count.Value, Globalization.NumberStyles.Integer, Globalization.CultureInfo.InvariantCulture, numeric) AndAlso numeric >= 0 Then
@@ -225,6 +230,13 @@ Public MustInherit Class WebDavProviderTestBase
             .CustomProperties = New Xml.Linq.XName() {Xml.Linq.XName.Get("resourcetype", "DAV:"), ownerId, ownerDisplay, davOwner}})
         Assert.That(response.IsSuccessful, [Is].True, "Named owner-property request failed.")
         Dim resource = response.Resources.Single()
+        CapabilityEvidence.Record(Me.GetType().Name & "-owner-" & item.ItemType.ToString(), New With {
+            .ProviderFixture = Me.GetType().Name, .ResourceKind = item.ItemType.ToString(),
+            .OwnerIdKnown = Not String.IsNullOrEmpty(item.ExtendedInfosOwner.ID),
+            .OwnerDisplayTextAvailable = Not String.IsNullOrEmpty(item.ExtendedInfosOwner.DisplayName),
+            .Properties = New Xml.Linq.XName() {ownerId, ownerDisplay, davOwner}.Select(Function(name) New With {
+                .Name = name.ToString(),
+                .Status = resource.PropertyStatuses.Where(Function(prop) prop.Name = name).Select(Function(prop) CType(prop.StatusCode, Integer?)).FirstOrDefault()}).ToArray()})
         For Each propertyName In New Xml.Linq.XName() {ownerId, ownerDisplay, davOwner}
             Dim status = resource.PropertyStatuses.FirstOrDefault(Function(candidate) candidate.Name = propertyName)
             TestContext.WriteLine("Owner capability (" & item.ItemType.ToString() & "): " & propertyName.LocalName & " status=" & If(status Is Nothing, "unreported", status.StatusCode.ToString(Globalization.CultureInfo.InvariantCulture)))

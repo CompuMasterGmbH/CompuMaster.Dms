@@ -129,7 +129,7 @@ jobs:
         if: always()
         with:
           name: NUnit Isolated Test Results ${{ matrix.os }}
-          path: test-results/TestResults.xml
+          path: test-results/
 
   prepare-remote-test-matrix:
     name: Prepare remote integration-test matrix
@@ -265,7 +265,7 @@ jobs:
         if: always()
         with:
           name: NUnit ${{ matrix.server.id }} Test Results ${{ matrix.os }}
-          path: test-results/TestResults.xml
+          path: test-results/
 
   native-scopevisio-live:
     name: Native Scopevisio live tests (${{ matrix.os }})
