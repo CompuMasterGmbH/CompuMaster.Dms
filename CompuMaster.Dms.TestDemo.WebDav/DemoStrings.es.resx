@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UserName" xml:space="preserve"><value>Nombre de &amp;usuario</value></data>
+  <data name="Password" xml:space="preserve"><value>&amp;Contraseña</value></data>
+  <data name="StartPath" xml:space="preserve"><value>Carpeta &amp;inicial</value></data>
+  <data name="SignIn" xml:space="preserve"><value>Iniciar &amp;sesión</value></data>
+  <data name="Exit" xml:space="preserve"><value>&amp;Salir</value></data>
+  <data name="PersistCredentials" xml:space="preserve"><value>Recordar credenciales en este equipo</value></data>
+  <data name="CustomerNumber" xml:space="preserve"><value>Número de &amp;cliente</value></data>
+  <data name="ServerUrl" xml:space="preserve"><value>&amp;URL del servidor WebDAV</value></data>
+  <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>La URL del servidor Nextcloud debe ser una URL HTTP o HTTPS absoluta.</value></data>
+  <data name="OpenDmsFailed" xml:space="preserve"><value>No se puede abrir el DMS</value></data>
+</root>

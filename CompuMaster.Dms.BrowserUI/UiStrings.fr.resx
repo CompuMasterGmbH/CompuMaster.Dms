@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ActionAdd" xml:space="preserve"><value>&amp;Ajouter</value></data>
+  <data name="ActionAddGroup" xml:space="preserve"><value>Ajouter un &amp;groupe</value></data>
+  <data name="ActionAddUser" xml:space="preserve"><value>Ajouter un &amp;utilisateur</value></data>
+  <data name="ActionCancel" xml:space="preserve"><value>&amp;Annuler</value></data>
+  <data name="ActionClose" xml:space="preserve"><value>&amp;Fermer</value></data>
+  <data name="ActionCopy" xml:space="preserve"><value>&amp;Copier</value></data>
+  <data name="ActionCopyWebLink" xml:space="preserve"><value>Copier le lien Web</value></data>
+  <data name="ActionCreateFolder" xml:space="preserve"><value>Créer un &amp;dossier</value></data>
+  <data name="ActionDelete" xml:space="preserve"><value>&amp;Supprimer</value></data>
+  <data name="ActionDownload" xml:space="preserve"><value>&amp;Télécharger</value></data>
+  <data name="ActionEdit" xml:space="preserve"><value>&amp;Modifier</value></data>
+  <data name="ActionFileSharings" xml:space="preserve"><value>&amp;Partages du fichier</value></data>
+  <data name="ActionFolderSharings" xml:space="preserve"><value>&amp;Partages du dossier</value></data>
+  <data name="ActionMove" xml:space="preserve"><value>&amp;Déplacer</value></data>
+  <data name="ActionOkay" xml:space="preserve"><value>&amp;OK</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>&amp;Ouvrir</value></data>
+  <data name="ActionProperties" xml:space="preserve"><value>Propriétés</value></data>
+  <data name="ActionRefreshFiles" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="ActionRename" xml:space="preserve"><value>&amp;Renommer</value></data>
+  <data name="ActionSave" xml:space="preserve"><value>&amp;Enregistrer</value></data>
+  <data name="ActionSharings" xml:space="preserve"><value>&amp;Partages</value></data>
+  <data name="ActionShowFiles" xml:space="preserve"><value>Afficher les &amp;fichiers</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>&amp;Envoyer</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>Tous les fichiers (*.*)|*.*</value></data>
+  <data name="BrowseTitle" xml:space="preserve"><value>Parcourir les dossiers DMS</value></data>
+  <data name="ColumnAuthorizations" xml:space="preserve"><value>Autorisations</value></data>
+  <data name="ColumnLastModification" xml:space="preserve"><value>Dernière modification</value></data>
+  <data name="ColumnLimitations" xml:space="preserve"><value>Limites</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>Nom</value></data>
+  <data name="ColumnSize" xml:space="preserve"><value>Taille</value></data>
+  <data name="ColumnType" xml:space="preserve"><value>Type</value></data>
+  <data name="CredentialsOrServerError" xml:space="preserve"><value>Informations d'identification non valides, erreur d'instance de serveur DMS ou erreur réseau</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>Propriétaire actuel : {0}</value></data>
+  <data name="DeleteFilesQuestion" xml:space="preserve"><value>Voulez-vous vraiment supprimer les fichiers suivants ?</value></data>
+  <data name="DeleteFilesTitle" xml:space="preserve"><value>DMS distant - Supprimer des fichiers</value></data>
+  <data name="DeleteFolderQuestion" xml:space="preserve"><value>Voulez-vous vraiment supprimer le dossier suivant ?</value></data>
+  <data name="DeleteFolderTitle" xml:space="preserve"><value>DMS distant - Supprimer le dossier</value></data>
+  <data name="DeletedFileMessage" xml:space="preserve"><value>Le fichier a été supprimé en dehors de ce navigateur : {0}</value></data>
+  <data name="DeletedFolderMessage" xml:space="preserve"><value>Le dossier a été supprimé en dehors de ce navigateur : {0}</value></data>
+  <data name="DownloadSuccessful" xml:space="preserve"><value>Téléchargement terminé avec succès</value></data>
+  <data name="DownloadTitle" xml:space="preserve"><value>DMS distant - Téléchargement de fichiers</value></data>
+  <data name="DownloadToTitle" xml:space="preserve"><value>Télécharger sur {0}</value></data>
+  <data name="DmsFolderNotFound" xml:space="preserve"><value>Dossier DMS introuvable : {0}</value></data>
+  <data name="DuplicateFileNameConflict" xml:space="preserve"><value>Conflit : plusieurs fichiers portent le même nom de fichier</value></data>
+  <data name="ExactlyOneItemRequired" xml:space="preserve"><value>Exactement un élément doit être sélectionné</value></data>
+  <data name="EntityGroup" xml:space="preserve"><value>Groupe</value></data>
+  <data name="EntityUser" xml:space="preserve"><value>Utilisateur</value></data>
+  <data name="ExternalSharings" xml:space="preserve"><value>Partages avec des utilisateurs externes via un lien</value></data>
+  <data name="FileNotFound" xml:space="preserve"><value>Fichier introuvable</value></data>
+  <data name="FileProperties" xml:space="preserve"><value>Propriétés du fichier</value></data>
+  <data name="FilesAlreadyExist" xml:space="preserve"><value>Les fichiers suivants existent déjà. Voulez-vous les écraser ?</value></data>
+  <data name="FolderProperties" xml:space="preserve"><value>Propriétés du dossier</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>Paramètres généraux</value></data>
+  <data name="InternalSharings" xml:space="preserve"><value>Partages avec des utilisateurs/groupes internes</value></data>
+  <data name="InvalidFolderMessage" xml:space="preserve"><value>Dossier invalide : {0}</value></data>
+  <data name="InvalidFolderTitle" xml:space="preserve"><value>Le dossier DMS n'est pas valide ou n'existe plus</value></data>
+  <data name="LabelDownloadLink" xml:space="preserve"><value>Lien de téléchargement</value></data>
+  <data name="LabelExpiryDate" xml:space="preserve"><value>Date d'expiration</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>Nom du groupe</value></data>
+  <data name="LabelId" xml:space="preserve"><value>ID</value></data>
+  <data name="LabelMaxBytes" xml:space="preserve"><value>Max. octets</value></data>
+  <data name="LabelMaxDownloads" xml:space="preserve"><value>Max. téléchargements</value></data>
+  <data name="LabelMaxUploads" xml:space="preserve"><value>Envois max.</value></data>
+  <data name="LabelMaxViews" xml:space="preserve"><value>Max. vues</value></data>
+  <data name="LabelName" xml:space="preserve"><value>Nom</value></data>
+  <data name="LabelNumberBytes" xml:space="preserve"><value>Octets</value></data>
+  <data name="LabelNumberDownloads" xml:space="preserve"><value>Téléchargements</value></data>
+  <data name="LabelNumberUploads" xml:space="preserve"><value>Envois</value></data>
+  <data name="LabelNumberViews" xml:space="preserve"><value>Vues</value></data>
+  <data name="LabelPassword" xml:space="preserve"><value>Mot de passe</value></data>
+  <data name="LabelUserName" xml:space="preserve"><value>Nom d'utilisateur</value></data>
+  <data name="LabelWebLink" xml:space="preserve"><value>Lien Internet</value></data>
+  <data name="Limits" xml:space="preserve"><value>Limites</value></data>
+  <data name="LinkSharingRequired" xml:space="preserve"><value>Aucun partage de lien n'est sélectionné</value></data>
+  <data name="LimitationDownloads" xml:space="preserve"><value>Téléchargements : {0}</value></data>
+  <data name="LimitationPassword" xml:space="preserve"><value>Mot de passe</value></data>
+  <data name="LimitationUploads" xml:space="preserve"><value>Envois: {0}</value></data>
+  <data name="NewFolderPrompt" xml:space="preserve"><value>Comment doit s'appeler le nouveau dossier sous "{0}" ?</value></data>
+  <data name="NewFolderTitle" xml:space="preserve"><value>Nouveau dossier</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>Sélectionnez le dossier de destination</value></data>
+  <data name="DestinationNameTitle" xml:space="preserve"><value>Nom à destination</value></data>
+  <data name="DestinationNamePrompt" xml:space="preserve"><value>Saisissez le nom de destination pour « {0} » :</value></data>
+  <data name="RenameItemPrompt" xml:space="preserve"><value>Entrez un nouveau nom pour "{0}" :</value></data>
+  <data name="InvalidDestinationName" xml:space="preserve"><value>Entrez un nom sans séparateur de répertoire.</value></data>
+  <data name="SourceEqualsDestination" xml:space="preserve"><value>La source et la destination sont les mêmes. Choisissez un nom ou un dossier différent.</value></data>
+  <data name="OverwriteFileQuestion" xml:space="preserve"><value>Le fichier "{0}" existe déjà. Le remplacer ?</value></data>
+  <data name="MergeFolderQuestion" xml:space="preserve"><value>Le dossier "{0}" existe déjà. Fusionner son contenu avec la source ? Les éléments trouvés uniquement dans la destination resteront.</value></data>
+  <data name="RootFolderCannotBeChanged" xml:space="preserve"><value>La racine du navigateur ne peut pas être copiée, renommée ou déplacée.</value></data>
+  <data name="DestinationOutsideBrowserRoot" xml:space="preserve"><value>La destination se trouve en dehors de la racine du navigateur.</value></data>
+  <data name="ActionPartlyCompleted" xml:space="preserve"><value>{0} des {1} éléments sélectionnés ont été complétés. L'élément suivant a échoué : {2}</value></data>
+  <data name="ActionStoppedAfter" xml:space="preserve"><value>Arrêté. {0} des {1} éléments sélectionnés ont été complétés.</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>Aucun fichier sélectionné</value></data>
+  <data name="NoFilesSelected" xml:space="preserve"><value>Aucun fichier sélectionné</value></data>
+  <data name="NoFolderSelected" xml:space="preserve"><value>Aucun dossier sélectionné</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>{Masqué}</value></data>
+  <data name="UnknownValue" xml:space="preserve"><value>Inconnu</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>Opération annulée par l'utilisateur</value></data>
+  <data name="OutsideRequiredFolder" xml:space="preserve"><value>L'enregistrement en dehors du dossier "{0}" n'est pas pris en charge</value></data>
+  <data name="PermissionDelete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="PermissionDownload" xml:space="preserve"><value>Télécharger</value></data>
+  <data name="PermissionEdit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="PermissionShare" xml:space="preserve"><value>Partager</value></data>
+  <data name="PermissionUpload" xml:space="preserve"><value>Envoyer</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>Afficher</value></data>
+  <data name="Permissions" xml:space="preserve"><value>Autorisations</value></data>
+  <data name="PropertiesTitle" xml:space="preserve"><value>Propriétés {0}</value></data>
+  <data name="PropertiesArchivedDate" xml:space="preserve"><value>Date archivée : </value></data>
+  <data name="PropertiesCollisionWarning" xml:space="preserve"><value>AVERTISSEMENT : une collision avec un autre fichier du même nom a été détectée</value></data>
+  <data name="PropertiesDetails" xml:space="preserve"><value>Détails</value></data>
+  <data name="PropertiesExtendedInformation" xml:space="preserve"><value>Informations étendues</value></data>
+  <data name="PropertiesFileSize" xml:space="preserve"><value>Taille du fichier : </value></data>
+  <data name="PropertiesFullPath" xml:space="preserve"><value>Chemin complet : </value></data>
+  <data name="PropertiesLastModification" xml:space="preserve"><value>Dernière modification : </value></data>
+  <data name="PropertiesLockedBy" xml:space="preserve"><value>Verrouillé par : </value></data>
+  <data name="PropertiesLocks" xml:space="preserve"><value>Serrures : </value></data>
+  <data name="PropertiesOwner" xml:space="preserve"><value>Propriétaire : </value></data>
+  <data name="PropertiesParentCollection" xml:space="preserve"><value>Collecte parentale : </value></data>
+  <data name="PropertiesParentFolder" xml:space="preserve"><value>Dossier parent : </value></data>
+  <data name="PropertiesReferencedCollectionIds" xml:space="preserve"><value>Référencé à partir des ID de collection</value></data>
+  <data name="PropertiesReferencedFolderIds" xml:space="preserve"><value>Référencé à partir des ID de dossier</value></data>
+  <data name="PropertiesSharings" xml:space="preserve"><value>Actions</value></data>
+  <data name="PropertiesVersionDate" xml:space="preserve"><value>Date de version : </value></data>
+  <data name="PropertiesVersionNumber" xml:space="preserve"><value>Numéro de version : </value></data>
+  <data name="RootSharingUnsupported" xml:space="preserve"><value>Le partage du dossier racine n'est pas pris en charge</value></data>
+  <data name="RootFolderCannotBeDeleted" xml:space="preserve"><value>Le dossier racine ne peut pas être supprimé</value></data>
+  <data name="ShareSetupTitle" xml:space="preserve"><value>Paramètres de partage DMS - {0}</value></data>
+  <data name="SharingsTitle" xml:space="preserve"><value>Paramètres de partage DMS</value></data>
+  <data name="Statistics" xml:space="preserve"><value>Statistiques</value></data>
+  <data name="UploadSuccessful" xml:space="preserve"><value>Envoi terminé avec succès</value></data>
+  <data name="UploadTitle" xml:space="preserve"><value>DMS distant — Envoi de fichiers</value></data>
+  <data name="UploadLinkNameRequired" xml:space="preserve"><value>Un nom est requis pour les liens de téléchargement</value></data>
+  <data name="UserSharingRequired" xml:space="preserve"><value>Aucun partage d'utilisateur ou de groupe n'est sélectionné</value></data>
+  <data name="ViewOrUploadRequired" xml:space="preserve"><value>Une autorisation d'affichage ou de téléchargement est requise</value></data>
+  <data name="ViewRequiredForDownload" xml:space="preserve"><value>L'autorisation d'affichage est requise lorsque Télécharger est sélectionné</value></data>
+  <data name="AuthorizationObjectRequired" xml:space="preserve"><value>Aucun objet d'autorisation n'est sélectionné</value></data>
+  <data name="LinkSetupTitle" xml:space="preserve"><value>Paramètres de lien externe DMS</value></data>
+  <data name="ChangeDmsInstance" xml:space="preserve"><value>Changer d'instance DMS...</value></data>
+  <data name="ChangeDmsInstanceFailed" xml:space="preserve"><value>Impossible de modifier l'instance DMS</value></data>
+  <data name="CurrentDmsInstance" xml:space="preserve"><value>Instance : {0} (changer...)</value></data>
+  <data name="DmsInstanceSelectionPrompt" xml:space="preserve"><value>Sélectionnez l'instance DMS à ouvrir :</value></data>
+  <data name="DmsInstanceSelectionTitle" xml:space="preserve"><value>Sélectionnez une instance DMS</value></data>
+  <data name="NoDmsInstances" xml:space="preserve"><value>Aucune instance DMS n'est disponible pour ce compte.</value></data>
+  <data name="ABrowserOperationIsAlreadyRunning" xml:space="preserve"><value>Une opération de navigateur est déjà en cours.</value></data>
+  <data name="ACollectionOrFolderIsRequired" xml:space="preserve"><value>Une collection ou un dossier est requis.</value></data>
+  <data name="AnInstanceIdentifierIsRequired" xml:space="preserve"><value>Un identifiant d'instance est requis.</value></data>
+  <data name="AtLeastOneAuthorizationIsRequired" xml:space="preserve"><value>Au moins une autorisation est requise</value></data>
+  <data name="BooleanFalse" xml:space="preserve"><value>Non</value></data>
+  <data name="BooleanTrue" xml:space="preserve"><value>Oui</value></data>
+  <data name="DialogObjectModeNotImplementedForCreatingSharing" xml:space="preserve"><value>DialogObjectMode non implémenté pour la création de partage</value></data>
+  <data name="DialogObjectModeNotImplementedForLoading" xml:space="preserve"><value>DialogObjectMode non implémenté pour le chargement</value></data>
+  <data name="DialogObjectModeNotImplementedForSavingSharing" xml:space="preserve"><value>DialogObjectMode non implémenté pour enregistrer le partage</value></data>
+  <data name="DialogObjectModeNotImplementedForUpdatingSharing" xml:space="preserve"><value>DialogObjectMode non implémenté pour la mise à jour du partage</value></data>
+  <data name="DmsProviderImplementationRequiredFor" xml:space="preserve"><value>Implémentation de DmsProvider requise pour {0}</value></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>ERREUR : {0}</value></data>
+  <data name="FileSizeBytes" xml:space="preserve"><value>{0:#,##0} Octets</value></data>
+  <data name="InvalidValue" xml:space="preserve"><value>Valeur invalide : {0}</value></data>
+  <data name="LocalDefaultDownloadsFolderMustBeASub" xml:space="preserve"><value>Le dossier de téléchargements locaux par défaut "{0}" doit être un sous-dossier du répertoire "{1}".</value></data>
+  <data name="LocalDefaultUploadsFolderMustBeASub" xml:space="preserve"><value>Le dossier de téléchargement local par défaut "{0}" doit être un sous-dossier du répertoire "{1}".</value></data>
+  <data name="OCSRequiresViewAndDownloadPermissionsToBe" xml:space="preserve"><value>OCS nécessite que les autorisations Afficher et Télécharger soient sélectionnées ensemble</value></data>
+  <data name="OriginDmsLinkWithIDNotFoundInDmsResourceItem" xml:space="preserve"><value>Origine DmsLink avec l'ID "{0}" introuvable dans DmsResourceItem</value></data>
+  <data name="OriginDmsShareBaseItemWithIDNotFoundIn" xml:space="preserve"><value>L'élément DmsShareBase d'origine avec l'ID "{0}" est introuvable dans DmsResourceItem</value></data>
+  <data name="PropertiesAllowDelete" xml:space="preserve"><value>Autoriser la suppression : </value></data>
+  <data name="PropertiesAllowDownload" xml:space="preserve"><value>Autoriser le téléchargement : </value></data>
+  <data name="PropertiesAllowEdit" xml:space="preserve"><value>Autoriser la modification : </value></data>
+  <data name="PropertiesAllowUpload" xml:space="preserve"><value>Autoriser le téléchargement : </value></data>
+  <data name="PropertiesAllowView" xml:space="preserve"><value>Autoriser la visualisation : </value></data>
+  <data name="PropertiesAssignedCollectionId" xml:space="preserve"><value>ID de collection attribué : </value></data>
+  <data name="PropertiesAssignedFolderId" xml:space="preserve"><value>ID de dossier attribué : </value></data>
+  <data name="PropertiesCollectionId" xml:space="preserve"><value>Identifiant de la collection : </value></data>
+  <data name="PropertiesDownloadUrl" xml:space="preserve"><value>URL de téléchargement : </value></data>
+  <data name="PropertiesExpiresOn" xml:space="preserve"><value>Expire le : </value></data>
+  <data name="PropertiesFileId" xml:space="preserve"><value>Identifiant du fichier : </value></data>
+  <data name="PropertiesFolderId" xml:space="preserve"><value>ID du dossier : </value></data>
+  <data name="PropertiesHasChildDirectories" xml:space="preserve"><value>A des dossiers enfants : </value></data>
+  <data name="PropertiesHasGroupSharings" xml:space="preserve"><value>A des parts de groupe : </value></data>
+  <data name="PropertiesHasHiddenGroupSharings" xml:space="preserve"><value>A des partages de groupe masqués : </value></data>
+  <data name="PropertiesHasHiddenUserSharings" xml:space="preserve"><value>A des partages d'utilisateurs masqués : </value></data>
+  <data name="PropertiesHasUserSharings" xml:space="preserve"><value>A des partages d'utilisateurs : </value></data>
+  <data name="PropertiesHash" xml:space="preserve"><value>Hachage/ETag : </value></data>
+  <data name="PropertiesIsAuditing" xml:space="preserve"><value>Audit activé : </value></data>
+  <data name="PropertiesIsIntelligent" xml:space="preserve"><value>Collecte intelligente : </value></data>
+  <data name="PropertiesIsPublicCollection" xml:space="preserve"><value>Collection publique : </value></data>
+  <data name="PropertiesIsShared" xml:space="preserve"><value>Partagé : </value></data>
+  <data name="PropertiesLink" xml:space="preserve"><value>Lien : </value></data>
+  <data name="PropertiesMaxBytes" xml:space="preserve"><value>Octets maximum : </value></data>
+  <data name="PropertiesMaxDownloads" xml:space="preserve"><value>Téléchargements maximum : </value></data>
+  <data name="PropertiesMaxUploads" xml:space="preserve"><value>Téléchargements maximum : </value></data>
+  <data name="PropertiesPassword" xml:space="preserve"><value>Mot de passe : </value></data>
+  <data name="PropertiesUploadedBytes" xml:space="preserve"><value>Octets téléchargés : </value></data>
+  <data name="PropertiesUploadsCount" xml:space="preserve"><value>Nombre de téléchargements : </value></data>
+  <data name="PropertiesWebUrl" xml:space="preserve"><value>URL Web : </value></data>
+  <data name="ResolveTheStartupSelectionBeforeCreatingTheBrowser" xml:space="preserve"><value>Résolvez la sélection de démarrage avant de créer le navigateur.</value></data>
+  <data name="RootValue" xml:space="preserve"><value>Racine</value></data>
+  <data name="SelectedNodeFolderPathExpectedToStartWithRootNodeFolderPath" xml:space="preserve"><value>SelectedNodeFolderPath "{0}" devrait commencer par RootNodeFolderPath "{1}"</value></data>
+  <data name="TheDMSProviderReturnedACreatedLinkWithout" xml:space="preserve"><value>Le fournisseur DMS a renvoyé un lien créé sans ID.</value></data>
+  <data name="TheDMSProviderReturnedNoCreatedLink" xml:space="preserve"><value>Le fournisseur DMS n'a renvoyé aucun lien créé.</value></data>
+  <data name="TheProviderDoesNotSupportSelectingADMS" xml:space="preserve"><value>Le fournisseur ne prend pas en charge la sélection d'une instance DMS.</value></data>
+  <data name="TheSelectedDMSInstanceIsNotAvailable" xml:space="preserve"><value>L'instance DMS sélectionnée n'est pas disponible.</value></data>
+  <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Classe dérivée inconnue de DmsShareBase</value></data>
+  <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Utilisez le constructeur acceptant un identifiant d'instance.</value></data>
+  <data name="UploadFilePosition" xml:space="preserve"><value>Dossier {0} de {1} : {2}</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} sur {1:N0} octets source traités</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} octets source traités ; inconnu total</value></data>
+  <data name="UploadBytesUnknown" xml:space="preserve"><value>La progression des octets n'est pas disponible.</value></data>
+  <data name="UploadTransferring" xml:space="preserve"><value>Envoi en cours…</value></data>
+  <data name="UploadFinalizing" xml:space="preserve"><value>En attente de confirmation du fournisseur…</value></data>
+  <data name="UploadCompleted" xml:space="preserve"><value>Terminé</value></data>
+  <data name="UploadFailed" xml:space="preserve"><value>Échec</value></data>
+  <data name="UploadCancelled" xml:space="preserve"><value>Annulé</value></data>
+  <data name="UploadWaiting" xml:space="preserve"><value>Pas démarré</value></data>
+  <data name="UploadCancelling" xml:space="preserve"><value>Annulation demandée ; en attente du transfert actif.</value></data>
+  <data name="UploadBatchCount" xml:space="preserve"><value>{0} des {1} dossiers terminés</value></data>
+  <data name="UploadPartialWarning" xml:space="preserve"><value>Les téléchargements terminés restent sur le serveur. Un téléchargement interrompu peut laisser un fichier partiel.</value></data>
+</root>
