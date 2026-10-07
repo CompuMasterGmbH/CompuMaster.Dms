@@ -29,5 +29,12 @@ Friend NotInheritable Class DemoStrings
                 End If
             Next
         Next
+        Dim exitButton = TryCast(form.Controls.Find("Cancel", True).SingleOrDefault(), Button)
+        Dim signInButton = TryCast(form.Controls.Find("OK", True).SingleOrDefault(), Button)
+        If exitButton IsNot Nothing AndAlso signInButton IsNot Nothing Then
+            Dim rightMargin = Math.Max(12, form.ClientSize.Width - exitButton.Right)
+            exitButton.Left = form.ClientSize.Width - rightMargin - exitButton.Width
+            signInButton.Left = exitButton.Left - 9 - signInButton.Width
+        End If
     End Sub
 End Class
