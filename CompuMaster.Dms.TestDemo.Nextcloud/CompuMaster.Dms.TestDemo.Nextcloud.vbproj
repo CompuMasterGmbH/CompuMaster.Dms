@@ -52,4 +52,9 @@
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoStrings.vb" Link="DemoStrings.vb" />
+    <EmbeddedResource Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoStrings*.resx" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

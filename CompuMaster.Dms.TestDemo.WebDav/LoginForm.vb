@@ -16,6 +16,7 @@ Public Class LoginForm
     Public Sub New(formIcon As Icon)
         MyBase.New()
         InitializeComponent()
+        DemoStrings.ApplyLoginLabels(Me)
         Me.Icon = If(formIcon, CType((New ComponentResourceManager(GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser))).GetObject("$this.Icon"), Icon))
     End Sub
 
@@ -65,10 +66,10 @@ Public Class LoginForm
             Me.Cursor = Cursors.Default
             Me.UseWaitCursor = False
             Me.Refresh()
-            System.Windows.Forms.MessageBox.Show(Me, ex.Message, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, ex.Message, DemoStrings.GetText("OpenDmsFailed"), MessageBoxButtons.OK, MessageBoxIcon.Error)
 #Disable Warning CA1031 ' Do not catch general exception types
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, ex.ToString, Nothing, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            System.Windows.Forms.MessageBox.Show(Me, ex.ToString, DemoStrings.GetText("OpenDmsFailed"), MessageBoxButtons.OK, MessageBoxIcon.Error)
 #Enable Warning CA1031 ' Do not catch general exception types
             Me.Cursor = Cursors.Default
             Me.UseWaitCursor = False

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>CompuMaster.Dms.Test.BrowserUI</RootNamespace>
@@ -18,6 +18,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CompuMaster.Dms.BrowserUI\CompuMaster.Dms.BrowserUI.vbproj" />
+    <ProjectReference Include="..\CompuMaster.Dms.TestDemo.WebDav\CompuMaster.Dms.TestDemo.WebDav.vbproj" />
+    <ProjectReference Include="..\CompuMaster.Dms.TestDemo.OwnCloudClassic\CompuMaster.Dms.TestDemo.OwnCloudClassic.vbproj" />
+    <ProjectReference Include="..\CompuMaster.Dms.TestDemo.Nextcloud\CompuMaster.Dms.TestDemo.Nextcloud.vbproj" />
+    <ProjectReference Include="..\CompuMaster.Dms.TestDemo.ScopevisioTeamwork\CompuMaster.Dms.TestDemo.ScopevisioTeamwork.vbproj" />
   </ItemGroup>
 
 </Project>
