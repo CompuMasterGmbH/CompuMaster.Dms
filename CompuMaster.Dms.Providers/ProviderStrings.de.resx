@@ -156,4 +156,5 @@
   <data name="DeleteFailed" xml:space="preserve"><value>Löschen fehlgeschlagen</value></data>
   <data name="MoveFailed" xml:space="preserve"><value>Verschieben fehlgeschlagen</value></data>
   <data name="UploadFailed" xml:space="preserve"><value>Upload fehlgeschlagen</value></data>
+  <data name="SessionReauthorizationRequired" xml:space="preserve"><value>Ihre Sitzung kann nicht mehr erneuert werden. Melden Sie sich erneut an, um fortzufahren.</value></data>
 </root>

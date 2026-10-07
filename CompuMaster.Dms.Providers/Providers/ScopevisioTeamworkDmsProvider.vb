@@ -113,7 +113,7 @@ Namespace Providers
                 Me._OpenScopeClient = OpenScopeClient
                 Me.IOClient = If(OpenScopeClient.Token Is Nothing OrElse String.IsNullOrWhiteSpace(OpenScopeClient.Token.TeamworkTenantId),
                                  Nothing,
-                                 New CompuMaster.Scopevisio.Teamwork.TeamworkIOClient(OpenScopeClient))
+                                 ScopevisioSessionIOClient.CreateAsync(OpenScopeClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult())
                 Me._ignoreSslErrors = ignoreSslErrors
             Catch ex As CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 Throw CreateAuthorizationException(ex.ErrorCode, ex.ErrorContent, ex, IsTokenRequest)
@@ -127,7 +127,7 @@ Namespace Providers
             Dim sdkName As String = MyBase.LookupUserDisplayName(userId)
             If Not String.IsNullOrWhiteSpace(sdkName) Then Return sdkName
 
-            Dim openScopeClient = CType(Me.IOClient, CompuMaster.Scopevisio.Teamwork.TeamworkIOClient).TeamworkRestClient.OpenscopeClient
+            Dim openScopeClient = Me.GetOpenScopeClient()
             If openScopeClient.Token Is Nothing OrElse String.IsNullOrWhiteSpace(openScopeClient.Token.AccessToken) Then Return String.Empty
 
             Try
@@ -194,6 +194,8 @@ Namespace Providers
 
         Public ReadOnly Property ApplicationContext As CompuMaster.Scopevisio.OpenApi.Model.AccountInfo
             Get
+                Dim session = TryCast(Me.IOClient, ScopevisioSessionIOClient)
+                If session IsNot Nothing Then Return session.ApplicationContext
                 Return CType(Me.IOClient, CompuMaster.Scopevisio.Teamwork.TeamworkIOClient).TeamworkRestClient.ApplicationContext
             End Get
         End Property
@@ -339,7 +341,7 @@ Namespace Providers
             OpenScopeClient.Token.TeamworkTenantId = organisation.TeamworkTenantId
             Me.IOClient = Nothing
             Me._AllUploadLinks = Nothing
-            Me.IOClient = New CompuMaster.Scopevisio.Teamwork.TeamworkIOClient(OpenScopeClient)
+            Me.IOClient = ScopevisioSessionIOClient.CreateAsync(OpenScopeClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
         End Sub
 
         Private Function GetOpenScopeClient() As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient
