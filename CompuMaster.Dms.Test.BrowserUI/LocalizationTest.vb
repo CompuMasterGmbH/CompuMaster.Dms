@@ -20,13 +20,23 @@ Public Class LocalizationTest
     Public Sub NeutralAndUnsupportedCulturesUseEnglishResources()
         ClassicAssert.AreEqual("&Cancel", UiResourceManager.GetString("ActionCancel", CultureInfo.InvariantCulture))
         ClassicAssert.AreEqual("&Cancel", UiResourceManager.GetString("ActionCancel", CultureInfo.GetCultureInfo("en-US")))
-        ClassicAssert.AreEqual("&Cancel", UiResourceManager.GetString("ActionCancel", CultureInfo.GetCultureInfo("fr-FR")))
+        ClassicAssert.AreEqual("&Cancel", UiResourceManager.GetString("ActionCancel", CultureInfo.GetCultureInfo("ko-KR")))
     End Sub
 
     <Test>
     Public Sub GermanCultureUsesGermanResources()
         ClassicAssert.AreEqual("&Abbrechen", UiResourceManager.GetString("ActionCancel", CultureInfo.GetCultureInfo("de-DE")))
         ClassicAssert.AreEqual("Aktualisieren", UiResourceManager.GetString("ActionRefreshFiles", CultureInfo.GetCultureInfo("de-AT")))
+    End Sub
+
+    <TestCase("fr-FR", "fr"), TestCase("fr-CA", "fr"), TestCase("es-ES", "es"), TestCase("es-MX", "es")>
+    <TestCase("zh-CN", "zh-Hans"), TestCase("zh-SG", "zh-Hans"), TestCase("zh-TW", "zh-Hant"), TestCase("zh-HK", "zh-Hant"), TestCase("zh-MO", "zh-Hant")>
+    <TestCase("ja-JP", "ja"), TestCase("ar-SA", "ar"), TestCase("ar-EG", "ar"), TestCase("he-IL", "he"), TestCase("hi-IN", "hi")>
+    Public Sub RegionalCulturesSelectTheIntendedLanguageAndChineseScript(region As String, language As String)
+        Dim expected = UiResourceManager.GetResourceSet(CultureInfo.GetCultureInfo(language), True, False).GetString("ActionCopy")
+        Assert.That(UiResourceManager.GetString("ActionCopy", CultureInfo.GetCultureInfo(region)), [Is].EqualTo(expected))
+        If language = "zh-Hans" Then Assert.That(expected, Does.Contain("复制"))
+        If language = "zh-Hant" Then Assert.That(expected, Does.Contain("複製"))
     End Sub
 
     <Test>
@@ -54,10 +64,21 @@ Public Class LocalizationTest
             End Sub)
     End Sub
 
-    <Test>
-    Public Sub GermanResourcesPreserveEveryNeutralPlaceholderAndFormatSpecifier()
+    <TestCase("de")>
+    <TestCase("fr")>
+    <TestCase("es")>
+    <TestCase("zh-Hans")>
+    <TestCase("zh-Hant")>
+    <TestCase("ja")>
+    <TestCase("ar")>
+    <TestCase("he")>
+    <TestCase("hi")>
+    Public Sub EverySatellitePreservesEveryNeutralKeyPlaceholderAndFormatSpecifier(culture As String)
         Dim neutral = UiResourceManager.GetResourceSet(CultureInfo.InvariantCulture, True, False)
-        Dim german = UiResourceManager.GetResourceSet(CultureInfo.GetCultureInfo("de"), True, False)
+        Dim german = UiResourceManager.GetResourceSet(CultureInfo.GetCultureInfo(culture), True, False)
+        Assert.That(german, [Is].Not.Null, culture)
+        Assert.That(german.Cast(Of DictionaryEntry)().Select(Function(entry) CStr(entry.Key)).OrderBy(Function(key) key).ToArray(),
+                    [Is].EqualTo(neutral.Cast(Of DictionaryEntry)().Select(Function(entry) CStr(entry.Key)).OrderBy(Function(key) key).ToArray()))
         For Each entry As DictionaryEntry In neutral
             Dim key = CStr(entry.Key)
             Dim original = CStr(entry.Value)
@@ -70,7 +91,7 @@ Public Class LocalizationTest
 
     <TestCase("en-US", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>
     <TestCase("de-DE", "&Abbrechen", "Aktualisieren", "Allgemeine Einstellungen", "&Schließen", "Freigaben an interne Benutzer/Gruppen")>
-    <TestCase("fr-FR", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>
+    <TestCase("ko-KR", "&Cancel", "Refresh", "General settings", "&Close", "Sharings with internal users/groups")>
     Public Sub FormsApplyCurrentUICulture(cultureName As String, expectedCancel As String, expectedRefresh As String, expectedGeneralSettings As String, expectedClose As String, expectedInternalSharings As String)
         RunWithCulture(cultureName,
             Sub()
@@ -98,6 +119,14 @@ Public Class LocalizationTest
 
     <TestCase("en-US")>
     <TestCase("de-DE")>
+    <TestCase("fr")>
+    <TestCase("es")>
+    <TestCase("zh-Hans")>
+    <TestCase("zh-Hant")>
+    <TestCase("ja")>
+    <TestCase("ar")>
+    <TestCase("he")>
+    <TestCase("hi")>
     Public Sub LocalizedFixedWidthButtonsFitTheirText(cultureName As String)
         RunWithCulture(cultureName,
             Sub()

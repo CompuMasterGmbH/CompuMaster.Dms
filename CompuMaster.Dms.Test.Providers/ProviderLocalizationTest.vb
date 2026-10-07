@@ -9,10 +9,18 @@ Imports NUnit.Framework
 Public Class ProviderLocalizationTest
     Private Shared ReadOnly Resources As New ResourceManager("CompuMaster.Dms.ProviderStrings", GetType(BaseDmsProvider).Assembly)
 
-    <Test>
-    Public Sub GermanSatelliteContainsEveryNeutralResourceWithoutFallback()
+    <TestCase("de")>
+    <TestCase("fr")>
+    <TestCase("es")>
+    <TestCase("zh-Hans")>
+    <TestCase("zh-Hant")>
+    <TestCase("ja")>
+    <TestCase("ar")>
+    <TestCase("he")>
+    <TestCase("hi")>
+    Public Sub EverySatelliteContainsEveryNeutralResourceWithoutFallback(culture As String)
         Dim neutral = Resources.GetResourceSet(CultureInfo.InvariantCulture, True, False)
-        Dim german = Resources.GetResourceSet(CultureInfo.GetCultureInfo("de"), True, False)
+        Dim german = Resources.GetResourceSet(CultureInfo.GetCultureInfo(culture), True, False)
         Assert.That(german, [Is].Not.Null)
         Dim expected = neutral.Cast(Of DictionaryEntry)().Select(Function(entry) CStr(entry.Key)).OrderBy(Function(key) key).ToArray()
         Dim actual = german.Cast(Of DictionaryEntry)().Select(Function(entry) CStr(entry.Key)).OrderBy(Function(key) key).ToArray()
