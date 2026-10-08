@@ -46,6 +46,14 @@ Public Class LocalizedLayoutAcceptanceTest
                         Inspect(form, failures, form.GetType().Name & " wide scale=" & fontScale.ToString(CultureInfo.InvariantCulture))
                         form.Size = normal
                     End If
+                    If TypeOf form Is PreviewBrowser Then
+                        'Exercise a CI-sized display even on a large developer monitor.
+                        'The production layout must wrap rather than overlap at this limit.
+                        form.MaximumSize = New Size(900, 0)
+                        form.Size = New Size(900, form.Height)
+                        form.PerformLayout()
+                        Inspect(form, failures, "Constrained browser scale=" & fontScale.ToString(CultureInfo.InvariantCulture))
+                    End If
                     If TypeOf form Is UploadProgressDialog Then
                         Dim progress = DirectCast(form, UploadProgressDialog)
                         Dim files = {"Présentation — 文件 — दस्तावेज़.txt", New String("X"c, 120) & ".txt"}
