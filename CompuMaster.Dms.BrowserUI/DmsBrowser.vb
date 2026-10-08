@@ -563,6 +563,10 @@ Public Class DmsBrowser
             }
             AddHandler Me.InstanceButton.Click, AddressOf Me.ChangeDmsInstance_Click
             Me.Controls.Add(Me.InstanceButton)
+            If TransferRunning Then
+                TransferControlStates(Me.InstanceButton) = True
+                Me.InstanceButton.Enabled = False
+            End If
         End If
         Me.InstanceButton.Visible = True
         Me.UpdateDmsInstanceButton()
@@ -1140,22 +1144,32 @@ Public Class DmsBrowser
     Private TransferRunning As Boolean
     Private TransferCompletion As TaskCompletionSource(Of Boolean)
     Private TransferPreviousUseWaitCursor As Boolean
-    Private TransferPreviousEnabled As Boolean
+    Private ReadOnly TransferControlStates As New Dictionary(Of Control, Boolean)
 
     Private Sub BeginTransfer()
         TransferRunning = True
         TransferCompletion = New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         TransferPreviousUseWaitCursor = Me.UseWaitCursor
-        TransferPreviousEnabled = Me.Enabled
+        TransferControlStates.Clear()
         Me.UseWaitCursor = True
-        Me.Enabled = False
+        'Keep the top-level window active so Windows can move, paint and focus it without a modal-error beep.
+        'Only the content and action controls are locked while the provider request is pending.
+        If Me.Enabled Then
+            For Each control As Control In Me.Controls
+                TransferControlStates.Add(control, control.Enabled)
+                control.Enabled = False
+            Next
+        End If
     End Sub
 
     Private Sub EndTransfer()
         If Not Me.IsDisposed AndAlso Not Me.Disposing Then
-            Me.Enabled = TransferPreviousEnabled
+            For Each state In TransferControlStates
+                If Not state.Key.IsDisposed Then state.Key.Enabled = state.Value
+            Next
             Me.UseWaitCursor = TransferPreviousUseWaitCursor
         End If
+        TransferControlStates.Clear()
         TransferRunning = False
         TransferCompletion.TrySetResult(True)
     End Sub
@@ -1549,11 +1563,17 @@ Public Class DmsBrowser
         Me.Close()
     End Sub
 
-    Private Sub ToolStripButtonSharingsFolder_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFolder.Click
+    Private Async Sub ToolStripButtonSharingsFolder_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFolder.Click
+        If TransferRunning OrElse ResourceActionRunning Then Return
         Try
             If CurrentSelectedFolder() Is Nothing OrElse CurrentSelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootSharingUnsupported"))
+            Dim selected = CurrentSelectedFolder()
+            Dim details As DmsResourceItem = Nothing
+            Await Me.RunTransferAsync(Async Function()
+                                         details = Await Me.LoadResourceDetailsAsync(selected)
+                                     End Function)
             Dim DmsShareForm As New DmsItemSharings()
-            DmsShareForm.DmsItem = CurrentSelectedFolder()
+            DmsShareForm.DmsItem = details
             DmsShareForm.DmsProvider = Me.DmsProvider
             AddHandler DmsShareForm.SharingsChanged, AddressOf Me.DmsShareForm_SharingsChanged
             DmsShareForm.Show(Me)
@@ -1564,13 +1584,19 @@ Public Class DmsBrowser
         End Try
     End Sub
 
-    Private Sub ToolStripButtonSharingsFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFile.Click
+    Private Async Sub ToolStripButtonSharingsFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFile.Click
+        If TransferRunning OrElse ResourceActionRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFileSelected"))
             For MyCounter As Integer = 0 To SelectedFiles.Count - 1
+                Dim selected = SelectedFiles(MyCounter)
+                Dim details As DmsResourceItem = Nothing
+                Await Me.RunTransferAsync(Async Function()
+                                             details = Await Me.LoadResourceDetailsAsync(selected)
+                                         End Function)
                 Dim DmsShareForm As New DmsItemSharings()
-                DmsShareForm.DmsItem = SelectedFiles(MyCounter)
+                DmsShareForm.DmsItem = details
                 DmsShareForm.DmsProvider = Me.DmsProvider
                 AddHandler DmsShareForm.SharingsChanged, AddressOf Me.DmsShareForm_SharingsChanged
                 DmsShareForm.Show(Me)
@@ -1705,7 +1731,8 @@ Public Class DmsBrowser
             Dim SelectedFile As DmsResourceItem = SelectedFiles(0)
             Dim Details As String = Nothing
             Await Me.RunTransferAsync(Async Function()
-                                         Details = Await Me.PropertiesDetailsAsync(SelectedFile)
+                                         Dim resource = Await Me.LoadResourceDetailsAsync(SelectedFile)
+                                         Details = Await Me.PropertiesDetailsAsync(resource)
                                      End Function)
             InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFile.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
         Catch ex As Data.DmsUserErrorMessageException
@@ -1741,6 +1768,31 @@ Public Class DmsBrowser
         End If
         Return FormatPropertiesDetails(dmsItem, Sub(link)
                                                End Sub, Function(id) CollectionNames(id), Function(id) FolderNames(id))
+    End Function
+
+    Friend Async Function LoadResourceDetailsAsync(entry As DmsResourceItem) As Task(Of DmsResourceItem)
+        Dim details As DmsResourceItem
+        If entry.ItemType = DmsResourceItem.ItemTypes.Collection AndAlso Not String.IsNullOrEmpty(entry.ExtendedInfosCollectionID) Then
+            details = Await Me.DmsProvider.FindCollectionByIdAsync(entry.ExtendedInfosCollectionID)
+        ElseIf entry.ItemType = DmsResourceItem.ItemTypes.Folder AndAlso Not String.IsNullOrEmpty(entry.ExtendedInfosFolderID) Then
+            details = Await Me.DmsProvider.FindFolderByIdAsync(entry.ExtendedInfosFolderID)
+        ElseIf entry.ItemType = DmsResourceItem.ItemTypes.File AndAlso Not String.IsNullOrEmpty(entry.ExtendedInfosFileID) Then
+            details = Await Me.DmsProvider.FindFileByIdAsync(entry.ExtendedInfosFileID)
+        Else
+            details = Await Me.DmsProvider.ListRemoteItemAsync(entry.FullName)
+        End If
+        If details Is Nothing Then
+            If entry.ItemType = DmsResourceItem.ItemTypes.File Then Throw New Data.FileNotFoundException(entry.FullName)
+            Throw New Data.DirectoryNotFoundException(entry.FullName)
+        End If
+        'Identifier lookups can return detached SDK objects. Keep the selected entry's browsing context.
+        details.FullName = entry.FullName
+        details.Collection = entry.Collection
+        details.Folder = entry.Folder
+        details.ExtendedInfosAssignedCollectionID = entry.ExtendedInfosAssignedCollectionID
+        details.ExtendedInfosAssignedFolderID = entry.ExtendedInfosAssignedFolderID
+        details.ExtendedInfosCollisionDetected = entry.ExtendedInfosCollisionDetected
+        Return details
     End Function
 
     Private Async Function LookupDirectoryNameForUIAsync(id As String, currentDmsItem As DmsResourceItem, isCollection As Boolean) As System.Threading.Tasks.Task(Of String)
@@ -1913,7 +1965,8 @@ Public Class DmsBrowser
             If SelectedFolder IsNot Nothing Then
                 Dim Details As String = Nothing
                 Await Me.RunTransferAsync(Async Function()
-                                             Details = Await Me.PropertiesDetailsAsync(SelectedFolder)
+                                             Dim resource = Await Me.LoadResourceDetailsAsync(SelectedFolder)
+                                             Details = Await Me.PropertiesDetailsAsync(resource)
                                          End Function)
                 InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFolder.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             Else

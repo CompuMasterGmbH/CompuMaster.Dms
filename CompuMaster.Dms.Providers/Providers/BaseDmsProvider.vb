@@ -439,6 +439,26 @@ Namespace Providers
             Return CType(CType(item.ItemType, Byte), DmsResourceItem.FoundItemResult)
         End Function
 
+        ''' <summary>Lists immediate directory entries for browsing asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels queued or active listing requests.</param>
+        ''' <returns>The child directory identities, names, paths, sharing indicators and optional child-directory metadata.</returns>
+        ''' <exception cref="OperationCanceledException">The listing is canceled.</exception>
+        ''' <remarks>Providers may defer detailed principal and link lookups to avoid per-entry requests. Sharing indicators and link identifiers are retained for browsing. Retrieve the selected resource through an item or identifier lookup before showing its properties or sharing details. The default implementation delegates to <see cref="ListAllDirectoryItemsAsync"/> for compatibility with derived providers.</remarks>
+        Public Overridable Function ListDirectoryEntriesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Return Me.ListAllDirectoryItemsAsync(remoteFolderPath, cancellationToken)
+        End Function
+
+        ''' <summary>Lists immediate file entries for browsing asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels queued or active listing requests.</param>
+        ''' <returns>The file identities, names, paths, sizes, timestamps and sharing indicators.</returns>
+        ''' <exception cref="OperationCanceledException">The listing is canceled.</exception>
+        ''' <remarks>Providers may defer detailed principal and link metadata to avoid per-entry requests. Retrieve the selected resource through an item or identifier lookup before showing its properties or sharing details. The default implementation delegates to <see cref="ListAllFileItemsAsync"/> for compatibility with derived providers.</remarks>
+        Public Overridable Function ListFileEntriesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Return Me.ListAllFileItemsAsync(remoteFolderPath, cancellationToken)
+        End Function
+
         ''' <summary>Lists child folders and collections asynchronously.</summary>
         ''' <param name="remoteFolderPath">The remote parent path.</param>
         ''' <param name="cancellationToken">Cancels a queued or native request.</param>

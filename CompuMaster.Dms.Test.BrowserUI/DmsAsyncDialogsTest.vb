@@ -29,7 +29,7 @@ Public Class DmsAsyncDialogsTest
             Dim guard As New UiComponents.UiAsyncOperation(dialog)
             Dim pending As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
             Dim operation = guard.RunAsync(Function() pending.Task)
-            Assert.That(dialog.Enabled, [Is].False)
+            Assert.That(dialog.Enabled, [Is].True)
             Assert.That(dialog.UseWaitCursor, [Is].True)
             Assert.That(dialog.AttemptClose(), [Is].False)
             Dim duplicateCalls As Integer
@@ -70,7 +70,8 @@ Public Class DmsAsyncDialogsTest
             dialog.HideIDs = New List(Of String) From {"hidden"}
             dialog.DialogObjectMode = If(groups, UiComponents.DmsStandardShareSetup.DialogObjectModes.GroupSharing, UiComponents.DmsStandardShareSetup.DialogObjectModes.UserSharing)
             InvokeEvent(dialog, "DmsStandardShare_Load")
-            Assert.That(dialog.Enabled, [Is].False)
+            Assert.That(dialog.Enabled, [Is].True)
+            Assert.That(dialog.GroupBoxGeneral.Enabled, [Is].False)
             Assert.That(dialog.ComboBoxUsersOrGroups.Items.Count, [Is].Zero)
             If groups Then
                 provider.Groups.SetResult(New List(Of DmsGroup) From {New DmsGroup With {.ID = "hidden", .Name = "Hidden"}, New DmsGroup With {.ID = "visible", .Name = "Visible group"}})
@@ -95,7 +96,8 @@ Public Class DmsAsyncDialogsTest
             InvokeEvent(dialog, "ButtonSave_Click")
             InvokeEvent(dialog, "ButtonSave_Click")
             Assert.That(provider.CreateCalls, [Is].EqualTo(1))
-            Assert.That(dialog.Enabled, [Is].False)
+            Assert.That(dialog.Enabled, [Is].True)
+            Assert.That(dialog.ButtonSave.Enabled, [Is].False)
             Assert.That(dialog.DialogResult, [Is].EqualTo(DialogResult.None))
             Assert.That(resource.ExtendedInfosLinks, [Is].Empty)
             Dim link As New DmsLink(resource, "created", provider, Nothing) With {.AllowView = True}
@@ -205,7 +207,8 @@ Public Class DmsAsyncDialogsTest
             pending.SetResult(True)
             Dispatcher.Finish(busy)
             Dispatcher.PumpUntil(Function() provider.ListCalls = 1)
-            Assert.That(browser.Enabled, [Is].False)
+            Assert.That(browser.Enabled, [Is].True)
+            Assert.That(browser.SplitContainer.Enabled, [Is].False)
             Assert.That(resource.ExtendedInfosIsShared, [Is].False)
             provider.Listed.SetResult(New List(Of DmsResourceItem) From {New DmsResourceItem With {.ItemType = resource.ItemType, .ExtendedInfosFileID = "changed", .ExtendedInfosIsShared = True}})
             Dispatcher.WaitForEvents()

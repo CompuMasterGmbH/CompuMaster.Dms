@@ -17,7 +17,11 @@ Namespace Providers
         End Function
 
         ''' <inheritdoc/>
-        Public Overrides Async Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+        Public Overrides Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Return Me.ListNativeRemoteItemsAsync(remoteFolderPath, searchType, True, cancellationToken)
+        End Function
+
+        Private Async Function ListNativeRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, prepareDetails As Boolean, cancellationToken As CancellationToken) As Task(Of List(Of DmsResourceItem))
             Dim directory = Await Me.IOClient.RootDirectory.OpenDirectoryPathAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
             Dim result As New List(Of DmsResourceItem)
             If searchType = SearchItemType.Folders OrElse searchType = SearchItemType.Collections OrElse searchType = SearchItemType.AllItems Then
@@ -44,9 +48,16 @@ Namespace Providers
                     result.Add(Me.CreateDmsResourceItem(file, collision))
                 Next
             End If
-            Await Me.PrepareNativePrincipalSnapshotsAsync(result, cancellationToken).ConfigureAwait(False)
-            Await Me.PrepareNativeLinkSnapshotsAsync(result, cancellationToken).ConfigureAwait(False)
+            If prepareDetails Then
+                Await Me.PrepareNativePrincipalSnapshotsAsync(result, cancellationToken).ConfigureAwait(False)
+                Await Me.PrepareNativeLinkSnapshotsAsync(result, cancellationToken).ConfigureAwait(False)
+            End If
             Return result
+        End Function
+
+        ''' <inheritdoc/>
+        Public Overrides Function ListFileEntriesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Return Me.ListNativeRemoteItemsAsync(remoteFolderPath, SearchItemType.Files, False, cancellationToken)
         End Function
 
         ''' <inheritdoc/>
@@ -113,6 +124,35 @@ Namespace Providers
         Protected Overridable Async Function LoadNativeChildFolderMetadataAsync(directory As CenterDevice.IO.DirectoryInfo, cancellationToken As CancellationToken) As Task(Of List(Of CenterDevice.Rest.Clients.Folders.Folder))
             Dim parentId = If(directory.CollectionID IsNot Nothing, CenterDevice.Rest.RestApiConstants.NONE, directory.FolderID)
             Return (Await CenterDeviceFolderMetadataClient.Create(Me.IOClient.ApiClient).GetFoldersWithMetadataAsync(Me.IOClient.CurrentAuthenticationContextUserID, directory.CollectionID, parentId, cancellationToken).ConfigureAwait(False)).Cast(Of CenterDevice.Rest.Clients.Folders.Folder)().ToList()
+        End Function
+
+        ''' <inheritdoc/>
+        Public Overrides Async Function ListDirectoryEntriesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Dim directory = Await Me.IOClient.RootDirectory.OpenDirectoryPathAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            Dim result As New List(Of DmsResourceItem)
+            Dim uploadLinks As UploadLinks = Nothing
+            If directory.IsRootDirectory Then
+                Dim children = Await directory.GetDirectoriesAsync(cancellationToken).ConfigureAwait(False)
+                If children.Any(Function(child) child.CollectionID IsNot Nothing) Then
+                    uploadLinks = Await Me.LoadNativeUploadLinksAsync(cancellationToken).ConfigureAwait(False)
+                End If
+                For Each child In children
+                    cancellationToken.ThrowIfCancellationRequested()
+                    Dim collision = children.Any(Function(sibling) (sibling.CollectionID <> child.CollectionID OrElse sibling.FolderID <> child.FolderID) AndAlso String.Equals(sibling.Name, child.Name, StringComparison.Ordinal))
+                    result.Add(Me.CreateDmsResourceItem(child, uploadLinks, collision))
+                Next
+            Else
+                Dim folders = Await Me.LoadNativeChildFolderMetadataAsync(directory, cancellationToken).ConfigureAwait(False)
+                For Each folder In folders
+                    cancellationToken.ThrowIfCancellationRequested()
+                    Dim collision = folders.Any(Function(sibling) sibling.Id <> folder.Id AndAlso String.Equals(sibling.Name, folder.Name, StringComparison.Ordinal))
+                    Dim item = Me.CreateDmsResourceItem(New CenterDevice.IO.DirectoryInfo(Me.IOClient, directory, folder), Nothing, collision)
+                    Dim metadata = TryCast(folder, FolderWithChildMetadata)
+                    If metadata IsNot Nothing Then item.HasChildDirectories = metadata.HasSubFoldersMetadata
+                    result.Add(item)
+                Next
+            End If
+            Return result
         End Function
 
         ''' <inheritdoc/>

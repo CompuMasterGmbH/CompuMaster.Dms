@@ -14,6 +14,50 @@ Imports NUnit.Framework
 <TestFixture>
 Public Class CenterDeviceNativeListingTest
     <Test>
+    Public Async Function DirectoryEntriesKeepSharingMetadataWithoutPerEntryDetailRequests() As Task
+        Dim io As New FakeIo With {.IncludeDownloadLink = True}
+        Dim provider As New TestProvider(io)
+        Dim items = Await provider.ListDirectoryEntriesAsync("/")
+        Assert.That(items.Count, [Is].EqualTo(2))
+        Assert.That(items(0).ExtendedInfosCollectionID, [Is].EqualTo("collection-1"))
+        Assert.That(items(0).ExtendedInfosOwner.ID, [Is].EqualTo("owner-id"))
+        Assert.That(items(0).ExtendedInfosCollisionDetected, [Is].True)
+        Assert.That(items(0).ExtendedInfosHasUserSharings, [Is].True)
+        Assert.That(items(0).ExtendedInfosHasHiddenUserSharings, [Is].True)
+        Assert.That(items(0).ExtendedInfosUserSharings(0).User.ID, [Is].EqualTo("shared-user"))
+        Assert.That(items(0).ExtendedInfosLinks.Count, [Is].EqualTo(2), "Download and upload links must both remain available to the tree.")
+        Assert.That(items(0).ExtendedInfosLinks(0).ID, [Is].EqualTo("download-link"))
+        Assert.That(items(0).ExtendedInfosLinks(1).AllowUpload, [Is].True)
+        Assert.That(items(0).ExtendedInfosLinks(1).MaxBytes, [Is].EqualTo(5L * 1024L * 1024L * 1024L))
+        Assert.That(items(0).ExtendedInfosIsShared, [Is].True)
+        Assert.That(provider.LinkCalls, [Is].EqualTo(1), "Upload links are retrieved once as a batch, as in synchronous browsing.")
+        Assert.That(provider.UserCalls, [Is].Zero, "Browsing must not resolve every principal before publishing entries.")
+        Assert.That(provider.DownloadLinkCalls, [Is].Zero, "Browsing must not resolve every download link before publishing entries.")
+        Assert.That(io.CollectionCalls, [Is].EqualTo(1))
+    End Function
+
+    <Test>
+    Public Async Function FileEntriesKeepIdentitySizeAndOwnerWithoutPrincipalDetailRequests() As Task
+        Dim provider As New TestProvider(New FakeIo())
+        Dim items = Await provider.ListFileEntriesAsync("duplicate")
+        Assert.That(items.Count, [Is].EqualTo(2))
+        Assert.That(items(0).ExtendedInfosFileID, [Is].EqualTo("file-1"))
+        Assert.That(items(0).ContentLength, [Is].EqualTo(5L * 1024L * 1024L * 1024L))
+        Assert.That(items(0).ExtendedInfosOwner.ID, [Is].EqualTo("owner-id"))
+        Assert.That(items(0).ExtendedInfosCollisionDetected, [Is].True)
+        Assert.That(provider.UserCalls, [Is].Zero)
+        Assert.That(provider.LinkCalls, [Is].Zero)
+    End Function
+
+    <Test>
+    Public Async Function DirectoryEntriesRetainKnownEmptyKnownNonemptyAndUnknownChildFlags() As Task
+        Dim provider As New TestProvider(New FakeIo())
+        Dim items = Await provider.ListDirectoryEntriesAsync("duplicate")
+        Assert.That(items.Select(Function(item) item.HasChildDirectories), [Is].EqualTo(New Boolean?() {False, True, Nothing}))
+        Assert.That(provider.UserCalls, [Is].Zero)
+        Assert.That(provider.LinkCalls, [Is].Zero)
+    End Function
+    <Test>
     Public Async Function CollectionSnapshotsKeepSharingLinksAndCollisionsAfterCacheReset() As Task
         Dim io As New FakeIo()
         Dim provider As New TestProvider(io) With {.ResetDuringLinkLookup = True}
@@ -137,10 +181,15 @@ Public Class CenterDeviceNativeListingTest
         Inherits ScopevisioTeamworkDmsProvider
         Public LinkCalls As Integer
         Public UserCalls As Integer
+        Public DownloadLinkCalls As Integer
         Public ResetDuringLinkLookup As Boolean
         Public Sub New(io As Global.CenterDevice.IO.IOClientBase)
             Me.IOClient = io
         End Sub
+        Protected Overrides Function LoadNativeDownloadLinkAsync(id As String, cancellationToken As CancellationToken) As Task(Of CenterDevice.Rest.Clients.Link.Link)
+            DownloadLinkCalls += 1
+            Throw New InvalidOperationException("Directory entry browsing must not fetch download-link details.")
+        End Function
         Protected Overrides Function LoadNativeUserSnapshotAsync(id As String, cancellationToken As CancellationToken) As Task(Of DmsUser)
             cancellationToken.ThrowIfCancellationRequested()
             UserCalls += 1
@@ -169,6 +218,7 @@ Public Class CenterDeviceNativeListingTest
         Public CollectionCalls As Integer
         Public FileCalls As Integer
         Public BlockCollections As Boolean
+        Public IncludeDownloadLink As Boolean
         Public ReadOnly Entered As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         Public Sub New()
             MyBase.New(Nothing, "fixture-user")
@@ -180,7 +230,7 @@ Public Class CenterDeviceNativeListingTest
                 Await Task.Delay(Timeout.Infinite, cancellationToken)
             End If
             Return New List(Of Collection) From {
-                New Collection With {.Id = "collection-1", .Name = "duplicate", .Owner = "owner-id", .Users = New CenterDevice.Rest.Clients.Common.Sharings With {.NotVisibleCount = 1, .Visible = New List(Of String) From {"shared-user"}}},
+                New Collection With {.Id = "collection-1", .Name = "duplicate", .Owner = "owner-id", .Link = If(IncludeDownloadLink, "download-link", Nothing), .Users = New CenterDevice.Rest.Clients.Common.Sharings With {.NotVisibleCount = 1, .Visible = New List(Of String) From {"shared-user"}}},
                 New Collection With {.Id = "collection-2", .Name = "duplicate"}
             }
         End Function
