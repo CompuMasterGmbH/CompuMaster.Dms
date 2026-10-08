@@ -35,6 +35,27 @@ Public MustInherit Class BaseDmsProviderTestBase
         ClassicAssert.Pass()
     End Sub
 
+    <Test, Category("TestLevel1")>
+    Public Async Function DirectoryExistenceReturnsFalseForMissingTargetsAndParents() As System.Threading.Tasks.Task
+        Dim provider = Me.LoggedInDmsProvider()
+        'Read-only regression: these unique paths are never created or deleted.
+        Dim missing = provider.CombinePath(provider.BrowseInRootFolderName, "ZZZ_UnitTests_Existence_" & Guid.NewGuid().ToString("N"))
+        For Each path In New String() {missing, provider.CombinePath(missing, "MissingChild")}
+            Assert.That(provider.CollectionExists(path), [Is].False, "An absent collection or parent must be a negative existence result.")
+            Assert.That(provider.FolderExists(path), [Is].False, "An absent folder or parent must be a negative existence result.")
+            Assert.That(Await provider.CollectionExistsAsync(path), [Is].False)
+            Assert.That(Await provider.FolderExistsAsync(path), [Is].False)
+        Next
+        For Each path In Me.RemoteCollectionsMustExist.Take(1)
+            Assert.That(provider.CollectionExists(path), [Is].True)
+            Assert.That(Await provider.CollectionExistsAsync(path), [Is].True)
+        Next
+        For Each path In Me.RemoteFoldersMustExist.Take(1)
+            Assert.That(provider.FolderExists(path), [Is].True)
+            Assert.That(Await provider.FolderExistsAsync(path), [Is].True)
+        Next
+    End Function
+
     <Test, Category("TestLevel1")> Public Overridable Sub ListAllFolderNames()
         Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         Dim Items As List(Of String)
