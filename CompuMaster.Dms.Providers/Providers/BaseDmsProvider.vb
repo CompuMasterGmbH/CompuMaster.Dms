@@ -1885,50 +1885,70 @@ Namespace Providers
             End If
         End Function
 
-        ''' <summary>
-        ''' Check existance of a remote collection
-        ''' </summary>
+        ''' <summary>Checks whether a remote collection exists.</summary>
         ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
-        ''' <returns>True when the path identifies a collection; otherwise False.</returns>
+        ''' <returns>True when the path identifies a collection; False when the collection or its parent does not exist.</returns>
+        ''' <remarks>Authentication, permission, transport, server, and unsupported-operation failures are propagated.</remarks>
         Public Function CollectionExists(remoteFolderPath As String) As Boolean
             Dim ParentPath As String = Me.ParentDirectoryPath(remoteFolderPath)
             Dim ItemName As String = Me.ItemName(remoteFolderPath)
-            Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllCollectionNames(ParentPath)
-            Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Try
+                Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllCollectionNames(ParentPath)
+                Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Catch ex As Data.DirectoryNotFoundException
+                Return False
+            End Try
         End Function
 
-        ''' <summary>
-        ''' Check existance of a remote folder
-        ''' </summary>
+        ''' <summary>Checks whether a remote folder exists.</summary>
         ''' <param name="remoteFolderPath">The remote folder or collection path.</param>
-        ''' <returns>True when the path identifies an ordinary folder; otherwise False.</returns>
+        ''' <returns>True when the provider lists the path as a folder; False when the folder or its parent does not exist.</returns>
+        ''' <remarks>Authentication, permission, transport, server, and unsupported-operation failures are propagated.</remarks>
         Public Function FolderExists(remoteFolderPath As String) As Boolean
             Dim ParentPath As String = Me.ParentDirectoryPath(remoteFolderPath)
             Dim ItemName As String = Me.ItemName(remoteFolderPath)
-            Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllFolderNames(ParentPath)
-            Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Try
+                Dim AllFoldersInParentFolder As List(Of String) = Me.ListAllFolderNames(ParentPath)
+                Return AllFoldersInParentFolder.Contains(ItemName, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Catch ex As Data.DirectoryNotFoundException
+                Return False
+            End Try
         End Function
 
         ''' <summary>Checks whether a remote collection exists asynchronously.</summary>
         ''' <param name="remoteFolderPath">The collection path.</param>
         ''' <param name="cancellationToken">Cancels a queued or native lookup.</param>
-        ''' <returns>True when the collection exists.</returns>
+        ''' <returns>True when the collection exists; False when the collection or its parent does not exist.</returns>
+        ''' <remarks>Authentication, permission, transport, server, and unsupported-operation failures are propagated.</remarks>
+        ''' <exception cref="OperationCanceledException">The lookup is canceled.</exception>
         Public Overridable Async Function CollectionExistsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean)
             Dim parentPath = Me.ParentDirectoryPath(remoteFolderPath)
             Dim name = Me.ItemName(remoteFolderPath)
-            Dim names = Await Me.ListAllCollectionNamesAsync(parentPath, cancellationToken).ConfigureAwait(False)
-            Return names.Contains(name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Try
+                Dim names = Await Me.ListAllCollectionNamesAsync(parentPath, cancellationToken).ConfigureAwait(False)
+                Return names.Contains(name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Catch ex As Data.DirectoryNotFoundException
+                cancellationToken.ThrowIfCancellationRequested()
+                Return False
+            End Try
         End Function
 
         ''' <summary>Checks whether a remote folder exists asynchronously.</summary>
         ''' <param name="remoteFolderPath">The folder path.</param>
         ''' <param name="cancellationToken">Cancels a queued or native lookup.</param>
-        ''' <returns>True when the folder exists.</returns>
+        ''' <returns>True when the provider lists the path as a folder; False when the folder or its parent does not exist.</returns>
+        ''' <remarks>Authentication, permission, transport, server, and unsupported-operation failures are propagated.</remarks>
+        ''' <exception cref="OperationCanceledException">The lookup is canceled.</exception>
         Public Overridable Async Function FolderExistsAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean)
             Dim parentPath = Me.ParentDirectoryPath(remoteFolderPath)
             Dim name = Me.ItemName(remoteFolderPath)
-            Dim names = Await Me.ListAllFolderNamesAsync(parentPath, cancellationToken).ConfigureAwait(False)
-            Return names.Contains(name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Try
+                Dim names = Await Me.ListAllFolderNamesAsync(parentPath, cancellationToken).ConfigureAwait(False)
+                Return names.Contains(name, StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, True))
+            Catch ex As Data.DirectoryNotFoundException
+                cancellationToken.ThrowIfCancellationRequested()
+                Return False
+            End Try
         End Function
 
         ''' <summary>

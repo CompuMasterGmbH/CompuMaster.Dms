@@ -17,12 +17,13 @@ Namespace Providers
         End Function
 
         ''' <inheritdoc/>
+        ''' <exception cref="Data.DirectoryNotFoundException">The directory to list does not exist.</exception>
         Public Overrides Function ListAllRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
             Return Me.ListNativeRemoteItemsAsync(remoteFolderPath, searchType, True, cancellationToken)
         End Function
 
         Private Async Function ListNativeRemoteItemsAsync(remoteFolderPath As String, searchType As SearchItemType, prepareDetails As Boolean, cancellationToken As CancellationToken) As Task(Of List(Of DmsResourceItem))
-            Dim directory = Await Me.IOClient.RootDirectory.OpenDirectoryPathAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            Dim directory = Await Me.OpenDirectoryForListingAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
             Dim result As New List(Of DmsResourceItem)
             If searchType = SearchItemType.Folders OrElse searchType = SearchItemType.Collections OrElse searchType = SearchItemType.AllItems Then
                 Dim children = Await directory.GetDirectoriesAsync(cancellationToken).ConfigureAwait(False)
@@ -76,15 +77,25 @@ Namespace Providers
         End Function
 
         ''' <inheritdoc/>
+        ''' <exception cref="Data.DirectoryNotFoundException">The directory to list does not exist.</exception>
         Public Overrides Async Function ListAllCollectionNamesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of String))
-            Dim directory = Await Me.IOClient.RootDirectory.OpenDirectoryPathAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            Dim directory = Await Me.OpenDirectoryForListingAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
             Return (Await directory.GetDirectoriesAsync(cancellationToken).ConfigureAwait(False)).Where(Function(child) child.Type = CenterDevice.IO.DirectoryInfo.DirectoryType.Collection).Select(Function(child) child.Name).ToList()
         End Function
 
         ''' <inheritdoc/>
+        ''' <exception cref="Data.DirectoryNotFoundException">The directory to list does not exist.</exception>
         Public Overrides Async Function ListAllFolderNamesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of String))
-            Dim directory = Await Me.IOClient.RootDirectory.OpenDirectoryPathAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            Dim directory = Await Me.OpenDirectoryForListingAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
             Return (Await directory.GetDirectoriesAsync(cancellationToken).ConfigureAwait(False)).Select(Function(child) child.Name).ToList()
+        End Function
+
+        Private Async Function OpenDirectoryForListingAsync(remoteFolderPath As String, cancellationToken As CancellationToken) As Task(Of CenterDevice.IO.DirectoryInfo)
+            Try
+                Return Await Me.IOClient.RootDirectory.OpenDirectoryPathAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New Data.DirectoryNotFoundException(remoteFolderPath, ex)
+            End Try
         End Function
 
         ''' <inheritdoc/>
