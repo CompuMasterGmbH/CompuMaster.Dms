@@ -48,6 +48,8 @@ There are following main modules for your use:
 * CompuMaster.Dms.TestDemo.Nextcloud – A dedicated Nextcloud demo using its own local credential store and accepting either the instance URL or a complete WebDAV URL.
 * CompuMaster.Dms.TestDemo.ScopevisioTeamwork – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with Scopevisio Teamwork (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 
+All four demo logins use a shared document-management illustration. Applications can supply their own or provider-specific artwork through the additive `LoginForm(formIcon, loginImage)` constructor or the `LoginImage` property. See [demo login artwork](CompuMaster.Dms.TestDemo.WebDav/DemoAssets/README.md) for image ownership, reset behavior and asset provenance.
+
 ### Asynchronous browsing
 
 Use `ListDirectoryEntriesAsync` and `ListFileEntriesAsync` to populate a browser tree and file list. Native Scopevisio/CenterDevice listings retain resource identities, paths, sizes, timestamps, child metadata and sharing indicators, including download links, upload-only links and visible/hidden user/group shares. They use the existing resource conversion and batched upload-link lookup without first resolving every principal name and link's detailed settings. Retrieve full details for the selected resource through an item or identifier lookup before displaying properties or managing shares. Existing full-snapshot `ListAll...Async` methods retain their behavior; other providers and existing derived implementations use the compatible virtual-method fallback.
