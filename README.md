@@ -79,11 +79,11 @@ See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between 
 
 ### Login form, customized for WebDAV
 
-![WebDAV login form with the shared DMS artwork](docs/screenshots/login-webdav.jpg)
+![WebDAV login form with the shared DMS artwork](https://raw.githubusercontent.com/CompuMasterGmbH/CompuMaster.Dms/4c2234dd2ef8c2a42e7cb397425ca53b0f6735ea/docs/screenshots/login-webdav.jpg)
 
 ### Browser dialog window
 
-![DMS browser displaying example folders and files](docs/screenshots/browser-window.jpg)
+![DMS browser displaying example folders and files](https://raw.githubusercontent.com/CompuMasterGmbH/CompuMaster.Dms/4c2234dd2ef8c2a42e7cb397425ca53b0f6735ea/docs/screenshots/browser-window.jpg)
 
 ### Extended file properties windows
 ![image](https://user-images.githubusercontent.com/3033827/126822920-08a09683-a884-484b-a72d-724a7acfd41a.png)
