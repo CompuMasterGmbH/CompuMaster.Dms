@@ -66,7 +66,7 @@ Public Class DevelopmentGuiTestSession
     Friend Class GuiTestNotice
         Inherits Form
 
-        Private ReadOnly Display As New Label With {.Dock = DockStyle.Fill, .TextAlign = ContentAlignment.MiddleLeft, .Padding = New Padding(14)}
+        Private ReadOnly Display As New Label With {.Dock = DockStyle.Fill, .TextAlign = ContentAlignment.MiddleCenter, .ForeColor = Color.White}
         Private ReadOnly RefreshTimer As New System.Windows.Forms.Timer With {.Interval = 100}
         Private ReadOnly Clock As New Stopwatch()
         Private ReadOnly Estimate As Integer
@@ -74,6 +74,7 @@ Public Class DevelopmentGuiTestSession
         Private ReadOnly StopRequested As ManualResetEventSlim
         Private Running As Boolean
         Private ExpectedFinish As DateTime
+        Private DisplayFont As Font
 
         Friend Sub New(estimateSeconds As Integer, ready As ManualResetEventSlim, stopRequested As ManualResetEventSlim)
             Estimate = estimateSeconds
@@ -85,19 +86,54 @@ Public Class DevelopmentGuiTestSession
             ShowInTaskbar = False
             TopMost = True
             StartPosition = FormStartPosition.Manual
-            ClientSize = New Size(430, 100)
+            AutoScaleMode = AutoScaleMode.None
             Font = SystemFonts.MessageBoxFont
-            BackColor = Color.LightYellow
+            BackColor = Color.SkyBlue
+            Dim screenBounds = Screen.PrimaryScreen.Bounds
+            Size = New Size(screenBounds.Width \ 2, screenBounds.Height \ 2)
             Dim area = Screen.PrimaryScreen.WorkingArea
             Location = New Point(area.Right - Width - 18, area.Top + 18)
             Controls.Add(Display)
             Display.Text = "GUI-Tests starten in 3 Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen."
+            FitDisplayFont()
+            AddHandler ClientSizeChanged, Sub() FitDisplayFont()
             AddHandler Shown,
                 Sub()
                     Clock.Start()
                     RefreshTimer.Start()
                 End Sub
             AddHandler RefreshTimer.Tick, AddressOf UpdateNotice
+        End Sub
+
+        Private Sub FitDisplayFont()
+            Display.Padding = New Padding(Math.Max(20, ClientSize.Width \ 30))
+            Dim messages = {
+                "GUI-Tests starten in 3 Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen.",
+                "GUI-Tests laufen · ETA 23:59:59" & Environment.NewLine & "Geschätzte Restzeit: 86400 Sekunden.",
+                "GUI-Tests laufen weiterhin." & Environment.NewLine & "Schätzung überschritten um 86400 Sekunden."}
+            Dim lower As Single = 12
+            Dim upper As Single = Math.Max(lower, (ClientSize.Height - Display.Padding.Vertical) \ 3)
+            For iteration As Integer = 0 To 9
+                Dim size = (lower + upper) / 2
+                Using candidate As New Font(SystemFonts.MessageBoxFont.FontFamily, size, FontStyle.Bold, GraphicsUnit.Pixel),
+                      measurement As New Label With {.Font = candidate, .Padding = Display.Padding}
+                    Dim fits = messages.All(
+                        Function(message)
+                            measurement.Text = message
+                            Dim measured = measurement.GetPreferredSize(New Size(ClientSize.Width, 0))
+                            Return measured.Width <= ClientSize.Width AndAlso measured.Height <= ClientSize.Height - 8
+                        End Function)
+                    If fits Then
+                        lower = size
+                    Else
+                        upper = size
+                    End If
+                End Using
+            Next
+            Dim previous = DisplayFont
+            DisplayFont = New Font(SystemFonts.MessageBoxFont.FontFamily, lower, FontStyle.Bold, GraphicsUnit.Pixel)
+            Display.Font = DisplayFont
+            previous?.Dispose()
         End Sub
 
         Protected Overrides ReadOnly Property ShowWithoutActivation As Boolean
@@ -145,6 +181,7 @@ Public Class DevelopmentGuiTestSession
         Protected Overrides Sub Dispose(disposing As Boolean)
             If disposing Then RefreshTimer.Dispose()
             MyBase.Dispose(disposing)
+            If disposing Then DisplayFont?.Dispose()
         End Sub
     End Class
 End Class

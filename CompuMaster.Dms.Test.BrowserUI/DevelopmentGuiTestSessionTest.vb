@@ -4,6 +4,7 @@ Imports NUnit.Framework
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Windows.Forms
+Imports System.Drawing
 
 <TestFixture>
 Public Class DevelopmentGuiTestSessionTest
@@ -28,7 +29,13 @@ Public Class DevelopmentGuiTestSessionTest
             window.Show()
             Application.DoEvents()
             Assert.That(window.TopMost, [Is].True)
+            Assert.That(window.Width, [Is].EqualTo(Screen.PrimaryScreen.Bounds.Width \ 2))
+            Assert.That(window.Height, [Is].EqualTo(Screen.PrimaryScreen.Bounds.Height \ 2))
+            Assert.That(window.BackColor, [Is].EqualTo(Color.SkyBlue))
+            Assert.That(window.Controls(0).ForeColor, [Is].EqualTo(Color.White))
+            Assert.That(window.Controls(0).Font.SizeInPoints, [Is].GreaterThan(SystemFonts.MessageBoxFont.SizeInPoints * 2))
             Assert.That(window.Controls(0).Text, Does.Contain("3 Sekunden"))
+            AssertTextFits(window)
             Assert.That(GetForegroundWindow(), [Is].EqualTo(foreground), "Showing the notice must preserve the current foreground window.")
             Dim deadline = DateTime.UtcNow.AddSeconds(5)
             While Not ready.IsSet AndAlso DateTime.UtcNow < deadline
@@ -37,6 +44,7 @@ Public Class DevelopmentGuiTestSessionTest
             End While
             Assert.That(ready.IsSet, [Is].True)
             Assert.That(window.Controls(0).Text, Does.Contain("ETA"))
+            AssertTextFits(window)
             Assert.That(GetForegroundWindow(), [Is].EqualTo(foreground), "Countdown and ETA updates must not activate the notice.")
             stopRequested.Set()
             While Not window.IsDisposed AndAlso DateTime.UtcNow < deadline
@@ -45,6 +53,13 @@ Public Class DevelopmentGuiTestSessionTest
             End While
             Assert.That(window.IsDisposed, [Is].True)
         End Using
+    End Sub
+
+    Private Shared Sub AssertTextFits(window As Form)
+        Dim label = window.Controls(0)
+        Dim preferred = label.GetPreferredSize(New Size(label.Width, 0))
+        Assert.That(preferred.Width, [Is].LessThanOrEqualTo(label.Width))
+        Assert.That(preferred.Height, [Is].LessThanOrEqualTo(label.Height))
     End Sub
 
     <DllImport("user32.dll")>
