@@ -4,6 +4,7 @@ Option Strict On
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Windows.Forms
+Imports System.Runtime.InteropServices
 Imports CompuMaster.Dms.BrowserUI
 Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
@@ -28,6 +29,10 @@ Public Class DmsBrowserFocusTest
                              browser.TreeViewDmsFolders.SelectedNode = node
                          End If
                          Await Task.Delay(25)
+                         'Establish this case's active-owner precondition at I/O
+                         'completion as well as at startup; unrelated desktop input
+                         'during the delay belongs to the separate window-switch cases.
+                         ActivateTestWindow(browser)
                          Select Case outcome
                              Case 0 : completion.SetResult(True)
                              Case 1 : completion.SetException(New InvalidOperationException("Expected failure"))
@@ -57,7 +62,10 @@ Public Class DmsBrowserFocusTest
                          browser.ActiveControl = Nothing
                          browser.Focus()
                          Assert.That(UiAsyncOperation.CaptureFocusedControl(browser), [Is].Null)
-                         Await browser.RunTransferAsync(Function() Task.Delay(25))
+                         Await browser.RunTransferAsync(Async Function()
+                                                            Await Task.Delay(25)
+                                                            ActivateTestWindow(browser)
+                                                        End Function)
                          Assert.That(browser.ButtonClose.Focused, [Is].True)
                      End Function)
     End Sub
@@ -118,7 +126,7 @@ Public Class DmsBrowserFocusTest
                                  Await checked.Task
                              Else
                                  other.Show()
-                                 other.Activate()
+                                 ActivateTestWindow(other)
                                  Assert.That(input.Focus(), [Is].True)
                                  Await Task.Delay(25)
                                  completion.SetResult(True)
@@ -146,8 +154,12 @@ Public Class DmsBrowserFocusTest
                     Sub()
                         If Not started Then
                             started = True
-                            browser.Activate()
-                            operation = testBody(browser)
+                            Try
+                                ActivateTestWindow(browser)
+                                operation = testBody(browser)
+                            Catch ex As Exception
+                                operation = Task.FromException(ex)
+                            End Try
                         ElseIf operation IsNot Nothing AndAlso operation.IsCompleted Then
                             browser.Close()
                         ElseIf DateTime.UtcNow >= deadline Then
@@ -176,4 +188,44 @@ Public Class DmsBrowserFocusTest
             'Focus regression tests own the operation and never contact a remote server.
         End Sub
     End Class
+
+    'The focus fixture deliberately owns foreground input after the development
+    'notice. Process-launch foreground restrictions otherwise leave Form.ActiveForm
+    'unset and test the production "user switched away" branch accidentally.
+    'Attach only during activation and always detach; production never uses this.
+    Private Shared Sub ActivateTestWindow(window As Form)
+        Dim foreground = GetForegroundWindow()
+        Dim foregroundThread = GetWindowThreadProcessId(foreground, IntPtr.Zero)
+        Dim currentThread = GetCurrentThreadId()
+        Dim attached As Boolean
+        Try
+            If foregroundThread <> 0 AndAlso foregroundThread <> currentThread Then
+                attached = AttachThreadInput(currentThread, foregroundThread, True)
+                Assert.That(attached, [Is].True, "The GUI focus fixture must acquire its foreground input context.")
+            End If
+            SetForegroundWindow(window.Handle)
+            window.Activate()
+            Application.DoEvents()
+            Assert.That(GetForegroundWindow(), [Is].EqualTo(window.Handle), "Focus tests must start in the actual foreground window.")
+            Assert.That(Form.ActiveForm, [Is].SameAs(window))
+        Finally
+            If attached Then AttachThreadInput(currentThread, foregroundThread, False)
+        End Try
+    End Sub
+
+    <DllImport("user32.dll")>
+    Private Shared Function GetForegroundWindow() As IntPtr
+    End Function
+    <DllImport("user32.dll")>
+    Private Shared Function GetWindowThreadProcessId(window As IntPtr, processId As IntPtr) As UInteger
+    End Function
+    <DllImport("kernel32.dll")>
+    Private Shared Function GetCurrentThreadId() As UInteger
+    End Function
+    <DllImport("user32.dll")>
+    Private Shared Function AttachThreadInput(first As UInteger, second As UInteger, attach As Boolean) As Boolean
+    End Function
+    <DllImport("user32.dll")>
+    Private Shared Function SetForegroundWindow(window As IntPtr) As Boolean
+    End Function
 End Class
