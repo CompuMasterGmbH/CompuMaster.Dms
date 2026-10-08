@@ -57,6 +57,32 @@ Public Class DmsBrowserFocusTest
     End Sub
 
     <Test>
+    Public Sub TreeKeyboardNavigationContinuesAfterLoading()
+        RunInBrowser(Async Function(browser)
+                         Dim tree = browser.TreeViewDmsFolders
+                         'This focus fixture owns synthetic nodes, not provider paths.
+                         'Provider-backed selection refresh is covered by navigation tests.
+                         GetType(DmsBrowser).GetField("SuppressSelectionRefresh", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic).SetValue(browser, True)
+                         Dim first = tree.Nodes.Add("First folder")
+                         Dim second = tree.Nodes.Add("Second folder")
+                         tree.SelectedNode = first
+                         Await Task.Delay(25)
+                         ActivateTestWindow(browser)
+                         Assert.That(tree.Focus(), [Is].True)
+                         Await browser.RunTransferAsync(Function() Task.CompletedTask)
+                         Assert.That(tree.Focused, [Is].True)
+                         'Send the key to this native control, without global keyboard input.
+                         SendMessage(tree.Handle, &H100, New IntPtr(CInt(Keys.Down)), IntPtr.Zero)
+                         SendMessage(tree.Handle, &H101, New IntPtr(CInt(Keys.Down)), IntPtr.Zero)
+                         Assert.That(tree.SelectedNode, [Is].SameAs(second), "Down must still navigate the focused tree after loading.")
+                         Await Task.Delay(25)
+                         browser.ButtonCreateNewFolder.Focus()
+                         Assert.That(tree.SelectedNode, [Is].SameAs(second))
+                         Assert.That(tree.HideSelection, [Is].False)
+                     End Function)
+    End Sub
+
+    <Test>
     Public Sub MissingPreviousFocusFallsBackToClose()
         RunInBrowser(Async Function(browser)
                          browser.ActiveControl = Nothing
@@ -227,5 +253,8 @@ Public Class DmsBrowserFocusTest
     End Function
     <DllImport("user32.dll")>
     Private Shared Function SetForegroundWindow(window As IntPtr) As Boolean
+    End Function
+    <DllImport("user32.dll", CharSet:=CharSet.Auto)>
+    Private Shared Function SendMessage(window As IntPtr, message As Integer, wParam As IntPtr, lParam As IntPtr) As IntPtr
     End Function
 End Class
