@@ -158,59 +158,63 @@ Namespace Providers
         ''' <param name="loginCredentials">The credentials for the selected provider.</param>
         ''' <param name="ignoreSslErrors">Whether certificate validation is bypassed; False preserves normal certificate validation.</param>
         Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials, ignoreSslErrors As Boolean)
-            Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
-            Dim ClientParams As New Global.WebDav.WebDavClientParams() With
-            {
-            .BaseAddress = New System.Uri(Url),
-            .Credentials = New System.Net.NetworkCredential(loginCredentials.Username, loginCredentials.Password)
-            }
-            Dim HttpClient = CreateHttpClient(True, ClientParams)
-            Me.WebDavClient = New Global.WebDav.WebDavClient(HttpClient) 'uses copy of method ConfiguredHttpClient from WebDavClient 
-            'Me.WebDavClient = New Global.WebDav.WebDavClient(ClientParams) 'uses internal method ConfiguredHttpClient from WebDavClient
-            Me._AuthorizedUser = loginCredentials.Username
-            If Url.EndsWith("/") Then
-                Me.CustomWebApiUrl = Url
-            Else
-                Me.CustomWebApiUrl = Url & "/"
-            End If
-            'Force request to evaluate correct credentials already on runtime of this method
-            Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(ClientParams.BaseAddress)
-            PropfindTask.Wait()
-            If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
-                Me.TryInitializeOcsSharingClient(Url, loginCredentials.Username, loginCredentials.Password)
-            Else
-                If PropfindTask.Exception IsNot Nothing Then
-                    Throw New InvalidOperationException(ProviderStrings.Format("AuthentificationForUserFailed", loginCredentials.Username, PropfindTask.Exception.Message))
-                ElseIf PropfindTask.Result.StatusCode = 401 Then
-                    Throw New Data.DmsUserAuthenticationException(ProviderStrings.Format("AuthentificationForUserFailed2", loginCredentials.Username, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
+            Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.Authorization)
+                Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
+                Dim ClientParams As New Global.WebDav.WebDavClientParams() With
+                {
+                .BaseAddress = New System.Uri(Url),
+                .Credentials = New System.Net.NetworkCredential(loginCredentials.Username, loginCredentials.Password)
+                }
+                Dim HttpClient = CreateHttpClient(True, ClientParams)
+                Me.WebDavClient = New Global.WebDav.WebDavClient(HttpClient) 'uses copy of method ConfiguredHttpClient from WebDavClient
+                'Me.WebDavClient = New Global.WebDav.WebDavClient(ClientParams) 'uses internal method ConfiguredHttpClient from WebDavClient
+                Me._AuthorizedUser = loginCredentials.Username
+                If Url.EndsWith("/") Then
+                    Me.CustomWebApiUrl = Url
                 Else
-                    Throw New InvalidOperationException(ProviderStrings.Format("AuthentificationForUserFailed2", loginCredentials.Username, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
+                    Me.CustomWebApiUrl = Url & "/"
                 End If
-            End If
+                'Force request to evaluate correct credentials already on runtime of this method
+                Dim PropfindTask As Task(Of Global.WebDav.PropfindResponse) = Me.WebDavClient.Propfind(ClientParams.BaseAddress)
+                PropfindTask.Wait()
+                If PropfindTask.IsCompleted AndAlso PropfindTask.Result.IsSuccessful Then
+                    Me.TryInitializeOcsSharingClient(Url, loginCredentials.Username, loginCredentials.Password)
+                Else
+                    If PropfindTask.Exception IsNot Nothing Then
+                        Throw New InvalidOperationException(ProviderStrings.Format("AuthentificationForUserFailed", loginCredentials.Username, PropfindTask.Exception.Message))
+                    ElseIf PropfindTask.Result.StatusCode = 401 Then
+                        Throw New Data.DmsUserAuthenticationException(ProviderStrings.Format("AuthentificationForUserFailed2", loginCredentials.Username, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
+                    Else
+                        Throw New InvalidOperationException(ProviderStrings.Format("AuthentificationForUserFailed2", loginCredentials.Username, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
+                    End If
+                End If
+            End Using
         End Sub
 
         Private Sub TryInitializeOcsSharingClient(webDavUrl As String, userID As String, password As String)
-            Me.OcsSharingClient = Nothing
-            Me.OcsRootPath = "/"
-
-            Dim OcsBaseUrl As String = Nothing
-            Dim RemoteRootPath As String = Nothing
-            If Not TryGetOcsConnectionInfo(webDavUrl, OcsBaseUrl, RemoteRootPath) Then
-                Return
-            End If
-
-            Try
-                Dim Candidate As IOcsSharingClient = New OcsSharingClientAdapter(OcsBaseUrl, userID, password)
-                Candidate.ProbeCapabilities()
-                If Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
-                    Me.OcsSharingClient = Candidate
-                    Me.OcsRootPath = RemoteRootPath
-                End If
-            Catch
-                'The authenticated endpoint is still a valid generic WebDAV endpoint when OCS is unavailable.
+            Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsDiscovery)
                 Me.OcsSharingClient = Nothing
                 Me.OcsRootPath = "/"
-            End Try
+
+                Dim OcsBaseUrl As String = Nothing
+                Dim RemoteRootPath As String = Nothing
+                If Not TryGetOcsConnectionInfo(webDavUrl, OcsBaseUrl, RemoteRootPath) Then
+                    Return
+                End If
+
+                Try
+                    Dim Candidate As IOcsSharingClient = New OcsSharingClientAdapter(OcsBaseUrl, userID, password)
+                    Candidate.ProbeCapabilities()
+                    If Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
+                        Me.OcsSharingClient = Candidate
+                        Me.OcsRootPath = RemoteRootPath
+                    End If
+                Catch
+                    'The authenticated endpoint is still a valid generic WebDAV endpoint when OCS is unavailable.
+                    Me.OcsSharingClient = Nothing
+                    Me.OcsRootPath = "/"
+                End Try
+            End Using
         End Sub
 
         Friend Shared Function TryGetOcsConnectionInfo(webDavUrl As String, ByRef ocsBaseUrl As String, ByRef remoteRootPath As String) As Boolean
@@ -418,16 +422,18 @@ Namespace Providers
         End Function
 
         Private Function TryLoadOcsShares(remotePath As String, includeSubFiles As Boolean) As List(Of OcsShareRecord)
-            If Me.OcsSharingClient Is Nothing Then
-                Return Nothing
-            End If
+            Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsShares)
+                If Me.OcsSharingClient Is Nothing Then
+                    Return Nothing
+                End If
 
-            Try
-                Return Me.OcsSharingClient.GetShares(Me.ToOcsPath(remotePath), includeReshares:=True, includeSubFiles:=includeSubFiles)
-            Catch
-                'Sharing metadata is supplemental and must not make otherwise valid WebDAV browsing fail.
-                Return Nothing
-            End Try
+                Try
+                    Return Me.OcsSharingClient.GetShares(Me.ToOcsPath(remotePath), includeReshares:=True, includeSubFiles:=includeSubFiles)
+                Catch
+                    'Sharing metadata is supplemental and must not make otherwise valid WebDAV browsing fail.
+                    Return Nothing
+                End Try
+            End Using
         End Function
 
         Private Async Function TryLoadOcsSharesAsync(remotePath As String, includeSubFiles As Boolean, cancellationToken As CancellationToken) As Task(Of List(Of OcsShareRecord))
@@ -441,17 +447,19 @@ Namespace Providers
         End Function
 
         Private Async Function PropfindResourceAsync(remotePath As String, depth As Global.WebDav.ApplyTo.Propfind, cancellationToken As CancellationToken) As Task(Of Global.WebDav.PropfindResponse)
-            cancellationToken.ThrowIfCancellationRequested()
-            Dim parameters = CreateResourcePropfindParameters(depth)
-            parameters.CancellationToken = cancellationToken
-            Dim response = Await Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, parameters).ConfigureAwait(False)
-            If response.StatusCode = 400 OrElse response.StatusCode = 501 Then
+            Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.Propfind)
                 cancellationToken.ThrowIfCancellationRequested()
-                parameters = New Global.WebDav.PropfindParameters With {.ApplyTo = depth, .CancellationToken = cancellationToken}
-                response = Await Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, parameters).ConfigureAwait(False)
-            End If
-            cancellationToken.ThrowIfCancellationRequested()
-            Return response
+                Dim parameters = CreateResourcePropfindParameters(depth)
+                parameters.CancellationToken = cancellationToken
+                Dim response = Await Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, parameters).ConfigureAwait(False)
+                If response.StatusCode = 400 OrElse response.StatusCode = 501 Then
+                    cancellationToken.ThrowIfCancellationRequested()
+                    parameters = New Global.WebDav.PropfindParameters With {.ApplyTo = depth, .CancellationToken = cancellationToken}
+                    response = Await Me.WebDavClient.Propfind(Me.CustomWebApiUrl & remotePath, parameters).ConfigureAwait(False)
+                End If
+                cancellationToken.ThrowIfCancellationRequested()
+                Return response
+            End Using
         End Function
 
         Private Shared Function CreateResourcePropfindParameters(depth As Global.WebDav.ApplyTo.Propfind) As Global.WebDav.PropfindParameters
@@ -722,30 +730,40 @@ Namespace Providers
             End If
             Dim result As New List(Of DmsResourceItem)
             Dim shares = Await Me.TryLoadOcsSharesAsync(remoteFolderPath, True, cancellationToken).ConfigureAwait(False)
-            For Each resource In response.Resources
-                cancellationToken.ThrowIfCancellationRequested()
-                Dim include As Boolean
-                Select Case searchType
-                    Case SearchItemType.AllItems
-                        include = True
-                    Case SearchItemType.Folders
-                        include = resource.IsCollection
-                    Case SearchItemType.Files
-                        include = Not resource.IsCollection
-                    Case SearchItemType.Collections
-                        include = False
-                    Case Else
-                        Throw New ArgumentOutOfRangeException(NameOf(searchType))
-                End Select
-                If include Then
-                    Dim item As DmsResourceItem = Me.CreateDmsResourceItem(resource)
-                    If item.ItemType <> DmsResourceItem.ItemTypes.Folder OrElse Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(item.FullName) <> Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(remoteFolderPath) Then
-                        Me.ApplyOcsSharingMetadata(item, shares)
-                        result.Add(item)
+            Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.EntryConversion)
+                For Each resource In response.Resources
+                    cancellationToken.ThrowIfCancellationRequested()
+                    Dim include As Boolean
+                    Select Case searchType
+                        Case SearchItemType.AllItems
+                            include = True
+                        Case SearchItemType.Folders
+                            include = resource.IsCollection
+                        Case SearchItemType.Files
+                            include = Not resource.IsCollection
+                        Case SearchItemType.Collections
+                            include = False
+                        Case Else
+                            Throw New ArgumentOutOfRangeException(NameOf(searchType))
+                    End Select
+                    If include Then
+                        Dim item As DmsResourceItem = Me.CreateDmsResourceItem(resource)
+                        If item.ItemType <> DmsResourceItem.ItemTypes.Folder OrElse Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(item.FullName) <> Me.PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(remoteFolderPath) Then
+                            Me.ApplyOcsSharingMetadata(item, shares)
+                            result.Add(item)
+                        End If
                     End If
-                End If
-            Next
-            Return result
+                Next
+                Return result
+            End Using
+        End Function
+
+        ''' <inheritdoc/>
+        ''' <remarks>Retrieves directory and file entries from one depth-one WebDAV response and one optional sharing lookup. Owner, sharing and child-directory metadata are retained.</remarks>
+        Public Overrides Async Function ListEntriesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Dim items = Await Me.ListAllRemoteItemsAsync(remoteFolderPath, SearchItemType.AllItems, cancellationToken).ConfigureAwait(False)
+            cancellationToken.ThrowIfCancellationRequested()
+            Return items.FindAll(Function(item) item.ItemType <> DmsResourceItem.ItemTypes.Root)
         End Function
 
         Private Function PathWithTrailingDirectorySeparatorExceptRootPathAlwaysReducedToEmptyString(path As String) As String

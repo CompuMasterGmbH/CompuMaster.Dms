@@ -439,6 +439,26 @@ Namespace Providers
             Return CType(CType(item.ItemType, Byte), DmsResourceItem.FoundItemResult)
         End Function
 
+        ''' <summary>Lists immediate directory and file entries for browsing asynchronously.</summary>
+        ''' <param name="remoteFolderPath">The remote parent path.</param>
+        ''' <param name="cancellationToken">Cancels queued or active listing requests.</param>
+        ''' <returns>The child directory and file entries, including their browsing metadata.</returns>
+        ''' <exception cref="OperationCanceledException">The listing is canceled.</exception>
+        ''' <remarks>The default implementation combines the existing directory and file entry workflows, omitting files in the browsing root when the provider does not support them. Providers may retrieve both kinds in one request. Detailed item lookups may still be required for properties or sharing dialogs. Results are not cached by this method.</remarks>
+        Public Overridable Async Function ListEntriesAsync(remoteFolderPath As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            cancellationToken.ThrowIfCancellationRequested()
+            Dim directories = Await Me.ListDirectoryEntriesAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            cancellationToken.ThrowIfCancellationRequested()
+            If Not Me.SupportsFilesInRootFolder AndAlso String.Equals(If(remoteFolderPath, "").Trim(Me.DirectorySeparator), If(Me.BrowseInRootFolderName, "").Trim(Me.DirectorySeparator), StringComparison.Ordinal) Then
+                Return New List(Of DmsResourceItem)(directories)
+            End If
+            Dim files = Await Me.ListFileEntriesAsync(remoteFolderPath, cancellationToken).ConfigureAwait(False)
+            cancellationToken.ThrowIfCancellationRequested()
+            Dim result As New List(Of DmsResourceItem)(directories)
+            result.AddRange(files)
+            Return result
+        End Function
+
         ''' <summary>Lists immediate directory entries for browsing asynchronously.</summary>
         ''' <param name="remoteFolderPath">The remote parent path.</param>
         ''' <param name="cancellationToken">Cancels queued or active listing requests.</param>

@@ -9,6 +9,93 @@ Imports NUnit.Framework
 <Apartment(ApartmentState.STA)>
 Public Class DmsBrowserStartupTest
 
+    <TestCase(True, False, "", "")>
+    <TestCase(False, False, "", "")>
+    <TestCase(True, True, "", "")>
+    <TestCase(True, False, "", "Child")>
+    <TestCase(True, False, "Parent", "")>
+    <TestCase(False, False, "Parent", "Child")>
+    Public Sub InitialTreeAndFilesShareOnlyTheirOwnOperationSnapshot(rootFiles As Boolean, foldersOnly As Boolean, initialRoot As String, selectedPath As String)
+        Dim provider As New CombinedStartupProvider(rootFiles)
+        Dim mode = If(foldersOnly, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.Folders, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles)
+        Using dispatcher As New UiTestDispatcher,
+              browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(provider, Nothing, "Combined startup", Nothing, initialRoot, selectedPath, mode, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.DialogOperationModes.NoResults, "", "", "") With {.ShowInTaskbar = False, .Opacity = 0}
+            browser.Show()
+            dispatcher.WaitForEvents()
+            Assert.That(browser.UseWaitCursor, [Is].False)
+            Assert.That(browser.Enabled, [Is].True)
+            Dim combined = Not foldersOnly AndAlso (rootFiles OrElse initialRoot <> "") AndAlso selectedPath = ""
+            Assert.That(provider.CombinedCalls, [Is].EqualTo(If(combined, 1, 0)))
+            Assert.That(provider.DirectoryCalls, [Is].EqualTo(If(combined, 0, 1)))
+            Dim child = browser.TreeViewDmsFolders.Nodes(0).Nodes(0)
+            Assert.That(child.ImageIndex, [Is].EqualTo(5), "Shared-folder symbols must be retained.")
+            Assert.That(child.Nodes.Count, [Is].EqualTo(1), "Unknown child metadata must retain the lazy expansion placeholder.")
+            Dim fileVisible = Not foldersOnly AndAlso (rootFiles OrElse initialRoot <> "" OrElse selectedPath <> "")
+            Assert.That(browser.ListViewDmsFiles.Items.Count, [Is].EqualTo(If(fileVisible, 1, 0)))
+            Assert.That(provider.FileCalls, [Is].EqualTo(If(selectedPath <> "", 1, 0)))
+            If fileVisible Then
+                Dim file = DirectCast(browser.ListViewDmsFiles.Items(0).Tag, DmsResourceItem)
+                Assert.That(file.Folder.Trim(provider.DirectorySeparator), [Is].EqualTo(provider.CombinePath(initialRoot, selectedPath).Trim(provider.DirectorySeparator)), "A parent snapshot must not supply files for the selected child.")
+                Assert.That(file.ExtendedInfosOwner.DisplayName, [Is].EqualTo("Resource owner"))
+                provider.Revision = 2
+                dispatcher.Finish(browser.RefreshFilesListAsync())
+                Assert.That(browser.ListViewDmsFiles.Items(0).Text, [Is].EqualTo("revision2.txt"), "Later file refreshes must request a fresh listing.")
+                Assert.That(provider.FileCalls, [Is].EqualTo(If(selectedPath <> "", 2, 1)))
+            End If
+            browser.Close()
+            dispatcher.WaitForEvents()
+        End Using
+    End Sub
+
+    Private Class CombinedStartupProvider
+        Inherits NoDmsProvider
+        Private ReadOnly RootFiles As Boolean
+        Public CombinedCalls As Integer
+        Public DirectoryCalls As Integer
+        Public FileCalls As Integer
+        Public Revision As Integer = 1
+        Public Sub New(rootFiles As Boolean)
+            Me.RootFiles = rootFiles
+        End Sub
+        Public Overrides ReadOnly Property SupportsFilesInRootFolder As Boolean
+            Get
+                Return RootFiles
+            End Get
+        End Property
+        Public Overrides ReadOnly Property BrowseInRootFolderName As String
+            Get
+                Return ""
+            End Get
+        End Property
+        Private Function DirectoryEntries(path As String) As List(Of DmsResourceItem)
+            Return New List(Of DmsResourceItem) From {New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = CombinePath(path, "Child"), .Name = "Child", .ExtendedInfosIsShared = True}}
+        End Function
+        Private Function FileEntries(path As String) As List(Of DmsResourceItem)
+            Dim name = "revision" & Revision & ".txt"
+            Return New List(Of DmsResourceItem) From {New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .Name = name, .FullName = CombinePath(path, name), .Folder = path, .ExtendedInfosOwner = New DmsUser With {.DisplayName = "Resource owner"}}}
+        End Function
+        Public Overrides Function ListEntriesAsync(path As String, Optional token As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            CombinedCalls += 1
+            Dim items = DirectoryEntries(path)
+            items.AddRange(FileEntries(path))
+            Return Task.FromResult(items)
+        End Function
+        Public Overrides Function ListDirectoryEntriesAsync(path As String, Optional token As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            DirectoryCalls += 1
+            Return Task.FromResult(DirectoryEntries(path))
+        End Function
+        Public Overrides Function ListFileEntriesAsync(path As String, Optional token As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            FileCalls += 1
+            Return Task.FromResult(FileEntries(path))
+        End Function
+        Public Overrides Function ListRemoteItemAsync(path As String, Optional token As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Return Task.FromResult(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .Name = path, .FullName = path, .HasChildDirectories = True})
+        End Function
+        Public Overrides Function ResetCachesForRemoteItemsAsync(path As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Task.CompletedTask
+        End Function
+    End Class
+
     <TestCase(False)>
     <TestCase(True)>
     Public Sub ModalStartupCompletesDelayedListingOnTheWindowsFormsContext(emptyRoot As Boolean)
