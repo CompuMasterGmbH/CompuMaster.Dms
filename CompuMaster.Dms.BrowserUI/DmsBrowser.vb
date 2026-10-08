@@ -483,41 +483,46 @@ Public Class DmsBrowser
         If Me.IsDesignMode Then Return 'no loading in design mode
         If Me.LocalDefaultFolderDownloads = Nothing Then LocalDefaultFolderDownloads = Me.LocalParentMustFolder
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
-        Try
-            Await Me.RunTransferAsync(Function() Me.EnsureProviderAsync())
-            If Me.EnableDmsInstanceSelection AndAlso Not Me.InitializeDmsInstanceSelection() Then
+        Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.BrowserStartup)
+            Dim listings As InitialEntryListings = Nothing
+            Try
+                Await Me.RunTransferAsync(Function() Me.EnsureProviderAsync())
+                If Me.EnableDmsInstanceSelection AndAlso Not Me.InitializeDmsInstanceSelection() Then
+                    Me.DialogResult = DialogResult.Cancel
+                    Me.Close()
+                    Return
+                End If
+                Me.InitializeDmsInstanceSwitching()
+                Dim initialPath = If(String.IsNullOrEmpty(Me.InitialFolder), Me.DmsProvider.BrowseInRootFolderName, Me.InitialFolder)
+                listings = New InitialEntryListings(Me.DmsProvider, Not Me.SplitContainer.Panel2Collapsed, Me.DmsProvider.CombinePath(initialPath, Me.SelectedFolder))
+                Await Me.RunTransferAsync(Function() Me.LoadTreeAsync(listings))
+            Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
+                MessageBox.Show(Me, ex.Message, UiStrings.Format("DmsFolderNotFound", ex.RemotePath), MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Me.DialogResult = DialogResult.Cancel
                 Me.Close()
                 Return
-            End If
-            Me.InitializeDmsInstanceSwitching()
-            Await Me.RunTransferAsync(Function() Me.LoadTreeAsync())
-        Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
-            MessageBox.Show(Me, ex.Message, UiStrings.Format("DmsFolderNotFound", ex.RemotePath), MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Me.DialogResult = DialogResult.Cancel
-            Me.Close()
-            Return
-        Catch ex As Exception
-            If System.Diagnostics.Debugger.IsAttached Then
-                MessageBox.Show(Me, ex.ToString, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Else
-                MessageBox.Show(Me, ex.Message, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
-            End If
-            Me.DialogResult = DialogResult.Cancel
-            Me.Close()
-            Return
-        End Try
-        Try
-            Await Me.RunTransferAsync(Function() Me.SelectFolderPathAsync(Me.SelectedFolder))
-            Select Case Me.BrowseMode
-                Case BrowseModes.Folders
-                    Me.TreeViewDmsFolders.Select()
-                Case Else
-                    Me.ListViewDmsFiles.Select()
-            End Select
-        Catch ex As Exception
-            MessageBox.Show(Me, UiStrings.Format("InvalidFolderMessage", Me.SelectedFolder), UiStrings.GetText("InvalidFolderTitle"), MessageBoxButtons.OK, MessageBoxIcon.Warning)
-        End Try
+            Catch ex As Exception
+                If System.Diagnostics.Debugger.IsAttached Then
+                    MessageBox.Show(Me, ex.ToString, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Else
+                    MessageBox.Show(Me, ex.Message, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End If
+                Me.DialogResult = DialogResult.Cancel
+                Me.Close()
+                Return
+            End Try
+            Try
+                Await Me.RunTransferAsync(Function() Me.SelectFolderPathAsync(Me.SelectedFolder, listings))
+                Select Case Me.BrowseMode
+                    Case BrowseModes.Folders
+                        Me.TreeViewDmsFolders.Select()
+                    Case Else
+                        Me.ListViewDmsFiles.Select()
+                End Select
+            Catch ex As Exception
+                MessageBox.Show(Me, UiStrings.Format("InvalidFolderMessage", Me.SelectedFolder), UiStrings.GetText("InvalidFolderTitle"), MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End Try
+        End Using
     End Sub
 
     Friend Function InitializeDmsInstanceSelection() As Boolean
@@ -1042,6 +1047,7 @@ Public Class DmsBrowser
     End Function
 
     Private Sub DisplayFiles(filesToDisplay As List(Of DmsResourceItem))
+        Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.FileRendering)
             Me.ListViewDmsFiles.Sorting = SortOrder.None
             Dim Files As List(Of DmsResourceItem) = ApplyFilesSortOrder(filesToDisplay)
             Me.ListViewDmsFiles.Tag = Files
@@ -1067,6 +1073,7 @@ Public Class DmsBrowser
             Next
             Me.ListViewDmsFiles.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent)
             Me.ListViewDmsFiles.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize)
+        End Using
     End Sub
 
     Private Async Sub ButtonShowFiles_CheckedChanged(sender As Object, e As EventArgs) Handles ButtonShowFiles.CheckedChanged

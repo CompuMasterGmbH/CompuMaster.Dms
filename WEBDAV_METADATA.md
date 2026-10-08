@@ -40,4 +40,10 @@ References:
 
 Every listed fixture passed all 30 tests, including the three targeted metadata/upload cases. The configured generic WebDAV endpoint happens to support cloud owner extensions; generic protocol support does not guarantee them. Other reporting OS jobs remain queued/running at this checkpoint; the previous complete functional run passed all three OSes. These observations identify the configured endpoints rather than every server installation.
 
-An independently other-owned recipient fixture and the affected Nextcloud demo's manual startup review remain separate evidence gaps. Known/unknown property rendering is verified with isolated GUI fixtures. No login identity is substituted for resource ownership, and a server without usable child counts retains lazy expansion.
+An independently other-owned recipient fixture remains an evidence gap. No login identity is substituted for resource ownership, and a server without usable child counts retains lazy expansion.
+
+## Native demo review (2026-10-08)
+
+A read-only GUI check on WKS08 used the actual demo login forms, providers, tree controls and property dialogs under the user-confirmed exclusive test window. All three WebDAV-family demos displayed the server-supplied owner in both a file and a folder properties dialog. The check compared the displayed owner with the selected resource's metadata without logging owner identities, paths or credentials.
+
+The affected Nextcloud tree showed no expansion control on three folders whose server metadata reported zero children, and retained expansion on one known nonempty folder. ownCloud Classic's four reviewed folders and generic WebDAV's three reviewed folders retained unknown child metadata and expansion placeholders. These observations verify the configured endpoints and native UI; they do not establish universal server capabilities or independently other-owned recipient behavior.

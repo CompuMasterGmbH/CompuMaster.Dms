@@ -45,19 +45,23 @@ Namespace Providers
                 Dim activeToken As CancellationToken = deadline.Token
                 For attempt As Integer = 1 To If(retryable, MaxAttempts, 1)
                     activeToken.ThrowIfCancellationRequested()
-                    Await Gate.ReserveAsync(Clock, activeToken).ConfigureAwait(False)
-                    Await Gate.Concurrent.WaitAsync(activeToken).ConfigureAwait(False)
+                    Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.HttpQueue)
+                        Await Gate.ReserveAsync(Clock, activeToken).ConfigureAwait(False)
+                        Await Gate.Concurrent.WaitAsync(activeToken).ConfigureAwait(False)
+                    End Using
                     Dim response As HttpResponseMessage = Nothing
                     Dim transportFailure As HttpRequestException = Nothing
                     Dim capacityTransferred As Boolean = False
                     Try
-                        If attempt = 1 Then
-                            response = Await MyBase.SendAsync(request, activeToken).ConfigureAwait(False)
-                        Else
-                            Using retryRequest As HttpRequestMessage = CloneReadRequest(request, body)
-                                response = Await MyBase.SendAsync(retryRequest, activeToken).ConfigureAwait(False)
-                            End Using
-                        End If
+                        Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.HttpTransport)
+                            If attempt = 1 Then
+                                response = Await MyBase.SendAsync(request, activeToken).ConfigureAwait(False)
+                            Else
+                                Using retryRequest As HttpRequestMessage = CloneReadRequest(request, body)
+                                    response = Await MyBase.SendAsync(retryRequest, activeToken).ConfigureAwait(False)
+                                End Using
+                            End If
+                        End Using
                         If response IsNot Nothing Then
                             response.Content = New CapacityContent(response.Content, AddressOf Gate.Concurrent.Release)
                             capacityTransferred = True

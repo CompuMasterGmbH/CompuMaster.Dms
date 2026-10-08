@@ -5,6 +5,42 @@ Imports CompuMaster.Dms.Providers
 
 Partial Public Class DmsBrowser
 
+    'Only the initial tree/selection operation shares these responses. Later navigation
+    'and refreshes use their normal fresh listings, including cache invalidation.
+    Private NotInheritable Class InitialEntryListings
+        Private ReadOnly Provider As BaseDmsProvider
+        Private ReadOnly IncludeFiles As Boolean
+        Private ReadOnly FilePath As String
+        Private ReadOnly Entries As New Dictionary(Of String, List(Of DmsResourceItem))(StringComparer.Ordinal)
+
+        Friend Sub New(provider As BaseDmsProvider, includeFiles As Boolean, filePath As String)
+            Me.Provider = provider
+            Me.IncludeFiles = includeFiles
+            Me.FilePath = If(filePath, "").Trim(provider.DirectorySeparator)
+        End Sub
+
+        Friend Async Function DirectoriesAsync(path As String) As Task(Of List(Of DmsResourceItem))
+            If Not IncludeFiles OrElse Not String.Equals(If(path, "").Trim(Provider.DirectorySeparator), FilePath, StringComparison.Ordinal) OrElse
+               (path = Provider.BrowseInRootFolderName AndAlso Not Provider.SupportsFilesInRootFolder) Then
+                Return Await Provider.ListDirectoryEntriesAsync(path)
+            End If
+            Dim items As List(Of DmsResourceItem) = Nothing
+            If Not Entries.TryGetValue(If(path, ""), items) Then
+                Await Provider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.Files)
+                items = Await Provider.ListEntriesAsync(path)
+                Entries.Add(If(path, ""), items)
+            End If
+            Return items.FindAll(Function(item) item.ItemType = DmsResourceItem.ItemTypes.Folder OrElse item.ItemType = DmsResourceItem.ItemTypes.Collection)
+        End Function
+
+        Friend Function TryGetFiles(path As String, ByRef files As List(Of DmsResourceItem)) As Boolean
+            Dim items As List(Of DmsResourceItem) = Nothing
+            If Not Entries.TryGetValue(If(path, ""), items) Then Return False
+            files = items.FindAll(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File)
+            Return True
+        End Function
+    End Class
+
     Private Sub ApplyTreeChildren(parentNode As TreeNode, ChildDirectories As List(Of DmsResourceItem))
         Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
         parentNode.Nodes.Clear()
@@ -18,7 +54,11 @@ Partial Public Class DmsBrowser
         UpdateChildDirectoryMetadata(parentNode)
     End Sub
 
-    Friend Async Function LoadTreeAsync() As Task
+    Friend Function LoadTreeAsync() As Task
+        Return Me.LoadTreeAsync(Nothing)
+    End Function
+
+    Private Async Function LoadTreeAsync(listings As InitialEntryListings) As Task
         Me.TreeViewDmsFolders.Nodes.Clear()
         If Me.InitialFolder <> Nothing Then
             Dim Folder As DmsResourceItem = Await Me.DmsProvider.ListRemoteItemAsync(Me.InitialFolder)
@@ -38,12 +78,16 @@ Partial Public Class DmsBrowser
             Me.RootNode.ImageIndex = 0
             Me.RootNode.SelectedImageIndex = 0
         End If
-        Await Me.AddTreeChildrenAsync(Me.RootNode)
+        Await Me.AddTreeChildrenAsync(Me.RootNode, listings)
         Me.TreeViewDmsFolders.Sort()
         Me.RootNode.Expand()
     End Function
 
-    Friend Async Function AddTreeChildrenAsync(parentNode As TreeNode) As Task
+    Friend Function AddTreeChildrenAsync(parentNode As TreeNode) As Task
+        Return Me.AddTreeChildrenAsync(parentNode, Nothing)
+    End Function
+
+    Private Async Function AddTreeChildrenAsync(parentNode As TreeNode, listings As InitialEntryListings) As Task
         Dim data As NodeTagData = DirectCast(parentNode.Tag, NodeTagData)
         If data.ChildrenLoaded Then Return
         If HasKnownChildDirectories(data.DmsResourceItem) = False Then
@@ -54,7 +98,7 @@ Partial Public Class DmsBrowser
             Await data.ChildrenLoading
             Return
         End If
-        data.ChildrenLoading = Me.LoadTreeChildrenAsync(parentNode)
+        data.ChildrenLoading = Me.LoadTreeChildrenAsync(parentNode, listings)
         Try
             Await data.ChildrenLoading
         Finally
@@ -62,15 +106,15 @@ Partial Public Class DmsBrowser
         End Try
     End Function
 
-    Private Async Function LoadTreeChildrenAsync(parentNode As TreeNode) As Task
+    Private Async Function LoadTreeChildrenAsync(parentNode As TreeNode, listings As InitialEntryListings) As Task
         Dim data As NodeTagData = DirectCast(parentNode.Tag, NodeTagData)
         Dim path As String = If(data.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
-        Dim children = Await Me.DmsProvider.ListDirectoryEntriesAsync(path)
+        Dim children = If(listings Is Nothing, Await Me.DmsProvider.ListDirectoryEntriesAsync(path), Await listings.DirectoriesAsync(path))
         If Me.IsDisposed OrElse parentNode.TreeView IsNot Me.TreeViewDmsFolders Then Return
         Me.ApplyTreeChildren(parentNode, children)
     End Function
 
-    Private Async Function SelectFolderPathAsync(path As String) As Task
+    Private Async Function SelectFolderPathAsync(path As String, Optional listings As InitialEntryListings = Nothing) As Task
         Dim previousSuppression As Boolean = Me.SuppressSelectionRefresh
         Me.SuppressSelectionRefresh = True
         Try
@@ -80,7 +124,7 @@ Partial Public Class DmsBrowser
                 Dim FolderHierarchy As New List(Of String)(path.Split(Me.DmsProvider.DirectorySeparator))
                 Dim LastMatch As TreeNode = Me.RootNode
                 For MyCounter As Integer = 0 To FolderHierarchy.Count - 1
-                    Await Me.AddTreeChildrenAsync(LastMatch)
+                    Await Me.AddTreeChildrenAsync(LastMatch, listings)
                     Dim NewMatch As TreeNode = Me.FindChildNode(LastMatch, FolderHierarchy(MyCounter))
                     If NewMatch Is Nothing Then
                         Exit For 'Path has been found partially, select as far as possible
@@ -94,7 +138,7 @@ Partial Public Class DmsBrowser
             Me.SuppressSelectionRefresh = previousSuppression
         End Try
         Me.SelectedFolder = Me.SelectedFolderPath()
-        Await Me.RefreshFilesListAsync()
+        Await Me.RefreshFilesListAsync(listings)
     End Function
 
     Friend Async Function CreateNewDirectoryTreeNodeAsync(parentNode As TreeNode, folderName As String) As Task(Of TreeNode)
@@ -196,14 +240,15 @@ Partial Public Class DmsBrowser
     End Function
 
     Friend Async Function ReloadDmsInstanceViewAsync() As Task
+        Dim listings As New InitialEntryListings(Me.DmsProvider, Not Me.SplitContainer.Panel2Collapsed, If(String.IsNullOrEmpty(Me.InitialFolder), Me.DmsProvider.BrowseInRootFolderName, Me.InitialFolder))
         Me.TreeViewDmsFolders.BeginUpdate()
         Try
             Me.ListViewDmsFiles.Items.Clear()
             Me.ListViewDmsFiles.Tag = Nothing
             Me.LastFileListFolderPath = Nothing
             Me.SelectedFolder = Nothing
-            Await Me.LoadTreeAsync()
-            Await Me.SelectFolderPathAsync(Nothing)
+            Await Me.LoadTreeAsync(listings)
+            Await Me.SelectFolderPathAsync(Nothing, listings)
         Finally
             Me.TreeViewDmsFolders.EndUpdate()
         End Try
@@ -212,7 +257,11 @@ Partial Public Class DmsBrowser
 
     Private FileListRefreshVersion As Integer
 
-    Friend Async Function RefreshFilesListAsync() As Task
+    Friend Function RefreshFilesListAsync() As Task
+        Return Me.RefreshFilesListAsync(Nothing)
+    End Function
+
+    Private Async Function RefreshFilesListAsync(listings As InitialEntryListings) As Task
         FileListRefreshVersion += 1
         Dim version As Integer = FileListRefreshVersion
         Dim selectedNode As TreeNode = Me.TreeViewDmsFolders.SelectedNode
@@ -226,9 +275,11 @@ Partial Public Class DmsBrowser
         End If
         Dim files As New List(Of DmsResourceItem)
         If Not Me.SplitContainer.Panel2Collapsed AndAlso path IsNot Nothing Then
-            Await Me.DmsProvider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.Files)
             Try
-                files = Await Me.DmsProvider.ListFileEntriesAsync(path)
+                If listings Is Nothing OrElse Not listings.TryGetFiles(path, files) Then
+                    Await Me.DmsProvider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.Files)
+                    files = Await Me.DmsProvider.ListFileEntriesAsync(path)
+                End If
             Catch ex As Data.DirectoryNotFoundException
                 If Not Me.IsDisposed AndAlso version = FileListRefreshVersion AndAlso selectedNode Is Me.TreeViewDmsFolders.SelectedNode Then
                     Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)

@@ -18,6 +18,54 @@ Imports NUnit.Framework
 <TestFixture, SetUICulture("en")>
 Public Class WebDavSharingTest
 
+    <TestCase("https://example.test/", False)>
+    <TestCase("https://example.test/remote.php/webdav/", True)>
+    <TestCase("https://example.test/remote.php/dav/files/account/", True)>
+    Public Async Function CombinedEntriesHalveListingAndSharingCallsWithoutLosingMetadata(baseUrl As String, withOcs As Boolean) As Task
+        Dim ocs = ListingClient()
+        Using handler As New ListingHandler(True, 0, baseUrl), http As New HttpClient(handler)
+            Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = baseUrl}
+            If withOcs Then
+                provider.OcsSharingClientForTesting = ocs
+                provider.OcsRootPathForTesting = "/Projects"
+            End If
+            GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic).SetValue(provider, New WebDav.WebDavClient(http))
+            Dim directories = Await provider.ListDirectoryEntriesAsync("Nested")
+            Dim files = Await provider.ListFileEntriesAsync("Nested")
+            Assert.That(handler.RequestCount, [Is].EqualTo(2))
+            Assert.That(ocs.GetSharesCallCount, [Is].EqualTo(If(withOcs, 2, 0)))
+
+            Dim combined = Await provider.ListEntriesAsync("Nested")
+            Assert.That(handler.RequestCount, [Is].EqualTo(3), "A combined presentation adds exactly one listing request.")
+            Assert.That(ocs.GetSharesCallCount, [Is].EqualTo(If(withOcs, 3, 0)))
+            Assert.That(combined.Select(Function(item) item.FullName), [Is].EquivalentTo(directories.Concat(files).Select(Function(item) item.FullName)))
+            For Each item In combined
+                Dim expected = directories.Concat(files).Single(Function(other) other.FullName = item.FullName)
+                Assert.That(item.ItemType, [Is].EqualTo(expected.ItemType))
+                Assert.That(item.ExtendedInfosOwner.ID, [Is].EqualTo(expected.ExtendedInfosOwner.ID))
+                Assert.That(item.ExtendedInfosOwner.DisplayName, [Is].EqualTo(expected.ExtendedInfosOwner.DisplayName))
+                Assert.That(item.ChildDirectoryCount, [Is].EqualTo(expected.ChildDirectoryCount))
+                Assert.That(item.HasChildDirectories, [Is].EqualTo(expected.HasChildDirectories))
+                Assert.That(item.ExtendedInfosIsShared, [Is].EqualTo(expected.ExtendedInfosIsShared))
+                Assert.That(item.ExtendedInfosLinks.Select(Function(link) link.ID), [Is].EqualTo(expected.ExtendedInfosLinks.Select(Function(link) link.ID)))
+                Assert.That(item.ExtendedInfosUserSharings.Select(Function(share) share.User.ID), [Is].EqualTo(expected.ExtendedInfosUserSharings.Select(Function(share) share.User.ID)))
+                Assert.That(item.ExtendedInfosGroupSharings.Select(Function(share) share.Group.ID), [Is].EqualTo(expected.ExtendedInfosGroupSharings.Select(Function(share) share.Group.ID)))
+            Next
+            Assert.That(combined.Single(Function(item) item.ItemType = DmsResourceItem.ItemTypes.Folder).ChildDirectoryCount, [Is].EqualTo(0))
+            handler.ChildCount = "2"
+            Dim refreshed = Await provider.ListEntriesAsync("Nested")
+            Assert.That(refreshed.Single(Function(item) item.ItemType = DmsResourceItem.ItemTypes.Folder).ChildDirectoryCount, [Is].EqualTo(2), "Combined entry results must not form a persistent metadata cache.")
+            Assert.That(handler.RequestCount, [Is].EqualTo(4))
+            Using canceled As New CancellationTokenSource()
+                canceled.Cancel()
+                Assert.CatchAsync(Of OperationCanceledException)(CType(Async Function()
+                                                                           Await provider.ListEntriesAsync("Nested", canceled.Token)
+                                                                       End Function, Func(Of Task)))
+                Assert.That(handler.RequestCount, [Is].EqualTo(4))
+            End Using
+        End Using
+    End Function
+
     <TestCase(False, 0), TestCase(True, 0), TestCase(False, 400), TestCase(True, 400), TestCase(False, 501), TestCase(True, 501)>
     Public Async Function AsyncListingsRetainSyncOwnerAndNestedSharingMetadata(children As Boolean, rejectStatus As Integer) As Task
         Dim client = ListingClient()
@@ -47,6 +95,19 @@ Public Class WebDavSharingTest
         Assert.That(handler.RequestCount, [Is].EqualTo(If(rejectStatus = 0, 2, 4)))
         Assert.That(handler.Bodies(If(rejectStatus = 0, 1, 2)), Does.Contain("owner-id"))
         If rejectStatus = 0 Then Assert.That(file.ExtendedInfosOwner.ID, [Is].EqualTo("dav-owner"))
+    End Function
+
+    <TestCase(400), TestCase(501)>
+    Public Async Function CombinedEntriesRetainTheNamedPropertyCompatibilityRetry(rejectStatus As Integer) As Task
+        Dim client = ListingClient()
+        Using handler As New ListingHandler(True, rejectStatus)
+            Dim provider = ListingProvider(client, handler)
+            Dim entries = Await provider.ListEntriesAsync("Nested")
+            Assert.That(entries.Count, [Is].EqualTo(2))
+            Assert.That(handler.RequestCount, [Is].EqualTo(2), "One rejected named-property request and one compatibility retry.")
+            Assert.That(client.GetSharesCallCount, [Is].EqualTo(1))
+            Assert.That(entries.Single(Function(item) item.ItemType = DmsResourceItem.ItemTypes.File).ExtendedInfosHasLinks, [Is].True)
+        End Using
     End Function
 
     <TestCase(BaseDmsProvider.SearchItemType.Files, 1), TestCase(BaseDmsProvider.SearchItemType.Folders, 1), TestCase(BaseDmsProvider.SearchItemType.Collections, 0)>
@@ -123,11 +184,14 @@ Public Class WebDavSharingTest
         Inherits HttpMessageHandler
         Private ReadOnly Children As Boolean
         Private ReadOnly RejectStatus As Integer
+        Private ReadOnly BaseUrl As String
+        Public ChildCount As String = "0"
         Public ReadOnly Bodies As New List(Of String)()
         Public RequestCount As Integer
-        Public Sub New(children As Boolean, rejectStatus As Integer)
+        Public Sub New(children As Boolean, rejectStatus As Integer, Optional baseUrl As String = "https://example.test/remote.php/dav/files/account/Projects/")
             Me.Children = children
             Me.RejectStatus = rejectStatus
+            Me.BaseUrl = baseUrl
         End Sub
         Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
             RequestCount += 1
@@ -137,12 +201,12 @@ Public Class WebDavSharingTest
             If named AndAlso RejectStatus <> 0 Then Return New HttpResponseMessage(CType(RejectStatus, HttpStatusCode)) With {.Content = New StringContent(String.Empty)}
             Dim ownerProperties = If(named, "<oc:owner-id>dav-owner</oc:owner-id><oc:owner-display-name>DAV Owner</oc:owner-display-name>", String.Empty)
             Dim xml = "<d:multistatus xmlns:d='DAV:' xmlns:oc='http://owncloud.org/ns'>"
-            If Children Then xml &= ListingResource("Nested/", True, ownerProperties) & ListingResource("Nested/child/", True, ownerProperties)
+            If Children Then xml &= ListingResource("Nested/", True, ownerProperties) & ListingResource("Nested/child/", True, ownerProperties & "<nc:contained-folder-count xmlns:nc='http://nextcloud.org/ns'>" & ChildCount & "</nc:contained-folder-count>")
             xml &= ListingResource("Nested/report.txt", False, ownerProperties) & "</d:multistatus>"
             Return New HttpResponseMessage(CType(207, HttpStatusCode)) With {.Content = New StringContent(xml, System.Text.Encoding.UTF8, "application/xml")}
         End Function
-        Private Shared Function ListingResource(path As String, folder As Boolean, owner As String) As String
-            Return "<d:response><d:href>https://example.test/remote.php/dav/files/account/Projects/" & path & "</d:href><d:propstat><d:prop><d:resourcetype>" & If(folder, "<d:collection/>", String.Empty) &
+        Private Function ListingResource(path As String, folder As Boolean, owner As String) As String
+            Return "<d:response><d:href>" & BaseUrl & path & "</d:href><d:propstat><d:prop><d:resourcetype>" & If(folder, "<d:collection/>", String.Empty) &
                 "</d:resourcetype>" & owner & "</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
         End Function
     End Class

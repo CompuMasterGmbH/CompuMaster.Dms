@@ -122,7 +122,9 @@ Namespace Providers
             'The config endpoint is not a prerequisite for sharing on every server.
             Dim Config As Config = Nothing
             Try
-                Config = Me.Client.GetConfig()
+                Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsConfiguration)
+                    Config = Me.Client.GetConfig()
+                End Using
             Catch
                 'Family detection is diagnostic only; capabilities decide support.
             End Try
@@ -131,7 +133,9 @@ Namespace Providers
 
             Dim SupportsShareeDiscovery As Boolean
             Try
-                Me.Client.Sharees(String.Empty, False, "file")
+                Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsShareeDiscovery)
+                    Me.Client.Sharees(String.Empty, False, "file")
+                End Using
                 SupportsShareeDiscovery = True
             Catch
                 SupportsShareeDiscovery = False
@@ -142,7 +146,8 @@ Namespace Providers
 
         Private Shared Function LoadJson(baseUrl As String, userID As String, password As String, endpoint As String) As String
             'Do not forward credentials through redirects to another endpoint.
-            Using Handler As New HttpClientHandler With {.AllowAutoRedirect = False},
+            Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsHttpTransport),
+                  Handler As New HttpClientHandler With {.AllowAutoRedirect = False},
                   Http As New HttpClient(Handler) With {.Timeout = TimeSpan.FromSeconds(30)},
                   Request As New HttpRequestMessage(HttpMethod.Get, baseUrl.TrimEnd("/"c) & "/ocs/v1.php/" & endpoint & If(endpoint.Contains("?"), "&", "?") & "format=json")
                 Request.Headers.Authorization = New AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(userID & ":" & password)))
