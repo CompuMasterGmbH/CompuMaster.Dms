@@ -45,7 +45,7 @@ Public Class ScopevisioTeamworkProviderTest
         End Get
     End Property
 
-    <TestCase(False), TestCase(True), Category("TestLevel2")>
+    <TestCase(False), TestCase(True), Category("TestLevel1")>
     Public Async Function ExplicitSessionRenewalPreservesIdentityAndSubsequentBrowsing(asynchronous As Boolean) As System.Threading.Tasks.Task
         Dim provider = DirectCast(Me.LoggedInDmsProvider(), Dms.Providers.ScopevisioTeamworkDmsProvider)
         Dim client = DirectCast(GetType(Dms.Providers.ScopevisioTeamworkDmsProvider).GetField("_OpenScopeClient", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic).GetValue(provider), Global.CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient)

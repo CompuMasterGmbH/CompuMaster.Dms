@@ -8,7 +8,7 @@ Imports CompuMaster.Scopevisio.OpenApi
 Imports CompuMaster.Scopevisio.OpenApi.Model
 
 Namespace Providers
-    'Adapts legacy synchronous entry points to the same SDK token owner and refresh gate.
+    'Keeps localized DMS reauthorization mapping around the SDK's shared session policy.
     Friend NotInheritable Class ScopevisioSessionAuthorization
         Implements IOAuthInfoProvider, IAsyncOAuthInfoProvider, IRestClientErrorHandler, IAsyncRestClientErrorHandler
         Private ReadOnly Client As OpenScopeApiClient
@@ -22,7 +22,7 @@ Namespace Providers
         End Sub
 
         Public Function GetOAuthInfo(userId As String) As OAuthInfo Implements IOAuthInfoProvider.GetOAuthInfo
-            Return GetOAuthInfoAsync(userId, CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
+            Return Information.GetOAuthInfo(userId)
         End Function
 
         Public Function GetOAuthInfoAsync(userId As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of OAuthInfo) Implements IAsyncOAuthInfoProvider.GetOAuthInfoAsync
@@ -30,14 +30,18 @@ Namespace Providers
         End Function
 
         Public Function RefreshToken(info As OAuthInfo) As OAuthInfo Implements IRestClientErrorHandler.RefreshToken
-            Return RefreshTokenAsync(info, CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
+            EnsureRefreshCredentials()
+            Try
+                Return Errors.RefreshToken(info)
+            Catch ex As Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException
+                If IsPermanentRenewalFailure(ex) Then Throw New Data.DmsUserAuthenticationException(ProviderStrings.GetText("SessionReauthorizationRequired"), ex)
+                Throw
+            End Try
         End Function
 
         Public Async Function RefreshTokenAsync(info As OAuthInfo, Optional cancellationToken As CancellationToken = Nothing) As Task(Of OAuthInfo) Implements IAsyncRestClientErrorHandler.RefreshTokenAsync
             cancellationToken.ThrowIfCancellationRequested()
-            If String.IsNullOrEmpty(Client.Token?.RefreshToken) Then
-                Throw New Data.DmsUserAuthenticationException(ProviderStrings.GetText("SessionReauthorizationRequired"), New InvalidOperationException("The session has no refresh credential."))
-            End If
+            EnsureRefreshCredentials()
             Try
                 Return Await Errors.RefreshTokenAsync(info, cancellationToken).ConfigureAwait(False)
             Catch ex As Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException
@@ -45,6 +49,12 @@ Namespace Providers
                 Throw
             End Try
         End Function
+
+        Private Sub EnsureRefreshCredentials()
+            If String.IsNullOrEmpty(Client.Token?.RefreshToken) Then
+                Throw New Data.DmsUserAuthenticationException(ProviderStrings.GetText("SessionReauthorizationRequired"), New InvalidOperationException("The session has no refresh credential."))
+            End If
+        End Sub
 
         Private Shared Function IsPermanentRenewalFailure(exception As Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException) As Boolean
             If exception.ErrorCode = CInt(HttpStatusCode.Unauthorized) Then Return True

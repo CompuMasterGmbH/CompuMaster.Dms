@@ -26,25 +26,25 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - name: Checkout pinned SDK draft
+      - name: Checkout pinned released SDK source
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.CenterDevice.IO
-          ref: 4a944d0e1c8650e273bacb7833e978be111a6d12
+          ref: 7bb84e8d7572a226bc17d038f8c2c60948eeb4b4
           path: .upstream/CenterDevice.IO
           persist-credentials: false
-      - name: Checkout pinned OpenScope draft
+      - name: Checkout pinned released OpenScope source
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.Scopevisio.OpenApi
-          ref: 4de198023f78408dab83a6b8d3853bf4491d6741
+          ref: a72dde455591cef65425b953bc6a6d56d6b03baf
           path: .upstream/OpenScope
           persist-credentials: false
-      - name: Checkout pinned Teamwork draft
+      - name: Checkout pinned released Teamwork source
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork
-          ref: 91b456246890c3140f581478760166a1489e9453
+          ref: 22715e921fe7644b6091906e4f4194df489413e8
           path: .upstream/Teamwork
           persist-credentials: false
       - uses: actions/setup-dotnet@v5
