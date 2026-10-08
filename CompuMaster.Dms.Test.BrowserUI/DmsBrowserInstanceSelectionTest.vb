@@ -237,6 +237,53 @@ Public Class DmsBrowserInstanceSelectionTest
         End Using
     End Sub
 
+    <TestCase(False, False), TestCase(False, True), TestCase(True, False), TestCase(True, True)>
+    Public Sub BottomActionsTabInVisualOrderInBothDirections(withInstance As Boolean, returnSelection As Boolean)
+        Dim callback As RemoteInstanceSelector.SelectionDialogMethod = Function(owner, instances) "tenant-b"
+        If Not withInstance Then callback = Nothing
+        Using browser As New TabOrderBrowser(callback, returnSelection) With {.ShowInTaskbar = False, .Opacity = 0}
+            browser.InitializeDmsInstanceSwitching()
+            browser.Show()
+            browser.Activate()
+            Dim expected As New List(Of Control) From {browser.ButtonCreateNewFolder, browser.ButtonShowFiles}
+            If withInstance Then expected.Add(browser.Controls.Find("ButtonDmsInstance", False).Single())
+            If returnSelection Then
+                expected.Add(browser.ButtonOkay)
+                expected.Add(browser.ButtonCancel)
+            Else
+                expected.Add(browser.ButtonClose)
+            End If
+            Assert.That(expected(0).Focus(), [Is].True)
+            For index As Integer = 1 To expected.Count - 1
+                Assert.That(browser.SelectNextControl(expected(index - 1), True, True, True, False), [Is].True)
+                Assert.That(browser.ActiveControl, [Is].SameAs(expected(index)), "Forward Tab follows the visible bottom bar from left to right.")
+            Next
+            For index As Integer = expected.Count - 2 To 0 Step -1
+                Assert.That(browser.SelectNextControl(expected(index + 1), False, True, True, False), [Is].True)
+                Assert.That(browser.ActiveControl, [Is].SameAs(expected(index)), "Shift+Tab reverses the same sequence.")
+            Next
+            browser.ButtonCreateNewFolder.Enabled = False
+            browser.ButtonShowFiles.Visible = False
+            Dim firstAvailable As Control = expected(2)
+            Assert.That(browser.SelectNextControl(browser.SplitContainer, True, True, False, False), [Is].True)
+            Assert.That(browser.ActiveControl, [Is].SameAs(firstAvailable), "Unavailable actions must be skipped.")
+            browser.Close()
+        End Using
+    End Sub
+
+    Private Class TabOrderBrowser
+        Inherits DmsBrowser
+        Public Sub New(callback As RemoteInstanceSelector.SelectionDialogMethod, returnSelection As Boolean)
+            MyBase.New(New InMemoryInstanceProvider(), callback, "Tab order test", Nothing, Nothing, Nothing,
+                       DmsBrowser.BrowseModes.FoldersAndFiles,
+                       DmsBrowser.FileOrFolderActions.AllowCreateFolders Or DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance,
+                       If(returnSelection, DmsBrowser.DialogOperationModes.ReturnSelectedItems, DmsBrowser.DialogOperationModes.NoResults), Nothing, Nothing, Nothing)
+        End Sub
+        Protected Overrides Sub OnLoad(e As EventArgs)
+            'Exercise real WinForms focus traversal without loading provider resources.
+        End Sub
+    End Class
+
     Private Shared Function CreateBrowser(provider As BaseDmsProvider, callback As RemoteInstanceSelector.SelectionDialogMethod, actions As DmsBrowser.FileOrFolderActions) As DmsBrowser
         Return New DmsBrowser(provider, callback, "Test browser", Nothing, Nothing, Nothing,
                               DmsBrowser.BrowseModes.FoldersAndFiles, actions,

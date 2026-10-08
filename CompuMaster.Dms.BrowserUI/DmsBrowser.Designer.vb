@@ -107,7 +107,7 @@ Partial Class DmsBrowser
         Me.ButtonCancel.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCancel.Name = "ButtonCancel"
         Me.ButtonCancel.Size = New System.Drawing.Size(88, 27)
-        Me.ButtonCancel.TabIndex = 11
+        Me.ButtonCancel.TabIndex = 5
         Me.ButtonCancel.Text = "&Cancel"
         Me.ButtonCancel.UseVisualStyleBackColor = True
         '
@@ -119,7 +119,7 @@ Partial Class DmsBrowser
         Me.ButtonOkay.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonOkay.Name = "ButtonOkay"
         Me.ButtonOkay.Size = New System.Drawing.Size(88, 27)
-        Me.ButtonOkay.TabIndex = 10
+        Me.ButtonOkay.TabIndex = 4
         Me.ButtonOkay.Text = "&OK"
         Me.ButtonOkay.UseVisualStyleBackColor = True
         '
@@ -250,7 +250,7 @@ Partial Class DmsBrowser
         Me.ButtonCreateNewFolder.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonCreateNewFolder.Name = "ButtonCreateNewFolder"
         Me.ButtonCreateNewFolder.Size = New System.Drawing.Size(161, 27)
-        Me.ButtonCreateNewFolder.TabIndex = 12
+        Me.ButtonCreateNewFolder.TabIndex = 1
         Me.ButtonCreateNewFolder.Text = "Create &new folder"
         Me.ButtonCreateNewFolder.UseVisualStyleBackColor = True
         '
@@ -276,7 +276,7 @@ Partial Class DmsBrowser
         Me.SplitContainer.Size = New System.Drawing.Size(1032, 482)
         Me.SplitContainer.SplitterDistance = 324
         Me.SplitContainer.SplitterWidth = 5
-        Me.SplitContainer.TabIndex = 13
+        Me.SplitContainer.TabIndex = 0
         '
         'ListViewDmsFiles
         '
@@ -569,7 +569,7 @@ Partial Class DmsBrowser
         Me.ButtonShowFiles.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonShowFiles.Name = "ButtonShowFiles"
         Me.ButtonShowFiles.Size = New System.Drawing.Size(107, 25)
-        Me.ButtonShowFiles.TabIndex = 18
+        Me.ButtonShowFiles.TabIndex = 2
         Me.ButtonShowFiles.Text = "Show &files"
         Me.ButtonShowFiles.UseVisualStyleBackColor = True
         '
@@ -616,7 +616,7 @@ Partial Class DmsBrowser
         Me.ButtonClose.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonClose.Name = "ButtonClose"
         Me.ButtonClose.Size = New System.Drawing.Size(88, 27)
-        Me.ButtonClose.TabIndex = 19
+        Me.ButtonClose.TabIndex = 6
         Me.ButtonClose.Text = "&Close"
         Me.ButtonClose.UseVisualStyleBackColor = True
         '

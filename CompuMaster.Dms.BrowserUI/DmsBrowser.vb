@@ -555,6 +555,7 @@ Public Class DmsBrowser
         If Me.InstanceButton Is Nothing Then
             Me.InstanceButton = New Button With {
                 .Name = "ButtonDmsInstance",
+                .TabIndex = 3,
                 .Text = UiStrings.GetText("ChangeDmsInstance"),
                 .AutoEllipsis = True,
                 .Location = New Point(Me.ButtonShowFiles.Right + 8, Me.ButtonShowFiles.Top),
