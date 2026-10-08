@@ -1144,12 +1144,14 @@ Public Class DmsBrowser
     Private TransferRunning As Boolean
     Private TransferCompletion As TaskCompletionSource(Of Boolean)
     Private TransferPreviousUseWaitCursor As Boolean
+    Private TransferPreviousFocus As Control
     Private ReadOnly TransferControlStates As New Dictionary(Of Control, Boolean)
 
     Private Sub BeginTransfer()
         TransferRunning = True
         TransferCompletion = New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         TransferPreviousUseWaitCursor = Me.UseWaitCursor
+        TransferPreviousFocus = If(UiAsyncOperation.CaptureFocusedControl(Me), Me.ButtonClose)
         TransferControlStates.Clear()
         Me.UseWaitCursor = True
         'Keep the top-level window active so Windows can move, paint and focus it without a modal-error beep.
@@ -1168,7 +1170,9 @@ Public Class DmsBrowser
                 If Not state.Key.IsDisposed Then state.Key.Enabled = state.Value
             Next
             Me.UseWaitCursor = TransferPreviousUseWaitCursor
+            UiAsyncOperation.RestoreFocusedControl(Me, TransferPreviousFocus)
         End If
+        TransferPreviousFocus = Nothing
         TransferControlStates.Clear()
         TransferRunning = False
         TransferCompletion.TrySetResult(True)
