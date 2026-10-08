@@ -2,12 +2,12 @@
 
 ## Audited dependency baseline
 
-This audit uses the packages referenced by the DMS provider, all version
-`2026.10.07.0` (NuGet normalizes this to `2026.10.7`), rather than an older SDK
-checkout:
+The DMS provider references Teamwork `2026.10.08.0` and OpenScope/CenterDevice
+`2026.10.07.0` (NuGet normalizes trailing zero components), rather than an older
+SDK checkout:
 
 - [OpenScope source a72dde4](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.OpenApi/blob/a72dde455591cef65425b953bc6a6d56d6b03baf/src/CompuMaster.Scopevisio.OpenApi/OpenScopeApiClient.Async.cs).
-- [Teamwork source 74c0eee](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork/blob/74c0eee89c69eb593ff2908076e7564cd0c9d7f5/Scopevisio.Teamwork/Scopevisio.CenterDeviceApi/TeamworkOAuthInfoProvider.Async.cs).
+- [Teamwork source c54976d](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork/blob/c54976da244a23e3c2d9ccff037798cda75a3d2e/Scopevisio.Teamwork/Scopevisio.CenterDeviceApi/TeamworkOAuthInfoProvider.Session.cs).
 - [CenterDevice source 7bb84e8](https://github.com/CompuMasterGmbH/CompuMaster.CenterDevice.IO/blob/7bb84e8d7572a226bc17d038f8c2c60948eeb4b4/CenterDevice.Rest/Rest/Clients/CenterDeviceRestClient.Async.cs).
 
 OpenScope supports asynchronous password authorization and refresh-token grants.
@@ -25,29 +25,32 @@ and attempts the rejected request once with the replacement. A repeated rejectio
 ends the request. Transport failures and uncertain write outcomes do not enter this
 renewal/replay path. Conservative shared transport retry policy remains unchanged.
 
-The legacy synchronous Teamwork handler merely rebuilt authorization from the
-existing token, and its synchronous information provider cached that authorization.
-Consequently, asynchronous SDK renewal alone did not repair synchronous DMS use.
+Teamwork 2026.10.07.0's legacy synchronous handler merely rebuilt authorization
+from the existing token, and its synchronous information provider cached that
+authorization. Teamwork 2026.10.08.0 fixes both entry points in the SDK: synchronous
+and asynchronous callers now share the session engine and observe rotated tokens.
 
 ## DMS integration
 
-The temporary internal session adapter uses the existing SDK asynchronous information and
-renewal operations for both synchronous and asynchronous calls. Synchronous callers
-block through `GetAwaiter().GetResult()` without aggregate wrapping; asynchronous
-callers retain cancellation. No second token refresh algorithm or business-operation
-retry loop is added. The normal public provider API, account/application context,
+The internal DMS session decorator calls the SDK's matching synchronous and
+asynchronous information/renewal entry points and retains localized DMS
+reauthorization errors. The temporary routing of synchronous calls through the
+SDK's public asynchronous methods has been removed. The SDK owns shared refresh
+admission; DMS adds no second refresh algorithm or business-operation retry loop.
+The normal public provider API, account/application context,
 customer/organization selection, certificate behavior and initial authorization
 remain unchanged. All regular REST subclients receive the same session adapter.
 The installed internal I/O implementation is a provider detail, not a public
 contract promising a particular SDK concrete type.
 
-Reusable synchronous SDK renewal belongs in Teamwork. [Teamwork issue #7](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork/issues/7)
-tracks unifying its sync/native session behavior and then removing this DMS bridge.
-Integration order is a focused Teamwork change, immutable combined SDK/DMS tests,
-separately authorized publication, exact released-package consumption, and bridge
-replacement. DMS-specific localized reauthorization mapping remains in DMS. This
-PR neither changes nor publishes upstream libraries; its exact released baseline
-is recorded above. SDK-owned refresh admission and transport behavior remain reused.
+[Teamwork issue #7](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork/issues/7)
+and [Teamwork PR #8](https://github.com/CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork/pull/8)
+track the owning SDK fix and its independent publication. Integration order is
+immutable combined SDK/DMS source verification, Teamwork merge/post-merge CI and
+publication, then exact released-package DMS consumption and verification.
+DMS-specific localized reauthorization mapping remains in DMS. OpenScope and
+CenterDevice versions, SDK-owned refresh admission and transport behavior are
+otherwise unchanged.
 
 A missing refresh credential, HTTP 401 from the refresh endpoint, an OAuth
 `invalid_grant` response, or authorization still rejected after renewal produces

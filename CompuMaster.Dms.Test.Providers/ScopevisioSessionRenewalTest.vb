@@ -45,13 +45,19 @@ Public Class ScopevisioSessionRenewalTest
         End Using
     End Sub
 
-    <TestCase(400), TestCase(401)>
-    Public Async Function PermanentRenewalFailureRequiresReauthorizationAndRetainsOriginal(status As Integer) As Task
+    <TestCase(400, False), TestCase(400, True), TestCase(401, False), TestCase(401, True)>
+    Public Async Function PermanentRenewalFailureRequiresReauthorizationAndRetainsOriginal(status As Integer, asynchronous As Boolean) As Task
         Dim handler As New TokenHandler With {.Status = CType(status, HttpStatusCode)}
         Using transport As New HttpClient(handler)
             Dim client = ClientWithToken(transport)
             Dim session = Authorization(client)
-            Dim failure = Assert.ThrowsAsync(Of DmsUserAuthenticationException)(Function() session.RefreshTokenAsync(New OAuthInfo With {.access_token = "fixture-old"}))
+            Dim rejected As New OAuthInfo With {.access_token = "fixture-old"}
+            Dim failure As DmsUserAuthenticationException
+            If asynchronous Then
+                failure = Assert.ThrowsAsync(Of DmsUserAuthenticationException)(Function() session.RefreshTokenAsync(rejected))
+            Else
+                failure = Assert.Throws(Of DmsUserAuthenticationException)(CType(Sub() session.RefreshToken(rejected), Action))
+            End If
             Assert.That(failure.Message, Does.Not.Contain("fixture-sensitive"))
             Assert.That(failure.InnerException, [Is].InstanceOf(Of Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException)())
             Assert.That(client.Token.AccessToken, [Is].EqualTo("fixture-old"))

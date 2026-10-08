@@ -40,7 +40,8 @@ if ($DependencyMode -eq 'source') {
     if ($LASTEXITCODE -ne 0) { throw 'Released native dependency restore failed.' }
     $assets = Get-Content -LiteralPath 'CompuMaster.Dms.Test.Providers/obj/project.assets.json' -Raw | ConvertFrom-Json -AsHashtable
     foreach ($packageId in @('CompuMaster.CenterDevice.Rest', 'CompuMaster.Scopevisio.OpenApi', 'CompuMaster.Scopevisio.Teamwork', 'CompuMaster.Ocs')) {
-        $key = "$packageId/2026.10.7"
+        $requiredVersion = if ($packageId -eq 'CompuMaster.Scopevisio.Teamwork') { '2026.10.8' } else { '2026.10.7' }
+        $key = "$packageId/$requiredVersion"
         if (!$assets.libraries.ContainsKey($key) -or $assets.libraries[$key].type -ne 'package') {
             throw "Native live evidence requires released NuGet package $key, not an upstream source project."
         }

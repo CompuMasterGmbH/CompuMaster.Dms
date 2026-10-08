@@ -2,7 +2,8 @@
 # PR/main CI and local test scripts read it. A manual workflow can override it.
 #
 # Level 1 (default): quick isolated regressions and provider smoke tests on all OS.
-# Remote checks cover login/listing/existence/path and a small file lifecycle:
+# Remote checks cover login/listing/existence/path, explicit session renewal,
+# and a small file lifecycle:
 # upload/version/copy/move/download/delete, with owned setup and verified cleanup.
 # Target: about 5 minutes per provider/OS; up to 8 minutes is acceptable.
 # Compilation, SDK installation, reporting and queue waits are measured separately.
