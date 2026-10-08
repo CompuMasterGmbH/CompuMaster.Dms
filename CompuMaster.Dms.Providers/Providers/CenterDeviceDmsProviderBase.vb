@@ -134,8 +134,9 @@ Namespace Providers
         End Sub
 
         ''' <inheritdoc/>
+        ''' <exception cref="Data.DirectoryNotFoundException">The directory to list does not exist.</exception>
         Public Overrides Function ListAllRemoteItems(remoteFolderPath As String, searchType As SearchItemType) As List(Of DmsResourceItem)
-            Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
+            Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.OpenDirectoryForListing(remoteFolderPath)
             Dim Result As New List(Of DmsResourceItem)
             Select Case searchType
                 Case SearchItemType.Folders, SearchItemType.Collections, SearchItemType.AllItems
@@ -195,14 +196,23 @@ Namespace Providers
         End Function
 
         ''' <inheritdoc/>
+        ''' <exception cref="Data.DirectoryNotFoundException">The directory to list does not exist.</exception>
         Public Overrides Function ListAllFolderNames(remoteFolderPath As String) As List(Of String)
-            Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
+            Dim RemoteDir As CenterDevice.IO.DirectoryInfo = Me.OpenDirectoryForListing(remoteFolderPath)
             Dim Result As New List(Of String)
             Dim SubFolders As CenterDevice.IO.DirectoryInfo() = RemoteDir.GetDirectories
             For Each SubFolder In SubFolders
                 Result.Add(SubFolder.Name)
             Next
             Return Result
+        End Function
+
+        Private Function OpenDirectoryForListing(remoteFolderPath As String) As CenterDevice.IO.DirectoryInfo
+            Try
+                Return Me.IOClient.RootDirectory.OpenDirectoryPath(remoteFolderPath)
+            Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
+                Throw New Data.DirectoryNotFoundException(remoteFolderPath, ex)
+            End Try
         End Function
 
         ''' <inheritdoc/>
