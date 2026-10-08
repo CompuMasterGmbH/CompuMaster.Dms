@@ -127,6 +127,7 @@ Partial Class DmsBrowser
         '
         Me.TreeViewDmsFolders.ContextMenuStrip = Me.ContextMenuStripFolder
         Me.TreeViewDmsFolders.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TreeViewDmsFolders.HideSelection = False
         Me.TreeViewDmsFolders.ImageIndex = 2
         Me.TreeViewDmsFolders.ImageList = Me.ImageListTreeIcons
         Me.TreeViewDmsFolders.Indent = 27
