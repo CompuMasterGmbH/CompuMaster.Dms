@@ -65,7 +65,7 @@ Partial Public Class DmsBrowser
     Private Async Function LoadTreeChildrenAsync(parentNode As TreeNode) As Task
         Dim data As NodeTagData = DirectCast(parentNode.Tag, NodeTagData)
         Dim path As String = If(data.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
-        Dim children = Await Me.DmsProvider.ListAllDirectoryItemsAsync(path)
+        Dim children = Await Me.DmsProvider.ListDirectoryEntriesAsync(path)
         If Me.IsDisposed OrElse parentNode.TreeView IsNot Me.TreeViewDmsFolders Then Return
         Me.ApplyTreeChildren(parentNode, children)
     End Function
@@ -158,7 +158,7 @@ Partial Public Class DmsBrowser
         If Not data.ChildrenLoaded AndAlso node IsNot selectedNode Then Return
         Dim path As String = If(data.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
         Await Me.DmsProvider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.AllItems)
-        Dim children As List(Of DmsResourceItem) = Await Me.DmsProvider.ListAllDirectoryItemsAsync(path)
+        Dim children As List(Of DmsResourceItem) = Await Me.DmsProvider.ListDirectoryEntriesAsync(path)
         Dim previousNodes As List(Of TreeNode) = node.Nodes.Cast(Of TreeNode)().Where(Function(child) child.Tag IsNot Nothing).ToList()
         For Each child As TreeNode In node.Nodes.Cast(Of TreeNode)().Where(Function(item) item.Tag Is Nothing).ToList()
             child.Remove()
@@ -228,7 +228,7 @@ Partial Public Class DmsBrowser
         If Not Me.SplitContainer.Panel2Collapsed AndAlso path IsNot Nothing Then
             Await Me.DmsProvider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.Files)
             Try
-                files = Await Me.DmsProvider.ListAllFileItemsAsync(path)
+                files = Await Me.DmsProvider.ListFileEntriesAsync(path)
             Catch ex As Data.DirectoryNotFoundException
                 If Not Me.IsDisposed AndAlso version = FileListRefreshVersion AndAlso selectedNode Is Me.TreeViewDmsFolders.SelectedNode Then
                     Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)

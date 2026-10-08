@@ -48,6 +48,12 @@ There are following main modules for your use:
 * CompuMaster.Dms.TestDemo.Nextcloud – A dedicated Nextcloud demo using its own local credential store and accepting either the instance URL or a complete WebDAV URL.
 * CompuMaster.Dms.TestDemo.ScopevisioTeamwork – A demo application to show functionality of CompuMaster.Dms.BrowserUI components with Scopevisio Teamwork (based on System.Windows.Forms which requires .NET Framework 4.8 or .NET 5.0-Windows)
 
+### Asynchronous browsing
+
+Use `ListDirectoryEntriesAsync` and `ListFileEntriesAsync` to populate a browser tree and file list. Native Scopevisio/CenterDevice listings retain resource identities, paths, sizes, timestamps, child metadata and sharing indicators, including download links, upload-only links and visible/hidden user/group shares. They use the existing resource conversion and batched upload-link lookup without first resolving every principal name and link's detailed settings. Retrieve full details for the selected resource through an item or identifier lookup before displaying properties or managing shares. Existing full-snapshot `ListAll...Async` methods retain their behavior; other providers and existing derived implementations use the compatible virtual-method fallback.
+
+BrowserUI uses these entry listings for navigation and resolves selected details asynchronously, retaining the selected resource's path and parent context even for duplicate names. Pending operations keep the window active with a wait cursor and lock its content/action controls until completion; success, failure and cancellation restore their previous states. API request allowances remain in force.
+
 ### WebDAV sharing capabilities
 
 The WebDAV provider keeps generic WebDAV servers provider-neutral. For recognized Nextcloud and ownCloud personal-file endpoints, it probes the Open Collaboration Services (OCS) API and enables user, group, and public-link sharing only when that probe succeeds. OCS permission bits are mapped without silently changing their meaning; view and download remain coupled because the classic OCS bit field cannot represent modern Nextcloud download restrictions separately. Server policies such as maximum link-name length remain server-validated because they differ between products and deployments.

@@ -25,16 +25,24 @@ Friend NotInheritable Class UiAsyncOperation
         Me.IsRunning = True
         Dim WasEnabled As Boolean = Owner.Enabled
         Dim HadWaitCursor As Boolean = Owner.UseWaitCursor
+        Dim controlStates As New Dictionary(Of Control, Boolean)
         Try
-            Owner.Enabled = False
             Owner.UseWaitCursor = True
+            If WasEnabled Then
+                For Each control As Control In Owner.Controls
+                    controlStates.Add(control, control.Enabled)
+                    control.Enabled = False
+                Next
+            End If
             Await operation()
             Me.IsRunning = False
             onSuccess?.Invoke()
         Finally
             Me.IsRunning = False
             If Not Owner.IsDisposed Then
-                Owner.Enabled = WasEnabled
+                For Each state In controlStates
+                    If Not state.Key.IsDisposed Then state.Key.Enabled = state.Value
+                Next
                 Owner.UseWaitCursor = HadWaitCursor
             End If
         End Try

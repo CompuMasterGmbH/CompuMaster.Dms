@@ -44,7 +44,8 @@ Public Class DmsBrowserAsyncNavigationTest
             Dim pending = provider.DelayDirectory("Parent")
             Dim operation = browser.RunTransferAsync(Function() browser.AddTreeChildrenAsync(parent))
             ClassicAssert.IsFalse(operation.IsCompleted)
-            ClassicAssert.IsFalse(browser.Enabled)
+            ClassicAssert.IsTrue(browser.Enabled)
+            ClassicAssert.IsFalse(browser.SplitContainer.Enabled)
             ClassicAssert.IsTrue(browser.UseWaitCursor)
             ClassicAssert.IsNull(parent.Nodes(0).Tag, "The expansion placeholder must remain until loading succeeds.")
             Select Case outcome
@@ -139,9 +140,10 @@ Public Class DmsBrowserAsyncNavigationTest
             Dim args As New TreeViewCancelEventArgs(node, False, TreeViewAction.Expand)
             GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetMethod("TreeViewDmsFolders_BeforeExpand", BindingFlags.NonPublic Or BindingFlags.Instance).Invoke(browser, {browser.TreeViewDmsFolders, args})
             ClassicAssert.IsTrue(args.Cancel)
-            ClassicAssert.IsFalse(browser.Enabled)
+            ClassicAssert.IsTrue(browser.Enabled)
+            ClassicAssert.IsFalse(browser.SplitContainer.Enabled)
             pending.SetResult(New List(Of DmsResourceItem) From {DirectoryItem("Parent/Child", 0)})
-            PumpUntil(Function() browser.Enabled)
+            PumpUntil(Function() browser.SplitContainer.Enabled)
             ClassicAssert.AreEqual("Child", node.Nodes(0).Text)
         End Using
     End Sub
@@ -181,7 +183,8 @@ Public Class DmsBrowserAsyncNavigationTest
                                                          created = Await browser.CreateNewDirectoryTreeNodeAsync(parent, "Created")
                                                      End Function)
             ClassicAssert.IsFalse(createTask.IsCompleted)
-            ClassicAssert.IsFalse(browser.Enabled)
+            ClassicAssert.IsTrue(browser.Enabled)
+            ClassicAssert.IsFalse(browser.SplitContainer.Enabled)
             ClassicAssert.AreEqual(0, parent.Nodes.Count)
             provider.PendingCreate.SetResult(True)
             Finish(createTask)

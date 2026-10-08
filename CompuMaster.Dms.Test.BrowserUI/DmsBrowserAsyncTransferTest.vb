@@ -28,7 +28,8 @@ Public Class DmsBrowserAsyncTransferTest
             Dim transfer As Task = browser.RunTransferAsync(Function() Global.CompuMaster.Dms.BrowserUI.DmsBrowser.DownloadFileForUiAsync(provider, remoteFile, "destination.txt"))
 
             ClassicAssert.IsFalse(transfer.IsCompleted)
-            ClassicAssert.IsFalse(browser.Enabled)
+            ClassicAssert.IsTrue(browser.Enabled)
+            ClassicAssert.IsFalse(browser.SplitContainer.Enabled)
             ClassicAssert.IsTrue(browser.UseWaitCursor)
             ClassicAssert.AreEqual(remoteFile.FullName, provider.RequestedPath)
             ClassicAssert.AreEqual(0, provider.SynchronousDownloadCount)
@@ -68,12 +69,14 @@ Public Class DmsBrowserAsyncTransferTest
 
             ClassicAssert.IsFalse(transfer.IsCompleted)
             ClassicAssert.AreEqual(1, provider.RequestedPaths.Count)
-            ClassicAssert.IsFalse(browser.Enabled)
+            ClassicAssert.IsTrue(browser.Enabled)
+            ClassicAssert.IsFalse(browser.SplitContainer.Enabled)
 
             provider.CompleteFirst()
             PumpMessagesUntil(Function() provider.RequestedPaths.Count = 2)
             ClassicAssert.IsFalse(transfer.IsCompleted)
-            ClassicAssert.IsFalse(browser.Enabled)
+            ClassicAssert.IsTrue(browser.Enabled)
+            ClassicAssert.IsFalse(browser.SplitContainer.Enabled)
 
             provider.CompleteSecond()
             PumpMessagesUntilComplete(transfer)
