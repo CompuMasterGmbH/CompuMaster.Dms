@@ -45,6 +45,39 @@ Public Class ScopevisioTeamworkProviderTest
         End Get
     End Property
 
+    <TestCase(False), TestCase(True), Category("TestLevel2")>
+    Public Async Function ExplicitSessionRenewalPreservesIdentityAndSubsequentBrowsing(asynchronous As Boolean) As System.Threading.Tasks.Task
+        Dim provider = DirectCast(Me.LoggedInDmsProvider(), Dms.Providers.ScopevisioTeamworkDmsProvider)
+        Dim client = DirectCast(GetType(Dms.Providers.ScopevisioTeamworkDmsProvider).GetField("_OpenScopeClient", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic).GetValue(provider), Global.CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient)
+        Dim io = TryCast(provider.IOClient, Dms.Providers.ScopevisioSessionIOClient)
+        Assert.That(io IsNot Nothing, [Is].True, "The live fixture must use the common DMS session adapter.")
+        Dim userId = client.Token.Uid
+        Dim tenantId = client.Token.TeamworkTenantId
+        Dim organizationId = client.Token.OrganisationId
+        Dim customer = client.Config.ClientNumber
+        Dim authorization As New Dms.Providers.ScopevisioSessionAuthorization(client, io.ApplicationContext)
+        Using timeout As New Threading.CancellationTokenSource(TimeSpan.FromMinutes(2))
+            Dim initial = Await authorization.GetOAuthInfoAsync(userId, timeout.Token)
+            Dim renewed = If(asynchronous, Await authorization.RefreshTokenAsync(initial, timeout.Token), authorization.RefreshToken(initial))
+            'Boolean assertions intentionally avoid including token/account values in test output.
+            Assert.That(Not String.IsNullOrWhiteSpace(renewed.access_token), [Is].True)
+            Assert.That(String.Equals(renewed.UserId, userId, StringComparison.Ordinal), [Is].True)
+            Assert.That(String.Equals(renewed.TenantId, tenantId, StringComparison.Ordinal), [Is].True)
+            Assert.That(client.Token.OrganisationId = organizationId, [Is].True)
+            Assert.That(String.Equals(client.Config.ClientNumber, customer, StringComparison.Ordinal), [Is].True)
+            Assert.That(String.Equals(io.CurrentAuthenticationContextUserID, userId, StringComparison.Ordinal), [Is].True)
+            If asynchronous Then
+                Await provider.ResetCachesForRemoteItemsAsync(provider.BrowseInRootFolderName, Dms.Providers.BaseDmsProvider.SearchItemType.AllItems, timeout.Token)
+                Dim collections = Await provider.ListAllCollectionNamesAsync(provider.BrowseInRootFolderName, timeout.Token)
+                Assert.That(collections IsNot Nothing, [Is].True)
+            Else
+                provider.ResetCachesForRemoteItems(provider.BrowseInRootFolderName, Dms.Providers.BaseDmsProvider.SearchItemType.AllItems)
+                Dim collections = provider.ListAllCollectionNames(provider.BrowseInRootFolderName)
+                Assert.That(collections IsNot Nothing, [Is].True)
+            End If
+        End Using
+    End Function
+
     Private Const TestDirName As String = "ZZZ_UnitTests_CM.Dms"
     Private Const TestDirNameSub1 As String = "ZZZ_UnitTests_CM.Dms/Folder"
     Private Const TestDirNameSub2 As String = "ZZZ_UnitTests_CM.Dms/Folder/Sub"
