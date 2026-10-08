@@ -137,7 +137,10 @@ Friend NotInheritable Class UploadProgressDialog
     Private ReadOnly BatchBar As New ProgressBar With {.Dock = DockStyle.Top, .Style = ProgressBarStyle.Marquee}
     Private ReadOnly FilesList As New ListBox With {.Dock = DockStyle.Fill, .IntegralHeight = False}
     Private ReadOnly CancelUpload As New Button With {.AutoSize = True}
+    Private ReadOnly PartialWarning As New Label With {.Text = UiStrings.GetText("UploadPartialWarning"), .AutoSize = True}
+    Private ReadOnly ProgressLayout As New TableLayoutPanel With {.Dock = DockStyle.Fill, .Padding = New Padding(15), .ColumnCount = 1, .RowCount = 9}
     Private Finished As Boolean
+    Private ArrangingProgress As Boolean
 
     Friend Sub New(files As String())
         Text = UiStrings.GetText("UploadTitle")
@@ -146,14 +149,18 @@ Friend NotInheritable Class UploadProgressDialog
         Size = New Drawing.Size(750, 440)
         MinimizeBox = False
         MaximizeBox = False
-        Dim layout As New TableLayoutPanel With {.Dock = DockStyle.Fill, .Padding = New Padding(15), .ColumnCount = 1, .RowCount = 9}
-        For Each control As Control In New Control() {FileLabel, ByteLabel, FileBar, StatusLabel, BatchLabel, BatchBar, FilesList, New Label With {.Text = UiStrings.GetText("UploadPartialWarning"), .AutoSize = True, .MaximumSize = New Drawing.Size(700, 0)}, CancelUpload}
+        Dim layout = ProgressLayout
+        For Each control As Control In New Control() {FileLabel, ByteLabel, FileBar, StatusLabel, BatchLabel, BatchBar, FilesList, PartialWarning, CancelUpload}
             layout.Controls.Add(control)
         Next
         For row As Integer = 0 To 8
             layout.RowStyles.Add(New RowStyle(If(row = 6, SizeType.Percent, SizeType.AutoSize), If(row = 6, 100, 0)))
         Next
         Controls.Add(layout)
+        AddHandler layout.SizeChanged, Sub() ConstrainProgressLabels()
+        ConstrainProgressLabels()
+        LocalizedLayout.Bind(Me, AddressOf ArrangeProgressControls)
+        FilesList.HorizontalScrollbar = True
         CancelUpload.Text = UiStrings.GetText("ActionCancel")
         AddHandler CancelUpload.Click, Sub()
                                           If Finished Then
@@ -205,6 +212,30 @@ Friend NotInheritable Class UploadProgressDialog
         FilesList.Items.Clear()
         For index As Integer = 0 To value.Files.Length - 1
             FilesList.Items.Add(System.IO.Path.GetFileName(value.Files(index)) & " — " & StateText(value.States(index)))
+        Next
+        FilesList.HorizontalExtent = FilesList.Items.Cast(Of String)().Max(Function(text) TextRenderer.MeasureText(text, FilesList.Font).Width)
+        ConstrainProgressLabels()
+        ArrangeProgressControls()
+    End Sub
+
+    Private Sub ArrangeProgressControls()
+        If ArrangingProgress OrElse IsDisposed Then Return
+        ArrangingProgress = True
+        Try
+            ConstrainProgressLabels()
+            Dim labelsHeight = {FileLabel, ByteLabel, StatusLabel, BatchLabel, PartialWarning}.Sum(Function(label) label.GetPreferredSize(label.MaximumSize).Height + label.Margin.Vertical)
+            Dim requiredHeight = labelsHeight + FileBar.Height + BatchBar.Height + CancelUpload.GetPreferredSize(Drawing.Size.Empty).Height + Font.Height * 3 + 70
+            MinimumSize = New Drawing.Size(650, Math.Max(400, requiredHeight + Height - ClientSize.Height))
+            ProgressLayout.PerformLayout()
+        Finally
+            ArrangingProgress = False
+        End Try
+    End Sub
+
+    Private Sub ConstrainProgressLabels()
+        Dim available = Math.Max(1, ProgressLayout.ClientSize.Width - ProgressLayout.Padding.Horizontal - FileLabel.Margin.Horizontal)
+        For Each label In {FileLabel, ByteLabel, StatusLabel, BatchLabel, PartialWarning}
+            label.MaximumSize = New Drawing.Size(available, 0)
         Next
     End Sub
 

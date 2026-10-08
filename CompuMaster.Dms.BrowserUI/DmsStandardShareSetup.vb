@@ -60,6 +60,26 @@ Public Class DmsStandardShareSetup
         Me.ButtonSave.Text = UiStrings.GetText("ActionSave")
         Me.GroupBoxGeneral.Text = UiStrings.GetText("GeneralSettings")
         Me.LabelName.Text = UiStrings.GetText("LabelName")
+        LocalizedLayout.FitButtons(Me)
+        LocalizedLayout.FitFieldColumns(Me.GroupBoxGeneral)
+        LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedControls)
+    End Sub
+
+    Private Sub ArrangeLocalizedControls()
+        LocalizedLayout.FitButtons(Me)
+        LocalizedLayout.FitRows(Me.GroupBoxGeneral)
+        LocalizedLayout.FitRows(Me.GroupBoxAuthorizations, True)
+        Dim minimumWidth = Math.Max(622, Math.Max(LocalizedLayout.MinimumFieldWidth(Me.GroupBoxGeneral), LocalizedLayout.MinimumPermissionWidth(Me.GroupBoxAuthorizations)) + 28)
+        Me.ClientSize = New Drawing.Size(Math.Max(Me.ClientSize.Width, minimumWidth), Me.ClientSize.Height)
+        Me.GroupBoxGeneral.Width = Me.ClientSize.Width - 28
+        Me.GroupBoxAuthorizations.Width = Me.ClientSize.Width - 28
+        LocalizedLayout.FitFieldColumns(Me.GroupBoxGeneral)
+        Me.GroupBoxAuthorizations.Top = Me.GroupBoxGeneral.Bottom + 8
+        Dim buttonsTop = Me.GroupBoxAuthorizations.Bottom + 8
+        Me.ClientSize = New Drawing.Size(Me.ClientSize.Width, Math.Max(Me.ClientSize.Height, buttonsTop + Me.ButtonSave.Height + 12))
+        Me.ButtonSave.Location = New Drawing.Point(Me.ClientSize.Width - Me.ButtonSave.Width - 14, buttonsTop)
+        Me.ButtonCancel.Location = New Drawing.Point(Me.ButtonSave.Left - Me.ButtonCancel.Width - 8, buttonsTop)
+        Me.MinimumSize = New Drawing.Size(minimumWidth + Me.Width - Me.ClientSize.Width, buttonsTop + Me.ButtonSave.Height + 12 + Me.Height - Me.ClientSize.Height)
     End Sub
 
     ''' <summary>Gets or sets the original sharing settings to edit.</summary>
@@ -104,6 +124,7 @@ Public Class DmsStandardShareSetup
                     Throw New ArgumentOutOfRangeException(NameOf(value))
             End Select
             _DialogObjectMode = value
+            LocalizedLayout.FitFieldColumns(Me.GroupBoxGeneral)
         End Set
     End Property
 
