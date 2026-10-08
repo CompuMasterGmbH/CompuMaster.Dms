@@ -71,14 +71,18 @@ providers and suppressed profile Load/Closing handlers, so it does not read save
 credentials or contact shared DMS servers. Set `DMS_LOCALIZATION_PREVIEW_DIR` when
 running `LocalizedLayoutAcceptanceTest` to save diagnostic PNGs.
 
+The Windows CI display additionally exposed bottom-bar overlap at 200% font
+size. The browser now wraps action controls when the available display width
+cannot accommodate one row. The same culture/font matrix also checks a
+900-pixel maximum window width on larger developer displays.
+
 Font-size stress is not a claim that every physical monitor DPI, installed font,
 OS-owned dialog, tooltip implementation, or third-party message box has been
-exhaustively verified. Full RTL mirroring remains deferred to #66. The complete
-BrowserUI run also exposed ten existing focus-test failures while Windows kept
-an external foreground window: `Form.ActiveForm` was null despite native focus
-inside the test form. The same failures reproduced with browser layout binding
-removed. These are recorded separately from the passing layout matrix; no full
-current-head GUI-suite success is claimed.
+exhaustively verified. Full RTL mirroring remains deferred to #66. Earlier
+focus-test failures occurred while Windows kept an external foreground window:
+`Form.ActiveForm` was null despite native focus inside the test form. The focus
+fixture now explicitly establishes its foreground preconditions; separate
+window-switch cases continue to verify that production code does not steal focus.
 
 On WKS08, `DevelopmentGuiTestSession` shows a nonactivating topmost three-second
 warning before any test fixture and keeps an ETA notice visible until teardown.
