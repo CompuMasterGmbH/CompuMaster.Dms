@@ -36,6 +36,23 @@ initial focus, keyboard shortcuts, tab order and return/cancel behavior per dial
 Test that focus and enabled state restore correctly after async success, failure,
 cancellation and instance switching. Test resize and DPI changes during progress.
 
+### Browser bottom-action keyboard order
+
+For the existing LTR layout, forward Tab follows the visible bottom controls from
+left to right: Create folder, Show files, Change instance (when available), then
+the visible confirmation/cancel or Close actions. Shift+Tab reverses that order.
+Hidden and disabled controls are skipped; a dynamically added instance button
+must not jump ahead of the hierarchy/file panes. Mouse clicking continues to
+activate the clicked control, without changing the selected resource identity.
+
+Before RTL implementation, explicitly define the expected sequence for the
+mirrored bottom bar: forward Tab should follow its visual RTL reading order,
+subject to the agreed confirmation/cancel placement. Verify this as a separate
+Arabic/Hebrew UX case alongside the LTR baseline, rather than reversing numeric
+TabIndex values blindly. Cover optional instance controls, both dialog modes,
+hidden/disabled actions, Shift+Tab, async focus restoration and keyboard cues.
+This specification adds no RTL layout implementation in this chat.
+
 ## Observations from current-host text-only previews
 
 Arabic progress text and Hebrew link labels render with shaped glyphs on the
