@@ -53,4 +53,10 @@
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="DemoAssets\dms-login.png">
+      <LogicalName>CompuMaster.Dms.DemoLoginArtwork.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

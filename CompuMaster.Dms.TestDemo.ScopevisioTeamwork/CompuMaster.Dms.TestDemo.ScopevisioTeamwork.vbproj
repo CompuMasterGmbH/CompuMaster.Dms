@@ -71,4 +71,11 @@
     <EmbeddedResource Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoStrings*.resx" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoLoginArtwork.vb" Link="DemoLoginArtwork.vb" />
+    <EmbeddedResource Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoAssets\dms-login.png">
+      <LogicalName>CompuMaster.Dms.DemoLoginArtwork.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

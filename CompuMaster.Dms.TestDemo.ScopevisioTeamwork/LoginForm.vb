@@ -14,11 +14,37 @@ Public Class LoginForm
     ''' <summary>Creates the login form with the specified icon.</summary>
     ''' <param name="formIcon">The window icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
     Public Sub New(formIcon As Icon)
+        Me.New(formIcon, Nothing)
+    End Sub
+
+    ''' <summary>Creates the login form with the specified icon and artwork.</summary>
+    ''' <param name="formIcon">The window icon, or <see langword="Nothing"/> to use the default icon.</param>
+    ''' <param name="loginImage">The artwork copied for this form, or <see langword="Nothing"/> to use the common document-management illustration.</param>
+    ''' <remarks>The caller retains ownership of the supplied image and may dispose it after construction.</remarks>
+    Public Sub New(formIcon As Icon, loginImage As Image)
         MyBase.New()
         InitializeComponent()
+        Me.LoginImage = loginImage
         DemoStrings.ApplyLoginLabels(Me)
         Me.Icon = If(formIcon, CType((New ComponentResourceManager(GetType(BrowserUI.DmsBrowser))).GetObject("$this.Icon"), Icon))
     End Sub
+
+    ''' <summary>Gets or sets the artwork displayed beside the login fields.</summary>
+    ''' <value>The form-owned display image. Assigning <see langword="Nothing"/> restores the common default.</value>
+    ''' <remarks>The setter copies the supplied image; the caller retains ownership of its original.
+    ''' The getter returns a borrowed form-owned image that must not be disposed by the caller.</remarks>
+    <Browsable(False), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)>
+    Public Property LoginImage As Image
+        Get
+            Return Me.LogoPictureBox.Image
+        End Get
+        Set(value As Image)
+            Dim replacement = DemoLoginArtwork.CreateImage(value)
+            Dim previous = Me.LogoPictureBox.Image
+            Me.LogoPictureBox.Image = replacement
+            previous?.Dispose()
+        End Set
+    End Property
 
     Private Sub Form_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
         Me.UsernameTextBox.Text = Settings.InputFromBufferFile("username")

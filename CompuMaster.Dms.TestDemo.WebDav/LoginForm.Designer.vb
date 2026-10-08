@@ -7,6 +7,11 @@ Partial Class LoginForm
     <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
+            If disposing AndAlso Me.LogoPictureBox IsNot Nothing Then
+                Dim artwork = Me.LogoPictureBox.Image
+                Me.LogoPictureBox.Image = Nothing
+                artwork?.Dispose()
+            End If
             If disposing AndAlso components IsNot Nothing Then
                 components.Dispose()
             End If
@@ -48,10 +53,12 @@ Partial Class LoginForm
         '
         'LogoPictureBox
         '
-        Me.LogoPictureBox.Image = CType(resources.GetObject("LogoPictureBox.Image"), System.Drawing.Image)
+        Me.LogoPictureBox.Anchor = System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left
+        Me.LogoPictureBox.Image = Nothing
         Me.LogoPictureBox.Location = New System.Drawing.Point(0, 0)
         Me.LogoPictureBox.Name = "LogoPictureBox"
-        Me.LogoPictureBox.Size = New System.Drawing.Size(165, 193)
+        Me.LogoPictureBox.Size = New System.Drawing.Size(158, 253)
+        Me.LogoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
         Me.LogoPictureBox.TabIndex = 0
         Me.LogoPictureBox.TabStop = False
         '
