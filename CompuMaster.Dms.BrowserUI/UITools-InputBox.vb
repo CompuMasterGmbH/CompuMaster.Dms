@@ -50,57 +50,60 @@ Partial Friend Class UITools
     End Function
 
     Private Shared Function InputQuery(ByVal caption As String, ByVal prompt As String, ByRef value As String) As Boolean
-        Dim form As Form
-        form = New Form()
+        Dim input As TextBox = Nothing
+        Using form = CreateInputDialog(caption, prompt, value, input)
+            If form.ShowDialog() <> DialogResult.OK Then Return False
+            value = input.Text
+            Return True
+        End Using
+    End Function
+
+    Friend Shared Function CreateInputDialog(caption As String, prompt As String, value As String, ByRef input As TextBox) As Form
+        Dim form As New Form()
         form.AutoScaleMode = AutoScaleMode.Font
         form.Font = SystemFonts.IconTitleFont
-        Dim dialogUnits As SizeF
-        dialogUnits = form.AutoScaleDimensions
         form.FormBorderStyle = FormBorderStyle.FixedDialog
         form.MinimizeBox = False
         form.MaximizeBox = False
         form.Text = caption
-        form.ClientSize = New Size(MulDiv(180, dialogUnits.Width, 4), MulDiv(63, dialogUnits.Height, 8))
+        form.ClientSize = New Size(440, 160)
         form.StartPosition = FormStartPosition.CenterScreen
-        Dim lblPrompt As System.Windows.Forms.Label
-        lblPrompt = New System.Windows.Forms.Label()
-        lblPrompt.Parent = form
-        lblPrompt.AutoSize = True
-        lblPrompt.Left = MulDiv(8, dialogUnits.Width, 4)
-        lblPrompt.Top = MulDiv(8, dialogUnits.Height, 8)
-        lblPrompt.Text = prompt
-        Dim edInput As System.Windows.Forms.TextBox
-        edInput = New System.Windows.Forms.TextBox()
-        edInput.Parent = form
-        edInput.Left = lblPrompt.Left
-        edInput.Top = MulDiv(19, dialogUnits.Height, 8)
-        edInput.Width = MulDiv(164, dialogUnits.Width, 4)
-        edInput.Text = value
-        edInput.SelectAll()
-        Dim buttonTop As Integer = MulDiv(41, dialogUnits.Height, 8)
-        Dim buttonSize As Size = New Size(MulDiv(50, CInt(dialogUnits.Width), 4), MulDiv(14, CInt(dialogUnits.Height), 8))
+        Dim layout As New TableLayoutPanel With {.Dock = DockStyle.Fill, .Padding = New Padding(12), .ColumnCount = 1, .RowCount = 3}
+        layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+        For row As Integer = 0 To 2
+            layout.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        Next
+        Dim lblPrompt As New Label With {.Name = "Prompt", .AutoSize = True, .MaximumSize = New Size(410, 0), .Text = prompt, .Margin = New Padding(0, 0, 0, 8)}
+        input = New TextBox With {.Name = "Input", .Dock = DockStyle.Top, .Text = value, .Margin = New Padding(0, 0, 0, 12)}
+        input.SelectAll()
+        Dim buttons As New FlowLayoutPanel With {.AutoSize = True, .Anchor = AnchorStyles.Right, .FlowDirection = FlowDirection.LeftToRight}
         Dim bbOk As System.Windows.Forms.Button = New System.Windows.Forms.Button With {
-            .Parent = form,
+            .Name = "Accept",
+            .AutoSize = True,
             .Text = UiStrings.GetText("ActionOkay"),
             .DialogResult = DialogResult.OK
         }
         form.AcceptButton = bbOk
-        bbOk.Location = New Point(MulDiv(38, dialogUnits.Width, 4), buttonTop)
-        bbOk.Size = buttonSize
         Dim bbCancel As New System.Windows.Forms.Button()
-        bbCancel.Parent = form
+        bbCancel.Name = "Cancel"
+        bbCancel.AutoSize = True
         bbCancel.Text = UiStrings.GetText("ActionCancel")
         bbCancel.DialogResult = DialogResult.Cancel
         form.CancelButton = bbCancel
-        bbCancel.Location = New Point(MulDiv(92, dialogUnits.Width, 4), buttonTop)
-        bbCancel.Size = buttonSize
-
-        If form.ShowDialog() = DialogResult.OK Then
-            value = edInput.Text
-            Return True
-        Else
-            Return False
-        End If
+        buttons.Controls.Add(bbOk)
+        buttons.Controls.Add(bbCancel)
+        layout.Controls.Add(lblPrompt)
+        layout.Controls.Add(input)
+        layout.Controls.Add(buttons)
+        form.Controls.Add(layout)
+        form.ClientSize = New Size(440, Math.Max(160, lblPrompt.GetPreferredSize(New Size(410, 0)).Height + input.PreferredHeight + buttons.GetPreferredSize(Size.Empty).Height + 50))
+        Dim entry = input
+        LocalizedLayout.Bind(form,
+            Sub()
+                lblPrompt.MaximumSize = New Size(form.ClientSize.Width - 30, 0)
+                form.ClientSize = New Size(form.ClientSize.Width, Math.Max(160, lblPrompt.GetPreferredSize(lblPrompt.MaximumSize).Height + entry.PreferredHeight + buttons.GetPreferredSize(Size.Empty).Height + 50))
+            End Sub)
+        Return form
     End Function
 
     Private Shared Function MulDiv(ByVal nNumber As Single, ByVal nNumerator As Single, ByVal nDenominator As Integer) As Integer

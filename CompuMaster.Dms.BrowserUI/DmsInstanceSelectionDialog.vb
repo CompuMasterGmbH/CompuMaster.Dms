@@ -61,6 +61,18 @@ Friend NotInheritable Class DmsInstanceSelectionDialog
         Me.Controls.Add(Me.InstancesList)
         Me.Controls.Add(OkayButton)
         Me.Controls.Add(CancelButton)
+        LocalizedLayout.Bind(Me,
+            Sub()
+                LocalizedLayout.FitButtons(Me)
+                Prompt.AutoSize = True
+                Prompt.MaximumSize = New Drawing.Size(Me.ClientSize.Width - 24, 0)
+                Prompt.Size = Prompt.GetPreferredSize(Prompt.MaximumSize)
+                Me.ClientSize = New Drawing.Size(Me.ClientSize.Width, Math.Max(Me.ClientSize.Height, Prompt.Bottom + 150 + CancelButton.Height + 40))
+                CancelButton.Location = New Drawing.Point(Me.ClientSize.Width - CancelButton.Width - 12, Me.ClientSize.Height - CancelButton.Height - 12)
+                OkayButton.Location = New Drawing.Point(CancelButton.Left - OkayButton.Width - 6, CancelButton.Top)
+                Me.InstancesList.Top = Prompt.Bottom + 8
+                Me.InstancesList.Height = OkayButton.Top - Me.InstancesList.Top - 10
+            End Sub)
     End Sub
 
     Friend ReadOnly Property SelectedInstance As DmsInstanceInfo

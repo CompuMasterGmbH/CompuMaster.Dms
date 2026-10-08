@@ -30,6 +30,7 @@ Public Class DmsBrowser
         InitializeComponent()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
+        LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
     End Sub
 
     Friend Sub New(dmsProvider As BaseDmsProvider)
@@ -174,6 +175,8 @@ Public Class DmsBrowser
         Me.ToolStripButtonPropertiesFile.Text = UiStrings.GetText("FileProperties")
         Me.ToolStripButtonPropertiesFolder.Text = UiStrings.GetText("FolderProperties")
         Me.ToolStripButtonRefreshFilesList.Text = UiStrings.GetText("ActionRefreshFiles")
+        LocalizedLayout.FitButtons(Me)
+        LocalizedLayout.FitColumnHeaders(Me.ListViewDmsFiles)
     End Sub
 
     Private ReadOnly Property IsDesignMode As Boolean
@@ -578,6 +581,7 @@ Public Class DmsBrowser
         Dim InstanceProvider As IDmsInstanceProvider = CType(Me.DmsProvider, IDmsInstanceProvider)
         Dim CurrentInstance As DmsInstanceInfo = InstanceProvider.CurrentDmsInstance
         Me.InstanceButton.Text = If(CurrentInstance Is Nothing, UiStrings.GetText("ChangeDmsInstance"), UiStrings.Format("CurrentDmsInstance", CurrentInstance.DisplayName))
+        Me.ArrangeLocalizedBrowserControls()
     End Sub
 
     Friend Async Sub ChangeDmsInstance_Click(sender As Object, e As EventArgs)

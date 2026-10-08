@@ -42,6 +42,34 @@ Public Class DmsLinkShareSetup
         Me.Label9.Text = UiStrings.GetText("LabelNumberBytes")
         Me.Label10.Text = UiStrings.GetText("LabelNumberUploads")
         Me.Label11.Text = UiStrings.GetText("LabelNumberDownloads")
+        LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedControls)
+    End Sub
+
+    Private Sub ArrangeLocalizedControls()
+        LocalizedLayout.FitButtons(Me)
+        For Each group In {Me.GroupBoxGeneral, Me.GroupBoxExtended, Me.GroupBox1, Me.GroupBoxAuthorizations}
+            LocalizedLayout.FitRows(group)
+        Next
+        Dim generalWidth = LocalizedLayout.MinimumFieldWidth(Me.GroupBoxGeneral, True)
+        Dim limitsWidth = LocalizedLayout.MinimumFieldWidth(Me.GroupBoxExtended, True)
+        Dim statisticsWidth = LocalizedLayout.MinimumFieldWidth(Me.GroupBox1)
+        Dim permissionsWidth = Math.Max(TextRenderer.MeasureText(Me.GroupBoxAuthorizations.Text, Me.GroupBoxAuthorizations.Font).Width + 16, Math.Max(126, Me.GroupBoxAuthorizations.Controls.OfType(Of CheckBox)().Max(Function(check) check.GetPreferredSize(Drawing.Size.Empty).Width) + 16))
+        Dim minimumWidth = Math.Max(663, Math.Max(generalWidth + permissionsWidth + 42, limitsWidth + statisticsWidth + 42))
+        Me.ClientSize = New Drawing.Size(Math.Max(Me.ClientSize.Width, minimumWidth), Me.ClientSize.Height)
+        Me.GroupBoxGeneral.Width = Me.ClientSize.Width - permissionsWidth - 42
+        Me.GroupBoxAuthorizations.SetBounds(Me.GroupBoxGeneral.Right + 7, Me.GroupBoxAuthorizations.Top, permissionsWidth, Me.GroupBoxAuthorizations.Height)
+        Me.GroupBoxExtended.Width = Math.Max(limitsWidth, (Me.ClientSize.Width - 42) \ 2)
+        Me.GroupBox1.SetBounds(Me.GroupBoxExtended.Right + 11, Me.GroupBox1.Top, Me.ClientSize.Width - Me.GroupBoxExtended.Right - 25, Me.GroupBox1.Height)
+        LocalizedLayout.FitFieldColumns(Me.GroupBoxGeneral, True)
+        LocalizedLayout.FitFieldColumns(Me.GroupBoxExtended, True)
+        LocalizedLayout.FitFieldColumns(Me.GroupBox1)
+        Me.GroupBoxExtended.Top = Math.Max(Me.GroupBoxGeneral.Bottom, Me.GroupBoxAuthorizations.Bottom) + 8
+        Me.GroupBox1.Top = Me.GroupBoxExtended.Top
+        Dim buttonsTop = Math.Max(Me.GroupBoxExtended.Bottom, Me.GroupBox1.Bottom) + 8
+        Me.ClientSize = New Drawing.Size(Me.ClientSize.Width, Math.Max(Me.ClientSize.Height, buttonsTop + Me.ButtonSave.Height + 12))
+        Me.ButtonSave.Location = New Drawing.Point(Me.ClientSize.Width - Me.ButtonSave.Width - 14, buttonsTop)
+        Me.ButtonCancel.Location = New Drawing.Point(Me.ButtonSave.Left - Me.ButtonCancel.Width - 8, buttonsTop)
+        Me.MinimumSize = New Drawing.Size(minimumWidth + Me.Width - Me.ClientSize.Width, buttonsTop + Me.ButtonSave.Height + 12 + Me.Height - Me.ClientSize.Height)
     End Sub
 
     ''' <summary>Gets or sets the original link settings to edit.</summary>

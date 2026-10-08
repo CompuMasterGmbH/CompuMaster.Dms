@@ -34,6 +34,23 @@ Public Class DmsItemSharings
         Me.ToolStripButtonExternalSharingsDelete.Text = UiStrings.GetText("ActionDelete")
         Me.ToolStripButtonCopyLinkUrlToClipboard.Text = UiStrings.GetText("ActionCopyWebLink")
         Me.LabelCurrentOwner.Text = UiStrings.GetText("CurrentOwner")
+        LocalizedLayout.FitButtons(Me)
+        LocalizedLayout.FitColumnHeaders(Me.ListViewInternalSharings)
+        LocalizedLayout.FitColumnHeaders(Me.ListViewExternalSharings)
+        LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedControls)
+    End Sub
+
+    Private Sub ArrangeLocalizedControls()
+        LocalizedLayout.FitButtons(Me)
+        LocalizedLayout.FitColumnHeaders(Me.ListViewInternalSharings)
+        LocalizedLayout.FitColumnHeaders(Me.ListViewExternalSharings)
+        Dim rowTop = Me.GroupBoxExternalSharings.Bottom + 8
+        Dim rowHeight = Math.Max(Me.LabelCurrentOwner.GetPreferredSize(Drawing.Size.Empty).Height, Me.ButtonCancel.Height)
+        Me.ClientSize = New Drawing.Size(Me.ClientSize.Width, Math.Max(Me.ClientSize.Height, rowTop + rowHeight + 12))
+        Me.ButtonCancel.Location = New Drawing.Point(Me.ClientSize.Width - Me.ButtonCancel.Width - 14, rowTop)
+        Me.LabelCurrentOwner.MaximumSize = New Drawing.Size(Me.ButtonCancel.Left - Me.LabelCurrentOwner.Left - 8, 0)
+        Me.LabelCurrentOwner.Top = rowTop
+        Me.MinimumSize = New Drawing.Size(660 + Me.Width - Me.ClientSize.Width, rowTop + rowHeight + 12 + Me.Height - Me.ClientSize.Height)
     End Sub
 
     ''' <summary>Gets or sets the remote resource whose sharing settings are displayed.</summary>

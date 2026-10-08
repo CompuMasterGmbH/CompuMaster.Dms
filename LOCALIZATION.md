@@ -45,12 +45,46 @@ multisets are checked without allowing per-key fallback to hide missing entries.
 Every demo embeds and loads its own resource namespace. Localized sign-in and exit
 buttons retain spacing when their preferred widths grow.
 
-Representative browser, link/sharing dialogs, and progress views are rendered with
-fake providers and suppressed Load handlers. This permits Unicode/layout review
-without reading stored credentials or contacting a shared DMS. Set
-`DMS_LOCALIZATION_PREVIEW_DIR` when running `LocalizedFormLayoutTest` to save the
-rendered PNGs. Full native DPI/font coverage remains dependent on the host fonts
-and display configuration; layout direction and ordinary mixed-script text are
-tested, while complete bidirectional layout remains outside this implementation.
+## Control-fit acceptance (2026-10-08)
+
+`LocalizedLayoutAcceptanceTest` verifies ten cultures (`en-US`, `de-DE`, `fr-FR`,
+`es-ES`, `zh-CN`, `zh-TW`, `ja-JP`, `ar-SA`, `he-IL`, `hi-IN`) at 100%, 150%,
+and 200% of the form's initial font size. The 30 cases exercise thirteen scenarios:
+all four demo login forms, both browser dialog modes, link sharing, internal user
+and group sharing, the sharing list, instance selection, upload progress, and the
+custom text-input dialog. Resizable forms are also checked at their declared
+minimum size and with additional width/height. All six upload states are checked
+with long Unicode filenames and large byte counters.
+
+The audit checks child bounds against parent bounds, sibling intersections,
+preferred button/checkbox/label dimensions, group captions, and translated list
+column widths using real native WinForms controls. It originally reproduced
+overlapping login labels/inputs, link-field/toggle collisions, clipped headers,
+insufficient control heights, and crowded progress rows. The corrected layouts
+fit the tested cultures and sizes without those failures. They retain existing
+control names, handlers, sharing metadata, login behavior, and layout direction.
+
+The matrix passed on WKS08; a run saving rendered PNGs took 69 seconds. Selected
+French, Spanish, Hindi, Arabic, Hebrew, and Japanese snapshots were also visually
+reviewed, including enlarged fonts and long progress values. Rendering uses fake
+providers and suppressed profile Load/Closing handlers, so it does not read saved
+credentials or contact shared DMS servers. Set `DMS_LOCALIZATION_PREVIEW_DIR` when
+running `LocalizedLayoutAcceptanceTest` to save diagnostic PNGs.
+
+Font-size stress is not a claim that every physical monitor DPI, installed font,
+OS-owned dialog, tooltip implementation, or third-party message box has been
+exhaustively verified. Full RTL mirroring remains deferred to #66. The complete
+BrowserUI run also exposed ten existing focus-test failures while Windows kept
+an external foreground window: `Form.ActiveForm` was null despite native focus
+inside the test form. The same failures reproduced with browser layout binding
+removed. These are recorded separately from the passing layout matrix; no full
+current-head GUI-suite success is claimed.
+
+On WKS08, `DevelopmentGuiTestSession` shows a nonactivating topmost three-second
+warning before any test fixture and keeps an ETA notice visible until teardown.
+The default estimate is 60 seconds; set `DMS_GUI_TEST_ETA_SECONDS` for longer or
+filtered runs. Other interactive development workstations opt in with
+`DMS_GUI_TEST_NOTICE=1`. Native tests verify that showing/updating the notice
+preserves the foreground window and that cleanup closes it.
 
 References: [.NET resource lookup](https://learn.microsoft.com/en-us/dotnet/core/extensions/retrieve-resources), [satellite assemblies](https://learn.microsoft.com/en-us/dotnet/core/extensions/create-satellite-assemblies), and [WinForms bidirectional control behavior](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/advanced/bi-directional-support-for-windows-forms-applications).
