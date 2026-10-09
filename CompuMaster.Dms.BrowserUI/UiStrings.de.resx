@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>Verbleibende Dateien hochladen</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>Startet fehlgeschlagene oder abgebrochene Dateien erneut von Anfang an. Erfolgreiche Dateien werden übersprungen.</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>Wiederholen ist nicht verfügbar, da ein erneuter Upload ein Duplikat erzeugen könnte. Verbleibende Dateien können weiterhin hochgeladen werden.</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>Ordner hochladen</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>Ordner werden vorbereitet…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>Ordner vorbereiten: {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>Verknüpfte Dateien und Ordner können nicht rekursiv hochgeladen werden: {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>Mehrere ausgewählte Einträge haben dasselbe Ziel, oder eine Datei belegt den Ordnerpfad: {0}</value></data>
 </root>

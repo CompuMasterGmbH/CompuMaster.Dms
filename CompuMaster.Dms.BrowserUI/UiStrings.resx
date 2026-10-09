@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>Upload remaining files</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>Restarts failed or cancelled files from the beginning. Successful files are skipped.</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>Retry is unavailable because a repeated upload could create a duplicate. Remaining files can still be uploaded.</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>Upload folder</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>Preparing folders…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>Preparing folder: {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>Linked files and folders cannot be uploaded recursively: {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>Multiple selected items map to the same destination, or a file occupies the directory path: {0}</value></data>
 </root>

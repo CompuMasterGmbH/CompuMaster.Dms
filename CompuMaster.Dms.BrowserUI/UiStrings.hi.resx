@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>शेष फ़ाइलें अपलोड करें</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>विफल या रद्द फ़ाइलें शुरू से पुनः अपलोड करता है। सफल फ़ाइलें छोड़ दी जाती हैं।</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>पुनः प्रयास से डुप्लिकेट फ़ाइल बन सकती है। शेष फ़ाइलें अब भी अपलोड की जा सकती हैं।</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>फ़ोल्डर अपलोड करें</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>फ़ोल्डर तैयार हो रहे हैं…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>फ़ोल्डर तैयार हो रहा है: {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>लिंक की गई फ़ाइलें और फ़ोल्डर पुनरावर्ती रूप से अपलोड नहीं किए जा सकते: {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>कई चयनित आइटम का लक्ष्य समान है या फ़ोल्डर पथ पर फ़ाइल मौजूद है: {0}</value></data>
 </root>

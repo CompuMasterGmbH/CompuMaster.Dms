@@ -50,6 +50,16 @@ There are following main modules for your use:
 
 All four demo logins use a shared document-management illustration. Applications can supply their own or provider-specific artwork through the additive `LoginForm(formIcon, loginImage)` constructor or the `LoginImage` property. See [demo login artwork](CompuMaster.Dms.TestDemo.WebDav/DemoAssets/README.md) for image ownership, reset behavior and asset provenance.
 
+### File transfers in BrowserUI
+
+Transfer dialogs display localized binary units, recent payload throughput and a per-file time estimate based on average throughput since that file started. Unknown counters and provider-finalization phases remain explicit. Failures include the exception message and diagnostic tooltips; closing an already displayed failure does not produce a second browser error or a success notification. Supported upload retries restart failed files from the beginning and skip successful files. Remaining files can be uploaded separately; byte-offset upload resume is not advertised.
+
+`Upload folder` and Explorer file/folder drops preserve the selected directory hierarchy, including empty folders. Folder-upload availability follows the existing file-upload action and `AllowUploadFiles`; drops are accepted only when upload is allowed and no operation is active. A drop on the file list uses its current directory; a drop on a tree node uses that node. Recursive planning rejects linked paths and conflicting selected destination names before making changes.
+
+Selected remote files can be dragged to Explorer or another Windows target supporting shell virtual files when `AllowDownloadFiles` is enabled. File content is downloaded on request after the drop, preserving selected resource IDs and using owned temporary files with bounded buffers. Only copying is offered; remote sources are retained. Other platforms can consume the provider APIs independently of the Windows Forms and shell UI.
+
+Providers can implement the additive `DownloadFileWithProgressAsync` selected-resource overload to report locally written payload bytes. WebDAV retains its staging/replacement behavior, and Scopevisio/CenterDevice retain their selected identity, timestamp and cancellation contracts. Existing derived providers use the compatible download fallback with unknown counters.
+
 ### Asynchronous browsing
 
 Use `ListDirectoryEntriesAsync` and `ListFileEntriesAsync` to populate a browser tree and file list. Native Scopevisio/CenterDevice listings retain resource identities, paths, sizes, timestamps, child metadata and sharing indicators, including download links, upload-only links and visible/hidden user/group shares. They use the existing resource conversion and batched upload-link lookup without first resolving every principal name and link's detailed settings. Retrieve full details for the selected resource through an item or identifier lookup before displaying properties or managing shares. Existing full-snapshot `ListAll...Async` methods retain their behavior; other providers and existing derived implementations use the compatible virtual-method fallback.

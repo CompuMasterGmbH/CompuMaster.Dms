@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>Téléverser les fichiers restants</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>Recommence les fichiers en échec ou annulés depuis le début. Les fichiers réussis sont ignorés.</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>Une nouvelle tentative pourrait créer un doublon. Les fichiers restants peuvent toujours être téléversés.</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>Téléverser un dossier</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>Préparation des dossiers…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>Préparation du dossier : {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>Les fichiers et dossiers liés ne peuvent pas être téléversés récursivement : {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>Plusieurs éléments ont la même destination ou un fichier occupe le chemin du dossier : {0}</value></data>
 </root>

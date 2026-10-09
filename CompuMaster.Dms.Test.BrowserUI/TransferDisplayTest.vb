@@ -126,7 +126,7 @@ Public Class TransferDisplayTest
             timer.Start()
             browser.Show()
             Dim method = GetType(DmsBrowser).GetMethod("UploadWithDialogAsync", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
-            Dim operation = DirectCast(method.Invoke(browser, {"folder", New String() {"file"}}), Task(Of Boolean))
+            Dim operation = DirectCast(method.Invoke(browser, {"folder", New String() {"file"}, Nothing, Nothing}), Task(Of Boolean))
             Assert.DoesNotThrow(Sub() dispatcher.Finish(operation))
             Assert.That(observed, [Is].True)
             Assert.That(operation.Result, [Is].False, "A displayed failure must not become a success notification.")

@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>上传剩余文件</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>从头重新上传失败或取消的文件。跳过已成功的文件。</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>重试可能产生重复文件，因此不可用。仍可上传剩余文件。</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>上传文件夹</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>正在准备文件夹…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>正在准备文件夹：{0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>无法递归上传链接文件和文件夹：{0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>多个所选项目对应相同目标，或文件占用了文件夹路径：{0}</value></data>
 </root>
