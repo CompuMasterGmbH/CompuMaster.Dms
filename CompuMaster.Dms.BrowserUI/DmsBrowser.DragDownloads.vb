@@ -46,7 +46,7 @@ Partial Public Class DmsBrowser
 
     Private Sub SupplyDraggedFile(file As DmsResourceItem, path As String)
         If (AllowedActions And FileOrFolderActions.AllowDownloadFiles) = 0 Then Throw New UnauthorizedAccessException()
-        Using dialog As New UploadProgressDialog({file.Name}, True, True, Me.Icon)
+        Using dialog = CreateTransferDialog({file.Name}, True)
             dialog.Show(Me)
             Dim operation = RunTransferAsync(Function() DownloadBatchWithProgressAsync(DmsProvider, {file}, {path}, dialog, dialog.CancellationToken))
             'GetData is a synchronous COM callback; keep the STA message loop responsive.

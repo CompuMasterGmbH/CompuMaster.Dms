@@ -6,7 +6,7 @@ Imports CompuMaster.Dms.Providers
 
 Partial Public Class DmsBrowser
     Private Async Function UploadWithDialogAsync(remoteFolder As String, files As String(), Optional relativePaths As String() = Nothing, Optional directories As String() = Nothing) As Task(Of Boolean)
-        Using dialog As New UploadProgressDialog(files, False, Not Me.DmsProvider.SupportsNonUniqueRemoteItems, Me.Icon)
+        Using dialog = CreateTransferDialog(files, False, Not Me.DmsProvider.SupportsNonUniqueRemoteItems)
             Dim previous As UploadBatchSnapshot = Nothing
             Dim retryFailed As Boolean = True
             Do

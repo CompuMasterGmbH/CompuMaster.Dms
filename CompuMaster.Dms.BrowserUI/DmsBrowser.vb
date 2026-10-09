@@ -1213,7 +1213,7 @@ Public Class DmsBrowser
             Dim f As New System.Windows.Forms.OpenFileDialog
             f.CheckFileExists = False
             f.InitialDirectory = Me.LocalDefaultFolderUploads
-            f.Title = UiStrings.GetText("UploadTitle")
+            f.Title = GetTransferWindowTitle("UploadTitle")
             f.AddExtension = False
             f.CheckFileExists = True
             f.CheckPathExists = True
@@ -1260,7 +1260,7 @@ Public Class DmsBrowser
                 f.CheckFileExists = False
                 f.InitialDirectory = Me.LocalDefaultFolderDownloads
                 f.FileName = SelectedFiles(0).Name
-                f.Title = UiStrings.GetText("DownloadTitle")
+                f.Title = GetTransferWindowTitle("DownloadTitle")
                 f.AddExtension = False
                 f.CheckPathExists = True
                 f.OverwritePrompt = True
@@ -1281,7 +1281,7 @@ Public Class DmsBrowser
                 Dim DialogUserResult As DialogResult = DialogResult.None
                 Dim f As New System.Windows.Forms.FolderBrowserDialog
                 f.SelectedPath = Me.LocalDefaultFolderDownloads
-                f.Description = UiStrings.GetText("DownloadTitle")
+                f.Description = GetTransferWindowTitle("DownloadTitle")
                 f.ShowNewFolderButton = True
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
