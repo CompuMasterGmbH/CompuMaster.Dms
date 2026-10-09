@@ -82,6 +82,28 @@ Public Class FolderUploadTest
     End Sub
 
     <Test>
+    <TestCase(""), TestCase("/"), TestCase("dav/root")>
+    Public Sub SyntheticServerRootAcceptsFileAndFolderUploadDestinations(rootPath As String)
+        Using dispatcher As New UiTestDispatcher()
+            Dim provider As New RootUploadProvider(rootPath)
+            Using browser As New PreviewBrowser(provider)
+                dispatcher.Finish(browser.LoadTreeAsync())
+                Dim tree = DirectCast(browser.Controls.Find("TreeViewDmsFolders", True).Single(), TreeView)
+                Dim destination = browser.UploadDestination(tree.Nodes(0))
+                Assert.That(destination, [Is].EqualTo(rootPath), "A synthetic root uses the provider's root path even without resource metadata.")
+                dispatcher.Finish(DmsBrowser.EnsureUploadDirectoriesAsync(provider, destination, {"Folder", "Folder/Empty"}, CancellationToken.None))
+                dispatcher.Finish(DmsBrowser.UploadBatchWithProgressAsync(provider, destination, {"local-one", "local-two"}, New Collector(), CancellationToken.None, Nothing, True, {"one.txt", "Folder/two.txt"}))
+                Assert.That(provider.Created, [Is].EqualTo({provider.CombinePath(rootPath, "Folder"), provider.CombinePath(rootPath, "Folder/Empty")}))
+                Assert.That(provider.Uploaded, [Is].EqualTo({provider.CombinePath(rootPath, "one.txt"), provider.CombinePath(rootPath, "Folder/two.txt")}))
+                Dim child = DmsBrowser.CreateDirectoryTreeNode(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = "Folder/Sub"})
+                Assert.That(browser.UploadDestination(child), [Is].EqualTo("Folder/Sub"))
+                Assert.Throws(Of DmsUserInputInvalidException)(Sub() browser.UploadDestination(Nothing))
+                Assert.Throws(Of DmsUserInputInvalidException)(Sub() browser.UploadDestination(New TreeNode()))
+            End Using
+        End Using
+    End Sub
+
+    <Test>
     Public Sub TreeDropUsesTheNodeUnderTheMouseAndListDropUsesTheCurrentDirectory()
         Using browser As New PreviewBrowser()
             browser.Show()
@@ -155,8 +177,8 @@ Public Class FolderUploadTest
     End Sub
     Private Class PreviewBrowser
         Inherits DmsBrowser
-        Friend Sub New()
-            MyBase.New(New NoDmsProvider())
+        Friend Sub New(Optional provider As BaseDmsProvider = Nothing)
+            MyBase.New(If(provider, New NoDmsProvider()))
         End Sub
         Protected Overrides Sub OnLoad(e As EventArgs)
         End Sub
@@ -182,6 +204,22 @@ Public Class FolderUploadTest
         Public Overrides Function UploadFileWithProgressAsync(path As String, local As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
             Uploaded.Add(path)
             Return Task.CompletedTask
+        End Function
+    End Class
+
+    Private Class RootUploadProvider
+        Inherits FixtureProvider
+        Private ReadOnly RootPath As String
+        Friend Sub New(rootPath As String)
+            Me.RootPath = rootPath
+        End Sub
+        Public Overrides ReadOnly Property BrowseInRootFolderName As String
+            Get
+                Return RootPath
+            End Get
+        End Property
+        Public Overrides Function ListDirectoryEntriesAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+            Return Task.FromResult(New List(Of DmsResourceItem)())
         End Function
     End Class
 End Class

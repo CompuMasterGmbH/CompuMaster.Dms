@@ -26,7 +26,7 @@
   <data name="ActionSave" xml:space="preserve"><value>&amp;Enregistrer</value></data>
   <data name="ActionSharings" xml:space="preserve"><value>&amp;Partages</value></data>
   <data name="ActionShowFiles" xml:space="preserve"><value>Afficher les &amp;fichiers</value></data>
-  <data name="ActionUpload" xml:space="preserve"><value>&amp;Envoyer</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>&amp;Téléverser des fichiers</value></data>
   <data name="AllFilesFilter" xml:space="preserve"><value>Tous les fichiers (*.*)|*.*</value></data>
   <data name="BrowseTitle" xml:space="preserve"><value>Parcourir les dossiers DMS</value></data>
   <data name="ColumnAuthorizations" xml:space="preserve"><value>Autorisations</value></data>

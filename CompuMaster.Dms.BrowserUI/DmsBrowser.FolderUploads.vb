@@ -51,6 +51,13 @@ Partial Public Class DmsBrowser
         Return Nothing
     End Function
 
+    Friend Function UploadDestination(node As TreeNode) As String
+        Dim data = TryCast(node?.Tag, NodeTagData)
+        If data Is Nothing Then Throw New DmsUserInputInvalidException(UiStrings.GetText("NoFolderSelected"))
+        'The synthetic server root intentionally has no resource metadata.
+        Return If(data.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
+    End Function
+
     Private Sub DragUploadOver(sender As Object, e As DragEventArgs)
         Dim node = UploadDropNode(DirectCast(sender, Control), New Point(e.X, e.Y))
         e.Effect = If(CanUploadDrop() AndAlso e.Data.GetDataPresent(DataFormats.FileDrop) AndAlso TypeOf node?.Tag Is NodeTagData AndAlso (e.AllowedEffect And DragDropEffects.Copy) <> 0, DragDropEffects.Copy, DragDropEffects.None)
@@ -73,7 +80,7 @@ Partial Public Class DmsBrowser
     Private Async Function UploadLocalSelectionAsync(paths As String(), target As TreeNode) As Task
         If Not CanUploadDrop() Then Return
         Try
-            Dim destination = DirectCast(target.Tag, NodeTagData).DmsResourceItem.FullName
+            Dim destination = UploadDestination(target)
             Dim successful As Boolean
             Await RunTransferAsync(Async Function()
                                        Dim plan As LocalUploadPlan

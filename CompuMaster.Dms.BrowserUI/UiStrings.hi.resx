@@ -26,7 +26,7 @@
   <data name="ActionSave" xml:space="preserve"><value>सहेजें</value></data>
   <data name="ActionSharings" xml:space="preserve"><value>साझाकरण</value></data>
   <data name="ActionShowFiles" xml:space="preserve"><value>फ़ाइलें दिखाएँ</value></data>
-  <data name="ActionUpload" xml:space="preserve"><value>अपलोड करें</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>फ़ाइलें अपलोड करें</value></data>
   <data name="AllFilesFilter" xml:space="preserve"><value>सभी फ़ाइलें (*.*)|*.*</value></data>
   <data name="BrowseTitle" xml:space="preserve"><value>डीएमएस फ़ोल्डर ब्राउज़ करें</value></data>
   <data name="ColumnAuthorizations" xml:space="preserve"><value>अनुमतियाँ</value></data>
