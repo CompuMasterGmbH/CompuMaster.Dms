@@ -11,6 +11,82 @@ Imports NUnit.Framework
 Public Class ServiceRequestPolicyTest
 
     <Test>
+    Public Sub DefaultWebDavClientDoesNotApplyTheShortMetadataTimeoutToTransfers()
+        Using client = WebDavDmsProvider.CreateConfiguredHttpClient(New HttpClientHandler(), New WebDav.WebDavClientParams With {.BaseAddress = New Uri("https://timeout-config.test/")})
+            Assert.That(client.Timeout, [Is].EqualTo(Timeout.InfiniteTimeSpan))
+        End Using
+        Using client = WebDavDmsProvider.CreateConfiguredHttpClient(New HttpClientHandler(), New WebDav.WebDavClientParams With {.BaseAddress = New Uri("https://timeout-explicit.test/"), .Timeout = TimeSpan.FromMinutes(8)})
+            Assert.That(client.Timeout, [Is].EqualTo(TimeSpan.FromMinutes(8)), "Explicit caller configuration remains respected.")
+        End Using
+    End Sub
+
+    <Test>
+    Public Async Function SlowPutOutlivesMetadataDeadlineButStillHonorsCallerCancellation() As Task
+        Dim calls As Integer
+        Using client As New HttpClient(New ServiceRequestPolicy(New Uri("https://slow-put.test/"), New DelayedHandler(TimeSpan.FromMilliseconds(200), Sub() calls += 1), requestTimeout:=TimeSpan.FromMilliseconds(30))) With {.Timeout = Timeout.InfiniteTimeSpan}
+            Using response = Await client.PutAsync("https://slow-put.test/file", New StringContent("payload"))
+                Assert.That(response.StatusCode, [Is].EqualTo(HttpStatusCode.OK))
+            End Using
+            Using cancellation As New CancellationTokenSource(TimeSpan.FromMilliseconds(30))
+                Assert.CatchAsync(Of OperationCanceledException)(Async Function() Await client.PutAsync("https://slow-put.test/file", New StringContent("payload"), cancellation.Token))
+            End Using
+            Assert.That(calls, [Is].EqualTo(2), "An interrupted PUT must not be replayed.")
+        End Using
+    End Function
+
+    <Test>
+    Public Sub SlowMetadataRequestsRetainABoundedDeadline()
+        Using client As New HttpClient(New ServiceRequestPolicy(New Uri("https://slow-metadata.test/"), New DelayedHandler(TimeSpan.FromSeconds(5), Sub()
+                                                                                                                                                 End Sub), requestTimeout:=TimeSpan.FromMilliseconds(30))) With {.Timeout = Timeout.InfiniteTimeSpan}
+            Assert.CatchAsync(Of OperationCanceledException)(Async Function() Await client.GetAsync("https://slow-metadata.test/metadata"))
+        End Using
+    End Sub
+
+    Private Class DelayedHandler
+        Inherits HttpMessageHandler
+        Private ReadOnly Delay As TimeSpan
+        Private ReadOnly OnRequest As Action
+        Friend Sub New(delay As TimeSpan, onRequest As Action)
+            Me.Delay = delay
+            Me.OnRequest = onRequest
+        End Sub
+        Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
+            OnRequest()
+            Await Task.Delay(Delay, cancellationToken)
+            Return New HttpResponseMessage(HttpStatusCode.OK)
+        End Function
+    End Class
+
+    <Test>
+    Public Sub MetadataBodyRemainsBoundedAfterResponseHeadersArrive()
+        Using client As New HttpClient(New ServiceRequestPolicy(New Uri("https://metadata-body.test/"), New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK) With {.Content = New DelayedContent()}), requestTimeout:=TimeSpan.FromMilliseconds(30))) With {.Timeout = Timeout.InfiniteTimeSpan}
+            Assert.CatchAsync(Of OperationCanceledException)(Async Function() Await client.SendAsync(New HttpRequestMessage(New HttpMethod("PROPFIND"), "https://metadata-body.test/")))
+        End Using
+    End Sub
+
+    <Test>
+    Public Async Function DownloadBodyOutlivesTheResponseHeaderDeadline() As Task
+        Using client As New HttpClient(New ServiceRequestPolicy(New Uri("https://download-body.test/"), New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK) With {.Content = New DelayedContent()}), requestTimeout:=TimeSpan.FromMilliseconds(30))) With {.Timeout = Timeout.InfiniteTimeSpan}
+            Using response = Await client.GetAsync("https://download-body.test/file")
+                Assert.That(Await response.Content.ReadAsStringAsync(), [Is].EqualTo("payload"))
+            End Using
+        End Using
+    End Function
+
+    Private Class DelayedContent
+        Inherits HttpContent
+        Protected Overrides Async Function SerializeToStreamAsync(stream As IO.Stream, context As TransportContext) As Task
+            Await Task.Delay(200)
+            Dim bytes = Text.Encoding.UTF8.GetBytes("payload")
+            Await stream.WriteAsync(bytes, 0, bytes.Length)
+        End Function
+        Protected Overrides Function TryComputeLength(ByRef length As Long) As Boolean
+            length = 7
+            Return True
+        End Function
+    End Class
+
+    <Test>
     Public Async Function RetriesReadAfterRetryAfter() As Task
         Dim clock As New FakeClock
         Dim calls As Integer
