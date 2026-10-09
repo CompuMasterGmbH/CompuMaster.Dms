@@ -26,7 +26,7 @@
   <data name="ActionSave" xml:space="preserve"><value>保存(&amp;S)</value></data>
   <data name="ActionSharings" xml:space="preserve"><value>共享</value></data>
   <data name="ActionShowFiles" xml:space="preserve"><value>显示文件</value></data>
-  <data name="ActionUpload" xml:space="preserve"><value>上传(&amp;U)</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>上传文件(&amp;U)</value></data>
   <data name="AllFilesFilter" xml:space="preserve"><value>所有文件 (*.*)|*.*</value></data>
   <data name="BrowseTitle" xml:space="preserve"><value>浏览 DMS 文件夹</value></data>
   <data name="ColumnAuthorizations" xml:space="preserve"><value>权限</value></data>

@@ -1204,8 +1204,10 @@ Public Class DmsBrowser
     End Function
 
     Private Async Sub ToolStripButtonUploadFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonUploadFile.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If Not CanUploadDrop() Then Return
         Try
+            Dim target = Me.TreeViewDmsFolders.SelectedNode
+            Me.UploadDestination(target)
             If Me.LocalDefaultFolderUploads <> Nothing AndAlso System.IO.Directory.Exists(Me.LocalDefaultFolderUploads) = False Then System.IO.Directory.CreateDirectory(Me.LocalDefaultFolderUploads)
             Dim DialogUserResult As DialogResult = DialogResult.None
             Dim f As New System.Windows.Forms.OpenFileDialog
@@ -1217,7 +1219,7 @@ Public Class DmsBrowser
             f.CheckPathExists = True
             f.Multiselect = True
             f.Filter = UiStrings.GetText("AllFilesFilter")
-            DialogUserResult = f.ShowDialog()
+            DialogUserResult = f.ShowDialog(Me)
             If DialogUserResult = DialogResult.OK Then
                 If f.FileNames.Length > 0 Then
                     For Each LocalFile As String In f.FileNames
@@ -1226,9 +1228,8 @@ Public Class DmsBrowser
                             Return
                         End If
                     Next
-                    Dim RemoteFolderPath As String = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName
                     Dim LocalFiles As String() = f.FileNames
-                    Await Me.UploadLocalSelectionAsync(LocalFiles, Me.TreeViewDmsFolders.SelectedNode)
+                    Await Me.UploadLocalSelectionAsync(LocalFiles, target)
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFileSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If

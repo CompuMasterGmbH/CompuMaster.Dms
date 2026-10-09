@@ -321,7 +321,7 @@ Partial Class DmsBrowser
         Me.ToolStripFileContextButtonUploadFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripFileContextButtonUploadFile.Name = "ToolStripFileContextButtonUploadFile"
         Me.ToolStripFileContextButtonUploadFile.Size = New System.Drawing.Size(69, 24)
-        Me.ToolStripFileContextButtonUploadFile.Text = "&Upload"
+        Me.ToolStripFileContextButtonUploadFile.Text = "&Upload files"
         '
         'ToolStripFileContextButtonDownloadFile
         '
@@ -429,7 +429,7 @@ Partial Class DmsBrowser
         Me.ToolStripButtonUploadFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripButtonUploadFile.Name = "ToolStripButtonUploadFile"
         Me.ToolStripButtonUploadFile.Size = New System.Drawing.Size(68, 23)
-        Me.ToolStripButtonUploadFile.Text = "&Upload"
+        Me.ToolStripButtonUploadFile.Text = "&Upload files"
         '
         'ToolStripButtonDownloadFile
         '

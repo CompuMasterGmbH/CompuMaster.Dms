@@ -26,7 +26,7 @@
   <data name="ActionSave" xml:space="preserve"><value>שמירה</value></data>
   <data name="ActionSharings" xml:space="preserve"><value>שיתוף</value></data>
   <data name="ActionShowFiles" xml:space="preserve"><value>הצגת קבצים</value></data>
-  <data name="ActionUpload" xml:space="preserve"><value>העלאה</value></data>
+  <data name="ActionUpload" xml:space="preserve"><value>העלאת קבצים</value></data>
   <data name="AllFilesFilter" xml:space="preserve"><value>כל הקבצים (*.*)|*.*</value></data>
   <data name="BrowseTitle" xml:space="preserve"><value>עיין בתיקיות DMS</value></data>
   <data name="ColumnAuthorizations" xml:space="preserve"><value>הרשאות</value></data>
