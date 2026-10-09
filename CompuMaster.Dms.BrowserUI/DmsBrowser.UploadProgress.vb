@@ -143,6 +143,7 @@ Friend NotInheritable Class UploadProgressDialog
     Private ArrangingProgress As Boolean
 
     Friend Sub New(files As String())
+        AutoScaleMode = AutoScaleMode.Font
         Text = UiStrings.GetText("UploadTitle")
         StartPosition = FormStartPosition.CenterParent
         MinimumSize = New Drawing.Size(650, 400)
@@ -150,6 +151,7 @@ Friend NotInheritable Class UploadProgressDialog
         MinimizeBox = False
         MaximizeBox = False
         Dim layout = ProgressLayout
+        layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
         For Each control As Control In New Control() {FileLabel, ByteLabel, FileBar, StatusLabel, BatchLabel, BatchBar, FilesList, PartialWarning, CancelUpload}
             layout.Controls.Add(control)
         Next

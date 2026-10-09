@@ -86,9 +86,124 @@ window-switch cases continue to verify that production code does not steal focus
 
 On WKS08, `DevelopmentGuiTestSession` shows a nonactivating topmost three-second
 warning before any test fixture and keeps an ETA notice visible until teardown.
-The default estimate is 60 seconds; set `DMS_GUI_TEST_ETA_SECONDS` for longer or
-filtered runs. Other interactive development workstations opt in with
+Estimates use the slowest of the last five successful completed runs of the same
+scope, scaled by work units, plus 25% and five seconds of margin. Local measurements
+are stored in `gui-test-durations.tsv` beside the test executable; compilation and
+the countdown are excluded. Failed/interrupted runs do not shorten the estimate.
+Set `DMS_GUI_TEST_RUN_KEY` to identify a filtered/full suite and framework, and
+optionally `DMS_GUI_TEST_WORK_UNITS` for repeatable workload units. Without history,
+the fallback is 60 seconds (`DMS_GUI_TEST_FALLBACK_SECONDS` overrides it).
+`DMS_GUI_TEST_ETA_SECONDS` takes precedence as an explicit override. An overrun
+continues to show elapsed excess time until teardown. Other workstations opt in with
 `DMS_GUI_TEST_NOTICE=1`. Native tests verify that showing/updating the notice
 preserves the foreground window and that cleanup closes it.
 
 References: [.NET resource lookup](https://learn.microsoft.com/en-us/dotnet/core/extensions/retrieve-resources), [satellite assemblies](https://learn.microsoft.com/en-us/dotnet/core/extensions/create-satellite-assemblies), and [WinForms bidirectional control behavior](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/advanced/bi-directional-support-for-windows-forms-applications).
+
+## Native-monitor acceptance
+
+`LocalizedMonitorDpiTest` is an opt-in physical-monitor fixture. It uses the primary
+monitor and the nearest monitor to its right with a different Windows scale factor.
+The hardware inventory and native window rectangles/DPI are recorded independently
+of font-size stress. On WKS08 the offered displays are 1920 x 1080 at 100% (96 DPI)
+and 3840 x 2160 at 125% (120 DPI). Other attached monitors are inventoried without
+moving test windows onto them. The tests do not change display settings.
+
+Each of the ten cultures is checked starting on either monitor, with two round
+trips across the monitor boundary. The thirteen existing preview scenarios also
+cover minimum/wider resizable forms, a 900-logical-pixel browser width, and the six
+upload states with Unicode filenames and large counters. The audit verifies both
+native and managed DPI, visible control/text fit, overlap, and window work-area
+bounds. Profile Load/Closing handlers are suppressed and providers are fake.
+This does not establish real server behavior, RTL mirroring, OS-owned dialogs,
+tooltip placement, every physical DPI setting, or every installed font.
+
+The standalone subset supplies its own Windows executable manifest and application
+configuration for both runtimes; a generic .NET Framework test host does not prove
+the demo application's DPI configuration. Build and run the framework variants
+sequentially:
+
+```powershell
+dotnet build CompuMaster.Dms.Test.BrowserUI/PhysicalDpi/PhysicalDpi.vbproj -c CI_CD
+dotnet run --project CompuMaster.Dms.Test.BrowserUI/PhysicalDpi/PhysicalDpi.vbproj -c CI_CD -f net8.0-windows --no-build
+dotnet run --project CompuMaster.Dms.Test.BrowserUI/PhysicalDpi/PhysicalDpi.vbproj -c CI_CD -f net48 --no-build
+```
+
+Optional arguments select cultures, for example `-- en-US hi-IN`, and
+`--no-screenshots` retains the audit log without PNGs. Each run writes a timestamped
+`physical-dpi-results` directory beside its executable, records pass/fail totals,
+and returns a failing exit code for setup, assertion, or notice-cleanup failures.
+For focused diagnosis, `DMS_PHYSICAL_DPI_SCENARIOS=7,8,9,13` selects external-link,
+user/group-sharing, and input dialogs. Omit this variable for the complete thirteen
+scenarios. Selected scenarios are included in the timing key and estimate.
+The standard workstation countdown/ETA notice remains active throughout the run.
+This runner supplies timing keys for each runtime, monitor resolution/scale, and screenshot mode, scales
+the learned estimate by the selected culture cases, and logs estimated/actual
+durations. A first run budgets 20 seconds per culture without PNGs or 45 with PNGs,
+plus five seconds at up to 125%; the initial budget scales with native pixel area
+for larger DPI settings. Historical full runs at 100%/125% took approximately 182 seconds
+on .NET 8 and 187 seconds on .NET Framework, excluding the countdown; corresponding
+estimates with margin are 233 and 239 seconds, rather than the former fixed 120.
+The NUnit version in the usual BrowserUI project requires
+`DMS_PHYSICAL_DPI_TESTS=1` and must use an interactive multi-monitor workstation.
+
+The demos configure PerMonitorV2 before opening windows. The library does not
+change its consuming application's DPI awareness. On .NET Framework, a form whose
+initial native DPI differs from its managed DPI is reconciled through WinForms'
+normal DPI notification using the actual Windows value. Layout updates wait for
+the DPI transition to finish. Explicitly managed field bounds avoid a second
+application of right anchoring, and login button rows are recomputed from current
+content/client bounds rather than previously scaled positions.
+
+At physical 200% DPI, the field layout also reserves the actual native checkbox
+width rather than a fixed 24-pixel offset. Custom input dialogs compute available
+prompt width and required height from their current scaled table padding/margins.
+User/group-sharing layouts also own group-box positions and widths; redundant
+right anchoring previously shifted whole groups outside the form on a return trip.
+Sharing-list group widths are similarly recomputed from current client bounds,
+preventing repeated monitor changes from shrinking their docked lists to zero.
+The Show files toggle uses the focused #81 fix from immutable commit `b93c5eb`:
+centered text, symmetric padding, explicit sizing and localized toggle-button fit.
+The common audit checks its single-line caption width/height as well as centering,
+including German "Dateien anzeigen", minimum windows and monitor round trips.
+Native 200% snapshots additionally required extra checkbox text insets beyond the
+initial #81 padding calculation. The audit now measures wrapped text against the
+single-line height within the available text area; German snapshots are visibly
+single-line at 100%, 125%, and 200% after this refinement.
+
+## Workstation acceptance checkpoint (2026-10-09)
+
+The offered 100%/125% configuration passed before any display-setting change.
+One temporary change of the right 4K monitor to 200% exposed further native layout
+failures, which were reproduced and corrected within that same window. The monitor
+was restored to 125%; resolution and monitor positions were preserved.
+
+| Physical configuration | .NET Framework 4.8 | .NET 8 |
+| --- | --- | --- |
+| 100% / 125%, final complete thirteen-scenario matrix | 20 passed | 20 passed |
+| 100% / 200%, complete thirteen-scenario matrix | 20 passed | 20 passed |
+| 100% / 200%, both browser modes after final caption-width refinement | 20 passed | 20 passed |
+
+Each matrix covers all ten cultures, starts on either monitor and makes two round
+trips. The final 100%/125% complete matrices include the caption-width refinement.
+The 200% complete matrices preceded that last checkbox-only refinement; both
+affected browser modes were then reverified in every culture on both runtimes.
+German rendered snapshots were visually checked at all three physical scales.
+
+Final general GUI verification covered 302 cases, including all 30 culture/font
+cases and the timing-history regression. The last complete run passed 301/302;
+one focus case lost its foreground setup prerequisite before the behavior check.
+The focused rerun passed all 17 focus cases at the same source state. Earlier
+sandbox-only foreground-access failures are not production regressions and are
+retained separately. All runs used and cleaned up the workstation notice.
+
+Measured final complete 100%/125% runs took 174 seconds on Framework and 166 on
+.NET 8; the 200% runs took 261 and 181 seconds before the caption-only followup.
+Experience-based estimates distinguish runtime, monitor configuration, selected
+scenarios and screenshot mode. A 238-second estimate overran during the 261-second
+Framework run; its recorded duration raises the next comparable estimate to 332
+seconds. Failed runs do not update the timing history.
+
+Physical 150%, remaining tooltip/message/OS-dialog coverage, other installed font
+sets and RTL mirroring are not established by this checkpoint. No remote server
+tests or package publication are included; provider code and SDK pins are unchanged.

@@ -5,9 +5,11 @@ Friend NotInheritable Class LocalizedLayout
     Private Shared ReadOnly Rows As New Runtime.CompilerServices.ConditionalWeakTable(Of GroupBox, RowGroups)
 
     Friend Shared Sub Bind(owner As Form, arrange As Action)
+        InitialWindowDpi.Bind(owner)
         Dim running As Boolean
+        Dim dpiPending As Boolean
         Dim update As EventHandler = Sub(sender, e)
-                                         If running OrElse owner.IsDisposed OrElse owner.Disposing Then Return
+                                         If running OrElse dpiPending OrElse owner.IsDisposed OrElse owner.Disposing Then Return
                                          running = True
                                          Try
                                              arrange()
@@ -17,7 +19,20 @@ Friend NotInheritable Class LocalizedLayout
                                      End Sub
         AddHandler owner.FontChanged, update
         AddHandler owner.SizeChanged, update
-        AddHandler owner.Shown, update
+        AddHandler owner.DpiChanged,
+            Sub(sender, e)
+                dpiPending = True
+                owner.BeginInvoke(New MethodInvoker(
+                    Sub()
+                        dpiPending = False
+                        update(owner, EventArgs.Empty)
+                    End Sub))
+            End Sub
+        AddHandler owner.Shown,
+            Sub(sender, e)
+                InitialWindowDpi.Synchronize(owner)
+                update(sender, e)
+            End Sub
         AddHandler owner.Layout, Sub(sender, e) update(sender, e)
         update(owner, EventArgs.Empty)
     End Sub
@@ -61,8 +76,14 @@ Friend NotInheritable Class LocalizedLayout
 
     Friend Shared Sub FitButtons(parent As Control)
         For Each child As Control In parent.Controls
-            If TypeOf child Is Button Then
+            If TypeOf child Is Button OrElse (TypeOf child Is CheckBox AndAlso DirectCast(child, CheckBox).Appearance = Appearance.Button) Then
                 Dim preferred = child.GetPreferredSize(Size.Empty)
+                If TypeOf child Is CheckBox Then
+                    'Button-style checkboxes reserve extra text insets. Preferred size
+                    'alone can still wrap German captions at native 200% DPI.
+                    Dim caption = TextRenderer.MeasureText(child.Text, child.Font, Size.Empty, TextFormatFlags.SingleLine)
+                    preferred.Width = Math.Max(preferred.Width, caption.Width + child.Padding.Horizontal * 2 + Math.Max(caption.Height, child.Font.Height))
+                End If
                 child.Size = New Size(Math.Max(child.Width, preferred.Width), Math.Max(child.Height, preferred.Height))
             End If
             FitButtons(child)
@@ -78,13 +99,17 @@ Friend NotInheritable Class LocalizedLayout
     Friend Shared Function FitFieldColumns(group As GroupBox, Optional toggles As Boolean = False) As Integer
         Dim labels = group.Controls.OfType(Of Label)().ToArray()
         Dim fieldLeft = labels.Max(Function(label) label.Left + label.GetPreferredSize(Size.Empty).Width) + 12
-        Dim minimumWidth = fieldLeft + If(toggles, 24, 0) + 160 + 8
+        Dim toggleSpace = If(toggles, ToggleFieldSpace(group), 0)
+        Dim minimumWidth = fieldLeft + toggleSpace + 160 + 8
         group.Width = Math.Max(group.Width, minimumWidth)
         For Each field As Control In group.Controls
             If TypeOf field Is TextBox OrElse TypeOf field Is DateTimePicker OrElse TypeOf field Is ComboBox Then
                 Dim hasToggle = toggles AndAlso group.Controls.OfType(Of CheckBox)().Any(Function(check) Math.Abs(check.Top - field.Top) < field.Height)
-                field.Left = fieldLeft + If(hasToggle, 24, 0)
-                field.Width = group.ClientSize.Width - field.Left - 8
+                'This layout owns the horizontal bounds; native right anchoring must
+                'not subsequently apply the previous width delta (.NET Framework).
+                field.Anchor = AnchorStyles.Top Or AnchorStyles.Left
+                Dim left = fieldLeft + If(hasToggle, toggleSpace, 0)
+                field.SetBounds(left, field.Top, group.ClientSize.Width - left - 8, field.Height)
             ElseIf TypeOf field Is CheckBox AndAlso String.IsNullOrEmpty(field.Text) Then
                 field.Left = fieldLeft
             End If
@@ -93,7 +118,12 @@ Friend NotInheritable Class LocalizedLayout
     End Function
 
     Friend Shared Function MinimumFieldWidth(group As GroupBox, Optional toggles As Boolean = False) As Integer
-        Return group.Controls.OfType(Of Label)().Max(Function(label) label.Left + label.GetPreferredSize(Size.Empty).Width) + 12 + If(toggles, 24, 0) + 168
+        Return group.Controls.OfType(Of Label)().Max(Function(label) label.Left + label.GetPreferredSize(Size.Empty).Width) + 12 + If(toggles, ToggleFieldSpace(group), 0) + 168
+    End Function
+
+    Private Shared Function ToggleFieldSpace(group As GroupBox) As Integer
+        Return group.Controls.OfType(Of CheckBox)().Where(Function(check) String.IsNullOrEmpty(check.Text)).Select(
+            Function(check) Math.Max(check.Width, check.GetPreferredSize(Size.Empty).Width)).DefaultIfEmpty(16).Max() + 8
     End Function
 
     Friend Shared Function MinimumPermissionWidth(group As GroupBox) As Integer

@@ -44,13 +44,21 @@ Public Class DmsItemSharings
         LocalizedLayout.FitButtons(Me)
         LocalizedLayout.FitColumnHeaders(Me.ListViewInternalSharings)
         LocalizedLayout.FitColumnHeaders(Me.ListViewExternalSharings)
+        Dim groups = {Me.GroupBoxInternalSharings, Me.GroupBoxExternalSharings}
+        Dim minimumWidth = Math.Max(660, groups.Max(Function(group) TextRenderer.MeasureText(group.Text, group.Font).Width + 16) + 28)
+        For Each group In groups
+            group.Anchor = AnchorStyles.Top Or AnchorStyles.Left
+        Next
+        Me.ClientSize = New Drawing.Size(Math.Max(Me.ClientSize.Width, minimumWidth), Me.ClientSize.Height)
+        Me.GroupBoxInternalSharings.SetBounds(14, 14, Me.ClientSize.Width - 28, Me.GroupBoxInternalSharings.Height)
+        Me.GroupBoxExternalSharings.SetBounds(14, Me.GroupBoxInternalSharings.Bottom + 8, Me.ClientSize.Width - 28, Me.GroupBoxExternalSharings.Height)
         Dim rowTop = Me.GroupBoxExternalSharings.Bottom + 8
         Dim rowHeight = Math.Max(Me.LabelCurrentOwner.GetPreferredSize(Drawing.Size.Empty).Height, Me.ButtonCancel.Height)
         Me.ClientSize = New Drawing.Size(Me.ClientSize.Width, Math.Max(Me.ClientSize.Height, rowTop + rowHeight + 12))
         Me.ButtonCancel.Location = New Drawing.Point(Me.ClientSize.Width - Me.ButtonCancel.Width - 14, rowTop)
         Me.LabelCurrentOwner.MaximumSize = New Drawing.Size(Me.ButtonCancel.Left - Me.LabelCurrentOwner.Left - 8, 0)
         Me.LabelCurrentOwner.Top = rowTop
-        Me.MinimumSize = New Drawing.Size(660 + Me.Width - Me.ClientSize.Width, rowTop + rowHeight + 12 + Me.Height - Me.ClientSize.Height)
+        Me.MinimumSize = New Drawing.Size(minimumWidth + Me.Width - Me.ClientSize.Width, rowTop + rowHeight + 12 + Me.Height - Me.ClientSize.Height)
     End Sub
 
     ''' <summary>Gets or sets the remote resource whose sharing settings are displayed.</summary>

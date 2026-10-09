@@ -564,13 +564,14 @@ Partial Class DmsBrowser
         '
         Me.ButtonShowFiles.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.ButtonShowFiles.Appearance = System.Windows.Forms.Appearance.Button
-        Me.ButtonShowFiles.AutoSize = True
         Me.ButtonShowFiles.Location = New System.Drawing.Point(182, 504)
         Me.ButtonShowFiles.Margin = New System.Windows.Forms.Padding(4, 3, 4, 3)
         Me.ButtonShowFiles.Name = "ButtonShowFiles"
+        Me.ButtonShowFiles.Padding = New System.Windows.Forms.Padding(8, 0, 8, 0)
         Me.ButtonShowFiles.Size = New System.Drawing.Size(107, 25)
         Me.ButtonShowFiles.TabIndex = 2
         Me.ButtonShowFiles.Text = "Show &files"
+        Me.ButtonShowFiles.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         Me.ButtonShowFiles.UseVisualStyleBackColor = True
         '
         'BottomToolStripPanel

@@ -67,12 +67,15 @@ Public Class DmsStandardShareSetup
 
     Private Sub ArrangeLocalizedControls()
         LocalizedLayout.FitButtons(Me)
+        'This layout owns group widths and positions, including after native DPI changes.
+        Me.GroupBoxGeneral.Anchor = AnchorStyles.Top Or AnchorStyles.Left
+        Me.GroupBoxAuthorizations.Anchor = AnchorStyles.Top Or AnchorStyles.Left
         LocalizedLayout.FitRows(Me.GroupBoxGeneral)
         LocalizedLayout.FitRows(Me.GroupBoxAuthorizations, True)
         Dim minimumWidth = Math.Max(622, Math.Max(LocalizedLayout.MinimumFieldWidth(Me.GroupBoxGeneral), LocalizedLayout.MinimumPermissionWidth(Me.GroupBoxAuthorizations)) + 28)
         Me.ClientSize = New Drawing.Size(Math.Max(Me.ClientSize.Width, minimumWidth), Me.ClientSize.Height)
-        Me.GroupBoxGeneral.Width = Me.ClientSize.Width - 28
-        Me.GroupBoxAuthorizations.Width = Me.ClientSize.Width - 28
+        Me.GroupBoxGeneral.SetBounds(14, 14, Me.ClientSize.Width - 28, Me.GroupBoxGeneral.Height)
+        Me.GroupBoxAuthorizations.SetBounds(14, Me.GroupBoxGeneral.Bottom + 8, Me.ClientSize.Width - 28, Me.GroupBoxAuthorizations.Height)
         LocalizedLayout.FitFieldColumns(Me.GroupBoxGeneral)
         Me.GroupBoxAuthorizations.Top = Me.GroupBoxGeneral.Bottom + 8
         Dim buttonsTop = Me.GroupBoxAuthorizations.Bottom + 8

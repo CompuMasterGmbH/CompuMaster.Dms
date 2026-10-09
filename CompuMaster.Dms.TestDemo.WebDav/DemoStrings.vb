@@ -13,6 +13,11 @@ Friend NotInheritable Class DemoStrings
     End Function
 
     Friend Shared Sub ApplyLoginLabels(form As Form)
+        InitialWindowDpi.Bind(form)
+        'Docking recalculates the artwork height after native DPI/non-client changes.
+        'Top/bottom anchoring can retain the old non-client height during a monitor transition.
+        Dim artwork = TryCast(form.Controls.Find("LogoPictureBox", False).SingleOrDefault(), PictureBox)
+        If artwork IsNot Nothing Then artwork.Dock = DockStyle.Left
         Dim names As New Dictionary(Of String, String) From {
             {"UsernameLabel", "UserName"}, {"PasswordLabel", "Password"},
             {"StartPathLabel", "StartPath"}, {"Label3", "StartPath"},
@@ -37,9 +42,10 @@ Friend NotInheritable Class DemoStrings
             signInButton.Left = exitButton.Left - 9 - signInButton.Width
         End If
         Dim arranging As Boolean
+        Dim dpiPending As Boolean
         Dim arrange As Action =
             Sub()
-                If arranging OrElse form.IsDisposed OrElse form.Disposing Then Return
+                If arranging OrElse dpiPending OrElse form.IsDisposed OrElse form.Disposing Then Return
                 arranging = True
                 Try
                     ArrangeLoginControls(form, customerLogin, signInButton, exitButton)
@@ -49,7 +55,20 @@ Friend NotInheritable Class DemoStrings
             End Sub
         AddHandler form.FontChanged, Sub(sender, e) arrange()
         AddHandler form.SizeChanged, Sub(sender, e) arrange()
-        AddHandler form.Shown, Sub(sender, e) arrange()
+        AddHandler form.DpiChanged,
+            Sub(sender, e)
+                dpiPending = True
+                form.BeginInvoke(New MethodInvoker(
+                    Sub()
+                        dpiPending = False
+                        arrange()
+                    End Sub))
+            End Sub
+        AddHandler form.Shown,
+            Sub(sender, e)
+                InitialWindowDpi.Synchronize(form)
+                arrange()
+            End Sub
         AddHandler form.Layout, Sub(sender, e) arrange()
         arrange()
     End Sub
@@ -69,17 +88,18 @@ Friend NotInheritable Class DemoStrings
             label.AutoSize = True
             label.Size = TextRenderer.MeasureText(label.Text, label.Font)
             label.Top = nextTop
-            input.Top = label.Bottom + 4
+            input.Anchor = AnchorStyles.Top Or AnchorStyles.Left
+            input.SetBounds(label.Left, label.Bottom + 4, Math.Max(1, form.ClientSize.Width - label.Left - 12), input.Height)
             nextTop = input.Bottom + 8
         Next
         Dim persist = DirectCast(form.Controls.Find("CheckboxPersistLoginCredentialsToDisk", False).Single(), CheckBox)
         persist.AutoSize = True
         persist.Size = persist.GetPreferredSize(Drawing.Size.Empty)
-        Dim persistTop = Math.Max(nextTop, persist.Top)
-        Dim buttonTop = Math.Max(persistTop, signInButton.Top)
+        Dim buttonTop = Math.Max(nextTop, form.ClientSize.Height - signInButton.Height - 12)
+        Dim persistTop = buttonTop
         If signInButton IsNot Nothing AndAlso persist.Right + 10 > signInButton.Left Then
             persistTop = nextTop
-            buttonTop = persistTop + persist.Height + 10
+            buttonTop = Math.Max(buttonTop, persistTop + persist.Height + 10)
         End If
         form.ClientSize = New Drawing.Size(Math.Max(form.ClientSize.Width, persist.Right + 14), Math.Max(form.ClientSize.Height, buttonTop + signInButton.Height + 12))
         persist.Top = persistTop

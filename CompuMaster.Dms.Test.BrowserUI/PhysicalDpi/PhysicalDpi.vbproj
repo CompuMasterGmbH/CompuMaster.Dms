@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- The standalone subset uses the existing test assembly's friend access. -->
+    <AssemblyName>CompuMaster.Dms.Test.BrowserUI</AssemblyName>
+    <RootNamespace>CompuMaster.Dms.Test.BrowserUI</RootNamespace>
+    <StartupObject>CompuMaster.Dms.Test.BrowserUI.PhysicalDpiProgram</StartupObject>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppConfig>../../CompuMaster.Dms.TestDemo.WebDav/App.config</AppConfig>
+    <ApplicationManifest>../../CompuMaster.Dms.TestDemo.WebDav/app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="PhysicalDpiProgram.vb" />
+    <Compile Include="../LocalizedLayoutAcceptanceTest.vb" Link="LocalizedLayoutAcceptanceTest.vb" />
+    <Compile Include="../LocalizedMonitorDpiTest.vb" Link="LocalizedMonitorDpiTest.vb" />
+    <Compile Include="../DevelopmentGuiTestSession.vb" Link="DevelopmentGuiTestSession.vb" />
+    <ProjectReference Include="../../CompuMaster.Dms.BrowserUI/CompuMaster.Dms.BrowserUI.vbproj" />
+    <ProjectReference Include="../../CompuMaster.Dms.TestDemo.WebDav/CompuMaster.Dms.TestDemo.WebDav.vbproj" />
+    <ProjectReference Include="../../CompuMaster.Dms.TestDemo.OwnCloudClassic/CompuMaster.Dms.TestDemo.OwnCloudClassic.vbproj" />
+    <ProjectReference Include="../../CompuMaster.Dms.TestDemo.Nextcloud/CompuMaster.Dms.TestDemo.Nextcloud.vbproj" />
+    <ProjectReference Include="../../CompuMaster.Dms.TestDemo.ScopevisioTeamwork/CompuMaster.Dms.TestDemo.ScopevisioTeamwork.vbproj" />
+    <PackageReference Include="NUnit" Version="4.6.1" />
+    <PackageReference Include="System.Resources.Extensions" Version="10.0.7" />
+  </ItemGroup>
+</Project>

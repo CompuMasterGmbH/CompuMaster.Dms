@@ -70,8 +70,9 @@ Friend NotInheritable Class DmsInstanceSelectionDialog
                 Me.ClientSize = New Drawing.Size(Me.ClientSize.Width, Math.Max(Me.ClientSize.Height, Prompt.Bottom + 150 + CancelButton.Height + 40))
                 CancelButton.Location = New Drawing.Point(Me.ClientSize.Width - CancelButton.Width - 12, Me.ClientSize.Height - CancelButton.Height - 12)
                 OkayButton.Location = New Drawing.Point(CancelButton.Left - OkayButton.Width - 6, CancelButton.Top)
-                Me.InstancesList.Top = Prompt.Bottom + 8
-                Me.InstancesList.Height = OkayButton.Top - Me.InstancesList.Top - 10
+                Me.InstancesList.Anchor = AnchorStyles.Top Or AnchorStyles.Left
+                Dim listTop = Prompt.Bottom + 8
+                Me.InstancesList.SetBounds(12, listTop, Me.ClientSize.Width - 24, OkayButton.Top - listTop - 10)
             End Sub)
     End Sub
 
