@@ -19,10 +19,11 @@ Namespace Providers
         Private ReadOnly Clock As IRequestClock
         Private ReadOnly MaxAttempts As Integer
         Private ReadOnly MaxElapsed As TimeSpan
+        Private ReadOnly RequestTimeout As TimeSpan?
 
         Friend Sub New(serviceUri As Uri, inner As HttpMessageHandler, Optional clock As IRequestClock = Nothing,
                        Optional maxConcurrent As Integer = 2, Optional maxRequestsPerMinute As Integer = 30,
-                       Optional maxAttempts As Integer = 3, Optional maxElapsed As TimeSpan = Nothing)
+                       Optional maxAttempts As Integer = 3, Optional maxElapsed As TimeSpan = Nothing, Optional requestTimeout As TimeSpan? = Nothing)
             MyBase.New(inner)
             If serviceUri Is Nothing Then Throw New ArgumentNullException(NameOf(serviceUri))
             If maxConcurrent < 1 Then Throw New ArgumentOutOfRangeException(NameOf(maxConcurrent))
@@ -30,6 +31,8 @@ Namespace Providers
             If maxAttempts < 1 Then Throw New ArgumentOutOfRangeException(NameOf(maxAttempts))
             Me.Clock = If(clock, New SystemRequestClock())
             Me.MaxAttempts = maxAttempts
+            If requestTimeout.HasValue AndAlso requestTimeout.Value <= TimeSpan.Zero AndAlso requestTimeout.Value <> Timeout.InfiniteTimeSpan Then Throw New ArgumentOutOfRangeException(NameOf(requestTimeout))
+            Me.RequestTimeout = requestTimeout
             Me.MaxElapsed = If(maxElapsed = Nothing, TimeSpan.FromSeconds(30), maxElapsed)
             If Me.MaxElapsed <= TimeSpan.Zero Then Throw New ArgumentOutOfRangeException(NameOf(maxElapsed))
             Dim key As String = serviceUri.Scheme & "://" & serviceUri.IdnHost & ":" & serviceUri.Port.ToString(Globalization.CultureInfo.InvariantCulture) & ":" & maxConcurrent.ToString(Globalization.CultureInfo.InvariantCulture) & ":" & maxRequestsPerMinute.ToString(Globalization.CultureInfo.InvariantCulture)
@@ -41,7 +44,12 @@ Namespace Providers
             Dim body As Byte() = Nothing
             If retryable AndAlso request.Content IsNot Nothing Then body = Await request.Content.ReadAsByteArrayAsync().ConfigureAwait(False)
             Dim started As DateTimeOffset = Clock.UtcNow
-            Using deadline As CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            Dim deadline As CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            Dim responseOwnsDeadline As Boolean
+            Try
+                'Large PUT bodies run until caller cancellation; ordinary WebDAV requests
+                'retain a bounded deadline even when the HttpClient has no total timeout.
+                If RequestTimeout.HasValue AndAlso request.Method <> HttpMethod.Put Then deadline.CancelAfter(RequestTimeout.Value)
                 Dim activeToken As CancellationToken = deadline.Token
                 For attempt As Integer = 1 To If(retryable, MaxAttempts, 1)
                     activeToken.ThrowIfCancellationRequested()
@@ -79,17 +87,34 @@ Namespace Providers
                         Await Clock.DelayAsync(failureDelay, activeToken).ConfigureAwait(False)
                         Continue For
                     End If
-                    If Not retryable OrElse Not IsTransient(response.StatusCode) OrElse attempt = MaxAttempts Then Return response
+                    If Not retryable OrElse Not IsTransient(response.StatusCode) OrElse attempt = MaxAttempts Then
+                        TransferDeadline(response, request.Method, deadline)
+                        responseOwnsDeadline = True
+                        Return response
+                    End If
                     Dim delay As TimeSpan = RetryDelay(response, attempt)
                     Dim remaining As TimeSpan = MaxElapsed - (Clock.UtcNow - started)
-                    If delay >= remaining Then Return response
+                    If delay >= remaining Then
+                        TransferDeadline(response, request.Method, deadline)
+                        responseOwnsDeadline = True
+                        Return response
+                    End If
                     response.Dispose()
                     deadline.CancelAfter(remaining)
                     Await Clock.DelayAsync(delay, activeToken).ConfigureAwait(False)
                 Next
-            End Using
+            Finally
+                If Not responseOwnsDeadline Then deadline.Dispose()
+            End Try
             Throw New InvalidOperationException(ProviderStrings.GetText("TheRetryLoopEndedUnexpectedly"))
         End Function
+
+        Private Shared Sub TransferDeadline(response As HttpResponseMessage, method As HttpMethod, deadline As CancellationTokenSource)
+            'GET downloads already returned after their headers with the previous HttpClient
+            'timeout, so their streamed bodies must remain governed by caller cancellation.
+            If method = HttpMethod.Get Then deadline.CancelAfter(Timeout.InfiniteTimeSpan)
+            DirectCast(response.Content, CapacityContent).OwnDeadline(deadline)
+        End Sub
 
         Private Shared Function CloneReadRequest(original As HttpRequestMessage, body As Byte()) As HttpRequestMessage
             Dim copy As New HttpRequestMessage(original.Method, original.RequestUri) With {.Version = original.Version}
@@ -173,6 +198,8 @@ Namespace Providers
             Private ReadOnly Inner As HttpContent
             Private ReadOnly ReleaseSlot As Action
             Private Released As Integer
+            Private Deadline As CancellationTokenSource
+            Private StopBody As CancellationTokenRegistration
 
             Friend Sub New(inner As HttpContent, releaseSlot As Action)
                 Me.Inner = inner
@@ -184,9 +211,32 @@ Namespace Providers
                 End If
             End Sub
 
+            Friend Sub OwnDeadline(value As CancellationTokenSource)
+                Deadline = value
+                StopBody = value.Token.Register(Sub() Inner?.Dispose())
+            End Sub
+
             Protected Overrides Async Function SerializeToStreamAsync(stream As Stream, context As TransportContext) As Task
                 Try
-                    If Inner IsNot Nothing Then Await Inner.CopyToAsync(stream).ConfigureAwait(False)
+                    If Inner IsNot Nothing Then
+                        Dim copy = Inner.CopyToAsync(stream)
+                        If Deadline Is Nothing Then
+                            Await copy.ConfigureAwait(False)
+                        Else
+                            Dim cancelled As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
+                            Using registration = Deadline.Token.Register(Sub() cancelled.TrySetResult(True))
+                                If Await Task.WhenAny(copy, cancelled.Task).ConfigureAwait(False) IsNot copy Then
+                                    'Observe eventual transport errors after cancellation has disposed the body.
+                                    Dim observation = copy.ContinueWith(Sub(failed)
+                                                                           Dim ignored = failed.Exception
+                                                                       End Sub, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted Or TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default)
+                                    Deadline.Token.ThrowIfCancellationRequested()
+                                End If
+                                Deadline.Token.ThrowIfCancellationRequested()
+                                Await copy.ConfigureAwait(False)
+                            End Using
+                        End If
+                    End If
                 Finally
                     Release()
                 End Try
@@ -215,14 +265,20 @@ Namespace Providers
 
             Protected Overrides Sub Dispose(disposing As Boolean)
                 If disposing Then
+                    StopBody.Dispose()
                     Inner?.Dispose()
                     Release()
+                    Deadline?.Dispose()
                 End If
                 MyBase.Dispose(disposing)
             End Sub
 
             Private Sub Release()
-                If Interlocked.Exchange(Released, 1) = 0 Then ReleaseSlot()
+                If Interlocked.Exchange(Released, 1) = 0 Then
+                    StopBody.Dispose()
+                    Deadline?.Dispose()
+                    ReleaseSlot()
+                End If
             End Sub
         End Class
 

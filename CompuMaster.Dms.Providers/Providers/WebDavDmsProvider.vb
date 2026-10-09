@@ -116,7 +116,7 @@ Namespace Providers
             Return CreateConfiguredHttpClient(Handler, params)
         End Function
 
-        Private Shared Function CreateConfiguredHttpClient(httpHandler As HttpClientHandler, ByVal params As WebDavClientParams) As System.Net.Http.HttpClient
+        Friend Shared Function CreateConfiguredHttpClient(httpHandler As HttpClientHandler, ByVal params As WebDavClientParams) As System.Net.Http.HttpClient
             With httpHandler
                 .AutomaticDecompression = DecompressionMethods.Deflate Or DecompressionMethods.GZip
                 .PreAuthenticate = params.PreAuthenticate
@@ -133,8 +133,9 @@ Namespace Providers
                 httpHandler.Proxy = params.Proxy
             End If
 
-            Dim httpClient = New HttpClient(New ServiceRequestPolicy(params.BaseAddress, httpHandler), True) With {
-                .BaseAddress = params.BaseAddress
+            Dim httpClient = New HttpClient(New ServiceRequestPolicy(params.BaseAddress, httpHandler, requestTimeout:=TimeSpan.FromSeconds(100)), True) With {
+                .BaseAddress = params.BaseAddress,
+                .Timeout = Threading.Timeout.InfiniteTimeSpan
             }
 
             If params.Timeout.HasValue Then
@@ -163,6 +164,7 @@ Namespace Providers
                 Dim ClientParams As New Global.WebDav.WebDavClientParams() With
                 {
                 .BaseAddress = New System.Uri(Url),
+                .PreAuthenticate = True,
                 .Credentials = New System.Net.NetworkCredential(loginCredentials.Username, loginCredentials.Password)
                 }
                 Dim HttpClient = CreateHttpClient(True, ClientParams)
