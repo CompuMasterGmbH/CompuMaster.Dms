@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>מחלקה נגזרת לא ידועה מ-DmsShareBase</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>השתמש בבנאי שמקבל מזהה מופע.</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>קובץ {0} מתוך {1}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} מתוך {1:N0} בתים מקור עובד</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} בתים מקור עובד; לגמרי לא ידוע</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>עובדו {0} מתוך {1} {2}</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>עובדו {0} {1}; הגודל הכולל אינו ידוע</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>התקדמות בייט אינה זמינה.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>ההעלאה מתבצעת…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>ממתין לאישור הספק...</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>התבקש ביטול; מחכה להעברה הפעילה.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0} מתוך {1} קבצים הושלמו</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>העלאות שהושלמו נשארות בשרת. העלאה מופרעת עלולה להשאיר קובץ חלקי.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>בתים</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · זמן שנותר {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>לא ידוע</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>מוריד…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>הורדות שהושלמו נשארות בדיסק. הורדה שנקטעה עלולה להשאיר קובץ חלקי.</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>ניסיון חוזר לקבצים שנכשלו</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>העלאת הקבצים שנותרו</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>מתחיל מחדש קבצים שנכשלו או בוטלו ומדלג על קבצים שהצליחו.</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>ניסיון חוזר עלול ליצור קובץ כפול. עדיין ניתן להעלות את הקבצים שנותרו.</value></data>
 </root>

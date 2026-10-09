@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>来自 DmsShareBase 的未知派生类</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>使用接受实例标识符的构造函数。</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>文件 {1} 的 {0}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>已处理 {1:N0} 源字节中的 {0:N0}</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} 已处理源字节；完全未知</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>已处理 {0}/{1} {2}</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>已处理 {0} {1}；总大小未知</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>字节进度不可用。</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>正在上传…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>等待提供商确认...</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>要求取消；等待主动传输。</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0} 个文件（共 {1} 个）已完成</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>完成的上传保留在服务器上。中断的上传可能会留下部分文件。</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>字节</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · 剩余时间 {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>未知</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>正在下载…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>已完成的下载保留在磁盘上。中断下载可能留下不完整的文件。</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>重试失败的文件</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>上传剩余文件</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>从头重新上传失败或取消的文件。跳过已成功的文件。</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>重试可能产生重复文件，因此不可用。仍可上传剩余文件。</value></data>
 </root>

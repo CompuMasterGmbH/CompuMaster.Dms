@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Unbekannter Freigabetyp</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Verwenden Sie den Konstruktor mit einer Instanz-ID.</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>Datei {0} von {1}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} von {1:N0} Quellbytes verarbeitet</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} Quellbytes verarbeitet; Gesamtgröße unbekannt</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0} von {1} {2} verarbeitet</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0} {1} verarbeitet; Gesamtgröße unbekannt</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>Byte-Fortschritt ist nicht verfügbar.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>Hochladen…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>Warten auf Bestätigung des Providers…</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>Abbruch angefordert; auf die laufende Übertragung wird gewartet.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0} von {1} Dateien abgeschlossen</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>Abgeschlossene Uploads bleiben auf dem Server. Ein unterbrochener Upload kann eine unvollständige Datei hinterlassen.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>Bytes</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · Restzeit {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>Unbekannt</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>Herunterladen…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>Abgeschlossene Downloads bleiben auf dem Datenträger. Ein unterbrochener Download kann eine unvollständige Datei hinterlassen.</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>Fehlgeschlagene wiederholen</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>Verbleibende Dateien hochladen</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>Startet fehlgeschlagene oder abgebrochene Dateien erneut von Anfang an. Erfolgreiche Dateien werden übersprungen.</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>Wiederholen ist nicht verfügbar, da ein erneuter Upload ein Duplikat erzeugen könnte. Verbleibende Dateien können weiterhin hochgeladen werden.</value></data>
 </root>

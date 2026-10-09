@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Classe dérivée inconnue de DmsShareBase</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Utilisez le constructeur acceptant un identifiant d'instance.</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>Dossier {0} de {1} : {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} sur {1:N0} octets source traités</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} octets source traités ; inconnu total</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0} sur {1} {2} traités</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0} {1} traités ; taille totale inconnue</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>La progression des octets n'est pas disponible.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>Envoi en cours…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>En attente de confirmation du fournisseur…</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>Annulation demandée ; en attente du transfert actif.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0} des {1} dossiers terminés</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>Les téléchargements terminés restent sur le serveur. Un téléchargement interrompu peut laisser un fichier partiel.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>octets</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · Temps restant {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>Inconnu</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>Téléchargement…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>Les téléchargements terminés restent sur le disque. Un téléchargement interrompu peut laisser un fichier incomplet.</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>Réessayer les fichiers en échec</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>Téléverser les fichiers restants</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>Recommence les fichiers en échec ou annulés depuis le début. Les fichiers réussis sont ignorés.</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>Une nouvelle tentative pourrait créer un doublon. Les fichiers restants peuvent toujours être téléversés.</value></data>
 </root>

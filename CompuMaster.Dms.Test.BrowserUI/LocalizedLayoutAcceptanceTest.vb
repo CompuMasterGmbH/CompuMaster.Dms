@@ -66,6 +66,11 @@ Public Class LocalizedLayoutAcceptanceTest
                             progress.PerformLayout()
                             Inspect(progress, failures, "Progress " & state.ToString() & " scale=" & fontScale.ToString(CultureInfo.InvariantCulture))
                         Next
+                        progress.Report(New UploadBatchSnapshot(files, {UploadFileState.Completed, UploadFileState.Failed}, {New DmsTransferProgress(Long.MaxValue, Long.MaxValue, DmsTransferPhase.Completed), New DmsTransferProgress(1024, Long.MaxValue, DmsTransferPhase.Transferring)}, 1, {Nothing, New System.IO.IOException("The connection was closed. " & New String("X"c, 160))}))
+                        progress.Finish()
+                        progress.Show()
+                        progress.PerformLayout()
+                        Inspect(progress, failures, "Progress recovery scale=" & fontScale.ToString(CultureInfo.InvariantCulture))
                     End If
                     Dim output = Environment.GetEnvironmentVariable("DMS_LOCALIZATION_PREVIEW_DIR")
                     If Not String.IsNullOrEmpty(output) Then
@@ -97,6 +102,7 @@ Public Class LocalizedLayoutAcceptanceTest
         Yield New PreviewDetails()
         Yield New DmsInstanceSelectionDialog({New DmsInstanceInfo("sample", "Sample instance", True)}, Nothing)
         Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"})
+        Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"}, True)
         Dim input As TextBox = Nothing
         Yield UITools.CreateInputDialog("Input", UiStrings.Format("NewFolderPrompt", "sample/" & New String("X"c, 80)), "", input)
     End Function

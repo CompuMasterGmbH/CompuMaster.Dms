@@ -93,12 +93,33 @@ Namespace Providers
             End Try
         End Function
 
-        Private Shared Async Function DownloadNativeFileToDiskAsync(file As CenterDevice.IO.FileInfo, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, cancellationToken As CancellationToken) As Task
-            Await file.DownloadAsync(localFilePath, 0, cancellationToken).ConfigureAwait(False)
+        Private Shared Async Function DownloadNativeFileToDiskAsync(file As CenterDevice.IO.FileInfo, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, cancellationToken As CancellationToken, Optional progress As IProgress(Of DmsTransferProgress) = Nothing) As Task
+            Dim bytes As Long
+            If progress Is Nothing Then
+                Await file.DownloadAsync(localFilePath, 0, cancellationToken).ConfigureAwait(False)
+            Else
+                Using input = Await file.DownloadAsync(0, cancellationToken).ConfigureAwait(False), output As New FileStream(localFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, True)
+                    bytes = Await DownloadProgress.CopyAsync(input, output, file.Size, progress, cancellationToken).ConfigureAwait(False)
+                End Using
+                If file.ModificationDate.HasValue Then System.IO.File.SetLastWriteTimeUtc(localFilePath, file.ModificationDate.Value)
+            End If
             cancellationToken.ThrowIfCancellationRequested()
             If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then
                 System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
             End If
+            progress?.Report(New DmsTransferProgress(bytes, file.Size, DmsTransferPhase.Completed))
+        End Function
+
+        ''' <inheritdoc/>
+        ''' <remarks>Preserves selected resource IDs and streams payload to disk with bounded buffering and active cancellation.</remarks>
+        Public Overrides Async Function DownloadFileWithProgressAsync(remoteFile As DmsResourceItem, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException(ProviderStrings.GetText("TheRemoteResourceMustBeAFile"), NameOf(remoteFile))
+            cancellationToken.ThrowIfCancellationRequested()
+            Dim file = If(String.IsNullOrEmpty(remoteFile.ExtendedInfosFileID),
+                Await Me.GetNativeDownloadFileAsync(remoteFile.FullName, cancellationToken).ConfigureAwait(False),
+                Await Me.GetNativeDownloadFileByIdAsync(remoteFile.ExtendedInfosFileID, cancellationToken).ConfigureAwait(False))
+            Await DownloadNativeFileToDiskAsync(file, localFilePath, remoteFile.LastModificationOnLocalTime, cancellationToken, progress).ConfigureAwait(False)
         End Function
 
         ''' <inheritdoc/>

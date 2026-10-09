@@ -85,8 +85,8 @@ Public Class WebDavMissingResourceTest
         End Try
     End Function
 
-    <Test>
-    Public Sub FailedAsyncDownloadPreservesExistingLocalFile()
+    <TestCase(False), TestCase(True)>
+    Public Sub FailedAsyncDownloadPreservesExistingLocalFile(withProgress As Boolean)
         Dim testDirectory As String = System.IO.Path.Combine(TestContext.CurrentContext.WorkDirectory, "failed-download-" & Guid.NewGuid().ToString("N"))
         If System.IO.Directory.Exists(testDirectory) Then Throw New InvalidOperationException("The test directory already exists.")
         System.IO.Directory.CreateDirectory(testDirectory)
@@ -94,10 +94,15 @@ Public Class WebDavMissingResourceTest
             Dim target As String = System.IO.Path.Combine(testDirectory, "existing.txt")
             System.IO.File.WriteAllText(target, "original")
             Dim provider As WebDavDmsProvider = CreateProvider(New FailingDownloadHandler())
-
+            Dim progress As New DownloadCollector()
             Assert.ThrowsAsync(Of System.IO.IOException)(Async Function() As Task
-                                                             Await provider.DownloadFileAsync("remote.txt", target, Nothing)
+                                                             If withProgress Then
+                                                                 Await provider.DownloadFileWithProgressAsync(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .FullName = "remote.txt"}, target, progress)
+                                                             Else
+                                                                 Await provider.DownloadFileAsync("remote.txt", target, Nothing)
+                                                             End If
                                                          End Function)
+            Assert.That(progress.Values.Any(Function(value) value.Phase = DmsTransferPhase.Completed), [Is].False)
             ClassicAssert.AreEqual("original", System.IO.File.ReadAllText(target))
             Assert.That(System.IO.Directory.GetFiles(testDirectory), Has.Length.EqualTo(1))
         Finally
@@ -106,8 +111,8 @@ Public Class WebDavMissingResourceTest
         End Try
     End Sub
 
-    <Test>
-    Public Async Function SuccessfulAsyncDownloadReplacesExistingLocalFile() As Task
+    <TestCase(False), TestCase(True)>
+    Public Async Function SuccessfulAsyncDownloadReplacesExistingLocalFile(withProgress As Boolean) As Task
         Dim testDirectory As String = System.IO.Path.Combine(TestContext.CurrentContext.WorkDirectory, "completed-download-" & Guid.NewGuid().ToString("N"))
         If System.IO.Directory.Exists(testDirectory) Then Throw New InvalidOperationException("The test directory already exists.")
         System.IO.Directory.CreateDirectory(testDirectory)
@@ -116,7 +121,14 @@ Public Class WebDavMissingResourceTest
             System.IO.File.WriteAllText(target, "original")
             Dim provider As WebDavDmsProvider = CreateProvider(New StaticDownloadHandler())
 
-            Await provider.DownloadFileAsync("remote.txt", target, Nothing)
+            If withProgress Then
+                Dim progress As New DownloadCollector()
+                Await provider.DownloadFileWithProgressAsync(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .FullName = "remote.txt", .ContentLength = 7}, target, progress)
+                Assert.That(progress.Values.Last().Phase, [Is].EqualTo(DmsTransferPhase.Completed))
+                Assert.That(progress.Values.Last().BytesTransferred, [Is].EqualTo(7))
+            Else
+                Await provider.DownloadFileAsync("remote.txt", target, Nothing)
+            End If
             ClassicAssert.AreEqual("updated", System.IO.File.ReadAllText(target))
             Assert.That(System.IO.Directory.GetFiles(testDirectory), Has.Length.EqualTo(1))
         Finally
@@ -124,6 +136,14 @@ Public Class WebDavMissingResourceTest
             Assert.That(System.IO.Directory.Exists(testDirectory), [Is].False)
         End Try
     End Function
+
+    Private Class DownloadCollector
+        Implements IProgress(Of DmsTransferProgress)
+        Friend ReadOnly Values As New List(Of DmsTransferProgress)
+        Public Sub Report(value As DmsTransferProgress) Implements IProgress(Of DmsTransferProgress).Report
+            Values.Add(value)
+        End Sub
+    End Class
 
     Private Shared Function CreateProviderReturningNotFound() As WebDavDmsProvider
         Return CreateProvider(New NotFoundHandler())

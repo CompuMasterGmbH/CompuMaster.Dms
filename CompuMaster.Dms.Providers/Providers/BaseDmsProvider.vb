@@ -882,6 +882,25 @@ Namespace Providers
             End If
         End Function
 
+        ''' <summary>Downloads a selected file with optional byte progress reporting.</summary>
+        ''' <param name="remoteFile">The selected file, including its resource identity.</param>
+        ''' <param name="localFilePath">The local destination to create or overwrite.</param>
+        ''' <param name="progress">Receives payload bytes written, optional totals and completion phases. Callbacks must not throw.</param>
+        ''' <param name="cancellationToken">Cancels the supported transfer or queued fallback.</param>
+        ''' <returns>A task that completes after the file and its timestamp are written.</returns>
+        ''' <remarks>The default implementation preserves the existing download and reports unknown counters. Derived providers may report actual byte counts. Only successful task completion confirms a usable destination; existing overwrite and active-cancellation behavior is preserved.</remarks>
+        ''' <exception cref="ArgumentNullException">The selected file is Nothing.</exception>
+        ''' <exception cref="ArgumentException">The resource is not a file.</exception>
+        ''' <exception cref="System.IO.IOException">Downloading or writing the destination fails.</exception>
+        ''' <exception cref="UnauthorizedAccessException">The local destination cannot be accessed.</exception>
+        ''' <exception cref="OperationCanceledException">The supported operation is cancelled.</exception>
+        Public Overridable Async Function DownloadFileWithProgressAsync(remoteFile As DmsResourceItem, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            cancellationToken.ThrowIfCancellationRequested()
+            progress?.Report(New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Transferring))
+            Await Me.DownloadFileAsync(remoteFile, localFilePath, cancellationToken).ConfigureAwait(False)
+            progress?.Report(New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Completed))
+        End Function
+
         ''' <summary>
         ''' Downloads a remote DMS file identified by its resource metadata.
         ''' </summary>

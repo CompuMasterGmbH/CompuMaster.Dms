@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Unknown derived class from DmsShareBase</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Use the constructor accepting an instance identifier.</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>File {0} of {1}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} of {1:N0} source bytes processed</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} source bytes processed; total unknown</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0} of {1} {2} processed</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0} {1} processed; total unknown</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>Byte progress is unavailable.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>Uploading…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>Waiting for provider confirmation…</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>Cancellation requested; waiting for the active transfer.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0} of {1} files completed</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>Completed uploads remain on the server. An interrupted upload may leave a partial file.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>Bytes</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · ETA {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>Downloading…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>Completed downloads remain on disk. An interrupted download may leave a partial file.</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>Retry failed files</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>Upload remaining files</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>Restarts failed or cancelled files from the beginning. Successful files are skipped.</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>Retry is unavailable because a repeated upload could create a duplicate. Remaining files can still be uploaded.</value></data>
 </root>

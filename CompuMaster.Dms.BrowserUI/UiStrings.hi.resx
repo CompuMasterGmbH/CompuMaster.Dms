@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>DmsShareBase से अज्ञात व्युत्पन्न वर्ग</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>इंस्टेंस पहचानकर्ता को स्वीकार करने वाले कंस्ट्रक्टर का उपयोग करें।</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>{1} की फ़ाइल {0}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{1:N0} स्रोत बाइट्स में से {0:N0} संसाधित</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} स्रोत बाइट्स संसाधित; पूर्णतः अज्ञात</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{1} {2} में से {0} संसाधित</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0} {1} संसाधित; कुल आकार अज्ञात</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>बाइट प्रगति अनुपलब्ध है.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>अपलोड हो रहा है…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>प्रदाता की पुष्टि की प्रतीक्षा की जा रही है...</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>रद्द करने का अनुरोध किया गया; सक्रिय स्थानांतरण की प्रतीक्षा में.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{1} में से {0} फ़ाइलें पूरी हो गईं</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>पूर्ण अपलोड सर्वर पर बने रहते हैं। किसी बाधित अपलोड के कारण आंशिक फ़ाइल छूट सकती है.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>बाइट्स</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · शेष समय {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>अज्ञात</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>डाउनलोड हो रहा है…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>पूर्ण डाउनलोड डिस्क पर रहते हैं। बाधित डाउनलोड अधूरी फ़ाइल छोड़ सकता है।</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>विफल फ़ाइलें पुनः आज़माएँ</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>शेष फ़ाइलें अपलोड करें</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>विफल या रद्द फ़ाइलें शुरू से पुनः अपलोड करता है। सफल फ़ाइलें छोड़ दी जाती हैं।</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>पुनः प्रयास से डुप्लिकेट फ़ाइल बन सकती है। शेष फ़ाइलें अब भी अपलोड की जा सकती हैं।</value></data>
 </root>
