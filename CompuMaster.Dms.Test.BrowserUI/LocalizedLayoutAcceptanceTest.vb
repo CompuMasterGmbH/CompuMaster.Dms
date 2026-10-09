@@ -45,6 +45,12 @@ Public Class LocalizedLayoutAcceptanceTest
                         form.Size = normal
                     End If
                     If TypeOf form Is PreviewBrowser Then
+                        Dim toggle = DirectCast(form.Controls.Find("ButtonShowFiles", False).Single(), CheckBox)
+                        Assert.That(toggle.TextAlign, [Is].EqualTo(ContentAlignment.MiddleCenter), cultureName & " Show files must be centered like the other bottom actions.")
+                        Assert.That(toggle.Padding.Left, [Is].EqualTo(toggle.Padding.Right))
+                        Assert.That(toggle.Padding.Left, [Is].GreaterThan(0), "The button needs space on both sides of its localized caption.")
+                        Dim caption = TextRenderer.MeasureText(toggle.Text, toggle.Font, Size.Empty, TextFormatFlags.SingleLine)
+                        Assert.That(toggle.ClientSize.Width, [Is].GreaterThanOrEqualTo(caption.Width + toggle.Padding.Horizontal), cultureName & " Show files needs room for text and both inner margins.")
                         'Exercise a CI-sized display even on a large developer monitor.
                         'The production layout must wrap rather than overlap at this limit.
                         form.MaximumSize = New Size(900, 0)
