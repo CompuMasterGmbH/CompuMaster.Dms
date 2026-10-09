@@ -60,6 +60,28 @@ Public Class FolderUploadTest
     End Sub
 
     <Test>
+    Public Sub FolderUploadStaysEnabledAfterStartupRestoresTheFileToolbar()
+        Using dispatcher As New UiTestDispatcher(), browser As New PreviewBrowser()
+            browser.BrowseMode = DmsBrowser.BrowseModes.FoldersAndFiles
+            browser.AllowedActions = DmsBrowser.FileOrFolderActions.AllowUploadFiles
+            browser.Show()
+            Dim toolbar = DirectCast(browser.Controls.Find("ToolStripFileActions", True).Single(), ToolStrip)
+            For Each allow In New Boolean() {True, False, True}
+                dispatcher.Finish(browser.RunTransferAsync(
+                    Function()
+                        browser.AllowedActions = If(allow, DmsBrowser.FileOrFolderActions.AllowUploadFiles, CType(0, DmsBrowser.FileOrFolderActions))
+                        Assert.That(toolbar.Enabled, [Is].False, "Startup changes permissions while the toolbar is temporarily locked.")
+                        Assert.That(toolbar.Items("UploadFolder").Enabled, [Is].False)
+                        Return Task.CompletedTask
+                    End Function))
+                Assert.That(toolbar.Enabled, [Is].True)
+                Assert.That(toolbar.Items("ToolStripButtonUploadFile").Enabled, [Is].EqualTo(allow))
+                Assert.That(toolbar.Items("UploadFolder").Enabled, [Is].EqualTo(allow), "Folder upload must recover with file upload after startup or refresh.")
+            Next
+        End Using
+    End Sub
+
+    <Test>
     Public Sub TreeDropUsesTheNodeUnderTheMouseAndListDropUsesTheCurrentDirectory()
         Using browser As New PreviewBrowser()
             browser.Show()

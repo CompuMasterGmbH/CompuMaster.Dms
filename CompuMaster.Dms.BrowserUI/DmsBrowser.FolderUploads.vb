@@ -19,6 +19,10 @@ Partial Public Class DmsBrowser
                                 End Sub
         AddHandler UploadFolderButton.Click, AddressOf SelectFolderUpload
         AddHandler UploadFolderContext.Click, AddressOf SelectFolderUpload
+        'Enabled includes the owner's temporary startup/transfer lock. Resynchronize
+        'when file upload recovers so its copied disabled state cannot become permanent.
+        AddHandler ToolStripButtonUploadFile.EnabledChanged, Sub(sender, e) UpdateUploadAccess()
+        AddHandler ToolStripFileContextButtonUploadFile.EnabledChanged, Sub(sender, e) UpdateUploadAccess()
         For Each target As Control In New Control() {ListViewDmsFiles, TreeViewDmsFolders}
             AddHandler target.DragEnter, AddressOf DragUploadOver
             AddHandler target.DragOver, AddressOf DragUploadOver
