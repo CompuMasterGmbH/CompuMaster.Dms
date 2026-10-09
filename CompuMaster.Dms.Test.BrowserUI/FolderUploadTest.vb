@@ -42,6 +42,20 @@ Public Class FolderUploadTest
                      End Sub)
     End Sub
 
+    <TestCase(Nothing, False), TestCase("", False), TestCase(Nothing, True), TestCase("", True)>
+    Public Sub UnrestrictedUploadsAcceptNullAndEmptyLocalParent(localParent As String, folderSelection As Boolean)
+        InLocalScope(Sub(root)
+                         Dim folder = Path.Combine(root, "Folder")
+                         Directory.CreateDirectory(Path.Combine(folder, "Empty"))
+                         Dim file = Path.Combine(folder, "one.txt")
+                         System.IO.File.WriteAllText(file, "one")
+                         Dim plan = LocalUploadPlan.Build({If(folderSelection, folder, file)}, CancellationToken.None, localParent)
+                         Assert.That(plan.Files, [Is].EqualTo({file}))
+                         Assert.That(plan.RelativePaths, [Is].EqualTo({If(folderSelection, "Folder/one.txt", "one.txt")}))
+                         Assert.That(plan.Directories, [Is].EqualTo(If(folderSelection, {"Folder", "Folder/Empty"}, New String() {})))
+                     End Sub)
+    End Sub
+
     <TestCase(False), TestCase(True)>
     Public Sub UploadAccessAndFolderActionVisibilityFollowTheExistingFileAction(allow As Boolean)
         Using browser As New PreviewBrowser()
