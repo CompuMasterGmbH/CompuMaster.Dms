@@ -20,7 +20,7 @@ Friend NotInheritable Class LocalUploadPlan
         Dim destinations As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
         For Each root In roots
             cancellationToken.ThrowIfCancellationRequested()
-            If localParent IsNot Nothing Then
+            If Not String.IsNullOrEmpty(localParent) Then
                 Dim parent = Path.GetFullPath(localParent).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                 If Not root.Equals(parent, StringComparison.OrdinalIgnoreCase) AndAlso Not root.StartsWith(parent & Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) Then Throw New UnauthorizedAccessException(UiStrings.Format("OutsideRequiredFolder", localParent))
             End If
