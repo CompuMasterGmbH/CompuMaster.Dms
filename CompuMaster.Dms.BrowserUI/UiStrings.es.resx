@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>Clase derivada desconocida de DmsShareBase</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>Utilice el constructor que acepte un identificador de instancia.</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>Archivo {0} de {1}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0} de {1:N0} bytes de origen procesados</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} bytes de origen procesados; totalmente desconocido</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{0} de {1} {2} procesados</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0} {1} procesados; tamaño total desconocido</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>El progreso del byte no está disponible.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>Subiendo…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>Esperando confirmación del proveedor...</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>Cancelación solicitada; esperando la transferencia activa.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0} de {1} archivos completados</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>Las cargas completadas permanecen en el servidor. Una carga interrumpida puede dejar un archivo parcial.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>bytes</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · Tiempo restante {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>Desconocido</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>Descargando…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>Las descargas completadas permanecen en el disco. Una descarga interrumpida puede dejar un archivo incompleto.</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>Reintentar archivos fallidos</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>Subir archivos restantes</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>Reinicia desde el principio los archivos fallidos o cancelados. Omite los archivos completados.</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>Un nuevo intento podría crear un duplicado. Los archivos restantes aún se pueden subir.</value></data>
 </root>

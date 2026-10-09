@@ -1225,8 +1225,9 @@ Public Class DmsBrowser
                     Next
                     Dim RemoteFolderPath As String = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName
                     Dim LocalFiles As String() = f.FileNames
-                    Await Me.RunTransferAsync(Function() Me.UploadWithDialogAsync(RemoteFolderPath, LocalFiles))
-                    System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Dim successful As Boolean
+                    Await Me.RunTransferAsync(Async Function() successful = Await Me.UploadWithDialogAsync(RemoteFolderPath, LocalFiles))
+                    If successful Then System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFileSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If
@@ -1266,8 +1267,7 @@ Public Class DmsBrowser
                 If DialogUserResult = DialogResult.OK Then
                     If Me.LocalParentMustFolder = Nothing OrElse f.FileName.StartsWith(Me.LocalParentMustFolder) Then
                         Dim TargetFile As String = f.FileName
-                        Await Me.RunTransferAsync(Function() DownloadFileForUiAsync(Me.DmsProvider, SelectedFiles(0), TargetFile))
-                        System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        Await Me.RunTransferAsync(Function() Me.DownloadWithDialogAsync({SelectedFiles(0)}, {TargetFile}))
                     Else
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     End If
@@ -1309,20 +1309,9 @@ Public Class DmsBrowser
                             End Select
                         End If
                         'Save to disk
-                        Await Me.RunTransferAsync(Async Function()
-                            For MyCounter As Integer = 0 To SelectedFiles.Count - 1
-                                Dim RemoteFile As DmsResourceItem = SelectedFiles(MyCounter)
-                                Dim TargetFile As String = System.IO.Path.Combine(f.SelectedPath, SelectedFiles(MyCounter).Name)
-                                If System.IO.File.Exists(TargetFile) Then
-                                    If OverwriteLocalFiles Then
-                                        Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile)
-                                    End If
-                                Else
-                                    Await DownloadFileForUiAsync(Me.DmsProvider, RemoteFile, TargetFile)
-                                End If
-                            Next
-                        End Function)
-                        System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("DownloadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        Dim pending = SelectedFiles.Where(Function(file) OverwriteLocalFiles OrElse Not System.IO.File.Exists(System.IO.Path.Combine(f.SelectedPath, file.Name))).ToArray()
+                        Dim targets = pending.Select(Function(file) System.IO.Path.Combine(f.SelectedPath, file.Name)).ToArray()
+                        Await Me.RunTransferAsync(Function() Me.DownloadWithDialogAsync(pending, targets))
                     Else
                         System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("OutsideRequiredFolder", Me.LocalParentMustFolder), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     End If

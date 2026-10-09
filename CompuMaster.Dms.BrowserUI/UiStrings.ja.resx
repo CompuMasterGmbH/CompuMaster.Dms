@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>DmsShareBase からの不明な派生クラス</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>インスタンス識別子を受け入れるコンストラクターを使用します。</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>ファイル {0}/{1}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>{0:N0}/{1:N0} ソース バイトが処理されました</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} ソースバイトが処理されました。まったく不明</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>{1} {2} 中 {0} を処理済み</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0} {1} を処理済み。合計サイズ不明</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>バイトの進行状況は利用できません。</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>アップロード中…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>プロバイダーの確認を待っています…</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>キャンセルがリクエストされました。アクティブな転送を待っています。</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>{0}/{1} ファイルが完了しました</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>完了したアップロードはサーバー上に残ります。アップロードが中断されると、部分的なファイルが残る場合があります。</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>バイト</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · 残り時間 {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>ダウンロード中…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>完了したダウンロードはディスクに残ります。中断したダウンロードでは不完全なファイルが残る場合があります。</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>失敗したファイルを再試行</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>残りのファイルをアップロード</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>失敗またはキャンセルしたファイルを最初から再試行します。成功したファイルはスキップします。</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>再試行すると重複ファイルが作成される可能性があります。残りのファイルはアップロードできます。</value></data>
 </root>

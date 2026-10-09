@@ -899,14 +899,28 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Async Function DownloadFileAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Await Me.DownloadWithProgressCoreAsync(remoteFilePath, localFilePath, lastModificationDateOnLocalTime, Nothing, Nothing, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        ''' <inheritdoc/>
+        ''' <remarks>Reports bytes written to the staging file. Existing destinations are replaced only after successful transfer; cancellation removes only the owned staging file.</remarks>
+        Public Overrides Async Function DownloadFileWithProgressAsync(remoteFile As DmsResourceItem, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File Then Throw New ArgumentException(ProviderStrings.GetText("TheRemoteResourceMustBeAFile"), NameOf(remoteFile))
+            Await Me.DownloadWithProgressCoreAsync(remoteFile.FullName, localFilePath, remoteFile.LastModificationOnLocalTime, If(remoteFile.ContentLength > 0, CType(remoteFile.ContentLength, Long?), Nothing), progress, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Private Async Function DownloadWithProgressCoreAsync(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?, total As Long?, progress As IProgress(Of DmsTransferProgress), cancellationToken As CancellationToken) As Task
             Dim parameters As New Global.WebDav.GetFileParameters With {.CancellationToken = cancellationToken}
             Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
+            Dim bytes As Long
             Try
                 Using response = Await Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
                     If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
                     If Not response.IsSuccessful Then Throw New System.IO.IOException(ProviderStrings.GetText("DownloadFailed"), New ResponseStatusCodeException(response.StatusCode, response.Description))
                     Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
-                        Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
+                        If response.Stream.CanSeek Then total = response.Stream.Length - response.Stream.Position
+                        bytes = Await DownloadProgress.CopyAsync(response.Stream, output, total, progress, cancellationToken).ConfigureAwait(False)
                     End Using
                 End Using
                 cancellationToken.ThrowIfCancellationRequested()
@@ -916,6 +930,7 @@ Namespace Providers
                     System.IO.File.Move(temporaryPath, localFilePath)
                 End If
                 If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
+                progress?.Report(New DmsTransferProgress(bytes, total, DmsTransferPhase.Completed))
             Finally
                 If System.IO.File.Exists(temporaryPath) Then System.IO.File.Delete(temporaryPath)
             End Try

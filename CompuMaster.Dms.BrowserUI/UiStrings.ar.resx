@@ -205,8 +205,8 @@
   <data name="UnknownDerivedClassFromDmsShareBase" xml:space="preserve"><value>فئة مشتقة غير معروفة من DmsShareBase</value></data>
   <data name="UseTheConstructorAcceptingAnInstanceIdentifier" xml:space="preserve"><value>استخدم المُنشئ الذي يقبل معرف المثيل.</value></data>
   <data name="UploadFilePosition" xml:space="preserve"><value>الملف {0} من {1}: {2}</value></data>
-  <data name="UploadSourceBytes" xml:space="preserve"><value>تمت معالجة {0:N0} من {1:N0} بايت المصدر</value></data>
-  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>{0:N0} بايتات المصدر التي تمت معالجتها؛ إجمالي غير معروف</value></data>
+  <data name="UploadSourceBytes" xml:space="preserve"><value>تمت معالجة {0} من {1} {2}</value></data>
+  <data name="UploadSourceBytesUnknownTotal" xml:space="preserve"><value>تمت معالجة {0} {1}؛ الحجم الإجمالي غير معروف</value></data>
   <data name="UploadBytesUnknown" xml:space="preserve"><value>تقدم البايت غير متوفر.</value></data>
   <data name="UploadTransferring" xml:space="preserve"><value>جارٍ الرفع…</value></data>
   <data name="UploadFinalizing" xml:space="preserve"><value>في انتظار تأكيد الموفر...</value></data>
@@ -217,4 +217,13 @@
   <data name="UploadCancelling" xml:space="preserve"><value>طلب الإلغاء؛ في انتظار النقل النشط.</value></data>
   <data name="UploadBatchCount" xml:space="preserve"><value>اكتمل {0} من {1} من الملفات</value></data>
   <data name="UploadPartialWarning" xml:space="preserve"><value>تبقى التحميلات المكتملة على الخادم. قد يؤدي التحميل المتقطع إلى ترك ملف جزئي.</value></data>
+  <data name="TransferUnitBytes" xml:space="preserve"><value>بايت</value></data>
+  <data name="TransferDetails" xml:space="preserve"><value>{0} · {1}/s · الوقت المتبقي {2}</value></data>
+  <data name="TransferUnknown" xml:space="preserve"><value>غير معروف</value></data>
+  <data name="DownloadTransferring" xml:space="preserve"><value>جارٍ التنزيل…</value></data>
+  <data name="DownloadPartialWarning" xml:space="preserve"><value>تبقى التنزيلات المكتملة على القرص. قد يترك التنزيل المتوقف ملفًا غير مكتمل.</value></data>
+  <data name="UploadRetryFailed" xml:space="preserve"><value>إعادة محاولة الملفات الفاشلة</value></data>
+  <data name="UploadContinueRemaining" xml:space="preserve"><value>تحميل الملفات المتبقية</value></data>
+  <data name="UploadRetryHint" xml:space="preserve"><value>يبدأ الملفات الفاشلة أو الملغاة من البداية ويتخطى الملفات الناجحة.</value></data>
+  <data name="UploadRetryUnsupported" xml:space="preserve"><value>قد تؤدي إعادة المحاولة إلى إنشاء نسخة مكررة. يمكن تحميل الملفات المتبقية.</value></data>
 </root>

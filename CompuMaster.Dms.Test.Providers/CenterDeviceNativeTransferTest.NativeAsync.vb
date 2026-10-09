@@ -46,14 +46,22 @@ Public Class CenterDeviceNativeTransferTest
         End Try
     End Function
 
-    <TestCase(False), TestCase(True)>
-    Public Async Function DownloadStreamsToDiskAndPreservesSelectedIdentity(useId As Boolean) As Task
+    <TestCase(False, False), TestCase(True, False), TestCase(False, True), TestCase(True, True)>
+    Public Async Function DownloadStreamsToDiskAndPreservesSelectedIdentity(useId As Boolean, withProgress As Boolean) As Task
         Dim provider As New TransferProvider(False)
         Dim localPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"))
         Dim timestamp = New DateTime(2025, 1, 2, 3, 4, 6, DateTimeKind.Local)
         Try
             Using cancellation As New CancellationTokenSource()
-                If useId Then
+                If withProgress Then
+                    Dim item As New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .FullName = "collection/fixture.bin", .ExtendedInfosFileID = If(useId, "second-id", Nothing), .LastModificationOnLocalTime = timestamp}
+                    Dim progress As New DownloadCollector()
+                    Await provider.DownloadFileWithProgressAsync(item, localPath, progress, cancellation.Token)
+                    Assert.That(provider.RequestId, [Is].EqualTo(If(useId, "second-id", Nothing)))
+                    Assert.That(provider.RequestPath, [Is].EqualTo(If(useId, Nothing, "collection/fixture.bin")))
+                    Assert.That(progress.Values.Last().BytesTransferred, [Is].EqualTo(200000))
+                    Assert.That(progress.Values.Last().Phase, [Is].EqualTo(DmsTransferPhase.Completed))
+                ElseIf useId Then
                     Dim item As New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .FullName = "collection/duplicate", .ExtendedInfosFileID = "second-id", .ExtendedInfosCollisionDetected = True, .LastModificationOnLocalTime = timestamp}
                     Await provider.DownloadFileAsync(item, localPath, cancellation.Token)
                     Assert.That(provider.RequestId, [Is].EqualTo("second-id"))
@@ -101,13 +109,14 @@ Public Class CenterDeviceNativeTransferTest
         End Using
     End Function
 
-    <TestCase(False), TestCase(True)>
-    Public Async Function DownloadFailureOrCancellationDisposesTheStream(cancel As Boolean) As Task
+    <TestCase(False, False), TestCase(True, False), TestCase(False, True), TestCase(True, True)>
+    Public Async Function DownloadFailureOrCancellationDisposesTheStream(cancel As Boolean, withProgress As Boolean) As Task
         Dim provider As New TransferProvider(False) With {.FailDownload = Not cancel, .BlockDownload = cancel}
         Dim localPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"))
         Try
             Using cancellation As New CancellationTokenSource()
-                Dim operation = provider.DownloadFileAsync("collection/fixture.bin", localPath, New DateTime(2001, 1, 1), cancellation.Token)
+                Dim progress As New DownloadCollector()
+                Dim operation = If(withProgress, provider.DownloadFileWithProgressAsync(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .FullName = "collection/fixture.bin", .LastModificationOnLocalTime = New DateTime(2001, 1, 1)}, localPath, progress, cancellation.Token), provider.DownloadFileAsync("collection/fixture.bin", localPath, New DateTime(2001, 1, 1), cancellation.Token))
                 If cancel Then
                     Await provider.DownloadStream.Entered.Task
                     cancellation.Cancel()
@@ -120,6 +129,7 @@ Public Class CenterDeviceNativeTransferTest
                                                             End Function, Func(Of Task)))
                 End If
                 Assert.That(provider.DownloadStream.Disposed, [Is].True)
+                Assert.That(progress.Values.Any(Function(value) value.Phase = DmsTransferPhase.Completed), [Is].False)
                 If File.Exists(localPath) Then Assert.That(File.GetLastWriteTime(localPath).Year, [Is].Not.EqualTo(2001))
             End Using
         Finally
@@ -217,7 +227,7 @@ Public Class CenterDeviceNativeTransferTest
         Inherits Global.CenterDevice.IO.FileInfo
         Private ReadOnly Source As Stream
         Public Sub New(io As FixtureIo, source As Stream)
-            MyBase.New(io, Nothing, New DocumentFullMetadata With {.Id = "download-id", .Filename = "fixture.bin", .DocumentDate = New DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)})
+            MyBase.New(io, Nothing, New DocumentFullMetadata With {.Id = "download-id", .Filename = "fixture.bin", .Size = 200000, .DocumentDate = New DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)})
             Me.Source = source
         End Sub
         Public Overrides Function DownloadAsync(Optional version As Long = 0, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Stream)
@@ -274,6 +284,14 @@ Public Class CenterDeviceNativeTransferTest
         End Sub
         Public Overrides Sub Write(buffer As Byte(), offset As Integer, count As Integer)
             Throw New NotSupportedException()
+        End Sub
+    End Class
+
+    Private Class DownloadCollector
+        Implements IProgress(Of DmsTransferProgress)
+        Friend ReadOnly Values As New List(Of DmsTransferProgress)
+        Public Sub Report(value As DmsTransferProgress) Implements IProgress(Of DmsTransferProgress).Report
+            Values.Add(value)
         End Sub
     End Class
 End Class
