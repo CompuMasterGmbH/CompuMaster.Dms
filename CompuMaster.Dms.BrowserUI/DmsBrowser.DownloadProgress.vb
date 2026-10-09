@@ -7,7 +7,7 @@ Partial Public Class DmsBrowser
     Private Async Function DownloadWithDialogAsync(files As DmsResourceItem(), destinations As String()) As Task
         If files.Length = 0 Then Return
         Dim names = files.Select(Function(file) file.Name).ToArray()
-        Using dialog As New UploadProgressDialog(names, True, True, Me.Icon)
+        Using dialog = CreateTransferDialog(names, True)
             dialog.Show(Me)
             Try
                 Await DownloadBatchWithProgressAsync(Me.DmsProvider, files, destinations, dialog, dialog.CancellationToken)

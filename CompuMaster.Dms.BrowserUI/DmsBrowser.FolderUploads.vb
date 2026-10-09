@@ -72,7 +72,7 @@ Partial Public Class DmsBrowser
 
     Private Async Sub SelectFolderUpload(sender As Object, e As EventArgs)
         If Not CanUploadDrop() OrElse TreeViewDmsFolders.SelectedNode Is Nothing Then Return
-        Using picker As New FolderBrowserDialog With {.Description = UiStrings.GetText("ActionUploadFolder"), .SelectedPath = LocalDefaultFolderUploads, .ShowNewFolderButton = False}
+        Using picker As New FolderBrowserDialog With {.Description = GetTransferWindowTitle("ActionUploadFolder"), .SelectedPath = LocalDefaultFolderUploads, .ShowNewFolderButton = False}
             If picker.ShowDialog(Me) = DialogResult.OK Then Await UploadLocalSelectionAsync({picker.SelectedPath}, TreeViewDmsFolders.SelectedNode)
         End Using
     End Sub
@@ -84,7 +84,7 @@ Partial Public Class DmsBrowser
             Dim successful As Boolean
             Await RunTransferAsync(Async Function()
                                        Dim plan As LocalUploadPlan
-                                       Using preparation As New UploadProgressDialog(New String() {}, False, False, Me.Icon)
+                                       Using preparation = CreateTransferDialog(New String() {}, False, False)
                                            preparation.Show(Me)
                                            Try
                                                plan = Await Task.Run(Function() LocalUploadPlan.Build(paths, preparation.CancellationToken, LocalParentMustFolder))
