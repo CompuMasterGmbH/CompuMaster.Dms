@@ -3,6 +3,8 @@ Option Strict On
 
 Imports System.Diagnostics
 Imports System.Drawing
+Imports System.Globalization
+Imports System.IO
 Imports System.Threading
 Imports System.Windows.Forms
 Imports NUnit.Framework
@@ -13,12 +15,23 @@ Imports NUnit.Framework
 Public Class DevelopmentGuiTestSession
     Private NoticeThread As Thread
     Private ReadOnly StopRequested As New ManualResetEventSlim()
+    Private ReadOnly RunClock As New Stopwatch()
+    Private TimingKey As String
+    Private TimingUnits As Integer
+    Private PhysicalRunCompleted As Boolean
+    Private PhysicalRunCompletionReported As Boolean
 
     ''' <summary>Warns interactive development users before GUI tests start.</summary>
     <OneTimeSetUp>
     Public Sub StartNotice()
+        ConfigurePhysicalDpiHost()
         If Not ShouldShowNotice(Environment.MachineName, Environment.GetEnvironmentVariable("DMS_GUI_TEST_NOTICE")) Then Return
-        Dim estimate = ReadEstimate(Environment.GetEnvironmentVariable("DMS_GUI_TEST_ETA_SECONDS"))
+        TimingKey = Environment.GetEnvironmentVariable("DMS_GUI_TEST_RUN_KEY")
+        If Not Integer.TryParse(Environment.GetEnvironmentVariable("DMS_GUI_TEST_WORK_UNITS"), TimingUnits) OrElse TimingUnits < 1 OrElse TimingUnits > 86400 Then TimingUnits = 1
+        Dim estimate = EstimateDuration(Environment.GetEnvironmentVariable("DMS_GUI_TEST_ETA_SECONDS"),
+            ReadEstimate(Environment.GetEnvironmentVariable("DMS_GUI_TEST_FALLBACK_SECONDS")), TimingUnits,
+            ReadHistory(TimingKey))
+        Console.WriteLine($"GUI notice: estimate={estimate}s; scope={TimingKey}; workUnits={TimingUnits}.")
         Using ready As New ManualResetEventSlim()
             Dim startupFailure As Exception = Nothing
             NoticeThread = New Thread(
@@ -43,15 +56,87 @@ Public Class DevelopmentGuiTestSession
                 Throw New InvalidOperationException("The development GUI test notice failed; GUI tests were not started.", startupFailure)
             End If
         End Using
+        RunClock.Start()
     End Sub
 
     ''' <summary>Closes the notice after successful or failed GUI tests.</summary>
     <OneTimeTearDown>
     Public Sub StopNotice()
+        Dim measured = RunClock.IsRunning
+        If measured Then
+            RunClock.Stop()
+            Console.WriteLine($"GUI duration: actual={RunClock.Elapsed.TotalSeconds:F1}s; scope={TimingKey}; workUnits={TimingUnits}.")
+        End If
         StopRequested.Set()
         If NoticeThread IsNot Nothing AndAlso Not NoticeThread.Join(TimeSpan.FromSeconds(5)) Then
             Throw New TimeoutException("The GUI test notice did not close after the test run.")
         End If
+        If measured Then
+            Dim completed = If(PhysicalRunCompletionReported, PhysicalRunCompleted,
+                TestContext.CurrentContext.Result.Outcome.Status = NUnit.Framework.Interfaces.TestStatus.Passed)
+            If completed AndAlso Not String.IsNullOrWhiteSpace(TimingKey) Then SaveHistory(TimingKey, RunClock.Elapsed.TotalSeconds / TimingUnits)
+        End If
+    End Sub
+
+    Friend Sub CompletePhysicalRun(success As Boolean)
+        PhysicalRunCompleted = success
+        PhysicalRunCompletionReported = True
+    End Sub
+
+    Friend Shared Sub ConfigurePhysicalDpiHost()
+        If Environment.GetEnvironmentVariable("DMS_PHYSICAL_DPI_TESTS") <> "1" Then Return
+#If NET8_0_OR_GREATER Then
+        If Application.HighDpiMode <> HighDpiMode.PerMonitorV2 Then
+            Assert.That(Application.SetHighDpiMode(HighDpiMode.PerMonitorV2), [Is].True, "Configure the opt-in native DPI test host before any window is created.")
+        End If
+#End If
+        Application.EnableVisualStyles()
+    End Sub
+
+    'Each scope identifies a framework and workload, including screenshot mode.
+    'Measurements exclude compilation and the three-second countdown.
+    Friend Shared Function EstimateDuration(explicitSeconds As String, fallbackSeconds As Integer, workUnits As Integer, secondsPerUnit As IEnumerable(Of Double)) As Integer
+        Dim explicitValue As Integer
+        If Integer.TryParse(explicitSeconds, explicitValue) AndAlso explicitValue > 0 AndAlso explicitValue <= 86400 Then Return explicitValue
+        Dim recent = secondsPerUnit.Where(Function(value) value > 0 AndAlso Not Double.IsInfinity(value) AndAlso Not Double.IsNaN(value)).Reverse().Take(5).ToArray()
+        If recent.Length = 0 Then Return fallbackSeconds
+        Return CInt(Math.Min(86400, Math.Ceiling(recent.Max() * Math.Max(1, workUnits) * 1.25 + 5)))
+    End Function
+
+    Private Shared ReadOnly Property HistoryPath As String
+        Get
+            Return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gui-test-durations.tsv")
+        End Get
+    End Property
+
+    Private Shared Function ReadHistory(key As String) As Double()
+        If String.IsNullOrWhiteSpace(key) Then Return {}
+        Try
+            If Not File.Exists(HistoryPath) Then Return {}
+            Dim values As New List(Of Double)()
+            For Each line In File.ReadLines(HistoryPath)
+                Dim columns = line.Split(ControlChars.Tab)
+                Dim seconds As Double
+                If columns.Length = 3 AndAlso columns(1) = key AndAlso Double.TryParse(columns(2), NumberStyles.Float, CultureInfo.InvariantCulture, seconds) Then values.Add(seconds)
+            Next
+            Return values.ToArray()
+        Catch ex As IOException
+            Console.WriteLine("GUI timing history unavailable: " & ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Console.WriteLine("GUI timing history unavailable: " & ex.Message)
+        End Try
+        Return {}
+    End Function
+
+    Private Shared Sub SaveHistory(key As String, secondsPerUnit As Double)
+        If key.Contains(ControlChars.Tab) OrElse key.Contains(ControlChars.Cr) OrElse key.Contains(ControlChars.Lf) Then Return
+        Try
+            File.AppendAllText(HistoryPath, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture) & ControlChars.Tab & key & ControlChars.Tab & secondsPerUnit.ToString("R", CultureInfo.InvariantCulture) & Environment.NewLine, New System.Text.UTF8Encoding(True))
+        Catch ex As IOException
+            Console.WriteLine("GUI timing history could not be saved: " & ex.Message)
+        Catch ex As UnauthorizedAccessException
+            Console.WriteLine("GUI timing history could not be saved: " & ex.Message)
+        End Try
     End Sub
 
     Friend Shared Function ShouldShowNotice(machineName As String, optIn As String) As Boolean

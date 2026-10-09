@@ -5,8 +5,10 @@
     <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputType>WinExe</OutputType>
-    <StartupObject>CompuMaster.Dms.TestDemo.ScopevisioTeamwork.LoginForm</StartupObject>
+    <StartupObject>CompuMaster.Dms.TestDemo.ScopevisioTeamwork.DemoStartup</StartupObject>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <ApplicationManifest>..\CompuMaster.Dms.TestDemo.WebDav\app.manifest</ApplicationManifest>
+    <AppConfig>..\CompuMaster.Dms.TestDemo.WebDav\App.config</AppConfig>
     <MyType>WindowsFormsWithCustomSubMain</MyType>
     <Configurations>Debug;Release;CI_CD</Configurations>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
@@ -78,4 +80,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.TestDemo.WebDav\DemoStartup.vb" Link="DemoStartup.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.BrowserUI\InitialWindowDpi.vb" Link="InitialWindowDpi.vb" />
+  </ItemGroup>
 </Project>

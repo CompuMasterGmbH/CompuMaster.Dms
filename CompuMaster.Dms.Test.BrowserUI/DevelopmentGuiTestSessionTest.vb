@@ -20,6 +20,17 @@ Public Class DevelopmentGuiTestSessionTest
         Assert.That(DevelopmentGuiTestSession.ReadEstimate(value), [Is].EqualTo(expected))
     End Sub
 
+    ''' <summary>Verifies that recent slow runs and workload size determine the estimate.</summary>
+    <Test>
+    Public Sub EstimatesUseRecentExperienceWithMarginAndExplicitOverrides()
+        Assert.That(DevelopmentGuiTestSession.EstimateDuration(Nothing, 60, 20, {5.0, 8.0, 6.0}), [Is].EqualTo(205))
+        Assert.That(DevelopmentGuiTestSession.EstimateDuration(Nothing, 60, 2, {5.0, 8.0, 6.0}), [Is].EqualTo(25))
+        Assert.That(DevelopmentGuiTestSession.EstimateDuration(Nothing, 60, 2, {100.0, 5.0, 5.0, 5.0, 5.0, 5.0}), [Is].EqualTo(18))
+        Assert.That(DevelopmentGuiTestSession.EstimateDuration("75", 60, 20, {100.0}), [Is].EqualTo(75))
+        Assert.That(DevelopmentGuiTestSession.EstimateDuration("invalid", 90, 20, {Double.NaN, Double.PositiveInfinity, -1.0}), [Is].EqualTo(90))
+        Assert.That(DevelopmentGuiTestSession.EstimateDuration(Nothing, 60, 20, {10000.0}), [Is].EqualTo(86400))
+    End Sub
+
     ''' <summary>Verifies countdown, ETA, foreground preservation, and cleanup on native Windows.</summary>
     <Test, Apartment(ApartmentState.STA), NonParallelizable>
     Public Sub NativeNoticeDoesNotActivateAndClosesAfterCountdownAndEta()

@@ -26,9 +26,7 @@ Public Class LocalizedLayoutAcceptanceTest
         Dim failures As New List(Of String)
         Try
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName)
-            Dim input As TextBox = Nothing
-            Dim forms As Form() = {New PreviewWebDav(), New PreviewOwnCloud(), New PreviewNextcloud(), New PreviewScopevisio(), New PreviewBrowser(False), New PreviewBrowser(True), New PreviewLinks(), New PreviewShares(False), New PreviewShares(True), New PreviewDetails(), New DmsInstanceSelectionDialog({New DmsInstanceInfo("sample", "Sample instance", True)}, Nothing), New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"}), UITools.CreateInputDialog("Input", UiStrings.Format("NewFolderPrompt", "sample/" & New String("X"c, 80)), "", input)}
-            For Each form In forms
+            For Each form In CreatePreviewForms()
                 Using form
                     form.ShowInTaskbar = False
                     form.Opacity = 0
@@ -80,7 +78,24 @@ Public Class LocalizedLayoutAcceptanceTest
         Assert.That(failures, [Is].Empty, cultureName & Environment.NewLine & String.Join(Environment.NewLine, failures))
     End Sub
 
-    Private Shared Sub Inspect(parent As Control, failures As List(Of String), path As String)
+    Friend Shared Iterator Function CreatePreviewForms() As IEnumerable(Of Form)
+        Yield New PreviewWebDav()
+        Yield New PreviewOwnCloud()
+        Yield New PreviewNextcloud()
+        Yield New PreviewScopevisio()
+        Yield New PreviewBrowser(False)
+        Yield New PreviewBrowser(True)
+        Yield New PreviewLinks()
+        Yield New PreviewShares(False)
+        Yield New PreviewShares(True)
+        Yield New PreviewDetails()
+        Yield New DmsInstanceSelectionDialog({New DmsInstanceInfo("sample", "Sample instance", True)}, Nothing)
+        Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"})
+        Dim input As TextBox = Nothing
+        Yield UITools.CreateInputDialog("Input", UiStrings.Format("NewFolderPrompt", "sample/" & New String("X"c, 80)), "", input)
+    End Function
+
+    Friend Shared Sub Inspect(parent As Control, failures As List(Of String), path As String)
         Dim children = parent.Controls.Cast(Of Control)().Where(Function(c) c.Visible).ToArray()
         For Each child In children
             Dim childPath = path & "/" & If(String.IsNullOrEmpty(child.Name), child.GetType().Name, child.Name)
@@ -88,6 +103,17 @@ Public Class LocalizedLayoutAcceptanceTest
             If TypeOf child Is ButtonBase OrElse TypeOf child Is Label Then
                 Dim preferred = child.GetPreferredSize(If(TypeOf child Is Label AndAlso Not DirectCast(child, Label).AutoSize, New Size(child.ClientSize.Width, 0), Size.Empty))
                 If preferred.Width > child.Width OrElse preferred.Height > child.Height Then failures.Add(childPath & " clipped: actual=" & child.Size.ToString() & "; preferred=" & preferred.ToString() & "; text=" & child.Text)
+                If TypeOf child Is CheckBox AndAlso DirectCast(child, CheckBox).Appearance = Appearance.Button Then
+                    'Native preferred size alone can miss a wrapped, vertically clipped caption.
+                    Dim caption = TextRenderer.MeasureText(child.Text, child.Font, Size.Empty, TextFormatFlags.SingleLine)
+                    Dim textWidth = Math.Max(1, child.ClientSize.Width - child.Padding.Horizontal * 2 - child.Font.Height)
+                    Dim wrapped = TextRenderer.MeasureText(child.Text, child.Font, New Size(textWidth, Integer.MaxValue), TextFormatFlags.WordBreak)
+                    If wrapped.Height > caption.Height Then failures.Add(childPath & " toggle caption wraps within its native text insets: " & child.Text)
+                    If caption.Height + child.Padding.Vertical > child.ClientSize.Height Then failures.Add(childPath & " toggle caption clipped vertically: " & child.Text)
+                    If child.Name = "ButtonShowFiles" Then
+                        If DirectCast(child, CheckBox).TextAlign <> ContentAlignment.MiddleCenter OrElse child.Padding.Left <= 0 OrElse child.Padding.Left <> child.Padding.Right Then failures.Add(childPath & " needs a centered caption and symmetric inner margins.")
+                    End If
+                End If
             ElseIf TypeOf child Is GroupBox Then
                 If TextRenderer.MeasureText(child.Text, child.Font).Width + 16 > child.Width Then failures.Add(childPath & " clipped group caption: " & child.Text)
             End If

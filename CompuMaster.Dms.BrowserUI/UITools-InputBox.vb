@@ -100,8 +100,9 @@ Partial Friend Class UITools
         Dim entry = input
         LocalizedLayout.Bind(form,
             Sub()
-                lblPrompt.MaximumSize = New Size(form.ClientSize.Width - 30, 0)
-                form.ClientSize = New Size(form.ClientSize.Width, Math.Max(160, lblPrompt.GetPreferredSize(lblPrompt.MaximumSize).Height + entry.PreferredHeight + buttons.GetPreferredSize(Size.Empty).Height + 50))
+                lblPrompt.MaximumSize = New Size(Math.Max(1, form.ClientSize.Width - layout.Padding.Horizontal - lblPrompt.Margin.Horizontal), 0)
+                Dim spacing = layout.Padding.Vertical + lblPrompt.Margin.Vertical + entry.Margin.Vertical + buttons.Margin.Vertical
+                form.ClientSize = New Size(form.ClientSize.Width, Math.Max(160, lblPrompt.GetPreferredSize(lblPrompt.MaximumSize).Height + entry.PreferredHeight + buttons.GetPreferredSize(Size.Empty).Height + spacing))
             End Sub)
         Return form
     End Function
