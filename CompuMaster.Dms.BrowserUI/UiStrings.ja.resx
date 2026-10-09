@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>残りのファイルをアップロード</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>失敗またはキャンセルしたファイルを最初から再試行します。成功したファイルはスキップします。</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>再試行すると重複ファイルが作成される可能性があります。残りのファイルはアップロードできます。</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>フォルダーをアップロード</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>フォルダーを準備中…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>フォルダーを準備中: {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>リンクされたファイルやフォルダーは再帰的にアップロードできません: {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>複数の項目の保存先が同じか、フォルダーのパスにファイルがあります: {0}</value></data>
 </root>

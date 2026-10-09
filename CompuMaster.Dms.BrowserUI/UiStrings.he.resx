@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>העלאת הקבצים שנותרו</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>מתחיל מחדש קבצים שנכשלו או בוטלו ומדלג על קבצים שהצליחו.</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>ניסיון חוזר עלול ליצור קובץ כפול. עדיין ניתן להעלות את הקבצים שנותרו.</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>העלאת תיקייה</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>מכין תיקיות…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>הכנת תיקייה: {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>לא ניתן להעלות קבצים ותיקיות מקושרים באופן רקורסיבי: {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>למספר פריטים יש אותו יעד או שקובץ תופס את נתיב התיקייה: {0}</value></data>
 </root>

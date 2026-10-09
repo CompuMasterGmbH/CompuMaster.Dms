@@ -28,6 +28,7 @@ Public Class DmsBrowser
 
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
+        InitializeFolderUploads()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
         LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
@@ -335,6 +336,7 @@ Public Class DmsBrowser
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonShareFile, SupportsSharing AndAlso ((value And FileOrFolderActions.AllowSharings) = FileOrFolderActions.AllowSharings), False)
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonProperties, True, False)
             Me.UpdateFileToolbarLayout()
+            Me.UpdateUploadAccess()
             If AuthorizedProvider IsNot Nothing AndAlso (Me.InstanceButton IsNot Nothing OrElse Me.IsHandleCreated) Then Me.InitializeDmsInstanceSwitching()
         End Set
     End Property
@@ -369,6 +371,7 @@ Public Class DmsBrowser
                     Me.ButtonShowFiles.Checked = True
             End Select
             Me.UpdateFileToolbarLayout()
+            Me.UpdateUploadAccess()
         End Set
     End Property
 
@@ -1225,9 +1228,7 @@ Public Class DmsBrowser
                     Next
                     Dim RemoteFolderPath As String = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem.FullName
                     Dim LocalFiles As String() = f.FileNames
-                    Dim successful As Boolean
-                    Await Me.RunTransferAsync(Async Function() successful = Await Me.UploadWithDialogAsync(RemoteFolderPath, LocalFiles))
-                    If successful Then System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Await Me.UploadLocalSelectionAsync(LocalFiles, Me.TreeViewDmsFolders.SelectedNode)
                 Else
                     System.Windows.Forms.MessageBox.Show(Me, UiStrings.GetText("NoFileSelected"), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 End If

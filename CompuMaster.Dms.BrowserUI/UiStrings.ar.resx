@@ -226,4 +226,9 @@
   <data name="UploadContinueRemaining" xml:space="preserve"><value>تحميل الملفات المتبقية</value></data>
   <data name="UploadRetryHint" xml:space="preserve"><value>يبدأ الملفات الفاشلة أو الملغاة من البداية ويتخطى الملفات الناجحة.</value></data>
   <data name="UploadRetryUnsupported" xml:space="preserve"><value>قد تؤدي إعادة المحاولة إلى إنشاء نسخة مكررة. يمكن تحميل الملفات المتبقية.</value></data>
+  <data name="ActionUploadFolder" xml:space="preserve"><value>تحميل مجلد</value></data>
+  <data name="UploadPreparingFolders" xml:space="preserve"><value>جارٍ إعداد المجلدات…</value></data>
+  <data name="UploadPreparingFolder" xml:space="preserve"><value>إعداد المجلد: {0}</value></data>
+  <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>لا يمكن تحميل الملفات والمجلدات المرتبطة بشكل متكرر: {0}</value></data>
+  <data name="UploadSelectionCollision" xml:space="preserve"><value>عناصر متعددة لها الوجهة نفسها أو يشغل ملف مسار المجلد: {0}</value></data>
 </root>
