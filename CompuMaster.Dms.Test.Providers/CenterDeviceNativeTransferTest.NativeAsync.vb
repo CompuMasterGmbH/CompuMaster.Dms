@@ -12,7 +12,7 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public Class CenterDeviceNativeTransferTest
-    <TestCase(False, "bytes"), TestCase(True, "bytes"), TestCase(False, "factory"), TestCase(True, "factory"), TestCase(False, "file"), TestCase(True, "file")>
+    <TestCase(False, "bytes"), TestCase(True, "bytes"), TestCase(False, "factory"), TestCase(True, "factory"), TestCase(False, "file"), TestCase(True, "file"), TestCase(False, "progress"), TestCase(True, "progress")>
     Public Async Function UploadPreservesVersionSelectionAndInvalidatesTheCache(existing As Boolean, input As String) As Task
         Dim provider As New TransferProvider(existing)
         Dim localPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"))
@@ -31,8 +31,18 @@ Public Class CenterDeviceNativeTransferTest
                         Assert.That(source.CanRead, [Is].False, "The upload client owns the stream.")
                     Case Else
                         File.WriteAllBytes(localPath, payload)
-                        Await provider.UploadFileAsync("collection/fixture.bin", localPath, cancellation.Token)
+                        Dim modified As New DateTime(2024, 2, 3, 4, 5, 6, DateTimeKind.Utc)
+                        File.SetLastWriteTimeUtc(localPath, modified)
+                        If input = "progress" Then
+                            Dim progress As New DownloadCollector
+                            Await provider.UploadFileWithProgressAsync("collection/fixture.bin", localPath, progress, cancellation.Token)
+                            Assert.That(progress.Values.Last().Phase, [Is].EqualTo(DmsTransferPhase.Completed))
+                        Else
+                            Await provider.UploadFileAsync("collection/fixture.bin", localPath, cancellation.Token)
+                        End If
+                        Assert.That(provider.ModificationTime, [Is].EqualTo(modified))
                 End Select
+                If input = "factory" OrElse input = "bytes" Then Assert.That(provider.ModificationTime, [Is].Null, "Stream uploads retain the existing date default and hook.")
                 Assert.That(provider.UploadedBytes, [Is].EqualTo(payload))
                 Assert.That(provider.VersionId, [Is].EqualTo(If(existing, "selected-id", Nothing)))
                 Assert.That(provider.UploadName, [Is].EqualTo("fixture.bin"))
@@ -164,6 +174,7 @@ Public Class CenterDeviceNativeTransferTest
         Public VersionId As String
         Public UploadName As String
         Public UploadedBytes As Byte()
+        Public ModificationTime As DateTime?
         Public RequestId As String
         Public RequestPath As String
         Public RequestToken As CancellationToken
@@ -190,6 +201,10 @@ Public Class CenterDeviceNativeTransferTest
                 Await source.CopyToAsync(target, 81920, cancellationToken)
                 UploadedBytes = target.ToArray()
             End Using
+        End Function
+        Protected Overrides Function UploadNativeFileAsync(parent As Global.CenterDevice.IO.DirectoryInfo, existingFile As Global.CenterDevice.IO.FileInfo, fileName As String, binaryData As Func(Of Stream), modificationTimeUtc As DateTime?, cancellationToken As CancellationToken) As Task
+            ModificationTime = modificationTimeUtc
+            Return MyBase.UploadNativeFileAsync(parent, existingFile, fileName, binaryData, modificationTimeUtc, cancellationToken)
         End Function
         Private Function CreateDownloadFile(token As CancellationToken) As Global.CenterDevice.IO.FileInfo
             RequestToken = token

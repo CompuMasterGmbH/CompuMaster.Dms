@@ -8,6 +8,7 @@ Imports CompuMaster.Dms.Data
 
 Namespace Providers
     Partial Public MustInherit Class CenterDeviceDmsProviderBase
+        Private ReadOnly UploadModificationTime As New AsyncLocal(Of DateTime?)
         ''' <summary>Opens a parent directory for native asynchronous transfers.</summary>
         ''' <param name="remoteFolderPath">The remote parent path.</param>
         ''' <param name="cancellationToken">Cancels request admission and active HTTP I/O.</param>
@@ -52,23 +53,66 @@ Namespace Providers
         ''' <returns>A task representing upload completion.</returns>
         Protected Overridable Async Function UploadNativeFileAsync(parent As CenterDevice.IO.DirectoryInfo, existingFile As CenterDevice.IO.FileInfo, fileName As String, binaryData As Func(Of Stream), cancellationToken As CancellationToken) As Task
             If existingFile IsNot Nothing Then
-                Await existingFile.UploadNewVersionAsync(binaryData, cancellationToken).ConfigureAwait(False)
+                If UploadModificationTime.Value.HasValue Then
+                    Await existingFile.UploadNewVersionAsync(binaryData, UploadModificationTime.Value, cancellationToken).ConfigureAwait(False)
+                Else
+                    Await existingFile.UploadNewVersionAsync(binaryData, cancellationToken).ConfigureAwait(False)
+                End If
             Else
-                Await parent.UploadAndCreateNewFileAsync(binaryData, fileName, cancellationToken).ConfigureAwait(False)
+                If UploadModificationTime.Value.HasValue Then
+                    Await parent.UploadAndCreateNewFileAsync(binaryData, fileName, UploadModificationTime.Value, cancellationToken).ConfigureAwait(False)
+                Else
+                    Await parent.UploadAndCreateNewFileAsync(binaryData, fileName, cancellationToken).ConfigureAwait(False)
+                End If
             End If
+        End Function
+
+        ''' <summary>Uploads a new file or version with the source modification time.</summary>
+        ''' <param name="parent">The selected destination directory.</param>
+        ''' <param name="existingFile">The existing version target, or nothing to create a file.</param>
+        ''' <param name="fileName">The destination file name.</param>
+        ''' <param name="binaryData">Creates a readable source stream whose ownership transfers to the client.</param>
+        ''' <param name="modificationTimeUtc">The source modification time in UTC, or nothing to preserve the existing upload default and extension point.</param>
+        ''' <param name="cancellationToken">Cancels request admission and active HTTP I/O.</param>
+        ''' <returns>A task completed after server-confirmed upload.</returns>
+        ''' <remarks>Delegates through the existing upload extension point. The default implementation supplies the date to the SDK; custom overrides retain control of the upload.</remarks>
+        Protected Overridable Async Function UploadNativeFileAsync(parent As CenterDevice.IO.DirectoryInfo, existingFile As CenterDevice.IO.FileInfo, fileName As String, binaryData As Func(Of Stream), modificationTimeUtc As DateTime?, cancellationToken As CancellationToken) As Task
+            Dim previous = UploadModificationTime.Value
+            UploadModificationTime.Value = modificationTimeUtc
+            Try
+                Await Me.UploadNativeFileAsync(parent, existingFile, fileName, binaryData, cancellationToken).ConfigureAwait(False)
+            Finally
+                UploadModificationTime.Value = previous
+            End Try
         End Function
 
         ''' <inheritdoc/>
         Public Overrides Function UploadFileWithProgressAsync(remoteFilePath As String, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
-            If progress Is Nothing Then Return Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken)
-            Return Me.UploadFileWithProgressAsync(remoteFilePath, Function() New System.IO.FileStream(localFilePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read, 81920, System.IO.FileOptions.Asynchronous Or System.IO.FileOptions.SequentialScan), progress, cancellationToken)
+            Return Me.UploadLocalFileAsync(remoteFilePath, localFilePath, progress, cancellationToken)
         End Function
 
         ''' <inheritdoc/>
         ''' <remarks>Uses bounded streaming I/O and can cancel active requests. Existing path-based version selection is preserved.</remarks>
         Public Overrides Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.UploadLocalFileAsync(remoteFilePath, localFilePath, Nothing, cancellationToken)
+        End Function
+
+        Private Async Function UploadLocalFileAsync(remoteFilePath As String, localFilePath As String, progress As IProgress(Of DmsTransferProgress), cancellationToken As CancellationToken) As Task
             If localFilePath Is Nothing Then Throw New ArgumentNullException(NameOf(localFilePath))
-            Return Me.UploadFileAsync(remoteFilePath, Function() New FileStream(localFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous Or FileOptions.SequentialScan), cancellationToken)
+            cancellationToken.ThrowIfCancellationRequested()
+            Dim modified As DateTime
+            'Opening first validates the source; missing files must not acquire a synthetic 1601 date.
+            Using input = File.OpenRead(localFilePath)
+                modified = File.GetLastWriteTimeUtc(localFilePath)
+            End Using
+            Dim tracked As UploadProgressStream = Nothing
+            Await Me.UploadFileCoreAsync(remoteFilePath, Function()
+                                                           Dim input As New FileStream(localFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous Or FileOptions.SequentialScan)
+                                                           If progress Is Nothing Then Return CType(input, Stream)
+                                                           tracked = New UploadProgressStream(input, progress)
+                                                           Return tracked
+                                                       End Function, modified, cancellationToken).ConfigureAwait(False)
+            progress?.Report(If(tracked Is Nothing, New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Completed), tracked.Snapshot(DmsTransferPhase.Completed)))
         End Function
 
         ''' <inheritdoc/>
@@ -79,7 +123,11 @@ Namespace Providers
 
         ''' <inheritdoc/>
         ''' <remarks>The client owns each factory stream. An uncertain upload failure invalidates the file cache and is not automatically replayed.</remarks>
-        Public Overrides Async Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of Stream), Optional cancellationToken As CancellationToken = Nothing) As Task
+        Public Overrides Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of Stream), Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Me.UploadFileCoreAsync(remoteFilePath, binaryData, Nothing, cancellationToken)
+        End Function
+
+        Private Async Function UploadFileCoreAsync(remoteFilePath As String, binaryData As Func(Of Stream), modificationTimeUtc As DateTime?, cancellationToken As CancellationToken) As Task
             If binaryData Is Nothing Then Throw New ArgumentNullException(NameOf(binaryData))
             cancellationToken.ThrowIfCancellationRequested()
             Dim parent = Await Me.OpenNativeTransferDirectoryAsync(Me.ParentDirectoryPath(remoteFilePath), cancellationToken).ConfigureAwait(False)
@@ -87,7 +135,7 @@ Namespace Providers
             Dim existingFile = Await parent.TryGetFileAsync(fileName, cancellationToken).ConfigureAwait(False)
             cancellationToken.ThrowIfCancellationRequested()
             Try
-                Await Me.UploadNativeFileAsync(parent, existingFile, fileName, binaryData, cancellationToken).ConfigureAwait(False)
+                Await Me.UploadNativeFileAsync(parent, existingFile, fileName, binaryData, modificationTimeUtc, cancellationToken).ConfigureAwait(False)
             Finally
                 parent.ResetFilesCache()
             End Try
