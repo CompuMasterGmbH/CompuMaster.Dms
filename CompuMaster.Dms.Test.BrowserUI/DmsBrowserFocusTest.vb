@@ -225,9 +225,15 @@ Public Class DmsBrowserFocusTest
         Dim currentThread = GetCurrentThreadId()
         Dim attached As Boolean
         Try
-            If foregroundThread <> 0 AndAlso foregroundThread <> currentThread Then
+            'Normal activation can succeed without attaching another process's input queue.
+            'Only use the attachment fallback if the window still lacks foreground input.
+            SetForegroundWindow(window.Handle)
+            window.Activate()
+            Application.DoEvents()
+            If GetForegroundWindow() <> window.Handle AndAlso foregroundThread <> 0 AndAlso foregroundThread <> currentThread Then
                 attached = AttachThreadInput(currentThread, foregroundThread, True)
-                Assert.That(attached, [Is].True, "The GUI focus fixture must acquire its foreground input context.")
+                Dim errorCode = Marshal.GetLastWin32Error()
+                Assert.That(attached, [Is].True, "The GUI focus fixture could not acquire its foreground input context; Win32 error=" & errorCode.ToString() & ".")
             End If
             SetForegroundWindow(window.Handle)
             window.Activate()
@@ -248,7 +254,7 @@ Public Class DmsBrowserFocusTest
     <DllImport("kernel32.dll")>
     Private Shared Function GetCurrentThreadId() As UInteger
     End Function
-    <DllImport("user32.dll")>
+    <DllImport("user32.dll", SetLastError:=True)>
     Private Shared Function AttachThreadInput(first As UInteger, second As UInteger, attach As Boolean) As Boolean
     End Function
     <DllImport("user32.dll")>
