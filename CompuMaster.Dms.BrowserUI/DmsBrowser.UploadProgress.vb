@@ -305,6 +305,10 @@ Friend NotInheritable Class UploadProgressDialog
         If ArrangingProgress OrElse IsDisposed Then Return
         ArrangingProgress = True
         Try
+            'Size recovery actions even while hidden so their first display fits the localized caption.
+            For Each button In {CancelUpload, RetryFiles, ContinueFiles}
+                button.Size = button.GetPreferredSize(Drawing.Size.Empty)
+            Next
             ConstrainProgressLabels()
             Dim labelsHeight = {FileLabel, ByteLabel, StatusLabel, BatchLabel, PartialWarning}.Sum(Function(label) label.GetPreferredSize(label.MaximumSize).Height + label.Margin.Vertical)
             Dim requiredHeight = labelsHeight + FileBar.Height + BatchBar.Height + ButtonRow.GetPreferredSize(New Drawing.Size(ProgressLayout.ClientSize.Width - ProgressLayout.Padding.Horizontal, 0)).Height + Font.Height * 3 + 70
