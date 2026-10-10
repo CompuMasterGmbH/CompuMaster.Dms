@@ -106,6 +106,7 @@ Namespace Providers
         Private ReadOnly Client As OcsClient
         Private ReadOnly ReadJson As Func(Of String, String)
         Private _Capabilities As OcsSharingCapabilities
+        Friend Property ObservedServerFamily As OcsServerFamily
 
         Public Sub New(baseUrl As String, userID As String, password As String)
             Me.Client = New OcsClient(baseUrl, userID, password)
@@ -128,6 +129,7 @@ Namespace Providers
             Catch
                 'Family detection is diagnostic only; capabilities decide support.
             End Try
+            Me.ObservedServerFamily = DetectServerFamily(Config)
             Dim CapabilityJson As String = Me.ReadJson("cloud/capabilities")
             Me.GetShares(Nothing, False, False)
 
@@ -141,7 +143,7 @@ Namespace Providers
                 SupportsShareeDiscovery = False
             End Try
 
-            Me._Capabilities = ParseCapabilities(CapabilityJson, DetectServerFamily(Config), SupportsShareeDiscovery)
+            Me._Capabilities = ParseCapabilities(CapabilityJson, Me.ObservedServerFamily, SupportsShareeDiscovery)
         End Sub
 
         Private Shared Function LoadJson(baseUrl As String, userID As String, password As String, endpoint As String) As String
