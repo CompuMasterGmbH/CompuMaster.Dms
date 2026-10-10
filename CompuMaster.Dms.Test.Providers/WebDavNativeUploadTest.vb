@@ -121,7 +121,7 @@ Public Class WebDavNativeUploadTest
             Assert.That(handler.Methods, [Is].EqualTo(New String() {"PUT"}))
             cancellation.Cancel()
             Dim opened As Boolean
-            Assert.ThrowsAsync(Of OperationCanceledException)(Async Function()
+            Assert.CatchAsync(Of OperationCanceledException)(Async Function()
                                                                  Await provider.UploadFileAsync("cancelled.bin", Function()
                                                                                                                      opened = True
                                                                                                                      Return New MemoryStream
@@ -133,16 +133,45 @@ Public Class WebDavNativeUploadTest
     End Function
 
     Private Class UnknownLengthSource
-        Inherits MemoryStream
-        Public Sub New()
-            MyBase.New(New Byte() {1, 2, 3}, False)
-        End Sub
+        Inherits Stream
+        Private ReadOnly Input As New MemoryStream(New Byte() {1, 2, 3}, False)
+        Public Overrides ReadOnly Property CanRead As Boolean = True
         Public Overrides ReadOnly Property CanSeek As Boolean = False
+        Public Overrides ReadOnly Property CanWrite As Boolean = False
         Public Overrides ReadOnly Property Length As Long
             Get
                 Throw New NotSupportedException()
             End Get
         End Property
+        Public Overrides Property Position As Long
+            Get
+                Throw New NotSupportedException()
+            End Get
+            Set(value As Long)
+                Throw New NotSupportedException()
+            End Set
+        End Property
+        Public Overrides Function Read(buffer As Byte(), offset As Integer, count As Integer) As Integer
+            Return Input.Read(buffer, offset, count)
+        End Function
+        Public Overrides Function ReadAsync(buffer As Byte(), offset As Integer, count As Integer, cancellationToken As CancellationToken) As Task(Of Integer)
+            Return Input.ReadAsync(buffer, offset, count, cancellationToken)
+        End Function
+        Public Overrides Sub Flush()
+        End Sub
+        Public Overrides Function Seek(offset As Long, origin As SeekOrigin) As Long
+            Throw New NotSupportedException()
+        End Function
+        Public Overrides Sub SetLength(value As Long)
+            Throw New NotSupportedException()
+        End Sub
+        Public Overrides Sub Write(buffer As Byte(), offset As Integer, count As Integer)
+            Throw New NotSupportedException()
+        End Sub
+        Protected Overrides Sub Dispose(disposing As Boolean)
+            If disposing Then Input.Dispose()
+            MyBase.Dispose(disposing)
+        End Sub
     End Class
 
     Private Class DavFixture
