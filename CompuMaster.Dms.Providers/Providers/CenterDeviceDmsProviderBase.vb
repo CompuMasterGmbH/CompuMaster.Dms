@@ -228,6 +228,10 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, localFilePath As String)
+            Dim modified As DateTime
+            Using input = System.IO.File.OpenRead(localFilePath)
+                modified = System.IO.File.GetLastWriteTimeUtc(localFilePath)
+            End Using
             Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
             Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
             Try
@@ -239,10 +243,10 @@ Namespace Providers
             Dim FoundFileItem As CenterDevice.IO.FileInfo = ParentRemoteDir.TryGetFile(RemoteFileName)
             If FoundFileItem IsNot Nothing Then
                 'File exists, upload new file version
-                FoundFileItem.UploadNewVersion(localFilePath)
+                FoundFileItem.UploadNewVersion(localFilePath, modified)
             Else
                 'Upload new file
-                ParentRemoteDir.UploadAndCreateNewFile(localFilePath, RemoteFileName)
+                ParentRemoteDir.UploadAndCreateNewFile(localFilePath, RemoteFileName, modified)
             End If
             ParentRemoteDir.ResetFilesCache()
         End Sub
