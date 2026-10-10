@@ -153,11 +153,11 @@ Public Class LocalizedMonitorDpiTest
 
     Friend Shared Function ReadSelectedScenarios() As Integer()
         Dim value = Environment.GetEnvironmentVariable("DMS_PHYSICAL_DPI_SCENARIOS")
-        If String.IsNullOrWhiteSpace(value) Then Return Enumerable.Range(1, 14).ToArray()
+        If String.IsNullOrWhiteSpace(value) Then Return Enumerable.Range(1, 15).ToArray()
         Dim result As New List(Of Integer)()
         For Each item In value.Split(","c)
             Dim scenario As Integer
-            If Not Integer.TryParse(item, scenario) OrElse scenario < 1 OrElse scenario > 14 Then Throw New ArgumentException("DMS_PHYSICAL_DPI_SCENARIOS requires scenario numbers from 1 to 14.")
+            If Not Integer.TryParse(item, scenario) OrElse scenario < 1 OrElse scenario > 15 Then Throw New ArgumentException("DMS_PHYSICAL_DPI_SCENARIOS requires scenario numbers from 1 to 15.")
             If Not result.Contains(scenario) Then result.Add(scenario)
         Next
         Return result.OrderBy(Function(scenario) scenario).ToArray()

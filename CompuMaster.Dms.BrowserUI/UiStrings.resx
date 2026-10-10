@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>Preparing folder: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>Linked files and folders cannot be uploaded recursively: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>Multiple selected items map to the same destination, or a file occupies the directory path: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>Download folder</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>Replace existing file</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>&amp;Replace</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>&amp;Skip</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>Apply this choice to all existing files</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>Downloaded {0} files. Skipped {1} existing files.</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>The remote folder hierarchy contains invalid entries or a cycle.</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>The download destination conflicts with another entry: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>Downloading through linked local paths is not supported: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>The remote name cannot be used as a local file or folder name: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>A file appeared at the destination after confirmation. Start again to choose whether to replace it: {0}</value></data>
 </root>

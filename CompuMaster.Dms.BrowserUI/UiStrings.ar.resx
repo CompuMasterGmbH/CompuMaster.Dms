@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>إعداد المجلد: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>لا يمكن تحميل الملفات والمجلدات المرتبطة بشكل متكرر: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>عناصر متعددة لها الوجهة نفسها أو يشغل ملف مسار المجلد: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>تنزيل المجلد</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>استبدال الملف الموجود</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>ا&amp;ستبدال</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>ت&amp;خطي</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>تطبيق هذا الاختيار على جميع الملفات الموجودة</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>تم تنزيل {0} ملف وتخطي {1} ملف موجود.</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>تحتوي بنية المجلد البعيد على عناصر غير صالحة أو حلقة.</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>تتعارض وجهة التنزيل مع عنصر آخر: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>التنزيل عبر المسارات المحلية المرتبطة غير مدعوم: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>لا يمكن استخدام الاسم البعيد اسماً لملف أو مجلد محلي: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>ظهر ملف في الوجهة بعد التأكيد. ابدأ مجدداً لاختيار ما إذا كنت تريد استبداله: {0}</value></data>
 </root>

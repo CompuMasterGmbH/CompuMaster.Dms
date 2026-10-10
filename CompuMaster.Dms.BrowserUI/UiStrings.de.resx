@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>Ordner vorbereiten: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>Verknüpfte Dateien und Ordner können nicht rekursiv hochgeladen werden: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>Mehrere ausgewählte Einträge haben dasselbe Ziel, oder eine Datei belegt den Ordnerpfad: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>Ordner herunterladen</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>Vorhandene Datei ersetzen</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>&amp;Ersetzen</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>&amp;Überspringen</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>Diese Auswahl für alle vorhandenen Dateien übernehmen</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>{0} Dateien heruntergeladen. {1} vorhandene Dateien übersprungen.</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>Die entfernte Ordnerstruktur enthält ungültige Einträge oder einen Zyklus.</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>Das Download-Ziel kollidiert mit einem anderen Eintrag: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>Downloads über verknüpfte lokale Pfade werden nicht unterstützt: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>Der entfernte Name ist als lokaler Datei- oder Ordnername nicht zulässig: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>Nach der Bestätigung ist am Ziel eine Datei hinzugekommen. Erneut starten, um über das Ersetzen zu entscheiden: {0}</value></data>
 </root>

@@ -106,6 +106,7 @@ Public Class LocalizedLayoutAcceptanceTest
         Yield UITools.CreateInputDialog("Input", UiStrings.Format("NewFolderPrompt", "sample/" & New String("X"c, 80)), "", input)
         'Append new scenarios so existing physical-DPI scenario numbers stay stable.
         Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"}, True)
+        Yield New DownloadConflictDialog("C:\Downloads\Présentation — 文件 — दस्तावेज़.txt", Nothing)
     End Function
 
     Friend Shared Sub Inspect(parent As Control, failures As List(Of String), path As String)

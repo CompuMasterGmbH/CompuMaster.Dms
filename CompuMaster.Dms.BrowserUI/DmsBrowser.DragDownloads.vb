@@ -41,6 +41,7 @@ Partial Public Class DmsBrowser
             If Not DragDownloadFailureDisplayed Then MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             DragDownloadRunning = False
+            UpdateFolderDownloadAccess()
         End Try
     End Sub
 

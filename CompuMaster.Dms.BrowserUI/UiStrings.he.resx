@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>הכנת תיקייה: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>לא ניתן להעלות קבצים ותיקיות מקושרים באופן רקורסיבי: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>למספר פריטים יש אותו יעד או שקובץ תופס את נתיב התיקייה: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>הורדת תיקייה</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>החלפת קובץ קיים</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>ה&amp;חלפה</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>ד&amp;ילוג</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>החלת בחירה זו על כל הקבצים הקיימים</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>הורדו {0} קבצים. דולגו {1} קבצים קיימים.</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>מבנה התיקייה המרוחקת מכיל פריטים לא תקינים או מעגל.</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>יעד ההורדה מתנגש עם פריט אחר: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>הורדה דרך נתיבים מקומיים מקושרים אינה נתמכת: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>לא ניתן להשתמש בשם המרוחק כשם קובץ או תיקייה מקומיים: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>קובץ הופיע ביעד לאחר האישור. יש להתחיל שוב כדי לבחור אם להחליפו: {0}</value></data>
 </root>
