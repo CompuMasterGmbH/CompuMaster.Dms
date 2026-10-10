@@ -66,7 +66,7 @@
 
   <ItemGroup>
     <PackageReference Include="CompuMaster.CenterDevice.Rest" Version="2026.10.07.0" Condition="'$(CenterDeviceRestProject)' == ''" />
-    <PackageReference Include="CompuMaster.Ocs" Version="2026.10.07.0" />
+    <PackageReference Include="CompuMaster.Ocs" Version="2026.10.09.0" />
     <PackageReference Include="CompuMaster.Scopevisio.OpenApi" Version="2026.10.07.0" Condition="'$(OpenScopeApiProject)' == ''" />
     <PackageReference Include="CompuMaster.Scopevisio.Teamwork" Version="2026.10.08.0" Condition="'$(TeamworkProject)' == ''" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

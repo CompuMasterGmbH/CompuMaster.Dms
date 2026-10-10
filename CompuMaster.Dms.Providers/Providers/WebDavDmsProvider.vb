@@ -18,12 +18,12 @@ Namespace Providers
     ''' <summary>
     ''' WebDAV
     ''' </summary>
-    Public Class WebDavDmsProvider
+    Partial Public Class WebDavDmsProvider
         Inherits BaseDmsProvider
 
         Private Shared ReadOnly ChildFolderCountProperty As System.Xml.Linq.XName = System.Xml.Linq.XName.Get("contained-folder-count", "http://nextcloud.org/ns")
 
-        Private WebDavClient As Global.WebDav.WebDavClient
+        Private WebDavClient As Global.WebDav.IWebDavClient
         Private OcsSharingClient As IOcsSharingClient
         Private OcsRootPath As String = "/"
 
@@ -161,6 +161,9 @@ Namespace Providers
         Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials, ignoreSslErrors As Boolean)
             Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.Authorization)
                 Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
+                Me.NativeUploadNamespace = Nothing
+                Me.NativeUploadSupport = Nothing
+                Me.NativeUploadFamily = OcsServerFamily.Unknown
                 Dim ClientParams As New Global.WebDav.WebDavClientParams() With
                 {
                 .BaseAddress = New System.Uri(Url),
@@ -197,6 +200,7 @@ Namespace Providers
             Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsDiscovery)
                 Me.OcsSharingClient = Nothing
                 Me.OcsRootPath = "/"
+                Me.NativeUploadFamily = OcsServerFamily.Unknown
 
                 Dim OcsBaseUrl As String = Nothing
                 Dim RemoteRootPath As String = Nothing
@@ -204,8 +208,8 @@ Namespace Providers
                     Return
                 End If
 
+                Dim Candidate As New OcsSharingClientAdapter(OcsBaseUrl, userID, password)
                 Try
-                    Dim Candidate As IOcsSharingClient = New OcsSharingClientAdapter(OcsBaseUrl, userID, password)
                     Candidate.ProbeCapabilities()
                     If Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
                         Me.OcsSharingClient = Candidate
@@ -215,6 +219,8 @@ Namespace Providers
                     'The authenticated endpoint is still a valid generic WebDAV endpoint when OCS is unavailable.
                     Me.OcsSharingClient = Nothing
                     Me.OcsRootPath = "/"
+                Finally
+                    Me.NativeUploadFamily = Candidate.ObservedServerFamily
                 End Try
             End Using
         End Sub
@@ -809,54 +815,41 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, localFilePath As String)
-            Dim PutParams As New Global.WebDav.PutFileParameters
-            Dim fs As System.IO.FileStream = Nothing
-            Try
-                fs = System.IO.File.OpenRead(localFilePath)
-                Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, fs, PutParams)
-                UploadTask.Wait()
-                CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File)
-            Finally
-                If fs IsNot Nothing Then
-                    fs.Close()
-                    fs.Dispose()
-                End If
-            End Try
+            Me.UploadFileAsync(remoteFilePath, localFilePath).GetAwaiter().GetResult()
         End Sub
 
         ''' <inheritdoc/>
-        Public Overrides Function UploadFileWithProgressAsync(remoteFilePath As String, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
-            If progress Is Nothing Then Return Me.UploadFileAsync(remoteFilePath, localFilePath, cancellationToken)
-            Return Me.UploadFileWithProgressAsync(remoteFilePath, Function() New System.IO.FileStream(localFilePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read, 81920, System.IO.FileOptions.Asynchronous Or System.IO.FileOptions.SequentialScan), progress, cancellationToken)
+        Public Overrides Async Function UploadFileWithProgressAsync(remoteFilePath As String, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            cancellationToken.ThrowIfCancellationRequested()
+            Using input As New System.IO.FileStream(localFilePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read, 81920, System.IO.FileOptions.Asynchronous Or System.IO.FileOptions.SequentialScan)
+                Dim modified = System.IO.File.GetLastWriteTimeUtc(localFilePath)
+                Using tracked As New UploadProgressStream(input, progress)
+                    Await Me.UploadFileCoreAsync(remoteFilePath, tracked, modified, cancellationToken).ConfigureAwait(False)
+                    progress?.Report(tracked.Snapshot(DmsTransferPhase.Completed))
+                End Using
+            End Using
         End Function
 
         ''' <inheritdoc/>
         Public Overrides Async Function UploadFileAsync(remoteFilePath As String, localFilePath As String, Optional cancellationToken As CancellationToken = Nothing) As Task
+            cancellationToken.ThrowIfCancellationRequested()
             Using input As System.IO.FileStream = System.IO.File.OpenRead(localFilePath)
-                Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
-                Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
-                Await request.ConfigureAwait(False)
-                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+                Await Me.UploadFileCoreAsync(remoteFilePath, input, System.IO.File.GetLastWriteTimeUtc(localFilePath), cancellationToken).ConfigureAwait(False)
             End Using
         End Function
 
         ''' <inheritdoc/>
         Public Overrides Async Function UploadFileAsync(remoteFilePath As String, binaryData As Func(Of System.IO.Stream), Optional cancellationToken As CancellationToken = Nothing) As Task
             If binaryData Is Nothing Then Throw New ArgumentNullException(NameOf(binaryData))
+            cancellationToken.ThrowIfCancellationRequested()
             Using input As System.IO.Stream = binaryData()
-                Dim parameters As New Global.WebDav.PutFileParameters With {.CancellationToken = cancellationToken}
-                Dim request = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, input, parameters)
-                Await request.ConfigureAwait(False)
-                Await CheckTaskResultForErrorsAsync(request.Result, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File, cancellationToken).ConfigureAwait(False)
+                Await Me.UploadFileCoreAsync(remoteFilePath, input, Nothing, cancellationToken).ConfigureAwait(False)
             End Using
         End Function
 
         ''' <inheritdoc/>
         Public Overrides Sub UploadFile(remoteFilePath As String, binaryData As Func(Of System.IO.Stream))
-            Dim PutParams As New Global.WebDav.PutFileParameters
-            Dim UploadTask = Me.WebDavClient.PutFile(Me.CustomWebApiUrl & remoteFilePath, binaryData(), PutParams)
-            UploadTask.Wait()
-            CheckTaskResultForErrors(UploadTask, Nothing, remoteFilePath, ProviderStrings.GetText("UploadFailed"), ExceptionTypeForItemType.File)
+            Me.UploadFileAsync(remoteFilePath, binaryData).GetAwaiter().GetResult()
         End Sub
 
 
