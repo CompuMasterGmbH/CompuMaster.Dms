@@ -299,7 +299,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.CenterDevice.IO
-          ref: 7bb84e8d7572a226bc17d038f8c2c60948eeb4b4
+          ref: 0b89c9ae06735b228e01c4816842772e2b475cb0
           path: .upstream/CenterDevice.IO
           persist-credentials: false
       - name: Checkout pinned released OpenScope source
