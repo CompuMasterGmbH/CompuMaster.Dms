@@ -102,9 +102,10 @@ Public Class LocalizedLayoutAcceptanceTest
         Yield New PreviewDetails()
         Yield New DmsInstanceSelectionDialog({New DmsInstanceInfo("sample", "Sample instance", True)}, Nothing)
         Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"})
-        Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"}, True)
         Dim input As TextBox = Nothing
         Yield UITools.CreateInputDialog("Input", UiStrings.Format("NewFolderPrompt", "sample/" & New String("X"c, 80)), "", input)
+        'Append new scenarios so existing physical-DPI scenario numbers stay stable.
+        Yield New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"}, True)
     End Function
 
     Friend Shared Sub Inspect(parent As Control, failures As List(Of String), path As String)
