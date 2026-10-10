@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>正在准备文件夹：{0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>无法递归上传链接文件和文件夹：{0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>多个所选项目对应相同目标，或文件占用了文件夹路径：{0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>下载文件夹</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>替换现有文件</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>替换(&amp;R)</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>跳过(&amp;S)</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>将此选择应用于所有现有文件</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>已下载 {0} 个文件。已跳过 {1} 个现有文件。</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>远程文件夹结构包含无效项目或循环。</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>下载目标与另一个项目冲突：{0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>不支持通过链接的本地路径下载：{0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>此远程名称不能用作本地文件或文件夹名称：{0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>确认后目标位置出现了文件。请重新开始以选择是否替换：{0}</value></data>
 </root>

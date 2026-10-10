@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>正在準備資料夾：{0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>無法遞迴上傳連結檔案和資料夾：{0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>多個選取項目對應相同目標，或檔案占用了資料夾路徑：{0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>下載資料夾</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>取代現有檔案</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>取代(&amp;R)</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>略過(&amp;S)</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>將此選擇套用至所有現有檔案</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>已下載 {0} 個檔案。已略過 {1} 個現有檔案。</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>遠端資料夾結構包含無效項目或循環。</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>下載目標與另一個項目衝突：{0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>不支援透過連結的本機路徑下載：{0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>此遠端名稱不能用作本機檔案或資料夾名稱：{0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>確認後目標位置出現了檔案。請重新開始以選擇是否取代：{0}</value></data>
 </root>

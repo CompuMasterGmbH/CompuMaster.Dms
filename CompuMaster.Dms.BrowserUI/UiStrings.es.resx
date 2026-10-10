@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>Preparando carpeta: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>No se pueden subir recursivamente archivos y carpetas enlazados: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>Varios elementos tienen el mismo destino o un archivo ocupa la ruta de la carpeta: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>Descargar carpeta</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>Reemplazar archivo existente</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>&amp;Reemplazar</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>&amp;Omitir</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>Aplicar esta opción a todos los archivos existentes</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>Se descargaron {0} archivos. Se omitieron {1} archivos existentes.</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>La estructura remota contiene entradas no válidas o un ciclo.</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>El destino de descarga entra en conflicto con otra entrada: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>No se admiten descargas a través de rutas locales enlazadas: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>El nombre remoto no es válido como nombre de archivo o carpeta local: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>Apareció un archivo en el destino después de la confirmación. Reinicie para decidir si lo reemplaza: {0}</value></data>
 </root>

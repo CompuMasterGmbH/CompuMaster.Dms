@@ -58,6 +58,28 @@ Transfer dialogs display localized binary units, recent payload throughput and a
 
 Selected remote files can be dragged to Explorer or another Windows target supporting shell virtual files when `AllowDownloadFiles` is enabled. File content is downloaded on request after the drop, preserving selected resource IDs and using owned temporary files with bounded buffers. Only copying is offered; remote sources are retained. Other platforms can consume the provider APIs independently of the Windows Forms and shell UI.
 
+`Download folder` is available from the selected tree node when `AllowDownloadFiles`
+is enabled. It downloads the complete hierarchy, including empty folders, into a
+chosen local parent directory and merges existing directories. Existing files are
+replaced only after a confirmation, with replace/skip/cancel and an apply-to-all
+choice. Unrelated local files remain intact. Failed or cancelled downloads remove
+their owned temporary files and preserve existing destination contents.
+
+Local-file uploads preserve source modification dates on Scopevisio/CenterDevice
+and recognized ownCloud Classic/Nextcloud servers, including new versions, folder
+uploads and progress reporting. Stream/byte uploads without a known date retain
+their existing defaults. Generic WebDAV servers do not share a universal writable
+modification-date protocol.
+
+Large ownCloud Classic/Nextcloud uploads use native DAV chunks after an
+authenticated upload-namespace check. The provider streams bounded parts and
+waits for server-confirmed assembly and session cleanup. Unsupported namespaces,
+legacy paths without a known protocol user ID, and generic servers retain ordinary
+PUT. Permission and transport failures remain errors; uncertain native writes are
+not replayed as PUT. Ordinary PUT still depends on the server and proxy accepting
+the complete request body within their configured deadlines. Downloads stream the
+response body; an ingress request-body timeout does not itself limit GET responses.
+
 Providers can implement the additive `DownloadFileWithProgressAsync` selected-resource overload to report locally written payload bytes. WebDAV retains its staging/replacement behavior, and Scopevisio/CenterDevice retain their selected identity, timestamp and cancellation contracts. Existing derived providers use the compatible download fallback with unknown counters.
 
 ### Asynchronous browsing

@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>Préparation du dossier : {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>Les fichiers et dossiers liés ne peuvent pas être téléversés récursivement : {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>Plusieurs éléments ont la même destination ou un fichier occupe le chemin du dossier : {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>Télécharger le dossier</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>Remplacer le fichier existant</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>&amp;Remplacer</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>&amp;Ignorer</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>Appliquer ce choix à tous les fichiers existants</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>{0} fichiers téléchargés. {1} fichiers existants ignorés.</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>La structure distante contient des entrées non valides ou un cycle.</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>La destination entre en conflit avec une autre entrée : {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>Le téléchargement via des chemins locaux liés n’est pas pris en charge : {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>Ce nom distant ne peut pas servir de nom de fichier ou de dossier local : {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>Un fichier est apparu à destination après la confirmation. Recommencez pour décider de le remplacer : {0}</value></data>
 </root>

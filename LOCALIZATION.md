@@ -49,10 +49,11 @@ buttons retain spacing when their preferred widths grow.
 
 `LocalizedLayoutAcceptanceTest` verifies ten cultures (`en-US`, `de-DE`, `fr-FR`,
 `es-ES`, `zh-CN`, `zh-TW`, `ja-JP`, `ar-SA`, `he-IL`, `hi-IN`) at 100%, 150%,
-and 200% of the form's initial font size. The 30 cases exercise fourteen scenarios:
+and 200% of the form's initial font size. The 30 cases exercise fifteen scenarios:
 all four demo login forms, both browser dialog modes, link sharing, internal user
 and group sharing, the sharing list, instance selection, upload/download progress, and the
-custom text-input dialog. Resizable forms are also checked at their declared
+custom text-input dialog, and the download conflict dialog with its apply-to-all
+choice. Resizable forms are also checked at their declared
 minimum size and with additional width/height. All six upload states are checked
 with long Unicode filenames and large byte counters.
 
@@ -110,7 +111,7 @@ and 3840 x 2160 at 125% (120 DPI). Other attached monitors are inventoried witho
 moving test windows onto them. The tests do not change display settings.
 
 Each of the ten cultures is checked starting on either monitor, with two round
-trips across the monitor boundary. The fourteen preview scenarios also
+trips across the monitor boundary. The fifteen preview scenarios also
 cover minimum/wider resizable forms, a 900-logical-pixel browser width, and the six
 upload states with Unicode filenames and large counters. The audit verifies both
 native and managed DPI, visible control/text fit, overlap, and window work-area
@@ -134,9 +135,10 @@ Optional arguments select cultures, for example `-- en-US hi-IN`, and
 `physical-dpi-results` directory beside its executable, records pass/fail totals,
 and returns a failing exit code for setup, assertion, or notice-cleanup failures.
 For focused diagnosis, `DMS_PHYSICAL_DPI_SCENARIOS=7,8,9,13` selects external-link,
-user/group-sharing, and input dialogs. Omit this variable for the complete fourteen
+user/group-sharing, and input dialogs. Omit this variable for the complete fifteen
 scenarios. Scenario 12 is upload progress, 13 is the input dialog, and 14 is download
-progress. Selected scenarios are included in the timing key and estimate.
+progress, and 15 is the download conflict dialog. Selected scenarios are included
+in the timing key and estimate.
 The standard workstation countdown/ETA notice remains active throughout the run.
 This runner supplies timing keys for each runtime, monitor resolution/scale, and screenshot mode, scales
 the learned estimate by the selected culture cases, and logs estimated/actual

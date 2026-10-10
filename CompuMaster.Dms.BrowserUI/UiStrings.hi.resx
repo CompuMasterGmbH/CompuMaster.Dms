@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>फ़ोल्डर तैयार हो रहा है: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>लिंक की गई फ़ाइलें और फ़ोल्डर पुनरावर्ती रूप से अपलोड नहीं किए जा सकते: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>कई चयनित आइटम का लक्ष्य समान है या फ़ोल्डर पथ पर फ़ाइल मौजूद है: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>फ़ोल्डर डाउनलोड करें</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>मौजूदा फ़ाइल बदलें</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>&amp;बदलें</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>&amp;छोड़ें</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>यह विकल्प सभी मौजूदा फ़ाइलों पर लागू करें</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>{0} फ़ाइलें डाउनलोड की गईं। {1} मौजूदा फ़ाइलें छोड़ी गईं।</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>दूरस्थ फ़ोल्डर संरचना में अमान्य प्रविष्टियाँ या चक्र है।</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>डाउनलोड गंतव्य का किसी अन्य प्रविष्टि से टकराव है: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>लिंक किए गए स्थानीय पथों से डाउनलोड समर्थित नहीं है: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>दूरस्थ नाम का उपयोग स्थानीय फ़ाइल या फ़ोल्डर के नाम के रूप में नहीं किया जा सकता: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>पुष्टि के बाद गंतव्य पर एक फ़ाइल बनाई गई। उसे बदलना है या नहीं, यह चुनने के लिए फिर से शुरू करें: {0}</value></data>
 </root>

@@ -29,6 +29,7 @@ Public Class DmsBrowser
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
         InitializeFolderUploads()
+        InitializeFolderDownloads()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
         LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
@@ -337,6 +338,7 @@ Public Class DmsBrowser
             UITools.SwitchToolStripVisibility(Me.ToolStripFileContextButtonProperties, True, False)
             Me.UpdateFileToolbarLayout()
             Me.UpdateUploadAccess()
+            Me.UpdateFolderDownloadAccess()
             If AuthorizedProvider IsNot Nothing AndAlso (Me.InstanceButton IsNot Nothing OrElse Me.IsHandleCreated) Then Me.InitializeDmsInstanceSwitching()
         End Set
     End Property
@@ -372,6 +374,7 @@ Public Class DmsBrowser
             End Select
             Me.UpdateFileToolbarLayout()
             Me.UpdateUploadAccess()
+            Me.UpdateFolderDownloadAccess()
         End Set
     End Property
 
@@ -1190,6 +1193,7 @@ Public Class DmsBrowser
         TransferPreviousFocus = Nothing
         TransferControlStates.Clear()
         TransferRunning = False
+        UpdateFolderDownloadAccess()
         TransferCompletion.TrySetResult(True)
     End Sub
 
@@ -1379,6 +1383,7 @@ Public Class DmsBrowser
             Me.ShowResourceActionError(ex)
         Finally
             ResourceActionRunning = False
+            UpdateFolderDownloadAccess()
         End Try
     End Function
 
@@ -1437,6 +1442,7 @@ Public Class DmsBrowser
             Me.ShowResourceActionError(ex)
         Finally
             ResourceActionRunning = False
+            UpdateFolderDownloadAccess()
         End Try
         If refreshRequired Then
             Try

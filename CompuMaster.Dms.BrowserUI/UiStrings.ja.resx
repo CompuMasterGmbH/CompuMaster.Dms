@@ -231,4 +231,15 @@
   <data name="UploadPreparingFolder" xml:space="preserve"><value>フォルダーを準備中: {0}</value></data>
   <data name="UploadLinkedPathUnsupported" xml:space="preserve"><value>リンクされたファイルやフォルダーは再帰的にアップロードできません: {0}</value></data>
   <data name="UploadSelectionCollision" xml:space="preserve"><value>複数の項目の保存先が同じか、フォルダーのパスにファイルがあります: {0}</value></data>
+  <data name="ActionDownloadFolder" xml:space="preserve"><value>フォルダーをダウンロード</value></data>
+  <data name="DownloadConflictTitle" xml:space="preserve"><value>既存のファイルを置き換える</value></data>
+  <data name="DownloadReplace" xml:space="preserve"><value>置き換える(&amp;R)</value></data>
+  <data name="DownloadSkip" xml:space="preserve"><value>スキップ(&amp;S)</value></data>
+  <data name="DownloadApplyToAll" xml:space="preserve"><value>この選択を既存のすべてのファイルに適用する</value></data>
+  <data name="FolderDownloadCompleted" xml:space="preserve"><value>{0} 個のファイルをダウンロードしました。既存の {1} 個のファイルをスキップしました。</value></data>
+  <data name="DownloadHierarchyInvalid" xml:space="preserve"><value>リモートのフォルダー構造に無効な項目または循環があります。</value></data>
+  <data name="DownloadDestinationCollision" xml:space="preserve"><value>ダウンロード先が別の項目と競合しています: {0}</value></data>
+  <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>リンクされたローカルパスへのダウンロードはサポートされていません: {0}</value></data>
+  <data name="DownloadInvalidName" xml:space="preserve"><value>このリモート名はローカルのファイル名またはフォルダー名として使用できません: {0}</value></data>
+  <data name="DownloadDestinationChanged" xml:space="preserve"><value>確認後にダウンロード先にファイルが作成されました。再実行して置き換えるか選択してください: {0}</value></data>
 </root>
