@@ -14,6 +14,7 @@ Public Class DmsBrowserStartupTest
     <TestCase(True, True, "", "")>
     <TestCase(True, False, "", "Child")>
     <TestCase(True, False, "Parent", "")>
+    <TestCase(True, False, "Parent", Nothing)>
     <TestCase(False, False, "Parent", "Child")>
     Public Sub InitialTreeAndFilesShareOnlyTheirOwnOperationSnapshot(rootFiles As Boolean, foldersOnly As Boolean, initialRoot As String, selectedPath As String)
         Dim provider As New CombinedStartupProvider(rootFiles)

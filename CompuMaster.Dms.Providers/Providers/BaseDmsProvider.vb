@@ -1867,12 +1867,15 @@ Namespace Providers
         ''' Combines folder names to a path
         ''' </summary>
         ''' <param name="basePath">The base path used to resolve or compare the resource.</param>
-        ''' <param name="paths">The additional path segments to combine using the provider separator.</param>
+        ''' <param name="paths">The additional path segments to combine using the provider separator. Null segments are ignored.</param>
         ''' <returns>The combined path using the provider separator.</returns>
         Public Overridable Function CombinePath(basePath As String, ParamArray paths As String()) As String
             Dim Result As String = basePath
+            If paths Is Nothing Then Return Result
             For Each Path In paths
-                If Path = Me.DirectorySeparator Then
+                If Path Is Nothing Then
+                    Continue For
+                ElseIf Path = Me.DirectorySeparator Then
                     Result = ""
                 ElseIf Path.StartsWith(Me.DirectorySeparator) Then
                     Result = Path.Substring(1)
