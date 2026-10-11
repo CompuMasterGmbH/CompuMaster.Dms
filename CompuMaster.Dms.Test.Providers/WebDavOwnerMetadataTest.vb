@@ -111,6 +111,15 @@ Public Class WebDavOwnerMetadataTest
         Assert.That(resource.ExtendedInfosOwner.DisplayName, [Is].Null)
     End Sub
 
+    <TestCase(200, "stable-file"), TestCase(403, Nothing), TestCase(404, Nothing)>
+    Public Sub StableFileIdentityRequiresSuccessfulMetadata(status As Integer, expected As String)
+        Dim propertyXml = "<oc:fileid>stable-file</oc:fileid>"
+        Dim handler As New PropfindHandler(OwnerProperties(If(status = 200, propertyXml, ""), False, If(status = 404, propertyXml, Nothing), If(status = 403, propertyXml, Nothing)))
+        Dim resource = CreateProvider(handler).ListRemoteItem("item")
+        Assert.That(resource.ExtendedInfosFileID, [Is].EqualTo(expected))
+        Assert.That(handler.RequestBody, Does.Contain("fileid"))
+    End Sub
+
     Private Shared Function OwnerProperties(successfulProperties As String, isFolder As Boolean, Optional missingProperties As String = Nothing, Optional forbiddenProperties As String = Nothing) As String
         Dim resourceType = If(isFolder, "<d:resourcetype><d:collection/></d:resourcetype>", "<d:resourcetype/>")
         Dim missing = If(missingProperties Is Nothing, String.Empty, "<d:propstat><d:prop>" & missingProperties & "</d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat>")

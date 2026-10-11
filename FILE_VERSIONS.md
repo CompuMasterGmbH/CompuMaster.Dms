@@ -30,7 +30,7 @@ The adapter requires an observed server family and authenticated `files.versioni
 
 ## Exact local dependency and validation
 
-Default CompuMaster.Ocs remains 2026.10.09.0. The new adapter compiles only when OcsFileVersionsProject explicitly selects the new SDK source. The recorded local SDK checkpoint is `6c40ead5a9a9198b9feb9b1015636ddc2cafdf34` on codex/cloud-file-versions-01a12cd3, implementing OCS #11. No CenterDevice/Teamwork feature-branch dependency is imported. An OCS review/merge does not make this API available to default NuGet consumers: upstream post-merge verification and explicitly approved publication must precede selecting an exact released package and removing the temporary source opt-in.
+Default CompuMaster.Ocs remains 2026.10.09.0. The new adapter compiles only when OcsFileVersionsProject explicitly selects the new SDK source. The recorded SDK checkpoint is merged main `ab3d66db0d0f14f027e965664c4ae406fd90b26c`, implementing [OCS PR #12](https://github.com/CompuMasterGmbH/CompuMaster.OpenCollaborationService/pull/12) / OCS #11. Its tree is identical to locally tested source checkpoint `6c40ead5a9a9198b9feb9b1015636ddc2cafdf34`; combined checks also use the exact merged checkpoint. No CenterDevice/Teamwork feature-branch dependency is imported. An OCS review/merge does not make this API available to default NuGet consumers: upstream post-merge verification and explicitly approved publication must precede selecting an exact released package and removing the temporary source opt-in.
 
 Local Windows evidence:
 
