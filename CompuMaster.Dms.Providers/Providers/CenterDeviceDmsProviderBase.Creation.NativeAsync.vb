@@ -25,8 +25,7 @@ Namespace Providers
             Try
                 Await Me.CreateNativeDirectoryAsync(parent, Me.ItemName(remotePath), style, cancellationToken).ConfigureAwait(False)
             Catch ex As CenterDevice.Rest.Exceptions.RestClientException
-                If ex.ErrorResponse Is Nothing Then Throw New System.IO.IOException(ProviderStrings.Format("Failed", operation, remotePath), ex)
-                Throw New System.IO.IOException(ProviderStrings.Format("Failed", operation, remotePath), New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
+                Throw DirectoryCreationFailure(operation, remotePath, ex)
             Finally
                 parent.ResetDirectoriesCache()
                 'A cached collection's known-empty hint can also be stale after an uncertain child mutation.

@@ -846,7 +846,6 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Sub CreateFolder(remoteFilePath As String)
-            Dim ioExceptionMessage As String = "CreateFolder failed: " & remoteFilePath
             Try
                 Dim NewChildDirName As String = Me.ItemName(remoteFilePath)
                 Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteFilePath)
@@ -859,11 +858,7 @@ Namespace Providers
                 Try
                     ParentRemoteDir.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Folder)
                 Catch ex As CenterDevice.Rest.Exceptions.RestClientException
-                    If ex.ErrorResponse Is Nothing Then
-                        Throw New System.IO.IOException(ioExceptionMessage, ex)
-                    Else
-                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
-                    End If
+                    Throw DirectoryCreationFailure(NameOf(CreateFolder), remoteFilePath, ex)
                 End Try
                 ParentRemoteDir.ResetDirectoriesCache()
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
@@ -873,7 +868,6 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Sub CreateDirectory(remoteDirectoryName As String)
-            Dim ioExceptionMessage As String = "CreateDirectory failed: " & remoteDirectoryName
             Try
                 Dim NewChildDirName As String = Me.ItemName(remoteDirectoryName)
                 Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteDirectoryName)
@@ -886,11 +880,7 @@ Namespace Providers
                 Try
                     ParentRemoteDir.CreateDirectory(NewChildDirName)
                 Catch ex As CenterDevice.Rest.Exceptions.RestClientException
-                    If ex.ErrorResponse Is Nothing Then
-                        Throw New System.IO.IOException(ioExceptionMessage, ex)
-                    Else
-                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
-                    End If
+                    Throw DirectoryCreationFailure(NameOf(CreateDirectory), remoteDirectoryName, ex)
                 End Try
                 ParentRemoteDir.ResetDirectoriesCache()
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
@@ -907,7 +897,6 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
-            Dim ioExceptionMessage As String = "CreateCollection failed: " & remoteCollectionName
             Try
                 Dim NewChildDirName As String = Me.ItemName(remoteCollectionName)
                 Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteCollectionName)
@@ -921,11 +910,7 @@ Namespace Providers
                 Try
                     ParentRemoteDir.CreateDirectory(NewChildDirName, CenterDevice.IO.DirectoryInfo.DirectoryType.Collection)
                 Catch ex As CenterDevice.Rest.Exceptions.RestClientException
-                    If ex.ErrorResponse Is Nothing Then
-                        Throw New System.IO.IOException(ioExceptionMessage, ex)
-                    Else
-                        Throw New System.IO.IOException(ioExceptionMessage, New ResponseStatusCodeException(ex.ErrorResponse.Code, ex.ErrorResponse.Message, ex))
-                    End If
+                    Throw DirectoryCreationFailure(NameOf(CreateCollection), remoteCollectionName, ex)
                 End Try
                 ParentRemoteDir.ResetDirectoriesCache()
             Catch ex As CenterDevice.Model.Exceptions.DirectoryNotFoundException
