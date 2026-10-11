@@ -197,6 +197,10 @@ Namespace Providers
         End Sub
 
         Private Sub TryInitializeOcsSharingClient(webDavUrl As String, userID As String, password As String)
+#If OCS_FILE_VERSIONS Then
+            Me.FileVersionClient = Nothing
+            Me.FileVersionDiscoveryFailure = Nothing
+#End If
             Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsDiscovery)
                 Me.OcsSharingClient = Nothing
                 Me.OcsRootPath = "/"
@@ -221,6 +225,9 @@ Namespace Providers
                     Me.OcsRootPath = "/"
                 Finally
                     Me.NativeUploadFamily = Candidate.ObservedServerFamily
+#If OCS_FILE_VERSIONS Then
+                    Me.InitializeFileVersions(Candidate, webDavUrl)
+#End If
                 End Try
             End Using
         End Sub
@@ -426,6 +433,12 @@ Namespace Providers
             Result.Collection = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.Collection))
             Result.FullName = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.FullName))
             Result.ExtendedInfosOwner = ResourceOwner(res)
+            If Result.ItemType = DmsResourceItem.ItemTypes.File Then
+                Dim fileIDProperty = XName.Get("fileid", "http://owncloud.org/ns")
+                If res.PropertyStatuses Is Nothing OrElse Not res.PropertyStatuses.Any(Function(status) status.Name = fileIDProperty AndAlso Not status.IsSuccessful) Then
+                    Result.ExtendedInfosFileID = PropertyText(res, fileIDProperty)
+                End If
+            End If
             Return Result
         End Function
 
@@ -489,6 +502,7 @@ Namespace Providers
                     XName.Get("resourcetype", "DAV:"),
                     ChildFolderCountProperty,
                     OwnCloudOwnerId,
+                    XName.Get("fileid", "http://owncloud.org/ns"),
                     OwnCloudOwnerDisplayName,
                     DavOwner
                 }
