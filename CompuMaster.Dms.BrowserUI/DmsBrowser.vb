@@ -651,7 +651,7 @@ Public Class DmsBrowser
 
     Friend Sub LoadTree()
         Me.TreeViewDmsFolders.Nodes.Clear()
-        If Me.InitialFolder <> Nothing Then
+        If Me.HasScopedBrowserRoot Then
             Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(Me.InitialFolder)
             If Folder Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(Me.InitialFolder)
             Me.RootNode = Me.TreeViewDmsFolders.Nodes.Add("", Me.InitialFolder)
@@ -1564,11 +1564,13 @@ Public Class DmsBrowser
     End Function
 
     Private Function PathRelativeToBrowserRoot(path As String) As String
-        Dim rootPath As String = Me.InitialFolder
-        If String.IsNullOrEmpty(rootPath) Then Return path.TrimStart(Me.DmsProvider.DirectorySeparator)
-        Dim prefix As String = rootPath.TrimEnd(Me.DmsProvider.DirectorySeparator) & Me.DmsProvider.DirectorySeparator
-        If Not path.StartsWith(prefix, StringComparison.Ordinal) Then Throw New InvalidOperationException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
-        Return path.Substring(prefix.Length)
+        If Not HasScopedBrowserRoot Then Return path.TrimStart(Me.DmsProvider.DirectorySeparator)
+        Dim rootPath As String = Me.InitialFolder.Trim(Me.DmsProvider.DirectorySeparator)
+        Dim candidate As String = path.TrimStart(Me.DmsProvider.DirectorySeparator)
+        If String.Equals(candidate, rootPath, StringComparison.Ordinal) Then Return ""
+        Dim prefix As String = rootPath & Me.DmsProvider.DirectorySeparator
+        If Not candidate.StartsWith(prefix, StringComparison.Ordinal) Then Throw New InvalidOperationException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
+        Return candidate.Substring(prefix.Length)
     End Function
 
     Private Sub ShowResourceActionError(ex As Exception)
