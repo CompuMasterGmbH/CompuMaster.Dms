@@ -35,6 +35,14 @@ Public Class CenterDeviceNativeCreationTest
         Assert.That(provider.Io.CollectionCalls, [Is].Zero)
     End Sub
 
+    <TestCase("Customer \ Division"), TestCase("Customer - Division")>
+    Public Async Function RootCollectionNamesRetainBackslashesAndReachCreationUnchanged(name As String) As Task
+        Dim provider As New CreationProvider()
+        Await provider.CreateCollectionAsync(name)
+        Assert.That(provider.CreatedNames, [Is].EqualTo(New String() {name}))
+        Assert.That(provider.Styles(0), [Is].EqualTo(Global.CenterDevice.IO.DirectoryInfo.DirectoryType.Collection))
+    End Function
+
     <TestCase("folder"), TestCase("directory")>
     Public Async Function OptionalParentCreationIsSequentialAndKeepsFolderSemantics(operation As String) As Task
         Dim provider As New CreationProvider()

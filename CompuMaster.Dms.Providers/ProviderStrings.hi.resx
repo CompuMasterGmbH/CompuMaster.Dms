@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>सेंटरडिवाइस फ़ोल्डर्स को एक संग्रह या अन्य फ़ोल्डर के अंदर रहना चाहिए।</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>संग्रह मेटाडेटा अनुरोधित पहचानकर्ता से मेल नहीं खाता।</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>संग्रह WebDAV द्वारा समर्थित नहीं हैं</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>संग्रह &quot;{0}&quot; नहीं बनाया जा सकता। &quot;/&quot; वर्ण को पथ विभाजक के रूप में समझा जाता है। CenterDevice/Scopevisio संग्रह केवल सीधे मूल निर्देशिका में बनाए जा सकते हैं। पथ के बिना एक संग्रह नाम दें और नाम में &quot;/&quot; को हटाएँ या बदलें।</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>संग्रह "{0}" केवल रूट फ़ोल्डर में स्थित होना चाहिए, लेकिन "{1}" में है</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>संग्रह रूट फ़ोल्डर में स्थित होना चाहिए: {0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>इस डीएमएस प्रदाता के लिए कस्टम वेबसेवा यूआरएल समर्थित नहीं हैं</value></data>

@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>תיקיות CenterDevice חייבות להישאר בתוך אוסף או תיקיה אחרת.</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>מטא נתונים של אוסף אינם תואמים למזהה המבוקש.</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>אוספים אינם נתמכים על ידי WebDAV</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>לא ניתן ליצור את האוסף ״{0}״. התו ״/״ מפורש כמפריד נתיב. ניתן ליצור אוספי CenterDevice/Scopevisio רק ישירות בתיקיית השורש. יש להזין שם אוסף יחיד ללא נתיב ולהסיר או להחליף את ״/״ בשם.</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>האוספים "{0}" חייבים להיות ממוקמים בתיקיית השורש בלבד, אך הם נמצאים ב-"{1}"</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>אוספים חייבים להיות ממוקמים בתיקיית השורש: {0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>כתובות אתרים של שירות אינטרנט מותאמות אישית אינן נתמכות עבור ספק DMS זה</value></data>

@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>Les dossiers CenterDevice doivent rester dans une collection ou dans un autre dossier.</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>Les métadonnées de la collection ne correspondent pas à l'identifiant demandé.</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>Les collections ne sont pas prises en charge par WebDAV</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>Impossible de créer la collection « {0} ». Le caractère « / » est interprété comme un séparateur de chemin. Les collections CenterDevice/Scopevisio ne peuvent être créées que directement dans le dossier racine. Fournissez un seul nom de collection sans chemin et supprimez ou remplacez « / » dans le nom.</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>Les collections "{0}" doivent être situées uniquement dans le dossier racine, mais se trouvent dans "{1}".</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>Les collections doivent être situées dans le dossier racine : {0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>Les URL de services Web personnalisées ne sont pas prises en charge pour ce fournisseur DMS</value></data>
