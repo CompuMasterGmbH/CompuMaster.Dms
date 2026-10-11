@@ -30,6 +30,7 @@ Public Class DmsBrowser
         InitializeComponent()
         InitializeFolderUploads()
         InitializeFolderDownloads()
+        InitializeScopedCollectionActions()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
         LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
@@ -49,7 +50,7 @@ Public Class DmsBrowser
     ''' <param name="dmsProfile">The login profile used to authorize the provider.</param>
     ''' <param name="formTitle">The form title</param>
     ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
-    ''' <param name="initialRootFolder">The remote folder which shall be treated as root folder in browser dialog</param>
+    ''' <param name="initialRootFolder">The remote directory treated as the browser root. For CenterDevice and Scopevisio Teamwork, a root below the actual provider root excludes collection-level actions; supported file and subfolder actions remain available within the browser root.</param>
     ''' <param name="selectedFolder">The initially selected sub folder</param>
     ''' <param name="browseMode">Mode setting for browser dialog</param>
     ''' <param name="allowedActions">Allowed actions in browser dialog</param>
@@ -70,7 +71,7 @@ Public Class DmsBrowser
     ''' <param name="remoteInstance">The startup instance and optional method for later switching.</param>
     ''' <param name="formTitle">The form title.</param>
     ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
-    ''' <param name="initialRootFolder">The remote folder treated as the browser root.</param>
+    ''' <param name="initialRootFolder">The remote directory treated as the browser root. For CenterDevice and Scopevisio Teamwork, a root below the actual provider root excludes collection-level actions; supported file and subfolder actions remain available within the browser root.</param>
     ''' <param name="selectedFolder">The initially selected folder.</param>
     ''' <param name="browseMode">The browser mode.</param>
     ''' <param name="allowedActions">The permitted browser actions.</param>
@@ -99,7 +100,7 @@ Public Class DmsBrowser
     ''' <param name="selectionDialog">The optional method for later switching.</param>
     ''' <param name="formTitle">The form title.</param>
     ''' <param name="formIcon">The form icon, or <see langword="Nothing"/> to use the provider-independent default icon.</param>
-    ''' <param name="initialRootFolder">The remote folder treated as the browser root.</param>
+    ''' <param name="initialRootFolder">The remote directory treated as the browser root. For CenterDevice and Scopevisio Teamwork, a root below the actual provider root excludes collection-level actions; supported file and subfolder actions remain available within the browser root.</param>
     ''' <param name="selectedFolder">The initially selected folder.</param>
     ''' <param name="browseMode">The browser mode.</param>
     ''' <param name="allowedActions">The permitted browser actions.</param>
@@ -339,6 +340,7 @@ Public Class DmsBrowser
             Me.UpdateFileToolbarLayout()
             Me.UpdateUploadAccess()
             Me.UpdateFolderDownloadAccess()
+            Me.UpdateScopedCollectionActions()
             If AuthorizedProvider IsNot Nothing AndAlso (Me.InstanceButton IsNot Nothing OrElse Me.IsHandleCreated) Then Me.InitializeDmsInstanceSwitching()
         End Set
     End Property
@@ -379,7 +381,17 @@ Public Class DmsBrowser
     End Property
 
     ''' <summary>Gets or sets the remote directory treated as the browser root.</summary>
+    ''' <remarks>For CenterDevice and Scopevisio Teamwork, a root below the actual provider root excludes collection-level actions. Supported file and subfolder actions remain available within the browser root.</remarks>
     Public Property InitialFolder As String
+        Get
+            Return InitialFolderValue
+        End Get
+        Set(value As String)
+            InitialFolderValue = value
+            UpdateScopedCollectionActions()
+        End Set
+    End Property
+    Private InitialFolderValue As String
     ''' <summary>Gets or sets the initially selected remote directory.</summary>
     Public Property SelectedFolder As String
     Private RootNode As TreeNode
@@ -892,6 +904,7 @@ Public Class DmsBrowser
     End Sub
 
     Friend Function CreateNewDirectoryTreeNode(parentNode As TreeNode, folderName As String) As TreeNode
+        Dim NewFolderPath As String = Me.NewDirectoryPathWithinBrowser(parentNode, folderName)
         Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
         If Not ParentData.ChildrenLoaded Then
             If HasKnownChildDirectories(ParentData.DmsResourceItem) = False Then
@@ -900,7 +913,6 @@ Public Class DmsBrowser
                 Me.AddTreeChildren(parentNode)
             End If
         End If
-        Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(parentNode.Tag, NodeTagData).DmsResourceItem?.FullName, folderName)
         Me.DmsProvider.CreateDirectory(NewFolderPath)
         Dim Folder As DmsResourceItem = Me.DmsProvider.ListRemoteItem(NewFolderPath)
         'A newly created directory is empty even when the provider omits child metadata.
@@ -1503,6 +1515,8 @@ Public Class DmsBrowser
     End Function
 
     Friend Function ExecuteResourceAction(source As DmsResourceItem, destinationPath As String, action As ResourceAction) As Boolean
+        EnsureCollectionActionWithinBrowserScope(source)
+        If Not IsWithinBrowserRoot(destinationPath) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
         If String.Equals(source.FullName.TrimEnd(Me.DmsProvider.DirectorySeparator), destinationPath.TrimEnd(Me.DmsProvider.DirectorySeparator), StringComparison.Ordinal) Then
             Throw New DmsUserInputInvalidException(UiStrings.GetText("SourceEqualsDestination"))
         End If
@@ -1524,6 +1538,8 @@ Public Class DmsBrowser
     End Function
 
     Friend Async Function ExecuteResourceActionAsync(source As DmsResourceItem, destinationPath As String, action As ResourceAction) As Task(Of Boolean)
+        EnsureCollectionActionWithinBrowserScope(source)
+        If Not IsWithinBrowserRoot(destinationPath) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
         If String.Equals(source.FullName.TrimEnd(Me.DmsProvider.DirectorySeparator), destinationPath.TrimEnd(Me.DmsProvider.DirectorySeparator), StringComparison.Ordinal) Then
             Throw New DmsUserInputInvalidException(UiStrings.GetText("SourceEqualsDestination"))
         End If
@@ -1591,6 +1607,7 @@ Public Class DmsBrowser
         Try
             If CurrentSelectedFolder() Is Nothing OrElse CurrentSelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootSharingUnsupported"))
             Dim selected = CurrentSelectedFolder()
+            EnsureCollectionActionWithinBrowserScope(selected)
             Dim details As DmsResourceItem = Nothing
             Await Me.RunTransferAsync(Async Function()
                                          details = Await Me.LoadResourceDetailsAsync(selected)
