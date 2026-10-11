@@ -12,6 +12,25 @@ Imports NUnit.Framework
 
 <TestFixture, SetUICulture("en")>
 Public Class CenterDeviceNativeCopyMoveTest
+    <TestCase(False), TestCase(True), NonParallelizable>
+    Public Sub CollectionConstraintsUseTheSynchronousDiagnostic(moving As Boolean)
+        Dim originalCulture = Global.System.Globalization.CultureInfo.CurrentUICulture
+        Try
+            For Each culture In New String() {"en", "de", "fr", "es", "zh-Hans", "zh-Hant", "ja", "ar", "he", "hi"}
+                Global.System.Globalization.CultureInfo.CurrentUICulture = Global.System.Globalization.CultureInfo.GetCultureInfo(culture)
+                Dim provider As New ActionProvider()
+                Dim item As New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Collection, .Name = "collection", .FullName = "collection", .ExtendedInfosCollectionID = "collection"}
+                Dim failure = Assert.ThrowsAsync(Of NotSupportedException)(Async Function() As Task
+                                                                              Await provider.CheckCollectionConstraintAsync(item, "collection/new", moving)
+                                                                          End Function)
+                Dim key = If(moving, "CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining", "CenterDeviceCollectionsCanTBeCopiedBecauseThey")
+                Assert.That(failure.Message, [Is].EqualTo(Global.CompuMaster.Dms.ProviderStrings.GetText(key)))
+                Assert.That(provider.Events, [Is].Empty)
+            Next
+        Finally
+            Global.System.Globalization.CultureInfo.CurrentUICulture = originalCulture
+        End Try
+    End Sub
     <TestCase(False), TestCase(True)>
     Public Async Function PublicOperationPreservesSelectedFileId(moving As Boolean) As Task
         Dim provider As New ActionProvider()
@@ -320,6 +339,10 @@ Public Class CenterDeviceNativeCopyMoveTest
         Public Function ActAsync(item As DmsResourceItem, path As String, moving As Boolean, Optional overwrite As Boolean = True, Optional ct As CancellationToken = Nothing) As Task
             If moving Then Return Me.MoveAsync(item, path, overwrite, False, ct)
             Return Me.CopyAsync(item, path, overwrite, False, ct)
+        End Function
+        Public Function CheckCollectionConstraintAsync(item As DmsResourceItem, path As String, moving As Boolean) As Task
+            If moving Then Return Me.MoveItemAsync(item, path, False, Nothing)
+            Return Me.CopyItemAsync(item, path, False)
         End Function
         Public Sub AddTarget(Optional id As String = "replaced")
             Io.Files.Add(New FixtureDocument With {.Id = id, .Filename = "new.txt", .Parent = "destination"})
