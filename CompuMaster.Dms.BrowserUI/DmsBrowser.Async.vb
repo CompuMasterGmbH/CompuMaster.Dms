@@ -147,6 +147,7 @@ Partial Public Class DmsBrowser
     End Function
 
     Friend Async Function CreateNewDirectoryTreeNodeAsync(parentNode As TreeNode, folderName As String) As Task(Of TreeNode)
+        Dim NewFolderPath As String = Me.NewDirectoryPathWithinBrowser(parentNode, folderName)
         Dim ParentData As NodeTagData = CType(parentNode.Tag, NodeTagData)
         If Not ParentData.ChildrenLoaded Then
             If HasKnownChildDirectories(ParentData.DmsResourceItem) = False Then
@@ -155,7 +156,6 @@ Partial Public Class DmsBrowser
                 Await Me.AddTreeChildrenAsync(parentNode)
             End If
         End If
-        Dim NewFolderPath As String = Me.DmsProvider.CombinePath(CType(parentNode.Tag, NodeTagData).DmsResourceItem?.FullName, folderName)
         Await Me.DmsProvider.CreateDirectoryAsync(NewFolderPath)
         Dim Folder As DmsResourceItem = Await Me.DmsProvider.ListRemoteItemAsync(NewFolderPath)
         If Folder Is Nothing Then Throw New Data.DirectoryNotFoundException(NewFolderPath)
@@ -307,9 +307,10 @@ Partial Public Class DmsBrowser
 
     Friend Async Function DeleteDirectoryForUiAsync(node As TreeNode) As Task
         If node Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("NoFolderSelected"))
-        If node Is RootNode Then Throw New DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
+        If node Is RootNode Then Throw New DmsUserInputInvalidException(UiStrings.GetText("RootFolderCannotBeDeleted"))
         Dim item As DmsResourceItem = DirectCast(node.Tag, NodeTagData).DmsResourceItem
-        If item Is Nothing OrElse item.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
+        If item Is Nothing OrElse item.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New DmsUserInputInvalidException(UiStrings.GetText("RootFolderCannotBeDeleted"))
+        EnsureCollectionActionWithinBrowserScope(item)
         Dim parent As TreeNode = node.Parent
         Await Me.DmsProvider.DeleteRemoteItemAsync(item)
         If Me.IsDisposed OrElse node.TreeView IsNot Me.TreeViewDmsFolders Then Return
