@@ -898,18 +898,20 @@ Namespace Providers
             End Try
         End Sub
 
+        Private Sub ValidateRootCollectionName(remoteCollectionName As String, parentDirectoryPath As String)
+            If parentDirectoryPath <> Nothing Then
+                'Without this check the server would create a root collection instead of the requested nested collection.
+                Throw New NotSupportedException(ProviderStrings.Format("CollectionNameInterpretedAsPath", remoteCollectionName))
+            End If
+        End Sub
+
         ''' <inheritdoc/>
         Public Overrides Sub CreateCollection(remoteCollectionName As String)
             Dim ioExceptionMessage As String = "CreateCollection failed: " & remoteCollectionName
             Try
                 Dim NewChildDirName As String = Me.ItemName(remoteCollectionName)
                 Dim ParentRemoteDirName As String = Me.ParentDirectoryPath(remoteCollectionName)
-                If ParentRemoteDirName <> Nothing Then
-                    'if this situation wouldn't be catched, then otherwise creation of collection in another parent directory would lead
-                    'to a new collection below root directory (instead of the expected parent directory)
-                    '=> considered as a bug in CenterDevice API / CenterDevice architecture
-                    Throw New NotSupportedException(ProviderStrings.Format("CollectionsMustBeLocatedInRootFolderOnly", remoteCollectionName, ParentRemoteDirName))
-                End If
+                Me.ValidateRootCollectionName(remoteCollectionName, ParentRemoteDirName)
                 Dim ParentRemoteDir As CenterDevice.IO.DirectoryInfo
                 Try
                     ParentRemoteDir = Me.IOClient.RootDirectory.OpenDirectoryPath(ParentRemoteDirName)

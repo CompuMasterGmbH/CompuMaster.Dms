@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>CenterDevice-Ordner müssen in einer Sammlung oder einem anderen Ordner bleiben.</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>Die Sammlungsmetadaten passen nicht zur angefragten ID.</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>WebDAV unterstützt keine Sammlungen</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>Die Sammlung „{0}“ kann nicht erstellt werden. Das Zeichen „/“ wird als Pfadtrenner interpretiert. CenterDevice-/Scopevisio-Sammlungen können nur direkt im Stammverzeichnis erstellt werden. Übergeben Sie einen einzelnen Sammlungsnamen ohne Pfad und entfernen oder ersetzen Sie „/“ im Namen.</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>Sammlung "{0}" muss im Stammverzeichnis liegen, befindet sich aber in "{1}"</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>Sammlungen müssen im Stammverzeichnis liegen: {0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>Dieser DMS-Provider unterstützt keine eigenen Webservice-URLs</value></data>

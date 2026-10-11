@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>CenterDevice 文件夹必须保留在集合或其他文件夹内。</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>集合元数据与请求的标识符不匹配。</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>WebDAV 不支持集合</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>无法创建集合“{0}”。字符“/”被解释为路径分隔符。CenterDevice/Scopevisio 集合只能直接在根目录中创建。请提供不含路径的单个集合名称，并删除或替换名称中的“/”。</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>集合“{0}”必须仅位于根文件夹中，但位于“{1}”中</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>集合必须位于根文件夹中：{0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>此 DMS 提供商不支持自定义 Web 服务 URL</value></data>

@@ -46,9 +46,7 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Function CreateCollectionAsync(remoteCollectionName As String, Optional cancellationToken As CancellationToken = Nothing) As Task
-            If Me.ParentDirectoryPath(remoteCollectionName) <> Nothing Then
-                Throw New NotSupportedException(ProviderStrings.Format("CollectionsMustBeLocatedInTheRootFolder", remoteCollectionName))
-            End If
+            Me.ValidateRootCollectionName(remoteCollectionName, Me.ParentDirectoryPath(remoteCollectionName))
             Return Me.CreateNativeDirectoryAtPathAsync(remoteCollectionName, CenterDevice.IO.DirectoryInfo.DirectoryType.Collection, NameOf(CreateCollection), cancellationToken)
         End Function
 
