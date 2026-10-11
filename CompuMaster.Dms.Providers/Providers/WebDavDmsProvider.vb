@@ -875,7 +875,7 @@ Namespace Providers
         ''' <exception cref="UnauthorizedAccessException">The local file is inaccessible or its path denotes a directory on a runtime that reports access denied.</exception>
         ''' <exception cref="System.IO.DirectoryNotFoundException">The local parent directory is absent.</exception>
         Protected Overridable Sub WriteResponseStreamToDisk(response As Task(Of Global.WebDav.WebDavStreamResponse), localFilePath As String)
-            response.Wait()
+            response.GetAwaiter().GetResult()
             ValidateDownloadResponse(response.Result, Nothing)
             Dim FileData As Byte() = StreamToByteArray(response.Result.Stream)
             System.IO.File.WriteAllBytes(localFilePath, FileData)
@@ -893,7 +893,7 @@ Namespace Providers
         ''' <inheritdoc/>
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Using response = Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file without processing from the server
-                response.Wait()
+                response.GetAwaiter().GetResult()
                 ValidateDownloadResponse(response.Result, remoteFilePath)
                 WriteResponseStreamToDisk(response, localFilePath)
                 If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
@@ -949,7 +949,7 @@ Namespace Providers
         ''' <exception cref="NotSupportedException">The runtime does not support the local path format.</exception>
         Public Overridable Sub DownloadProcessedFile(remoteFilePath As String, localFilePath As String)
             Using response = Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file that can be processed by the server
-                response.Wait()
+                response.GetAwaiter().GetResult()
                 ValidateDownloadResponse(response.Result, remoteFilePath)
                 WriteResponseStreamToDisk(response, localFilePath)
             End Using
