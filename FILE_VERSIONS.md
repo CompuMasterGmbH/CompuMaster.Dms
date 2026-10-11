@@ -35,7 +35,7 @@ Default CompuMaster.Ocs remains 2026.10.09.0. The new adapter compiles only when
 Local Windows evidence:
 
 - OCS: 33 isolated version cases on net8.0 and net48; all three SDK targets build without warnings/errors.
-- DMS: 22 isolated contract/timestamp/adapter cases and 107 cases including existing WebDAV sharing, owner metadata and native-upload regressions on net8.0 and net48 with the exact SDK checkpoint; library netstandard2.0/net48/net6.0 builds without warnings/errors.
+- DMS: 23 isolated contract/timestamp/adapter cases and 108 cases including existing WebDAV sharing, owner metadata and native-upload regressions on net8.0 and net48 with the exact SDK checkpoint; library netstandard2.0/net48/net6.0 builds without warnings/errors. Failed account authorization invalidates the previous version session before any network work, preventing old-account snapshots from remaining usable.
 - Default package path still builds and reports no cloud version capabilities. No real DMS server was contacted.
 
 Example opt-in: `dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj -f net8.0 --filter "FullyQualifiedName~DmsFileVersionContractTest|FullyQualifiedName~WebDavFileVersionTest" -p:OcsFileVersionsProject=<absolute SDK project path>`. The same focused tests run on net48. Verify the local SDK revision and clean source before using this override; no moving branch is selected implicitly.

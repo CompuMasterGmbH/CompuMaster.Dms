@@ -160,6 +160,11 @@ Namespace Providers
         ''' <param name="ignoreSslErrors">Whether certificate validation is bypassed; False preserves normal certificate validation.</param>
         Public Overloads Sub Authorize(loginCredentials As WebDavLoginCredentials, ignoreSslErrors As Boolean)
             Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.Authorization)
+#If OCS_FILE_VERSIONS Then
+                'An account-change attempt invalidates the previous version session even when authorization fails.
+                Me.FileVersionClient = Nothing
+                Me.FileVersionDiscoveryFailure = Nothing
+#End If
                 Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
                 Me.NativeUploadNamespace = Nothing
                 Me.NativeUploadSupport = Nothing
