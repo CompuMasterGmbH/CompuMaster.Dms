@@ -2,11 +2,11 @@
 Imports CompuMaster.Dms.Data
 
 Partial Public Class DmsBrowser
-    Private Sub UpdateFolderRootMutationAccess()
+    Private Sub UpdateFolderRootMutationAccess(Optional collectionManagementRestricted As Boolean = False)
         Dim node = CurrentSelectedFolderNode()
         Dim item = TryCast(node?.Tag, NodeTagData)?.DmsResourceItem
         'A scoped root remains the browser root even when backed by an ordinary folder or collection.
-        Dim mutable = node IsNot Nothing AndAlso node IsNot RootNode AndAlso item IsNot Nothing AndAlso item.ItemType <> DmsResourceItem.ItemTypes.Root
+        Dim mutable = Not collectionManagementRestricted AndAlso node IsNot Nothing AndAlso node IsNot RootNode AndAlso item IsNot Nothing AndAlso item.ItemType <> DmsResourceItem.ItemTypes.Root
         Dim copyAllowed = mutable AndAlso (AllowedActions And FileOrFolderActions.AllowCopyRenameMoveFiles) <> 0
         Dim deleteAllowed = mutable AndAlso (AllowedActions And FileOrFolderActions.AllowDeleteFiles) <> 0
         Dim enabled = TreeViewDmsFolders.Enabled AndAlso Not TransferRunning AndAlso Not ResourceActionRunning

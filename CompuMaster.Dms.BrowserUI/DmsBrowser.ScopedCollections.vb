@@ -57,16 +57,9 @@ Partial Public Class DmsBrowser
         If provider Is Nothing Then Return
         Dim item = TryCast(TreeViewDmsFolders.SelectedNode?.Tag, NodeTagData)?.DmsResourceItem
         Dim blocked = IsCollectionManagementRestricted(item)
-        Dim copyAllowed = Not blocked AndAlso (AllowedActions And FileOrFolderActions.AllowCopyRenameMoveFiles) <> 0
-        Dim deleteAllowed = Not blocked AndAlso (AllowedActions And FileOrFolderActions.AllowDeleteFiles) <> 0
         Dim shareAllowed = Not blocked AndAlso provider.SupportsSharingSetup AndAlso (AllowedActions And FileOrFolderActions.AllowSharings) <> 0
         Dim enabled = TreeViewDmsFolders.Enabled AndAlso Not TransferRunning AndAlso Not ResourceActionRunning
-        For Each control In New ToolStripItem() {ToolStripFolderContextButtonCopyFolder, ToolStripFolderContextButtonRenameFolder, ToolStripFolderContextButtonMoveFolder}
-            control.Available = copyAllowed
-            control.Enabled = copyAllowed AndAlso enabled
-        Next
-        ToolStripFolderContextButtonDeleteFolder.Available = deleteAllowed
-        ToolStripFolderContextButtonDeleteFolder.Enabled = deleteAllowed AndAlso enabled
+        Me.UpdateFolderRootMutationAccess(blocked)
         ToolStripButtonSharingsFolder.Available = shareAllowed
         ToolStripButtonSharingsFolder.Enabled = shareAllowed AndAlso enabled
         ToolStripFolderContextButtonShareFolder.Available = shareAllowed
