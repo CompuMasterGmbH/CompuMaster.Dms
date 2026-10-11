@@ -210,3 +210,51 @@ seconds. Failed runs do not update the timing history.
 Physical 150%, remaining tooltip/message/OS-dialog coverage, other installed font
 sets and RTL mirroring are not established by this checkpoint. No remote server
 tests or package publication are included; provider code and SDK pins are unchanged.
+
+
+## Exception parity and scoped browser follow-up (#52, #91, #92, #93)
+
+The 2026-10-11 source audit covered application-generated exception text in provider and Data code, including synchronous and native asynchronous CenterDevice/Scopevisio paths and WebDAV paths inherited by Nextcloud/ownCloud. Equivalent operation failures should use the same resource, placeholders and original argument values. Protocol/API operation names, server diagnostics, resource identities and runtime/SDK messages are not translated as component-owned prose.
+
+The confirmed independent defects are addressed in separate commits on one aggregate branch:
+
+| Failure | Correction |
+| --- | --- |
+| Collection name interpreted as a nested path | One root-only guard and one localized resource for both entry points; preserve NotSupportedException and the existing slash-only parser. |
+| CenterDevice directory/collection creation server failure | A common localized IOException factory retains the operation, path, response code and original cause. |
+| Collection copy/rename constraints and folder-to-root constraints | Use the corresponding synchronous explanatory resource in the native asynchronous path. |
+| Link update without an identifier | Use the same localized update diagnostic; deletion retains its distinct generic ID diagnostic. |
+| CenterDevice link server rejection | Share creation error mapping; preserve the original Forbidden/BadRequest exception and optional server explanation. Updates also retain their original cause. |
+| WebDAV unsuccessful HTTP download | Shared validation for raw, processed and progress variants, retaining remote 404 metadata and using localized IOException for other unsuccessful responses. |
+| Synchronous WebDAV download task failure | Preserve the original transport/cancellation exception instead of adding AggregateException. |
+| WebDAV precondition failure with an existing source | Async includes the same explanation and HTTP status as sync. |
+| WebDAV single-item HTTP listing failure | Sync retains the HTTP status as an inner diagnostic, matching async without changing the existing outer type. |
+
+The source review also distinguishes intentional differences: native cancellation has no corresponding synchronous cancellation token; asynchronous WebDAV downloads stage and replace files whereas synchronous downloads use File.WriteAllBytes; local filesystem types can therefore differ by primitive/runtime. Native metadata/selected-ID validation and uncertain-write compensation expose details specific to their actual execution path. These are not grounds for replacing useful diagnostic evidence with a less informative common string. SDK/runtime/server diagnostics and additional authentication boundaries retain their existing contracts; no blanket conversion of all provider exceptions is claimed.
+
+### Scoped browser verification
+
+A scoped browser root backed by a CenterDevice/Scopevisio collection previously offered collection sharing/link management. Collection management is now hidden and guarded before provider mutation, including direct command invocation. Ordinary child-folder creation remains available, uses the resource's actual FullName, and displays the created child beneath the visible root. Stale root nodes cannot silently fall back to the hidden provider root. Public initialRootFolder parameters and InitialFolder document the limitation; SelectedFolder remains an independent initial selection. The root-only limitation is mapped internally to the owning CenterDeviceDmsProviderBase adapter family because the current common capability API does not describe collection placement; other providers retain their own collection capabilities. Changing the configured root does not lift collection restrictions until the actual provider root is present in the displayed tree.
+
+The audit also reproduced an explicit initialRootFolder="/" initialization bug: collections were filtered out as if the actual root were an ordinary resource-backed folder. Actual-root representations now follow normal root initialization. Root-relative navigation handles leading separators consistently.
+
+DmsBrowserScopedCollectionTest opens native forms with an isolated provider, checks folders-only and files/folders modes, visible collection and nested-folder roots, slash-prefixed/actual-root inputs, selection and busy-state restoration, blocked direct mutations, no collection writes outside the visible tree, and unchanged child creation. Root and child-selection renderings were inspected. DevelopmentGuiTestSession displays the required nonactivating countdown/ETA notice. No real DMS server or saved credentials are used.
+
+See FILESYSTEM_CONTRACTS.md for the deliberate synchronous download exception-type correction and local/remote exception distinction. The aggregate PR and issue checklists record exact final test evidence separately from CI, real-server checks, merge and publication.
+
+### Final local checkpoint (2026-10-11)
+
+The functional source at `f766fb8` passed the following isolated checks with the released dependency pins unchanged:
+
+| Check | Result |
+| --- | --- |
+| Complete default-level provider suite, net8.0 | 592 passed. |
+| Complete default-level provider suite, net48 | 592 passed. |
+| Complete default-level provider suite, net8.0 with EnableNativeAsync=false | 341 passed. |
+| Complete default-level BrowserUI suite, net8.0-windows | 392 passed; 20 optional/extended cases skipped. |
+| Scoped browser regression subset, net48 | 16 passed. |
+| Provider netstandard2.0/net48/net6.0 and BrowserUI net48/net8.0-windows builds | Zero warnings and errors. |
+
+The default-level filter is `TestCategory!=RemoteDms&TestCategory!=TestLevel2`. The normal BrowserUI test project targets only net8.0-windows. The net48 result uses a temporary test host linking the same scoped-browser fixture, dispatcher and development-notice sources against the actual net48 BrowserUI output; it does not claim a complete net48 GUI-suite run. All interactive GUI runs displayed and cleaned up the workstation notice. Existing obsolete-constructor warnings occur in the GUI test project, not in the library builds.
+
+No shared-server test, cross-platform CI, merge or publication was performed for this checkpoint. The aggregate draft PR's documentation tip uses `[skip ci]` until an exclusive shared-server window is coordinated as required by AGENTS.md. Required CI remains pending; the previous release's successful runs do not verify this patch.
