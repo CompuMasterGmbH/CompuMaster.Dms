@@ -106,6 +106,25 @@ Public Class DmsBrowserScopedCollectionTest
         End Using
     End Sub
 
+    <TestCase(""), TestCase("/")>
+    Public Sub CollectionManagementStaysHiddenUntilTheVisibleRootIsReloaded(nextRoot As String)
+        Dim provider As New ScopedProvider()
+        Using dispatcher As New UiTestDispatcher(), browser = OpenBrowser(provider, "collection", False)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            browser.InitialFolder = nextRoot
+            Assert.That(browser.ToolStripButtonSharingsFolder.Available, [Is].False, "The actual provider root is still absent from the displayed tree.")
+            Assert.Throws(Of DmsUserInputInvalidException)(Sub() browser.EnsureCollectionActionWithinBrowserScope(provider.ListRemoteItem("collection")))
+            dispatcher.Finish(browser.LoadTreeAsync())
+            browser.TreeViewDmsFolders.SelectedNode = browser.TreeViewDmsFolders.Nodes(0).Nodes(0)
+            dispatcher.WaitForEvents()
+            Assert.That(browser.ToolStripButtonSharingsFolder.Available, [Is].True)
+            Assert.DoesNotThrow(Sub() browser.EnsureCollectionActionWithinBrowserScope(provider.ListRemoteItem("collection")))
+            browser.Close()
+            dispatcher.WaitForEvents()
+        End Using
+    End Sub
+
     <TestCase("collection", False), TestCase("collection", True), TestCase("collection/Child", False), TestCase("collection/Child", True), TestCase("/collection", True)>
     Public Sub DirectoryCreationUsesTheVisibleRootAndDisplaysTheCreatedChild(root As String, asynchronous As Boolean)
         Dim provider As New ScopedProvider()
