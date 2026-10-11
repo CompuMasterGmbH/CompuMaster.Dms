@@ -22,15 +22,19 @@ Public Class LocalizedLayoutAcceptanceTest
 
     <TestCaseSource(NameOf(LayoutCases))>
     Public Sub LocalizedControlsFitWithoutClippingOrOverlap(cultureName As String, fontScale As Single)
+        VerifyLayouts(cultureName, fontScale)
+    End Sub
+
+    Friend Shared Sub VerifyLayouts(cultureName As String, fontScale As Single, Optional fontFamily As String = Nothing)
         Dim previous = CultureInfo.CurrentUICulture
         Dim failures As New List(Of String)
         Try
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName)
             For Each form In CreatePreviewForms()
-                Using form
+                Using preview As Form = form, testFont As New Font(If(fontFamily, form.Font.FontFamily.Name), form.Font.Size * fontScale)
                     form.ShowInTaskbar = False
                     form.Opacity = 0
-                    If fontScale <> 1.0F Then form.Font = New Font(form.Font.FontFamily, form.Font.Size * fontScale)
+                    If fontScale <> 1.0F OrElse fontFamily IsNot Nothing Then form.Font = testFont
                     form.Show()
                     form.PerformLayout()
                     Inspect(form, failures, form.GetType().Name & " scale=" & fontScale.ToString(CultureInfo.InvariantCulture))
@@ -77,7 +81,7 @@ Public Class LocalizedLayoutAcceptanceTest
                         System.IO.Directory.CreateDirectory(output)
                         Using bitmap As New Bitmap(form.Width, form.Height)
                             form.DrawToBitmap(bitmap, New Rectangle(Point.Empty, bitmap.Size))
-                            bitmap.Save(System.IO.Path.Combine(output, cultureName & "-" & form.GetType().Name & "-" & fontScale.ToString(CultureInfo.InvariantCulture) & ".png"), Imaging.ImageFormat.Png)
+                            bitmap.Save(System.IO.Path.Combine(output, cultureName & "-" & form.GetType().Name & "-" & fontScale.ToString(CultureInfo.InvariantCulture) & If(fontFamily Is Nothing, "", "-" & fontFamily.Replace(" ", "_")) & ".png"), Imaging.ImageFormat.Png)
                         End Using
                     End If
                     form.Hide()
@@ -87,6 +91,45 @@ Public Class LocalizedLayoutAcceptanceTest
             CultureInfo.CurrentUICulture = previous
         End Try
         Assert.That(failures, [Is].Empty, cultureName & Environment.NewLine & String.Join(Environment.NewLine, failures))
+    End Sub
+
+    <TestCase("de-DE"), TestCase("fr-FR"), TestCase("es-ES"), TestCase("ja-JP")>
+    Public Sub LongInstanceCaptionWrapsInsideAConstrainedBrowser(cultureName As String)
+        Dim previous = CultureInfo.CurrentUICulture
+        Try
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName)
+            Using form As New PreviewBrowser(False), enlarged As New Font(form.Font.FontFamily, form.Font.Size * 2)
+                form.ShowInTaskbar = False
+                form.Opacity = 0
+                form.Font = enlarged
+                form.MaximumSize = New Size(900, 0)
+                form.Size = New Size(900, form.Height)
+                Dim instance = DirectCast(form.Controls.Find("ButtonDmsInstance", False).Single(), Button)
+                Dim caption = UiStrings.Format("CurrentDmsInstance", String.Join(" ", Enumerable.Repeat("Collection 文件 תיקייה", 6)))
+                instance.Text = caption
+                form.Show()
+                form.PerformLayout()
+                Dim failures As New List(Of String)
+                Inspect(form, failures, "Long instance " & cultureName)
+                Assert.That(failures, [Is].Empty, String.Join(Environment.NewLine, failures))
+                Assert.That(instance.Text, [Is].EqualTo(caption), "Layout must not truncate or replace the instance identity.")
+                Assert.That(instance.Left, [Is].GreaterThanOrEqualTo(14))
+                Assert.That(instance.Right, [Is].LessThanOrEqualTo(form.ClientSize.Width - 14))
+                Dim wrapped = TextRenderer.MeasureText(caption, instance.Font, New Size(Math.Max(1, instance.ClientSize.Width - 16), Integer.MaxValue), TextFormatFlags.WordBreak)
+                Assert.That(instance.ClientSize.Height, [Is].GreaterThanOrEqualTo(wrapped.Height + 16), "The complete wrapped caption needs enough vertical space.")
+                Dim output = Environment.GetEnvironmentVariable("DMS_LOCALIZATION_PREVIEW_DIR")
+                If Not String.IsNullOrEmpty(output) Then
+                    System.IO.Directory.CreateDirectory(output)
+                    Using bitmap As New Bitmap(form.Width, form.Height)
+                        form.DrawToBitmap(bitmap, New Rectangle(Point.Empty, bitmap.Size))
+                        bitmap.Save(System.IO.Path.Combine(output, cultureName & "-long-instance.png"), Imaging.ImageFormat.Png)
+                    End Using
+                End If
+                form.Close()
+            End Using
+        Finally
+            CultureInfo.CurrentUICulture = previous
+        End Try
     End Sub
 
     Friend Shared Iterator Function CreatePreviewForms() As IEnumerable(Of Form)
