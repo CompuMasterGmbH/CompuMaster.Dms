@@ -60,6 +60,27 @@ Public Class WebDavDownloadFailureContractTest
         End Select
     End Sub
 
+    <TestCase("transport"), TestCase("stream"), TestCase("cancel")>
+    Public Sub TransportAndCancellationFailuresAreNotWrappedInAggregateException(kind As String)
+        Dim original As Exception
+        Select Case kind
+            Case "transport" : original = New HttpRequestException("fixture connection failure")
+            Case "stream" : original = New IOException("fixture I/O failure")
+            Case Else : original = New OperationCanceledException("fixture cancellation")
+        End Select
+        Using handler As New ThrowingHandler(original), client As New HttpClient(handler)
+            Dim provider = CreateProvider(client)
+            For Each operation In New String() {"raw-sync", "processed-sync", "raw-async", "processed-async", "progress-async"}
+                Dim failure = Assert.Catch(Of Exception)(Sub() Download(provider, operation, "unused.txt"))
+                If kind = "cancel" Then
+                    Assert.That(failure, [Is].InstanceOf(Of OperationCanceledException)(), operation)
+                Else
+                    Assert.That(failure, [Is].SameAs(original), operation)
+                End If
+            Next
+        End Using
+    End Sub
+
     Private Shared Function CreateProvider(client As HttpClient) As WebDavDmsProvider
         Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = "https://example.test/"}
         GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic).SetValue(provider, New WebDav.WebDavClient(client))
@@ -74,6 +95,17 @@ Public Class WebDavDownloadFailureContractTest
         End Sub
         Protected Overrides Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
             Return Task.FromResult(New HttpResponseMessage(CType(Status, HttpStatusCode)) With {.ReasonPhrase = "fixture diagnostic", .Content = New StringContent("")})
+        End Function
+    End Class
+
+    Private Class ThrowingHandler
+        Inherits HttpMessageHandler
+        Private ReadOnly Failure As Exception
+        Public Sub New(value As Exception)
+            Failure = value
+        End Sub
+        Protected Overrides Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
+            Return Task.FromException(Of HttpResponseMessage)(Failure)
         End Function
     End Class
 End Class
