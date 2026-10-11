@@ -874,19 +874,27 @@ Namespace Providers
         ''' <exception cref="System.IO.IOException">Reading or writing fails, including platform-dependent path conflicts.</exception>
         ''' <exception cref="UnauthorizedAccessException">The local file is inaccessible or its path denotes a directory on a runtime that reports access denied.</exception>
         ''' <exception cref="System.IO.DirectoryNotFoundException">The local parent directory is absent.</exception>
-        ''' <exception cref="InvalidOperationException">The response did not complete successfully.</exception>
         Protected Overridable Sub WriteResponseStreamToDisk(response As Task(Of Global.WebDav.WebDavStreamResponse), localFilePath As String)
             response.Wait()
-            If response.IsCompleted = False OrElse response.Result.IsSuccessful = False Then Throw New InvalidOperationException(ProviderStrings.GetText("DownloadFailedNotCompletedSuccessfull"))
+            ValidateDownloadResponse(response.Result, Nothing)
             Dim FileData As Byte() = StreamToByteArray(response.Result.Stream)
             System.IO.File.WriteAllBytes(localFilePath, FileData)
+        End Sub
+
+        Private Shared Sub ValidateDownloadResponse(response As Global.WebDav.WebDavResponse, remoteFilePath As String)
+            If response.StatusCode = 404 AndAlso remoteFilePath IsNot Nothing Then
+                Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
+            End If
+            If Not response.IsSuccessful Then
+                Throw New System.IO.IOException(ProviderStrings.GetText("DownloadFailed"), New ResponseStatusCodeException(response.StatusCode, response.Description))
+            End If
         End Sub
 
         ''' <inheritdoc/>
         Public Overrides Sub DownloadFile(remoteFilePath As String, localFilePath As String, lastModificationDateOnLocalTime As DateTime?)
             Using response = Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file without processing from the server
                 response.Wait()
-                If response.Result.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.Result.StatusCode, response.Result.Description))
+                ValidateDownloadResponse(response.Result, remoteFilePath)
                 WriteResponseStreamToDisk(response, localFilePath)
                 If lastModificationDateOnLocalTime.HasValue AndAlso lastModificationDateOnLocalTime.Value <> Nothing Then System.IO.File.SetLastWriteTime(localFilePath, lastModificationDateOnLocalTime.Value)
             End Using
@@ -911,8 +919,7 @@ Namespace Providers
             Dim bytes As Long
             Try
                 Using response = Await Me.WebDavClient.GetRawFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
-                    If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
-                    If Not response.IsSuccessful Then Throw New System.IO.IOException(ProviderStrings.GetText("DownloadFailed"), New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    ValidateDownloadResponse(response, remoteFilePath)
                     Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
                         If response.Stream.CanSeek Then total = response.Stream.Length - response.Stream.Position
                         bytes = Await DownloadProgress.CopyAsync(response.Stream, output, total, progress, cancellationToken).ConfigureAwait(False)
@@ -943,7 +950,7 @@ Namespace Providers
         Public Overridable Sub DownloadProcessedFile(remoteFilePath As String, localFilePath As String)
             Using response = Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath) ' get a file that can be processed by the server
                 response.Wait()
-                If response.Result.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.Result.StatusCode, response.Result.Description))
+                ValidateDownloadResponse(response.Result, remoteFilePath)
                 WriteResponseStreamToDisk(response, localFilePath)
             End Using
         End Sub
@@ -964,8 +971,7 @@ Namespace Providers
             Dim temporaryPath As String = localFilePath & ".dms-download-" & Guid.NewGuid().ToString("N") & ".tmp"
             Try
                 Using response = Await Me.WebDavClient.GetProcessedFile(Me.CustomWebApiUrl & remoteFilePath, parameters).ConfigureAwait(False)
-                    If response.StatusCode = 404 Then Throw New FileNotFoundException(remoteFilePath, New ResponseStatusCodeException(response.StatusCode, response.Description))
-                    If Not response.IsSuccessful Then Throw New System.IO.IOException(ProviderStrings.GetText("DownloadFailed"), New ResponseStatusCodeException(response.StatusCode, response.Description))
+                    ValidateDownloadResponse(response, remoteFilePath)
                     Using output As New System.IO.FileStream(temporaryPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, System.IO.FileShare.None, 81920, True)
                         Await response.Stream.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(False)
                     End Using
