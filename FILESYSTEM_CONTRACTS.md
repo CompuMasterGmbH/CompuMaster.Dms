@@ -31,3 +31,12 @@ Empty/invalid local paths may cause `ArgumentException` or `NotSupportedExceptio
 All six contract tests passed on each runner, including the missing-parent cases. The synchronous Unix result demonstrates why a generic `FileStream(CreateNew)` example must not be substituted for evidence from the actual DMS path.
 
 The motivating `FileStream(CreateNew)` example can map to `UnauthorizedAccessException` on Windows and `IOException` on Unix. This is not proof that every DMS download path reaches that exact primitive: asynchronous WebDAV reserves an adjacent stage and conflicts at finalization instead. The public contracts therefore document the applicable path conflict rather than copying an unrelated application's exception assertion.
+
+
+## Remote WebDAV download response correction (#93)
+
+Normal and server-processed synchronous/asynchronous downloads share response validation. HTTP 404 retains the DMS remote FileNotFoundException with its path and HTTP status. Other unsuccessful HTTP responses use System.IO.IOException, the localized DownloadFailed message, and ResponseStatusCodeException as the inner diagnostic. This includes remote 401/403: these responses do not describe a local file permission failure.
+
+This intentionally changes synchronous non-404 HTTP download failures from InvalidOperationException to the documented IOException contract; callers catching only the former need to handle IOException. Public/protected method signatures and local filesystem exception mapping remain unchanged. Runtime transport failures and cancellation are distinct from an unsuccessful HTTP response.
+
+WebDavDownloadFailureContractTest checks HTTP 400/401/403/404/409/412/429/500/503 across raw synchronous, processed synchronous, raw asynchronous, processed asynchronous and progress downloads in English/German, with owned local destinations, unchanged original contents and staging cleanup. It uses fake HTTP responses; no actual WebDAV server behavior is established by this test.
