@@ -27,7 +27,7 @@ Partial Public Class DmsBrowser
     Friend Sub EnsureCollectionActionWithinBrowserScope(item As DmsResourceItem)
         If item Is Nothing OrElse Not HasScopedBrowserRoot Then Return
         If Not IsWithinBrowserRoot(item.FullName) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
-        If item.ItemType = DmsResourceItem.ItemTypes.Collection Then Throw New DmsUserInputInvalidException(UiStrings.GetText("RootFolderCannotBeChanged"))
+        If item.ItemType = DmsResourceItem.ItemTypes.Collection Then Throw New DmsUserInputInvalidException(UiStrings.GetText("CollectionManagementUnavailableInScopedBrowser"))
     End Sub
 
     Private Function NewDirectoryPathWithinBrowser(parentNode As TreeNode, folderName As String) As String

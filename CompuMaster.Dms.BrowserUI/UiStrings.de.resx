@@ -243,4 +243,5 @@
   <data name="DownloadInvalidName" xml:space="preserve"><value>Der entfernte Name ist als lokaler Datei- oder Ordnername nicht zulässig: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>Nach der Bestätigung ist am Ziel eine Datei hinzugekommen. Erneut starten, um über das Ersetzen zu entscheiden: {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>Der Vorgang konnte nicht abgeschlossen werden. Prüfen Sie die Verbindung und Zugriffsrechte und versuchen Sie es erneut.</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>Sammlungen können in einem auf einen Startordner begrenzten Browser nicht verwaltet werden.</value></data>
 </root>

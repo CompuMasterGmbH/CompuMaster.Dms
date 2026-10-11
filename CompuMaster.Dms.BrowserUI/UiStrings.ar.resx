@@ -243,4 +243,5 @@
   <data name="DownloadInvalidName" xml:space="preserve"><value>لا يمكن استخدام الاسم البعيد اسماً لملف أو مجلد محلي: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>ظهر ملف في الوجهة بعد التأكيد. ابدأ مجدداً لاختيار ما إذا كنت تريد استبداله: {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>تعذر إكمال العملية. تحقق من الاتصال وأذونات الوصول، ثم حاول مرة أخرى.</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>لا تتوفر إدارة المجموعات في متصفح يقتصر على مجلد بدء محدد.</value></data>
 </root>

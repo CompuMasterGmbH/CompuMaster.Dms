@@ -243,4 +243,5 @@
   <data name="DownloadInvalidName" xml:space="preserve"><value>दूरस्थ नाम का उपयोग स्थानीय फ़ाइल या फ़ोल्डर के नाम के रूप में नहीं किया जा सकता: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>पुष्टि के बाद गंतव्य पर एक फ़ाइल बनाई गई। उसे बदलना है या नहीं, यह चुनने के लिए फिर से शुरू करें: {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>कार्य पूरा नहीं हो सका। कनेक्शन और पहुँच अनुमतियाँ जाँचें, फिर दोबारा कोशिश करें।</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>प्रारंभिक फ़ोल्डर तक सीमित ब्राउज़र में संग्रह प्रबंधन उपलब्ध नहीं है।</value></data>
 </root>

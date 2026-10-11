@@ -243,4 +243,5 @@
   <data name="DownloadInvalidName" xml:space="preserve"><value>The remote name cannot be used as a local file or folder name: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>A file appeared at the destination after confirmation. Start again to choose whether to replace it: {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>The operation could not be completed. Check the connection and access permissions, then try again.</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>Collection management is unavailable in a browser restricted to a start folder.</value></data>
 </root>
