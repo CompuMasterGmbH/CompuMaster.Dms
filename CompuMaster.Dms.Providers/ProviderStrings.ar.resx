@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>يجب أن تظل مجلدات CenterDevice داخل مجموعة أو مجلد آخر.</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>البيانات التعريفية للمجموعة لا تتطابق مع المعرف المطلوب.</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>المجموعات غير مدعومة بواسطة WebDAV</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>يتعذر إنشاء المجموعة «{0}». يُفسَّر الحرف «/» على أنه فاصل مسار. لا يمكن إنشاء مجموعات CenterDevice/Scopevisio إلا مباشرةً في الدليل الجذر. أدخل اسم مجموعة واحدًا دون مسار، واحذف «/» من الاسم أو استبدله.</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>يجب أن تكون المجموعات "{0}" موجودة في المجلد الجذر فقط، ولكنها موجودة في "{1}"</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>يجب أن تكون المجموعات موجودة في المجلد الجذر: {0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>عناوين URL المخصصة لخدمة الويب غير مدعومة لموفر DMS هذا</value></data>

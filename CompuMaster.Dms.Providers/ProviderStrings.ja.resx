@@ -36,6 +36,7 @@
   <data name="CenterDeviceFoldersMustRemainInsideACollectionOr" xml:space="preserve"><value>CenterDevice フォルダーは、コレクションまたは別のフォルダー内に残す必要があります。</value></data>
   <data name="CollectionMetadataDoesNotMatchTheRequestedIdentifier" xml:space="preserve"><value>コレクションのメタデータが要求された識別子と一致しません。</value></data>
   <data name="CollectionsAreNotSupportedByWebDAV" xml:space="preserve"><value>コレクションは WebDAV ではサポートされていません</value></data>
+  <data name="CollectionNameInterpretedAsPath" xml:space="preserve"><value>コレクション「{0}」を作成できません。文字「/」はパス区切り文字として解釈されます。CenterDevice/Scopevisio のコレクションはルートディレクトリ直下にのみ作成できます。パスを含まない単一のコレクション名を指定し、名前に含まれる「/」を削除または置換してください。</value></data>
   <data name="CollectionsMustBeLocatedInRootFolderOnly" xml:space="preserve"><value>コレクション「{0}」はルート フォルダーにのみ配置する必要がありますが、「{1}」にあります。</value></data>
   <data name="CollectionsMustBeLocatedInTheRootFolder" xml:space="preserve"><value>コレクションはルート フォルダーに配置する必要があります: {0}</value></data>
   <data name="CustomWebserviceURLsAreNotSupportedForThis" xml:space="preserve"><value>カスタム Web サービス URL はこの DMS プロバイダーではサポートされていません</value></data>
