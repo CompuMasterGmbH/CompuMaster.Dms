@@ -25,6 +25,9 @@ Partial Public Class DmsBrowser
     End Function
 
     Private Function IsCollectionManagementRestricted(item As DmsResourceItem) As Boolean
+        Dim provider = If(_DmsProviderOverride, DmsProviderInstance)
+        'The current capability API does not describe collection placement; keep this limitation in its owning adapter family.
+        If Not TypeOf provider Is CenterDeviceDmsProviderBase Then Return False
         If item Is Nothing OrElse item.ItemType <> DmsResourceItem.ItemTypes.Collection Then Return False
         If HasScopedBrowserRoot Then Return True
         'Changing the configured start path does not immediately replace the displayed tree.
