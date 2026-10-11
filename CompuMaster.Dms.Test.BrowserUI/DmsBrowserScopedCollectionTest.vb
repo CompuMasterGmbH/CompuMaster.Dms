@@ -149,8 +149,26 @@ Public Class DmsBrowserScopedCollectionTest
         Return New DmsBrowser(provider, Nothing, "Scoped collection audit", Nothing, root, "", If(foldersOnly, DmsBrowser.BrowseModes.Folders, DmsBrowser.BrowseModes.FoldersAndFiles), AllActions, DmsBrowser.DialogOperationModes.NoResults, "", "", "") With {.ShowInTaskbar = False}
     End Function
 
-    Private Class ScopedProvider
+    <Test>
+    Public Sub OtherCollectionProvidersRetainTheirOwnScopedCollectionCapabilities()
+        Dim provider As New OtherCollectionProvider()
+        Using browser As New DmsBrowser(provider)
+            browser.InitialFolder = "collection"
+            Assert.DoesNotThrow(Sub() browser.EnsureCollectionActionWithinBrowserScope(New DmsResourceItem With {.FullName = "collection", .ItemType = DmsResourceItem.ItemTypes.Collection}))
+        End Using
+    End Sub
+
+    Private Class OtherCollectionProvider
         Inherits NoDmsProvider
+        Public Overrides ReadOnly Property SupportsCollections As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+    End Class
+
+    Private Class ScopedProvider
+        Inherits ScopevisioTeamworkDmsProvider
         Public ReadOnly Created As New List(Of String)()
         Public CollectionWrites As Integer
         Public Writes As Integer
