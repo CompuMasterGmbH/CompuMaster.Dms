@@ -4,7 +4,18 @@ Imports System.Windows.Forms
 
 Partial Public Class DmsBrowser
     Private Sub ArrangeLocalizedBrowserControls()
+        If Me.InstanceButton IsNot Nothing Then
+            'A single action must also fit when the whole form is display-constrained.
+            'Let its localized caption wrap before calculating the bottom row height.
+            Me.InstanceButton.MaximumSize = New Size(Math.Max(1, Me.ClientSize.Width - 28), 0)
+        End If
         LocalizedLayout.FitButtons(Me)
+        If Me.InstanceButton IsNot Nothing Then
+            Dim textWidth = Math.Max(1, Me.InstanceButton.Width - Me.InstanceButton.Padding.Horizontal - 16)
+            Dim wrapped = TextRenderer.MeasureText(Me.InstanceButton.Text, Me.InstanceButton.Font,
+                New Size(textWidth, Integer.MaxValue), TextFormatFlags.WordBreak)
+            Me.InstanceButton.Height = Math.Max(Me.ButtonCreateNewFolder.Height, wrapped.Height + Me.InstanceButton.Padding.Vertical + 16)
+        End If
         LocalizedLayout.FitColumnHeaders(Me.ListViewDmsFiles)
         Dim leftControls As New List(Of Control) From {Me.ButtonCreateNewFolder, Me.ButtonShowFiles}
         If Me.InstanceButton IsNot Nothing AndAlso (Me.AllowedActions And FileOrFolderActions.AllowSwitchDmsInstance) <> 0 Then leftControls.Add(Me.InstanceButton)

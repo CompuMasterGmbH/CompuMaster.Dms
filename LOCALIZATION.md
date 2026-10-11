@@ -258,3 +258,62 @@ The functional source at `f766fb8` passed the following isolated checks with the
 The default-level filter is `TestCategory!=RemoteDms&TestCategory!=TestLevel2`. The normal BrowserUI test project targets only net8.0-windows. The net48 result uses a temporary test host linking the same scoped-browser fixture, dispatcher and development-notice sources against the actual net48 BrowserUI output; it does not claim a complete net48 GUI-suite run. All interactive GUI runs displayed and cleaned up the workstation notice. Existing obsolete-constructor warnings occur in the GUI test project, not in the library builds.
 
 No shared-server test, cross-platform CI, merge or publication was performed for this checkpoint. The aggregate draft PR's documentation tip uses `[skip ci]` until an exclusive shared-server window is coordinated as required by AGENTS.md. Required CI remains pending; the previous release's successful runs do not verify this patch.
+## Message, tooltip and installed-font follow-up (2026-10-11)
+
+`LocalizedMessageAcceptanceTest` checks all ten UI cultures and unsupported
+`ko-KR` fallback with an independent English formatting culture. Browser failures
+use localized component prose while host diagnostics retain the original exception
+and inner exception. Unicode paths and literal format braces remain complete.
+Upload retry hints are translated; diagnostic tooltips retain original technical
+exception text. Native retry-hint popup sizes are checked against the current
+work-area size.
+
+The extended popup/font checks require `DMS_LOCALIZATION_EXTENDED_TESTS=1` and have
+category `LocalizationExtended`. Without that switch all 41 extended cases are
+ignored, including in CI; opt-in-off verification also passed. Physical-monitor
+checks retain their independent opt-in. Neither fixture changes Windows settings,
+uses saved profiles/credentials or contacts a DMS server. Countdown/ETA notices
+and measured timing history remain active.
+
+`LocalizedFontAcceptanceTest` reuses the layout audit for all fifteen current
+preview scenarios, including upload/download recovery and download conflicts.
+All ten cultures are checked with installed Segoe UI, Arial and Tahoma at 150% of
+the initial font size, including minimum/wide/constrained browser sizes and all
+transfer/recovery states. Missing fonts are skipped rather than silently substituted;
+PNG names include the font family. This is representative installed-font coverage,
+not native-language copy review or proof of every glyph/font installation.
+
+The Framework host reproduced four existing 200%-font constrained-browser failures
+(German, French, Spanish and Japanese): the instance action itself exceeded the
+client width even after action rows wrapped. It now uses the available width and
+reserves measured wrapped-caption height before row placement. Four new mixed-Unicode
+regressions check bounds, height and unchanged instance text. No ID, callback,
+event handler or tab order changes. Selected German/French Framework and
+German/Tahoma, Hindi/Segoe UI and Arabic/Arial .NET 8 previews were inspected.
+
+The optional `LocalizationAcceptance/LocalizationAcceptance.vbproj` links the same
+fixture sources for both runtimes, outside the normal solution/CI path. Run
+sequentially, with an appropriate timing key/estimate for the selected scope:
+
+```powershell
+$env:DMS_LOCALIZATION_EXTENDED_TESTS = '1'
+dotnet test CompuMaster.Dms.Test.BrowserUI/LocalizationAcceptance/LocalizationAcceptance.vbproj -c CI_CD -f net48
+dotnet test CompuMaster.Dms.Test.BrowserUI/LocalizationAcceptance/LocalizationAcceptance.vbproj -c CI_CD -f net8.0-windows
+Remove-Item Env:DMS_LOCALIZATION_EXTENDED_TESTS
+```
+
+Final verification: the same-source Framework linked subset passed 97/97 in
+76 seconds. The permanent dual-target project builds without warnings/errors;
+its Framework default subset passed 26 message/long-instance cases with all
+11 popup cases skipped. The final .NET 8 combined run passed all 116 localization,
+instance and toolbar cases. Its extra 17 focus cases could not establish their
+foreground prerequisite (`AttachThreadInput` returned access-denied error 5);
+no current focus-behavior success is claimed. Seven final PNG cases also passed.
+Retained TRX distinguishes setup limitations from reproduced layout failures.
+
+Focused native-monitor checks of both browser modes (scenarios 5/6) passed 20/20
+culture/start-position cases on each runtime at the unchanged physical 100%/125%
+configuration, including two round trips. Framework took 38 seconds; .NET 8 took
+36 seconds. This does not reverify all fifteen native scenarios or physical
+150%/200%. OS-owned message-box/file-dialog text and placement, physical 150%,
+other font installations and full RTL UX remain separate acceptance in #52/#66.
