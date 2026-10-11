@@ -73,10 +73,10 @@ Namespace Providers
             cancellationToken.ThrowIfCancellationRequested()
         End Function
 
-        Private Async Function ValidateNativeLinkSettingsAsync(shareInfo As DmsLink, requireIdentifier As Boolean, cancellationToken As CancellationToken) As Task
+        Private Async Function ValidateNativeLinkSettingsAsync(shareInfo As DmsLink, requireIdentifier As Boolean, cancellationToken As CancellationToken, Optional identifierMessageKey As String = "TheLinkOperationRequiresAnIdentifier") As Task
             If shareInfo Is Nothing Then Throw New ArgumentNullException(NameOf(shareInfo))
             cancellationToken.ThrowIfCancellationRequested()
-            If requireIdentifier AndAlso String.IsNullOrEmpty(shareInfo.ID) Then Throw New InvalidOperationException(ProviderStrings.GetText("TheLinkOperationRequiresAnIdentifier"))
+            If requireIdentifier AndAlso String.IsNullOrEmpty(shareInfo.ID) Then Throw New InvalidOperationException(ProviderStrings.GetText(identifierMessageKey))
             If Not shareInfo.DetailsInitialized Then Await Me.RefreshLinkAsync(shareInfo, cancellationToken).ConfigureAwait(False)
             If shareInfo.AllowEdit Then Throw New NotSupportedException(ProviderStrings.GetText("AllowEditNotSupportedByProvider"))
             If shareInfo.AllowDelete Then Throw New NotSupportedException(ProviderStrings.GetText("AllowDeleteNotSupportedByProvider"))
@@ -193,7 +193,7 @@ Namespace Providers
 
         ''' <inheritdoc/>
         Public Overrides Async Function UpdateLinkAsync(shareInfo As DmsLink, Optional cancellationToken As CancellationToken = Nothing) As Task
-            Await Me.ValidateNativeLinkSettingsAsync(shareInfo, True, cancellationToken).ConfigureAwait(False)
+            Await Me.ValidateNativeLinkSettingsAsync(shareInfo, True, cancellationToken, "UpdateOfLinkRequiresAnIDInDmsLink").ConfigureAwait(False)
             If shareInfo.AllowUpload Then ValidateUploadLinkMaxBytes(shareInfo.MaxBytes)
             Try
                 If shareInfo.AllowUpload Then
