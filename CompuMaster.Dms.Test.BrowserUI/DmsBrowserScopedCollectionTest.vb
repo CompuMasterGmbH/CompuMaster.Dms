@@ -60,13 +60,14 @@ Public Class DmsBrowserScopedCollectionTest
         End Using
     End Sub
 
-    <Test>
-    Public Sub ASelectedFolderWithoutAScopedRootRetainsCollectionActions()
+    <TestCase(""), TestCase("/")>
+    Public Sub ASelectedFolderAtTheActualProviderRootRetainsCollectionActions(root As String)
         Dim provider As New ScopedProvider()
-        Using dispatcher As New UiTestDispatcher(), browser = OpenBrowser(provider, "", False)
+        Using dispatcher As New UiTestDispatcher(), browser = OpenBrowser(provider, root, False)
             browser.SelectedFolder = "collection"
             browser.Show()
             dispatcher.WaitForEvents()
+            Assert.That(browser.TreeViewDmsFolders.SelectedNode.Text, [Is].EqualTo("collection"))
             Assert.That(browser.ToolStripButtonSharingsFolder.Available, [Is].True)
             Assert.DoesNotThrow(Sub() browser.EnsureCollectionActionWithinBrowserScope(provider.ListRemoteItem("collection")))
             browser.Close()
@@ -105,7 +106,7 @@ Public Class DmsBrowserScopedCollectionTest
         End Using
     End Sub
 
-    <TestCase("collection", False), TestCase("collection", True), TestCase("collection/Child", False), TestCase("collection/Child", True)>
+    <TestCase("collection", False), TestCase("collection", True), TestCase("collection/Child", False), TestCase("collection/Child", True), TestCase("/collection", True)>
     Public Sub DirectoryCreationUsesTheVisibleRootAndDisplaysTheCreatedChild(root As String, asynchronous As Boolean)
         Dim provider As New ScopedProvider()
         Using dispatcher As New UiTestDispatcher(), browser = OpenBrowser(provider, root, False)
@@ -117,7 +118,7 @@ Public Class DmsBrowserScopedCollectionTest
             Else
                 browser.CreateNewDirectoryTreeNode(parent, "Created")
             End If
-            Assert.That(provider.Created, [Is].EqualTo(New String() {root & "/Created"}))
+            Assert.That(provider.Created, [Is].EqualTo(New String() {root.Trim("/"c) & "/Created"}))
             Assert.That(parent.Nodes.Cast(Of TreeNode)().Any(Function(node) node.Text = "Created"), [Is].True)
             Assert.That(provider.CollectionWrites, [Is].Zero)
             browser.Close()
