@@ -44,5 +44,8 @@
   <ItemGroup Condition="'$(EnableNativeAsync)' != 'true'">
     <Compile Remove="*.NativeAsync.vb" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(OcsFileVersionsProject)' != ''">
+    <DefineConstants>$(DefineConstants),OCS_FILE_VERSIONS=True</DefineConstants>
+  </PropertyGroup>
 
 </Project>

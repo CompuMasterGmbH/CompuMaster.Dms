@@ -11,7 +11,7 @@ Namespace Providers
     ''' <summary>
     ''' A DMS provider instance
     ''' </summary>
-    Public MustInherit Class BaseDmsProvider
+    Partial Public MustInherit Class BaseDmsProvider
 
         Private Shared ReadOnly AmbientCancellation As New AsyncLocal(Of CancellationToken)
         Private Shared ReadOnly SynchronousFallbackGates As New ConcurrentDictionary(Of DmsProviders, SemaphoreSlim)
