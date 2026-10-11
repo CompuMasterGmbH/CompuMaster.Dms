@@ -101,7 +101,7 @@ Partial Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Exception
-            MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Function
 End Class

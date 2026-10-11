@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>הורדה דרך נתיבים מקומיים מקושרים אינה נתמכת: {0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>לא ניתן להשתמש בשם המרוחק כשם קובץ או תיקייה מקומיים: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>קובץ הופיע ביעד לאחר האישור. יש להתחיל שוב כדי לבחור אם להחליפו: {0}</value></data>
+  <data name="BrowserOperationFailed" xml:space="preserve"><value>לא ניתן היה להשלים את הפעולה. בדקו את החיבור ואת הרשאות הגישה ונסו שוב.</value></data>
 </root>

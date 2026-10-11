@@ -18,6 +18,7 @@ Partial Public Class DmsBrowser
                     Await UploadBatchWithProgressAsync(Me.DmsProvider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths)
                 Catch ex As Exception
                     failure = ex
+                    If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
                 End Try
                 'Refresh also after partial writes, without losing the original transfer failure.
                 Try
@@ -28,6 +29,7 @@ Partial Public Class DmsBrowser
                     Else
                         failure.Data("DestinationRefreshFailure") = ex
                     End If
+                    Me.HandleBrowserFailure(ex, DmsBrowserFailurePhase.Refresh, showDialog:=False)
                 End Try
                 dialog.SetFailure(failure)
                 dialog.Finish()

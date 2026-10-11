@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>No se admiten descargas a través de rutas locales enlazadas: {0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>El nombre remoto no es válido como nombre de archivo o carpeta local: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>Apareció un archivo en el destino después de la confirmación. Reinicie para decidir si lo reemplaza: {0}</value></data>
+  <data name="BrowserOperationFailed" xml:space="preserve"><value>No se pudo completar la operación. Compruebe la conexión y los permisos de acceso e inténtelo de nuevo.</value></data>
 </root>

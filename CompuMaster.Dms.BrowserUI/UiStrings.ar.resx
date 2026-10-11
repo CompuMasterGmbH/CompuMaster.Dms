@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>التنزيل عبر المسارات المحلية المرتبطة غير مدعوم: {0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>لا يمكن استخدام الاسم البعيد اسماً لملف أو مجلد محلي: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>ظهر ملف في الوجهة بعد التأكيد. ابدأ مجدداً لاختيار ما إذا كنت تريد استبداله: {0}</value></data>
+  <data name="BrowserOperationFailed" xml:space="preserve"><value>تعذر إكمال العملية. تحقق من الاتصال وأذونات الوصول، ثم حاول مرة أخرى.</value></data>
 </root>
