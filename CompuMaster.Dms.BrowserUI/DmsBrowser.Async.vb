@@ -306,7 +306,10 @@ Partial Public Class DmsBrowser
     End Function
 
     Friend Async Function DeleteDirectoryForUiAsync(node As TreeNode) As Task
+        If node Is Nothing Then Throw New DmsUserErrorMessageException(UiStrings.GetText("NoFolderSelected"))
+        If node Is RootNode Then Throw New DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
         Dim item As DmsResourceItem = DirectCast(node.Tag, NodeTagData).DmsResourceItem
+        If item Is Nothing OrElse item.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
         Dim parent As TreeNode = node.Parent
         Await Me.DmsProvider.DeleteRemoteItemAsync(item)
         If Me.IsDisposed OrElse node.TreeView IsNot Me.TreeViewDmsFolders Then Return
