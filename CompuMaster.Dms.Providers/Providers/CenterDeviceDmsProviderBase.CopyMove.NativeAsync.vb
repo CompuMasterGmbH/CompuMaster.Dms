@@ -102,15 +102,15 @@ Namespace Providers
             Dim parent As CenterDevice.IO.DirectoryInfo = Nothing
             Try
                 If source.ItemType = DmsResourceItem.ItemTypes.Collection Then
-                    If Not moving Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCannotBeCopied"))
-                    If Me.ParentDirectoryPath(source.FullName) <> Nothing OrElse Me.ParentDirectoryPath(destinationPath) <> Nothing Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCanOnlyBeRenamedInThe"))
+                    If Not moving Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCanTBeCopiedBecauseThey"))
+                    If Me.ParentDirectoryPath(source.FullName) <> Nothing OrElse Me.ParentDirectoryPath(destinationPath) <> Nothing Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceCollectionsCanOnlyBeRenamedWhileRemaining"))
                     If Await Me.ListRemoteItemAsync(destinationPath, ct).ConfigureAwait(False) IsNot Nothing Then Throw New DirectoryAlreadyExistsException(destinationPath)
                     Await Me.RenameNativeDirectoryAsync(Await Me.GetNativeDirectoryForActionAsync(source, ct).ConfigureAwait(False), Me.ItemName(destinationPath), ct).ConfigureAwait(False)
                     Return
                 End If
                 parent = Await Me.OpenNativeTransferDirectoryAsync(Me.ParentDirectoryPath(destinationPath), ct).ConfigureAwait(False)
                 Await Me.ValidateNativeUniqueActionDirectoryAsync(parent, destinationPath, ct).ConfigureAwait(False)
-                If parent.IsRootDirectory Then Throw New NotSupportedException(ProviderStrings.GetText("CenterDeviceFilesAndFoldersMustRemainInsideA"))
+                If parent.IsRootDirectory Then Throw New NotSupportedException(ProviderStrings.GetText(If(source.ItemType = DmsResourceItem.ItemTypes.Folder, "CenterDeviceFoldersMustRemainInsideACollectionOr", "CenterDeviceFilesAndFoldersMustRemainInsideA")))
                 Dim name = Me.ItemName(destinationPath)
                 If source.ItemType = DmsResourceItem.ItemTypes.File Then
                     Dim file = Await Me.GetNativeFileForActionAsync(source, moving, ct).ConfigureAwait(False)
