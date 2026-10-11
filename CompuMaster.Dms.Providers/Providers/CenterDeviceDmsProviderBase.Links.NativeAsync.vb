@@ -154,10 +154,9 @@ Namespace Providers
                 dmsResource.ExtendedInfosLinks.Add(result)
                 Return result
             Catch ex As ForbiddenException
-                Throw New DmsUserErrorMessageException(ProviderStrings.Format("Forbidden", ex.ErrorResponse.Message), ex)
+                Throw CreateLinkServerFailure(ex)
             Catch ex As BadRequestException
-                Dim message = If(ex.ErrorResponse.Data IsNot Nothing AndAlso ex.ErrorResponse.Data.ContainsKey("explanation"), CStr(ex.ErrorResponse.Data("explanation")), ex.ErrorResponse.Message)
-                Throw New DmsUserErrorMessageException(message, ex)
+                Throw CreateLinkServerFailure(ex)
             Finally
                 Me.InvalidateNativeLinkCaches()
             End Try

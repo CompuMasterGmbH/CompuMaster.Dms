@@ -1361,13 +1361,9 @@ Namespace Providers
                     Return Result
                 End If
             Catch ex As ForbiddenException
-                Throw New Data.DmsUserErrorMessageException(ProviderStrings.Format("Forbidden", ex.ErrorResponse.Message))
+                Throw CreateLinkServerFailure(ex)
             Catch ex As BadRequestException
-                If ex.ErrorResponse.Data.ContainsKey("explanation") Then
-                    Throw New Data.DmsUserErrorMessageException(CType(ex.ErrorResponse.Data("explanation"), String))
-                Else
-                    Throw New Data.DmsUserErrorMessageException(ex.ErrorResponse.Message)
-                End If
+                Throw CreateLinkServerFailure(ex)
             End Try
         End Function
 
@@ -1478,7 +1474,7 @@ Namespace Providers
                     Me.ResetDirectoryCacheOfParentFolderToForceReloadOfUpdatedSharings(shareInfo.ParentDmsResourceItem)
                 End If
             Catch ex As ForbiddenException
-                Throw New Data.DmsUserErrorMessageException(ex.ErrorResponse.Message)
+                Throw New Data.DmsUserErrorMessageException(ex.ErrorResponse.Message, ex)
             End Try
         End Sub
 
