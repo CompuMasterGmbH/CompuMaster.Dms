@@ -86,6 +86,20 @@ Public Class WebDavFileVersionTest
         End Using
     End Sub
 
+    <Test>
+    Public Sub FailedAccountAuthorizationCannotRetainPreviousVersionSession()
+        Using wire As New Wire(), http As New HttpClient(wire)
+            Dim provider As New WebDavDmsProvider()
+            provider.ConfigureFileVersions(New Global.WebDav.WebDavClient(http), BaseUrl, OcsServerFamily.Nextcloud, Capabilities("true", "true"))
+            Dim version = provider.ListFileVersions(SelectedFile()).Single()
+            Assert.Catch(Sub() provider.Authorize(New WebDavLoginCredentials With {.BaseUrl = "invalid-absolute-url", .Username = "fixture", .Password = "fixture"}))
+            Assert.That(provider.SupportsFileVersionHistory, [Is].False)
+            Assert.That(provider.SupportsFileVersionRestore, [Is].False)
+            Assert.Throws(Of NotSupportedException)(Sub() provider.RestoreFileVersion(version))
+            Assert.That(wire.Requests.Any(Function(request) request.StartsWith("MOVE ")), [Is].False)
+        End Using
+    End Sub
+
     Private Class Wire
         Inherits HttpMessageHandler
         Friend Family As Integer = 1
