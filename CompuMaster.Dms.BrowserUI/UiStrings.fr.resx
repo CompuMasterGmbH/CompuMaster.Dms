@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>Le téléchargement via des chemins locaux liés n’est pas pris en charge : {0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>Ce nom distant ne peut pas servir de nom de fichier ou de dossier local : {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>Un fichier est apparu à destination après la confirmation. Recommencez pour décider de le remplacer : {0}</value></data>
+  <data name="BrowserOperationFailed" xml:space="preserve"><value>L’opération n’a pas pu être terminée. Vérifiez la connexion et les droits d’accès, puis réessayez.</value></data>
 </root>

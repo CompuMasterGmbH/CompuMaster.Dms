@@ -94,6 +94,7 @@ Partial Public Class DmsBrowser
                                                        Await DownloadBatchWithProgressAsync(DmsProvider, selected.ToArray(), destinations.ToArray(), dialog, dialog.CancellationToken, permissions.ToArray())
                                                    End If
                                                Catch ex As Exception
+                                                   If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
                                                    dialog.SetFailure(ex)
                                                    dialog.Finish()
                                                    dialog.ShowDialog(Me)
@@ -106,7 +107,7 @@ Partial Public Class DmsBrowser
             Catch ex As OperationCanceledException
                 Return
             Catch ex As Exception
-                MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString()), Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Me.HandleBrowserFailure(ex)
             End Try
         End Using
     End Sub

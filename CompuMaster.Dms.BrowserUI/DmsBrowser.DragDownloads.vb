@@ -38,7 +38,7 @@ Partial Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Exception
-            If Not DragDownloadFailureDisplayed Then MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            If Not DragDownloadFailureDisplayed Then Me.HandleBrowserFailure(ex)
         Finally
             DragDownloadRunning = False
             UpdateFolderDownloadAccess()
@@ -59,6 +59,7 @@ Partial Public Class DmsBrowser
                 operation.GetAwaiter().GetResult()
             Catch ex As Exception
                 DragDownloadFailureDisplayed = True
+                If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
                 dialog.SetFailure(ex)
                 dialog.Finish()
                 dialog.ShowDialog(Me)

@@ -12,6 +12,7 @@ Partial Public Class DmsBrowser
             Try
                 Await DownloadBatchWithProgressAsync(Me.DmsProvider, files, destinations, dialog, dialog.CancellationToken)
             Catch ex As Exception
+                If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
                 dialog.SetFailure(ex)
                 dialog.Finish()
                 dialog.ShowDialog(Me)

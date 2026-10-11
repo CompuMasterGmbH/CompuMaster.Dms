@@ -88,6 +88,21 @@ Use `ListDirectoryEntriesAsync` and `ListFileEntriesAsync` to populate a browser
 
 BrowserUI uses these entry listings for navigation and resolves selected details asynchronously, retaining the selected resource's path and parent context even for duplicate names. Pending operations keep the window active with a wait cursor and lock its content/action controls until completion; success, failure and cancellation restore their previous states. API request allowances remain in force.
 
+### Browser failure diagnostics
+
+Subscribe to `DmsBrowser.OperationFailed` before showing the browser to receive the original exception, including its stack trace and inner exceptions, together with the browser phase and operation name. This works without an attached debugger. Startup failures cancel and close the browser; failures caught by normal UI handlers remain handled internally. Provider APIs and task-returning operations retain their exception propagation. Expected user cancellation is not reported.
+
+```vb
+AddHandler browser.OperationFailed,
+    Sub(sender, failure)
+        'Pass failure.Exception, failure.Phase and failure.Operation to an
+        'approved diagnostics sink which redacts credentials and tokens.
+        'Set failure.SuppressDialog = True only when the host presents its own error UI.
+    End Sub
+```
+
+BrowserUI does not automatically persist diagnostic exceptions. The normal browser error dialog uses a concise localized message instead of raw provider exception text. Hosts must protect sensitive data before logging or forwarding the original exception. Subscriber failures do not replace the browser failure or interrupt cleanup. `SuppressDialog` affects the standard browser dialog; transfer-progress views retain their separate presentation and recovery controls. Provider-internal subphases are not inferred from a browser request boundary.
+
 ### WebDAV sharing capabilities
 
 The WebDAV provider keeps generic WebDAV servers provider-neutral. For recognized Nextcloud and ownCloud personal-file endpoints, it probes the Open Collaboration Services (OCS) API and enables user, group, and public-link sharing only when that probe succeeds. OCS permission bits are mapped without silently changing their meaning; view and download remain coupled because the classic OCS bit field cannot represent modern Nextcloud download restrictions separately. Server policies such as maximum link-name length remain server-validated because they differ between products and deployments.

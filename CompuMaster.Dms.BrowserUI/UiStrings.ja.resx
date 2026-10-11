@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>リンクされたローカルパスへのダウンロードはサポートされていません: {0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>このリモート名はローカルのファイル名またはフォルダー名として使用できません: {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>確認後にダウンロード先にファイルが作成されました。再実行して置き換えるか選択してください: {0}</value></data>
+  <data name="BrowserOperationFailed" xml:space="preserve"><value>操作を完了できませんでした。接続とアクセス権を確認してから、もう一度お試しください。</value></data>
 </root>

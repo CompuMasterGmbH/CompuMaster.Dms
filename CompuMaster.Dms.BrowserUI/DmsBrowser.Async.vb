@@ -61,7 +61,7 @@ Partial Public Class DmsBrowser
     Private Async Function LoadTreeAsync(listings As InitialEntryListings) As Task
         Me.TreeViewDmsFolders.Nodes.Clear()
         If Me.InitialFolder <> Nothing Then
-            Dim Folder As DmsResourceItem = Await Me.DmsProvider.ListRemoteItemAsync(Me.InitialFolder)
+            Dim Folder As DmsResourceItem = Await Me.CaptureFailurePhaseAsync(Function() Me.DmsProvider.ListRemoteItemAsync(Me.InitialFolder), DmsBrowserFailurePhase.ScopedRootLookup)
             If Folder Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(Me.InitialFolder)
             Me.RootNode = Me.TreeViewDmsFolders.Nodes.Add("", Me.InitialFolder)
             Me.RootNode.Tag = New NodeTagData(Folder)
@@ -109,9 +109,14 @@ Partial Public Class DmsBrowser
     Private Async Function LoadTreeChildrenAsync(parentNode As TreeNode, listings As InitialEntryListings) As Task
         Dim data As NodeTagData = DirectCast(parentNode.Tag, NodeTagData)
         Dim path As String = If(data.DmsResourceItem?.FullName, Me.DmsProvider.BrowseInRootFolderName)
-        Dim children = If(listings Is Nothing, Await Me.DmsProvider.ListDirectoryEntriesAsync(path), Await listings.DirectoriesAsync(path))
+        Dim children = Await Me.CaptureFailurePhaseAsync(Function() If(listings Is Nothing, Me.DmsProvider.ListDirectoryEntriesAsync(path), listings.DirectoriesAsync(path)), DmsBrowserFailurePhase.ChildListing)
         If Me.IsDisposed OrElse parentNode.TreeView IsNot Me.TreeViewDmsFolders Then Return
-        Me.ApplyTreeChildren(parentNode, children)
+        Try
+            Me.ApplyTreeChildren(parentNode, children)
+        Catch ex As Exception
+            Me.RememberFailure(ex, DmsBrowserFailurePhase.MetadataEnrichment, NameOf(LoadTreeChildrenAsync))
+            Throw
+        End Try
     End Function
 
     Private Async Function SelectFolderPathAsync(path As String, Optional listings As InitialEntryListings = Nothing) As Task
@@ -278,11 +283,11 @@ Partial Public Class DmsBrowser
             Try
                 If listings Is Nothing OrElse Not listings.TryGetFiles(path, files) Then
                     Await Me.DmsProvider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.Files)
-                    files = Await Me.DmsProvider.ListFileEntriesAsync(path)
+                    files = Await Me.CaptureFailurePhaseAsync(Function() Me.DmsProvider.ListFileEntriesAsync(path), If(listings Is Nothing, DmsBrowserFailurePhase.Refresh, DmsBrowserFailurePhase.InitialSelection))
                 End If
             Catch ex As Data.DirectoryNotFoundException
                 If Not Me.IsDisposed AndAlso version = FileListRefreshVersion AndAlso selectedNode Is Me.TreeViewDmsFolders.SelectedNode Then
-                    Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
+                    Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath, ex)
                 End If
                 Return
             End Try
@@ -330,7 +335,12 @@ Partial Public Class DmsBrowser
         Try
             Await refresh()
         Catch ex As Exception
-            If failure Is Nothing Then failure = ex
+            If failure Is Nothing Then
+                failure = ex
+                Me.RememberFailure(ex, DmsBrowserFailurePhase.Refresh, NameOf(RunOperationAndRefreshAsync))
+            Else
+                Me.HandleBrowserFailure(ex, DmsBrowserFailurePhase.Refresh, showDialog:=False)
+            End If
         End Try
         If failure IsNot Nothing Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw()
     End Function

@@ -491,34 +491,33 @@ Public Class DmsBrowser
         If Me.LocalDefaultFolderUploads = Nothing Then LocalDefaultFolderUploads = Me.LocalParentMustFolder
         Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.BrowserStartup)
             Dim listings As InitialEntryListings = Nothing
+            Dim failurePhase As DmsBrowserFailurePhase = DmsBrowserFailurePhase.Authentication
             Try
-                Await Me.RunTransferAsync(Function() Me.EnsureProviderAsync())
+                Await Me.RunTransferAsync(Function() Me.EnsureProviderAsync(), DmsBrowserFailurePhase.Authentication)
+                failurePhase = DmsBrowserFailurePhase.InstanceSelection
                 If Me.EnableDmsInstanceSelection AndAlso Not Me.InitializeDmsInstanceSelection() Then
                     Me.DialogResult = DialogResult.Cancel
                     Me.Close()
                     Return
                 End If
                 Me.InitializeDmsInstanceSwitching()
+                failurePhase = DmsBrowserFailurePhase.Startup
                 Dim initialPath = If(String.IsNullOrEmpty(Me.InitialFolder), Me.DmsProvider.BrowseInRootFolderName, Me.InitialFolder)
                 listings = New InitialEntryListings(Me.DmsProvider, Not Me.SplitContainer.Panel2Collapsed, Me.DmsProvider.CombinePath(initialPath, Me.SelectedFolder))
-                Await Me.RunTransferAsync(Function() Me.LoadTreeAsync(listings))
+                Await Me.RunTransferAsync(Function() Me.LoadTreeAsync(listings), DmsBrowserFailurePhase.Startup)
             Catch ex As CompuMaster.Dms.Data.DirectoryNotFoundException
-                MessageBox.Show(Me, ex.Message, UiStrings.Format("DmsFolderNotFound", ex.RemotePath), MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Me.HandleBrowserFailure(ex, failurePhase, UiStrings.GetText("CredentialsOrServerError"))
                 Me.DialogResult = DialogResult.Cancel
                 Me.Close()
                 Return
             Catch ex As Exception
-                If System.Diagnostics.Debugger.IsAttached Then
-                    MessageBox.Show(Me, ex.ToString, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
-                Else
-                    MessageBox.Show(Me, ex.Message, UiStrings.GetText("CredentialsOrServerError"), MessageBoxButtons.OK, MessageBoxIcon.Error)
-                End If
+                Me.HandleBrowserFailure(ex, failurePhase, UiStrings.GetText("CredentialsOrServerError"))
                 Me.DialogResult = DialogResult.Cancel
                 Me.Close()
                 Return
             End Try
             Try
-                Await Me.RunTransferAsync(Function() Me.SelectFolderPathAsync(Me.SelectedFolder, listings))
+                Await Me.RunTransferAsync(Function() Me.SelectFolderPathAsync(Me.SelectedFolder, listings), DmsBrowserFailurePhase.InitialSelection)
                 Select Case Me.BrowseMode
                     Case BrowseModes.Folders
                         Me.TreeViewDmsFolders.Select()
@@ -526,7 +525,7 @@ Public Class DmsBrowser
                         Me.ListViewDmsFiles.Select()
                 End Select
             Catch ex As Exception
-                MessageBox.Show(Me, UiStrings.Format("InvalidFolderMessage", Me.SelectedFolder), UiStrings.GetText("InvalidFolderTitle"), MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Me.HandleBrowserFailure(ex, DmsBrowserFailurePhase.InitialSelection, UiStrings.GetText("InvalidFolderTitle"), MessageBoxIcon.Warning)
             End Try
         End Using
     End Sub
@@ -616,9 +615,9 @@ Public Class DmsBrowser
             InstanceChangeStarted = True
             InstanceProvider.SelectDmsInstance(selectedID)
 
-            Await Me.RunTransferAsync(Function() Me.ReloadDmsInstanceViewAsync())
+            Await Me.RunTransferAsync(Function() Me.ReloadDmsInstanceViewAsync(), DmsBrowserFailurePhase.InstanceSelection)
         Catch ex As Exception
-            MessageBox.Show(Me, ex.Message, UiStrings.GetText("ChangeDmsInstanceFailed"), MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
             If InstanceChangeStarted Then Me.Close()
         End Try
     End Sub
@@ -840,7 +839,7 @@ Public Class DmsBrowser
         If Me.SuppressSelectionRefresh OrElse TransferRunning OrElse Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Return
         Try
             Me.SelectedFolder = Me.SelectedFolderPath()
-            Await Me.RunTransferAsync(Function() Me.RefreshFilesListAsync())
+            Await Me.RunTransferAsync(Function() Me.RefreshFilesListAsync(), DmsBrowserFailurePhase.Refresh)
         Catch ex As Exception
             Me.ShowResourceActionError(ex)
         End Try
@@ -857,7 +856,7 @@ Public Class DmsBrowser
             Await Me.RunTransferAsync(Function() Me.AddTreeChildrenAsync(e.Node))
             If Not Me.IsDisposed AndAlso e.Node.TreeView Is Me.TreeViewDmsFolders Then e.Node.Expand()
         Catch ex As Data.DirectoryNotFoundException
-            Me.ShowMissingDirectory(e.Node, ex.RemotePath)
+            Me.ShowMissingDirectory(e.Node, ex.RemotePath, ex)
         Catch ex As Exception
             Me.ShowResourceActionError(ex)
         End Try
@@ -888,7 +887,7 @@ Public Class DmsBrowser
                                       End Function)
             Me.TreeViewDmsFolders.Focus()
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -951,9 +950,13 @@ Public Class DmsBrowser
         End Try
     End Sub
 
-    Private Sub ShowMissingDirectory(node As TreeNode, remotePath As String)
+    Private Sub ShowMissingDirectory(node As TreeNode, remotePath As String, Optional failure As Exception = Nothing)
         Me.RemoveMissingDirectory(node)
-        MessageBox.Show(Me, UiStrings.Format("DeletedFolderMessage", remotePath), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+        If failure IsNot Nothing Then
+            Me.HandleBrowserFailure(failure, icon:=MessageBoxIcon.Information)
+        Else
+            MessageBox.Show(Me, UiStrings.Format("DeletedFolderMessage", remotePath), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
     End Sub
 
     Private Function FindDirectoryNodeByPath(remotePath As String) As TreeNode
@@ -982,9 +985,13 @@ Public Class DmsBrowser
         If cachedFiles IsNot Nothing Then cachedFiles.RemoveAll(Function(file) String.Equals(file.FullName, remotePath, StringComparison.Ordinal))
     End Sub
 
-    Private Sub ShowMissingFile(remotePath As String)
+    Private Sub ShowMissingFile(remotePath As String, Optional failure As Exception = Nothing)
         Me.RemoveMissingFile(remotePath)
-        MessageBox.Show(Me, UiStrings.Format("DeletedFileMessage", remotePath), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+        If failure IsNot Nothing Then
+            Me.HandleBrowserFailure(failure, icon:=MessageBoxIcon.Information)
+        Else
+            MessageBox.Show(Me, UiStrings.Format("DeletedFileMessage", remotePath), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
     End Sub
 
     Private Function ApplyFilesSortOrder(list As List(Of DmsResourceItem)) As List(Of DmsResourceItem)
@@ -1038,7 +1045,7 @@ Public Class DmsBrowser
                 Try
                     Files = Me.DmsProvider.ListAllFileItems(currentFolderPath)
                 Catch ex As Data.DirectoryNotFoundException
-                    Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
+                    Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath, ex)
                     Return
                 End Try
             Else
@@ -1091,7 +1098,7 @@ Public Class DmsBrowser
         End If
         If Not TransferRunning AndAlso Me.TreeViewDmsFolders.SelectedNode IsNot Nothing Then
             Try
-                Await Me.RunTransferAsync(Function() Me.RefreshFilesListAsync())
+                Await Me.RunTransferAsync(Function() Me.RefreshFilesListAsync(), DmsBrowserFailurePhase.Refresh)
             Catch ex As Exception
                 Me.ShowResourceActionError(ex)
             End Try
@@ -1197,11 +1204,15 @@ Public Class DmsBrowser
         TransferCompletion.TrySetResult(True)
     End Sub
 
-    Friend Async Function RunTransferAsync(operation As Func(Of Task)) As Task
+    Friend Async Function RunTransferAsync(operation As Func(Of Task), Optional phase As DmsBrowserFailurePhase = DmsBrowserFailurePhase.Action,
+                                          <System.Runtime.CompilerServices.CallerMemberName> Optional operationName As String = Nothing) As Task
         If TransferRunning Then Throw New InvalidOperationException(UiStrings.GetText("ABrowserOperationIsAlreadyRunning"))
         Me.BeginTransfer()
         Try
             Await operation()
+        Catch ex As Exception
+            Me.RememberFailure(ex, phase, operationName)
+            Throw
         Finally
             Me.EndTransfer()
         End Try
@@ -1243,11 +1254,11 @@ Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Data.DirectoryNotFoundException
-            Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath)
+            Me.ShowMissingDirectory(Me.FindDirectoryNodeByPath(ex.RemotePath), ex.RemotePath, ex)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1328,11 +1339,11 @@ Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Data.FileNotFoundException
-            Me.ShowMissingFile(ex.RemotePath)
+            Me.ShowMissingFile(ex.RemotePath, ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1345,11 +1356,11 @@ Public Class DmsBrowser
                 Await Me.RunTransferAsync(Function() Me.RunOperationAndRefreshAsync(Function() Me.DeleteFilesForUiAsync(SelectedFiles), Function() Me.RefreshFilesListAsync()))
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Data.RessourceNotFoundException
-            Me.ShowMissingFile(ex.RemotePath)
+            Me.ShowMissingFile(ex.RemotePath, ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1378,7 +1389,7 @@ Public Class DmsBrowser
         ResourceActionRunning = True
         Try
             Await Me.RunOperationAndRefreshAsync(Function() Me.RunFileActionCoreAsync(action),
-                                                  Function() Me.RunTransferAsync(Function() Me.RefreshFilesListAsync()))
+                                                  Function() Me.RunTransferAsync(Function() Me.RefreshFilesListAsync(), DmsBrowserFailurePhase.Refresh))
         Catch ex As Exception
             Me.ShowResourceActionError(ex)
         Finally
@@ -1546,29 +1557,28 @@ Public Class DmsBrowser
 
     Private Sub ShowResourceActionError(ex As Exception)
         If TypeOf ex Is Data.FileNotFoundException Then
-            Me.ShowMissingFile(CType(ex, Data.FileNotFoundException).RemotePath)
+            Me.ShowMissingFile(CType(ex, Data.FileNotFoundException).RemotePath, ex)
             Return
         ElseIf TypeOf ex Is Data.DirectoryNotFoundException Then
             Dim missingPath As String = CType(ex, Data.DirectoryNotFoundException).RemotePath
             Dim missingNode As TreeNode = Me.FindDirectoryNodeByPath(missingPath)
             If missingNode IsNot Nothing Then
-                Me.ShowMissingDirectory(missingNode, missingPath)
+                Me.ShowMissingDirectory(missingNode, missingPath, ex)
                 Return
             End If
         ElseIf TypeOf ex Is Data.RessourceNotFoundException Then
             Dim missingPath As String = CType(ex, Data.RessourceNotFoundException).RemotePath
             If Me.CurrentSelectedFiles().Any(Function(file) String.Equals(file.FullName, missingPath, StringComparison.Ordinal)) Then
-                Me.ShowMissingFile(missingPath)
+                Me.ShowMissingFile(missingPath, ex)
                 Return
             End If
             Dim missingNode As TreeNode = Me.FindDirectoryNodeByPath(missingPath)
             If missingNode IsNot Nothing Then
-                Me.ShowMissingDirectory(missingNode, missingPath)
+                Me.ShowMissingDirectory(missingNode, missingPath, ex)
                 Return
             End If
         End If
-        Dim message As String = If(System.Diagnostics.Debugger.IsAttached, ex.ToString(), ex.Message)
-        MessageBox.Show(Me, message, Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Me.HandleBrowserFailure(ex)
     End Sub
 
     Private Sub ButtonClose_Click(sender As Object, e As EventArgs) Handles ButtonClose.Click
@@ -1591,9 +1601,9 @@ Public Class DmsBrowser
             AddHandler DmsShareForm.SharingsChanged, AddressOf Me.DmsShareForm_SharingsChanged
             DmsShareForm.Show(Me)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1615,9 +1625,9 @@ Public Class DmsBrowser
                 DmsShareForm.Show(Me)
             Next
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1630,7 +1640,7 @@ Public Class DmsBrowser
             If Me.IsDisposed OrElse Me.Disposing Then Return
             Await RunTransferAsync(Function() RefreshSharingVisualsAsync(ChangedItem, Me.DmsProvider))
         Catch ex As Exception
-            If Not Me.IsDisposed Then MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            If Not Me.IsDisposed Then Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1749,11 +1759,11 @@ Public Class DmsBrowser
                                      End Function)
             InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFile.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -1824,6 +1834,7 @@ Public Class DmsBrowser
                     If Item IsNot Nothing Then Return Item.Name & " (" & id & ")"
                 Catch ex As Exception
                     'An optional name lookup must not hide the item's other properties.
+                    Me.HandleBrowserFailure(ex, DmsBrowserFailurePhase.MetadataEnrichment, showDialog:=False)
                 End Try
         End Select
         Return id
@@ -1935,6 +1946,7 @@ Public Class DmsBrowser
                         If collection IsNot Nothing Then Return collection.Name & " (" & id & ")"
                     Catch ex As Exception
                         'A failed optional name lookup must not hide the file's other properties.
+                        Me.HandleBrowserFailure(ex, DmsBrowserFailurePhase.MetadataEnrichment, showDialog:=False)
                     End Try
                     Return id
                 End If
@@ -1954,6 +1966,7 @@ Public Class DmsBrowser
                         If folder IsNot Nothing Then Return folder.Name & " (" & id & ")"
                     Catch ex As Exception
                         'A failed optional name lookup must not hide the file's other properties.
+                        Me.HandleBrowserFailure(ex, DmsBrowserFailurePhase.MetadataEnrichment, showDialog:=False)
                     End Try
                     Return id
                 End If
@@ -1986,26 +1999,26 @@ Public Class DmsBrowser
                 InfoBox.InformationBox.Show(UiStrings.GetText("RootValue"), title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
     Private Async Sub ToolStripButtonRefreshFilesList_Click(sender As Object, e As EventArgs) Handles ToolStripButtonRefreshFilesList.Click
         If TransferRunning OrElse ResourceActionRunning Then Return
         Try
-            Await Me.RunTransferAsync(Function() Me.RefreshCurrentFolderAndFilesAsync())
+            Await Me.RunTransferAsync(Function() Me.RefreshCurrentFolderAndFilesAsync(), DmsBrowserFailurePhase.Refresh)
         Catch ex As Data.DirectoryNotFoundException
-            Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath)
+            Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath, ex)
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As DmsUserInputInvalidException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -2116,11 +2129,11 @@ Public Class DmsBrowser
                 Await Me.RunTransferAsync(Function() Me.DeleteDirectoryForUiAsync(SelectedFolderNode))
             End If
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Data.RessourceNotFoundException
-            Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath)
+            Me.ShowMissingDirectory(Me.TreeViewDmsFolders.SelectedNode, ex.RemotePath, ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
@@ -2248,11 +2261,11 @@ Public Class DmsBrowser
         Catch ex As OperationCanceledException
             Return
         Catch ex As Data.DmsUserErrorMessageException
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.Message), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         Catch ex As Data.FileNotFoundException
-            Me.ShowMissingFile(ex.RemotePath)
+            Me.ShowMissingFile(ex.RemotePath, ex)
         Catch ex As Exception
-            System.Windows.Forms.MessageBox.Show(Me, UiStrings.Format("ErrorMessage", ex.ToString), Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.HandleBrowserFailure(ex)
         End Try
     End Sub
 
