@@ -53,7 +53,7 @@ Public Class WebDavFileVersionTest
             Assert.That(output.CanWrite, [Is].True)
             provider.RestoreFileVersion(version)
             Assert.That(wire.Requests.Last(), Does.StartWith(method & " "))
-            Assert.That(wire.LastDestination, [Is].EqualTo(If(family = 1, "https://fixture.test:8443/prefix/remote.php/dav/versions/protocol%20id/restore", BaseUrl & "report%2B%20one.txt")))
+            Assert.That(wire.LastDestination, [Is].EqualTo(If(family = 1, "https://fixture.test:8443/prefix/remote.php/dav/versions/protocol%20id/restore/target", BaseUrl & "report%2B%20one.txt")))
             If family = 1 Then
                 provider.RemoveFileVersion(version)
                 Assert.That(wire.Requests.Last(), Does.StartWith("DELETE "))
