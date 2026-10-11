@@ -2099,6 +2099,7 @@ Public Class DmsBrowser
             e.Cancel = True
             Return
         End If
+        Me.UpdateFolderRootMutationAccess()
         UITools.SwitchSeparatorLinesVisibility(Me.ContextMenuStripFolder.Items)
     End Sub
 
@@ -2124,7 +2125,7 @@ Public Class DmsBrowser
             Dim SelectedFolderNode As TreeNode = Me.CurrentSelectedFolderNode
             Dim SelectedFolder As DmsResourceItem = Me.CurrentSelectedFolder
             If SelectedFolderNode Is Nothing AndAlso SelectedFolder Is Nothing Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFolderSelected"))
-            If SelectedFolderNode IsNot Nothing AndAlso (SelectedFolder Is Nothing OrElse SelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root) Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
+            If SelectedFolderNode IsNot Nothing AndAlso (SelectedFolderNode Is Me.RootNode OrElse SelectedFolder Is Nothing OrElse SelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root) Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
             If InfoBox.InformationBox.Show(UiStrings.GetText("DeleteFolderQuestion") & System.Environment.NewLine & System.Environment.NewLine & SelectedFolder.Name, title:=UiStrings.GetText("DeleteFolderTitle"), buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
                 Await Me.RunTransferAsync(Function() Me.DeleteDirectoryForUiAsync(SelectedFolderNode))
             End If
