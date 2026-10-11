@@ -1110,6 +1110,7 @@ Namespace Providers
                                 Throw New RessourceNotFoundException(remoteSourcePath, statusError)
                         End Select
                     End If
+                    If remoteSourcePath <> Nothing Then Throw New System.IO.IOException(ProviderStrings.Format("ButRemoteItemExists", ioExceptionMessage, remoteSourcePath), statusError)
             End Select
             Throw New System.IO.IOException(ioExceptionMessage, statusError)
         End Function
