@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>不支援透過連結的本機路徑下載：{0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>此遠端名稱不能用作本機檔案或資料夾名稱：{0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>確認後目標位置出現了檔案。請重新開始以選擇是否取代：{0}</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>在限制於起始資料夾的瀏覽器中，無法管理集合。</value></data>
 </root>

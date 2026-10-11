@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>不支持通过链接的本地路径下载：{0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>此远程名称不能用作本地文件或文件夹名称：{0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>确认后目标位置出现了文件。请重新开始以选择是否替换：{0}</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>在限制到起始文件夹的浏览器中，无法管理集合。</value></data>
 </root>

@@ -242,4 +242,5 @@
   <data name="DownloadLinkedPathUnsupported" xml:space="preserve"><value>Le téléchargement via des chemins locaux liés n’est pas pris en charge : {0}</value></data>
   <data name="DownloadInvalidName" xml:space="preserve"><value>Ce nom distant ne peut pas servir de nom de fichier ou de dossier local : {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>Un fichier est apparu à destination après la confirmation. Recommencez pour décider de le remplacer : {0}</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>La gestion des collections est indisponible dans un navigateur limité à un dossier de départ.</value></data>
 </root>
