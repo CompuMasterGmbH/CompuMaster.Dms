@@ -19,6 +19,7 @@ Public Class DmsBrowserRootActionTest
             dispatcher.WaitForEvents()
             Assert.That(browser.StartupFailure, [Is].Null, If(browser.StartupFailure?.ToString(), ""))
             Dim root = browser.TreeViewDmsFolders.Nodes(0)
+            AssertMutations(browser, False, False)
             OpenMenu(browser)
             AssertMutations(browser, False, False)
             Assert.That(browser.ToolStripFolderContextButtonNewFolder.Available, [Is].True)
@@ -36,6 +37,8 @@ Public Class DmsBrowserRootActionTest
             browser.TreeViewDmsFolders.SelectedNode = root
             dispatcher.WaitForEvents()
             OpenMenu(browser)
+            AssertMutations(browser, False, False)
+            dispatcher.Finish(browser.RunTransferAsync(Function() Task.CompletedTask))
             AssertMutations(browser, False, False)
             browser.TreeViewDmsFolders.SelectedNode = root.Nodes(0)
             dispatcher.WaitForEvents()
@@ -55,7 +58,7 @@ Public Class DmsBrowserRootActionTest
             browser.Show()
             dispatcher.WaitForEvents()
             Assert.That(browser.StartupFailure, [Is].Null, If(browser.StartupFailure?.ToString(), ""))
-            Assert.Throws(Of DmsUserErrorMessageException)(Sub() dispatcher.Finish(browser.DeleteDirectoryForUiAsync(browser.TreeViewDmsFolders.Nodes(0))))
+            Assert.Throws(Of DmsUserInputInvalidException)(Sub() dispatcher.Finish(browser.DeleteDirectoryForUiAsync(browser.TreeViewDmsFolders.Nodes(0))))
             Assert.That(provider.DeleteCalls, [Is].Zero)
             'A stale command invocation must also fail before opening a confirmation or touching the server.
             GetType(DmsBrowser).GetMethod("ToolStripFolderContextButtonDeleteFolder_Click", BindingFlags.NonPublic Or BindingFlags.Instance).Invoke(browser, {browser.ToolStripFolderContextButtonDeleteFolder, EventArgs.Empty})
@@ -72,7 +75,7 @@ Public Class DmsBrowserRootActionTest
 
     Private Shared Sub OpenMenu(browser As DmsBrowser)
         Dim args As New CancelEventArgs
-        GetType(DmsBrowser).GetMethod("ContextMenuStripFolder_Opening", BindingFlags.NonPublic Or BindingFlags.Instance).Invoke(browser, {browser.ContextMenuStripFolder, args})
+        GetType(ContextMenuStrip).GetMethod("OnOpening", BindingFlags.NonPublic Or BindingFlags.Instance).Invoke(browser.ContextMenuStripFolder, {args})
         Assert.That(args.Cancel, [Is].False)
     End Sub
 
