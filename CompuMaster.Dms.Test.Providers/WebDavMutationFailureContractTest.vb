@@ -9,6 +9,19 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public Class WebDavMutationFailureContractTest
+    <Test>
+    Public Sub SingleItemListingRetainsTheSameHttpDiagnosticAcrossSyncAndAsync()
+        Using handler As New StatusHandler(500), client As New HttpClient(handler)
+            Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = "https://example.test/"}
+            GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic).SetValue(provider, New WebDav.WebDavClient(client))
+            Dim synchronous = Assert.Throws(Of InvalidOperationException)(Sub() provider.ListRemoteItem("source.txt"))
+            Dim asynchronous = Assert.Throws(Of InvalidOperationException)(Sub() provider.ListRemoteItemAsync("source.txt").GetAwaiter().GetResult())
+            Assert.That(synchronous.Message, [Is].EqualTo(asynchronous.Message))
+            Assert.That(synchronous.InnerException, [Is].TypeOf(Of ResponseStatusCodeException)())
+            Assert.That(CType(synchronous.InnerException, ResponseStatusCodeException).StatusCode, [Is].EqualTo(500))
+            Assert.That(CType(asynchronous.InnerException, ResponseStatusCodeException).StatusCode, [Is].EqualTo(500))
+        End Using
+    End Sub
     <TestCase(False), TestCase(True)>
     Public Sub PreconditionFailureExplainsThatTheSourceStillExists(asynchronous As Boolean)
         Using handler As New StatusHandler(412), client As New HttpClient(handler)
