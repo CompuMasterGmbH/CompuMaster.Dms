@@ -24,10 +24,19 @@ Partial Public Class DmsBrowser
         Return String.Equals(candidate, root, StringComparison.Ordinal) OrElse candidate.StartsWith(root & DmsProvider.DirectorySeparator, StringComparison.Ordinal)
     End Function
 
+    Private Function IsCollectionManagementRestricted(item As DmsResourceItem) As Boolean
+        If item Is Nothing OrElse item.ItemType <> DmsResourceItem.ItemTypes.Collection Then Return False
+        If HasScopedBrowserRoot Then Return True
+        'Changing the configured start path does not immediately replace the displayed tree.
+        Dim visibleRoot = TryCast(RootNode?.Tag, NodeTagData)?.DmsResourceItem
+        Return visibleRoot IsNot Nothing AndAlso visibleRoot.ItemType = DmsResourceItem.ItemTypes.Collection AndAlso
+            String.Equals(visibleRoot.FullName, item.FullName, StringComparison.Ordinal)
+    End Function
+
     Friend Sub EnsureCollectionActionWithinBrowserScope(item As DmsResourceItem)
+        If IsCollectionManagementRestricted(item) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("CollectionManagementUnavailableInScopedBrowser"))
         If item Is Nothing OrElse Not HasScopedBrowserRoot Then Return
         If Not IsWithinBrowserRoot(item.FullName) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
-        If item.ItemType = DmsResourceItem.ItemTypes.Collection Then Throw New DmsUserInputInvalidException(UiStrings.GetText("CollectionManagementUnavailableInScopedBrowser"))
     End Sub
 
     Private Function NewDirectoryPathWithinBrowser(parentNode As TreeNode, folderName As String) As String
@@ -44,7 +53,7 @@ Partial Public Class DmsBrowser
         Dim provider = If(_DmsProviderOverride, DmsProviderInstance)
         If provider Is Nothing Then Return
         Dim item = TryCast(TreeViewDmsFolders.SelectedNode?.Tag, NodeTagData)?.DmsResourceItem
-        Dim blocked = HasScopedBrowserRoot AndAlso item IsNot Nothing AndAlso item.ItemType = DmsResourceItem.ItemTypes.Collection
+        Dim blocked = IsCollectionManagementRestricted(item)
         Dim copyAllowed = Not blocked AndAlso (AllowedActions And FileOrFolderActions.AllowCopyRenameMoveFiles) <> 0
         Dim deleteAllowed = Not blocked AndAlso (AllowedActions And FileOrFolderActions.AllowDeleteFiles) <> 0
         Dim shareAllowed = Not blocked AndAlso provider.SupportsSharingSetup AndAlso (AllowedActions And FileOrFolderActions.AllowSharings) <> 0
