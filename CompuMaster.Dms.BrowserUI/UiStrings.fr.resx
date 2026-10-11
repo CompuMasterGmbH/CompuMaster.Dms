@@ -243,4 +243,5 @@
   <data name="DownloadInvalidName" xml:space="preserve"><value>Ce nom distant ne peut pas servir de nom de fichier ou de dossier local : {0}</value></data>
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>Un fichier est apparu à destination après la confirmation. Recommencez pour décider de le remplacer : {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>L’opération n’a pas pu être terminée. Vérifiez la connexion et les droits d’accès, puis réessayez.</value></data>
+  <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>La gestion des collections est indisponible dans un navigateur limité à un dossier de départ.</value></data>
 </root>
