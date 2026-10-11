@@ -328,7 +328,7 @@ Namespace Providers
                     'Directory/File not found
                     Return Nothing
                 Else
-                    Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed2", remotePath, PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
+                    Throw New InvalidOperationException(ProviderStrings.Format("ListingOfWebDAVResourceAtFailed2", remotePath, PropfindTask.Result.StatusCode, PropfindTask.Result.Description), New ResponseStatusCodeException(PropfindTask.Result.StatusCode, PropfindTask.Result.Description))
                 End If
             End If
         End Function
