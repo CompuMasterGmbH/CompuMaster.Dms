@@ -47,5 +47,11 @@
   <PropertyGroup Condition="'$(OcsFileVersionsProject)' != ''">
     <DefineConstants>$(DefineConstants),OCS_FILE_VERSIONS=True</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableCenterDeviceFileVersions)' == 'true'">
+    <DefineConstants>$(DefineConstants),CENTERDEVICE_FILE_VERSIONS=True</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EnableCenterDeviceFileVersions)' != 'true'">
+    <Compile Remove="CenterDeviceFileVersionTest.vb" />
+  </ItemGroup>
 
 </Project>

@@ -31,6 +31,7 @@ Public Class DmsBrowser
         InitializeFolderUploads()
         InitializeFolderDownloads()
         InitializeScopedCollectionActions()
+        InitializeFileVersions()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
         LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
@@ -294,6 +295,15 @@ Public Class DmsBrowser
         AllowSharings = 64
         ''' <summary>Allows switching between DMS instances when a selection method and multiple instances are available.</summary>
         AllowSwitchDmsInstance = 128
+        ''' <summary>Allows viewing file-version history where the provider implements it.</summary>
+        ''' <remarks>This permission does not grant version restoration or file download rights.</remarks>
+        AllowViewFileVersionHistory = 256
+        ''' <summary>Allows restoring earlier file versions where the provider implements it.</summary>
+        ''' <remarks>This permission does not grant history viewing, upload, download or deletion rights. Remote authorization still applies.</remarks>
+        AllowRestoreFileVersions = 512
+        ''' <summary>Allows removing individual file versions where the provider implements it.</summary>
+        ''' <remarks>This permission does not grant ordinary file deletion, history viewing or restoration rights. Remote authorization still applies.</remarks>
+        AllowRemoveFileVersions = 1024
     End Enum
     Private _AllowedActions As FileOrFolderActions
     ''' <summary>Gets or sets the browser actions permitted by the caller; provider capabilities can further restrict them.</summary>
@@ -341,6 +351,7 @@ Public Class DmsBrowser
             Me.UpdateUploadAccess()
             Me.UpdateFolderDownloadAccess()
             Me.UpdateScopedCollectionActions()
+            Me.UpdateFileVersionAccess()
             If AuthorizedProvider IsNot Nothing AndAlso (Me.InstanceButton IsNot Nothing OrElse Me.IsHandleCreated) Then Me.InitializeDmsInstanceSwitching()
         End Set
     End Property
@@ -374,6 +385,7 @@ Public Class DmsBrowser
                     Me.ToolStripButtonDeleteFile.Visible = True
                     Me.ButtonShowFiles.Checked = True
             End Select
+            Me.UpdateFileVersionAccess()
             Me.UpdateFileToolbarLayout()
             Me.UpdateUploadAccess()
             Me.UpdateFolderDownloadAccess()
@@ -1186,6 +1198,7 @@ Public Class DmsBrowser
 
     Private Sub BeginTransfer()
         TransferRunning = True
+        UpdateFileVersionAccess()
         TransferCompletion = New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         TransferPreviousUseWaitCursor = Me.UseWaitCursor
         TransferPreviousFocus = If(UiAsyncOperation.CaptureFocusedControl(Me), Me.ButtonClose)
@@ -1212,6 +1225,7 @@ Public Class DmsBrowser
         TransferPreviousFocus = Nothing
         TransferControlStates.Clear()
         TransferRunning = False
+        UpdateFileVersionAccess()
         UpdateFolderDownloadAccess()
         TransferCompletion.TrySetResult(True)
     End Sub
