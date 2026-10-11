@@ -6,7 +6,7 @@ Imports NUnit.Framework
 <TestFixture>
 Public Class DmsFileVersionContractTest
     <TestCase(0), TestCase(1), TestCase(2), TestCase(3)>
-    Public Sub ExistingProviderDefaultsDoNotAdvertiseUnimplementedWorkflows(kind As Integer)
+    Public Sub ProvidersAdvertiseOnlyTheirImplementedWorkflows(kind As Integer)
         Dim provider As BaseDmsProvider
         Select Case kind
             Case 0 : provider = New NoDmsProvider()
@@ -14,6 +14,15 @@ Public Class DmsFileVersionContractTest
             Case 2 : provider = New WebDavDmsProvider()
             Case Else : provider = New ScopevisioTeamworkDmsProvider()
         End Select
+#If CENTERDEVICE_FILE_VERSIONS Then
+        If kind = 3 Then
+            Assert.That(provider.SupportsFileVersionHistory, [Is].True)
+            Assert.That(provider.SupportsFileVersionDownload, [Is].True)
+            Assert.That(provider.SupportsFileVersionRestore, [Is].True)
+            Assert.That(provider.SupportsFileVersionRemoval, [Is].True)
+            Return
+        End If
+#End If
         Assert.That(provider.SupportsFileVersionHistory, [Is].False)
         Assert.That(provider.SupportsFileVersionDownload, [Is].False)
         Assert.That(provider.SupportsFileVersionRestore, [Is].False)

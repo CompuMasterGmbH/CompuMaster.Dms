@@ -244,4 +244,22 @@
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>A file appeared at the destination after confirmation. Start again to choose whether to replace it: {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>The operation could not be completed. Check the connection and access permissions, then try again.</value></data>
   <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>Collection management is unavailable in a browser restricted to a start folder.</value></data>
+  <data name="FileVersionHistory" xml:space="preserve"><value>Version history</value></data>
+  <data name="VersionIdentifier" xml:space="preserve"><value>Version</value></data>
+  <data name="VersionModified" xml:space="preserve"><value>Modified</value></data>
+  <data name="VersionSize" xml:space="preserve"><value>Size</value></data>
+  <data name="VersionAuthor" xml:space="preserve"><value>Author</value></data>
+  <data name="VersionLabel" xml:space="preserve"><value>Label</value></data>
+  <data name="VersionUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="RestoreFileVersion" xml:space="preserve"><value>Restore version</value></data>
+  <data name="RemoveFileVersion" xml:space="preserve"><value>Remove version</value></data>
+  <data name="FileVersionHistoryEmpty" xml:space="preserve"><value>No historical versions are available.</value></data>
+  <data name="ConfirmRestoreFileVersion" xml:space="preserve"><value>Restore version {0} of {1}? This changes the current file content.</value></data>
+  <data name="ConfirmRemoveFileVersion" xml:space="preserve"><value>Remove version {0} of {1}? This historical content will no longer be available. The current file content may change.</value></data>
+  <data name="VersionLoading" xml:space="preserve"><value>Loading version history…</value></data>
+  <data name="VersionWorking" xml:space="preserve"><value>The operation is running. Please wait until it finishes.</value></data>
+  <data name="VersionActionUnavailable" xml:space="preserve"><value>This version action is currently unavailable.</value></data>
+  <data name="VersionInvalidHistory" xml:space="preserve"><value>The server returned an invalid version history.</value></data>
+  <data name="VersionCount" xml:space="preserve"><value>{0} versions</value></data>
+  <data name="VersionTimestamp" xml:space="preserve"><value>Version date</value></data>
 </root>

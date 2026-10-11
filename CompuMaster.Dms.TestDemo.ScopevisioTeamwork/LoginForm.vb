@@ -93,7 +93,7 @@ Public Class LoginForm
                         "DMS Browser DEMO for Scopevisio Teamwork", Me.Icon,
                         If(Me.StartPathTextBox.Text.StartsWith("/"), Me.StartPathTextBox.Text.Substring(1), Me.StartPathTextBox.Text), "",
                         BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
-                        BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles,
+                        BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowViewFileVersionHistory Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRestoreFileVersions Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRemoveFileVersions,
                         BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
                         "", "", ""
                     )

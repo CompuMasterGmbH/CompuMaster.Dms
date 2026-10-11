@@ -84,6 +84,12 @@
   <PropertyGroup Condition="'$(OcsFileVersionsProject)' != ''">
     <DefineConstants>$(DefineConstants),OCS_FILE_VERSIONS=True</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableCenterDeviceFileVersions)' == 'true'">
+    <DefineConstants>$(DefineConstants),CENTERDEVICE_FILE_VERSIONS=True</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EnableCenterDeviceFileVersions)' != 'true'">
+    <Compile Remove="Providers/CenterDeviceDmsProviderBase.FileVersions.vb" />
+  </ItemGroup>
   <ItemGroup Condition="'$(OcsFileVersionsProject)' == ''">
     <Compile Remove="Providers/WebDavDmsProvider.FileVersions.Ocs.vb" />
   </ItemGroup>

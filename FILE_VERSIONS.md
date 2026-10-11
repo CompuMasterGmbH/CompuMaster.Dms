@@ -1,4 +1,4 @@
-﻿# File-version contracts and cloud adapters
+﻿﻿# File-version contracts and cloud adapters
 
 The provider-neutral workflow is additive and synchronous. No general async API expansion under #9 is introduced. Existing providers inherit unsupported defaults; existing clients, explicitly selected instances and package pins retain their behavior.
 
@@ -40,6 +40,30 @@ Local Windows evidence:
 
 Example opt-in: `dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj -f net8.0 --filter "FullyQualifiedName~DmsFileVersionContractTest|FullyQualifiedName~WebDavFileVersionTest" -p:OcsFileVersionsProject=<absolute SDK project path>`. The same focused tests run on net48. Verify the local SDK revision and clean source before using this override; no moving branch is selected implicitly.
 
-BrowserUI integration belongs to the coordinated DMS UI chat under [#100](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/100). Independent caller flags: history 256, restore 512, proposed individual removal 1024; historical download uses existing download bit 8. History/restore/removal never imply upload or current-file deletion rights. A separate local UI-reference commit contains an initial localized dialog and tests, for review/reuse by that owning chat rather than competing UI merges.
+BrowserUI integration belongs to the coordinated DMS UI chat under [#100](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/100). Independent caller flags: history 256, restore 512, individual removal 1024; historical download uses existing download bit 8. History/restore/removal never imply upload or current-file deletion rights. The coordinated BrowserUI implementation and its isolated verification are described below; the cloud task keeps its original UI-reference branch unmerged.
 
-Remaining acceptance: authorized exclusive ownCloud/Nextcloud live tests (including app-disabled, read-only and server retention semantics), Infinite Scale account/space mapping and live verification, upstream package publication, default-package adapter activation, and final BrowserUI integration. Local build/mock evidence does not claim any of these complete. CI is intentionally skipped for this preflight under the user's explicit instruction after essential local verification; no server mutation is inferred or performed.
+Remaining acceptance: authorized exclusive ownCloud/Nextcloud live tests (including app-disabled, read-only and server retention semantics), Infinite Scale account/space mapping and live verification, upstream package publication, default-package adapter activation, and final BrowserUI review/merge and published-package activation. Local build/mock evidence does not claim any of these complete. CI is intentionally skipped for this preflight under the user's explicit instruction after essential local verification; no server mutation is inferred or performed.
+
+## BrowserUI integration
+
+The toolbar and file-context history entries require AllowViewFileVersionHistory=256, implemented history support, exactly one selected file and an idle browser. Historical downloads additionally require AllowDownloadFiles=8, restoration requires AllowRestoreFileVersions=512, and removal requires the independent AllowRemoveFileVersions=1024. Ordinary file deletion does not grant version removal. The flags and capabilities are rechecked before actions and after confirmations; the server enforces resource authorization.
+
+The localized, resizable window retains opaque identities and unknown metadata, inherits the browser icon and remote-target context, confirms mutations, reloads history and refreshes current browser metadata after changes. Historical downloads respect the required local parent and linked-path restrictions, ask before replacing existing files, and publish a temporary local file only after successful transfer. Failures preserve existing destinations. Background synchronous calls keep the top-level form responsive; closing waits for an active call rather than claiming native cancellation. The status shows useful failure messages and causes, with complete exception details in a tooltip and the original exception retained for browser diagnostics.
+
+## CenterDevice and Scopevisio Teamwork adapter
+
+The shared adapter requires EnableCenterDeviceFileVersions=true and an explicitly selected CenterDeviceRestProject containing the new SDK APIs. Its immutable SDK checkpoint is 4732c21d377e0150bc259e79f1786e5d46bec6c6, merged through CenterDevice PRs #24-26. The default published package remains CompuMaster.CenterDevice.Rest 2026.10.09.0; default capability properties remain false until SDK publication and integration.
+
+Both providers use the authentication-context user ID, which can differ from the document owner or CenterDevice display identity. History retains server order and version numbers; omitted details are an error instead of an empty list. The not-visible uploader placeholder is not a stable author ID, and document-author metadata is not guessed to be an authenticated display name. Version actions bind to the originating provider, SDK I/O context, authentication ID, document ID and version number. Foreign/reauthorized snapshots and removed versions are rejected. Restore creates a new current version. Removal retains at least one visible version. Ambiguous writes are never replayed automatically. Download disposes its SDK response stream while leaving the caller-owned destination open.
+
+For an isolated source build, use private clones checked out at the immutable pins recorded here and pass:
+
+```text
+-p:EnableCenterDeviceFileVersions=true
+-p:CenterDeviceRestProject=<pinned-centerdevice-clone>/CenterDevice.Rest/CenterDevice.Rest.csproj
+-p:OcsFileVersionsProject=<pinned-ocs-clone>/Ocs/CompuMaster.Ocs.csproj
+```
+
+Direct CenterDevice initial DMS authorization remains a separate existing limitation; this adapter does not change that login contract or claim DMS consumption of the new SDK OAuth flow. The focused adapter/GUI evidence uses isolated backends. SDK Teamwork live evidence does not establish combined DMS adapter acceptance, other roles or direct OAuth acceptance. Combined DMS live acceptance, SDK publication/default activation and independent review/integration remain separate gates. Windows error 5 when attaching native focus tests to a protected foreground input thread is an environmental failure, not a passing focus check.
+
+The model distinguishes VersionDateUtc (creation/upload time) from LastModificationUtc (historical file mtime). Existing constructor signatures remain available. CenterDevice supplies the version upload date; historical file mtime remains unknown instead of being inferred from that value. The history date column can show the version date, but download only restores a known LastModificationUtc. Removing the current CenterDevice version can change current file content, so the confirmation makes that consequence explicit and browser metadata is refreshed afterward.

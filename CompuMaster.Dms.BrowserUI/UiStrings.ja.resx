@@ -244,4 +244,22 @@
   <data name="DownloadDestinationChanged" xml:space="preserve"><value>確認後にダウンロード先にファイルが作成されました。再実行して置き換えるか選択してください: {0}</value></data>
   <data name="BrowserOperationFailed" xml:space="preserve"><value>操作を完了できませんでした。接続とアクセス権を確認してから、もう一度お試しください。</value></data>
   <data name="CollectionManagementUnavailableInScopedBrowser" xml:space="preserve"><value>開始フォルダーに限定されたブラウザーでは、コレクションを管理できません。</value></data>
+  <data name="FileVersionHistory" xml:space="preserve"><value>バージョン履歴</value></data>
+  <data name="VersionIdentifier" xml:space="preserve"><value>バージョン</value></data>
+  <data name="VersionModified" xml:space="preserve"><value>更新日時</value></data>
+  <data name="VersionSize" xml:space="preserve"><value>サイズ</value></data>
+  <data name="VersionAuthor" xml:space="preserve"><value>作成者</value></data>
+  <data name="VersionLabel" xml:space="preserve"><value>ラベル</value></data>
+  <data name="VersionUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="RestoreFileVersion" xml:space="preserve"><value>バージョンを復元</value></data>
+  <data name="RemoveFileVersion" xml:space="preserve"><value>バージョンを削除</value></data>
+  <data name="FileVersionHistoryEmpty" xml:space="preserve"><value>利用できる過去のバージョンはありません。</value></data>
+  <data name="ConfirmRestoreFileVersion" xml:space="preserve"><value>{1} のバージョン {0} を復元しますか？現在のファイル内容が変更されます。</value></data>
+  <data name="ConfirmRemoveFileVersion" xml:space="preserve"><value>{1} のバージョン {0} を削除しますか？この過去の内容は利用できなくなります。 現在のファイル内容が変わる可能性があります。</value></data>
+  <data name="VersionLoading" xml:space="preserve"><value>バージョン履歴を読み込み中…</value></data>
+  <data name="VersionWorking" xml:space="preserve"><value>処理中です。完了するまでお待ちください。</value></data>
+  <data name="VersionActionUnavailable" xml:space="preserve"><value>このバージョン操作は現在利用できません。</value></data>
+  <data name="VersionInvalidHistory" xml:space="preserve"><value>サーバーから無効なバージョン履歴が返されました。</value></data>
+  <data name="VersionCount" xml:space="preserve"><value>{0} 件のバージョン</value></data>
+  <data name="VersionTimestamp" xml:space="preserve"><value>バージョン日時</value></data>
 </root>
