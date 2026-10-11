@@ -60,7 +60,7 @@ Partial Public Class DmsBrowser
 
     Private Async Function LoadTreeAsync(listings As InitialEntryListings) As Task
         Me.TreeViewDmsFolders.Nodes.Clear()
-        If Me.InitialFolder <> Nothing Then
+        If Me.HasScopedBrowserRoot Then
             Dim Folder As DmsResourceItem = Await Me.DmsProvider.ListRemoteItemAsync(Me.InitialFolder)
             If Folder Is Nothing Then Throw New CompuMaster.Dms.Data.DirectoryNotFoundException(Me.InitialFolder)
             Me.RootNode = Me.TreeViewDmsFolders.Nodes.Add("", Me.InitialFolder)
