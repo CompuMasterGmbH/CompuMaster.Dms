@@ -94,8 +94,7 @@ Partial Public Class DmsBrowser
                                        End Using
                                        If plan.Files.Length = 0 AndAlso plan.Directories.Length = 0 Then Return
                                        successful = Await UploadWithDialogAsync(destination, plan.Files, plan.RelativePaths, plan.Directories)
-                                       Await RefreshLoadedTreeAsync(target, target)
-                                       TreeViewDmsFolders.Sort()
+                                       Await RefreshTreePreservingViewAsync(target)
                                    End Function)
             If successful Then MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
         Catch ex As OperationCanceledException
