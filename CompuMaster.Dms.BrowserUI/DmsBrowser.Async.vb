@@ -182,24 +182,85 @@ Partial Public Class DmsBrowser
             selectedNode = Me.TreeViewDmsFolders.SelectedNode
         End If
         If selectedNode Is Nothing Then selectedNode = Me.RootNode
-        Dim selectionAncestors As New List(Of TreeNode)
-        While selectedNode IsNot Nothing
-            selectionAncestors.Add(selectedNode)
-            selectedNode = selectedNode.Parent
-        End While
+        Await RefreshTreePreservingViewAsync(Me.RootNode, selectedNode)
+        Await Me.RefreshFilesListAsync()
+    End Function
+
+    Private NotInheritable Class TreeLocation
+        Friend ReadOnly Path As New List(Of DmsResourceItem)
+        Friend Sub New(node As TreeNode)
+            While node?.Parent IsNot Nothing
+                Dim item = TryCast(node.Tag, NodeTagData)?.DmsResourceItem
+                If item Is Nothing Then Exit While
+                'Keep an immutable identity even if the provider reuses metadata objects.
+                Path.Insert(0, New DmsResourceItem With {.FullName = item.FullName, .ItemType = item.ItemType,
+                    .ExtendedInfosFolderID = item.ExtendedInfosFolderID, .ExtendedInfosCollectionID = item.ExtendedInfosCollectionID})
+                node = node.Parent
+            End While
+        End Sub
+    End Class
+
+    Private Shared Function SameTreeResource(previous As DmsResourceItem, current As DmsResourceItem) As Boolean
+        If previous Is Nothing OrElse current Is Nothing OrElse previous.ItemType <> current.ItemType Then Return False
+        If Not String.IsNullOrEmpty(previous.ExtendedInfosFolderID) AndAlso Not String.IsNullOrEmpty(current.ExtendedInfosFolderID) Then
+            Return previous.ExtendedInfosFolderID = current.ExtendedInfosFolderID AndAlso previous.ExtendedInfosCollectionID = current.ExtendedInfosCollectionID
+        End If
+        If Not String.IsNullOrEmpty(previous.ExtendedInfosCollectionID) AndAlso Not String.IsNullOrEmpty(current.ExtendedInfosCollectionID) Then
+            Return previous.ExtendedInfosCollectionID = current.ExtendedInfosCollectionID
+        End If
+        Return previous.FullName = current.FullName
+    End Function
+
+    Private Async Function ResolveTreeLocationAsync(location As TreeLocation) As Task(Of TreeNode)
+        Dim current = Me.RootNode
+        For Each item In location.Path
+            If current Is Nothing Then Exit For
+            Await AddTreeChildrenAsync(current)
+            Dim matches = current.Nodes.Cast(Of TreeNode)().Where(Function(child) SameTreeResource(item, TryCast(child.Tag, NodeTagData)?.DmsResourceItem)).ToArray()
+            'Never select an arbitrary resource when the identity is ambiguous.
+            If matches.Length <> 1 Then Exit For
+            current = matches(0)
+        Next
+        Return current
+    End Function
+
+    Friend Async Function RefreshTreePreservingViewAsync(target As TreeNode, Optional selectedNode As TreeNode = Nothing) As Task
+        If target Is Nothing OrElse target.TreeView IsNot Me.TreeViewDmsFolders Then Return
+        Dim provider = Me.DmsProvider
+        Dim scope = Me.InitialFolder
+        Dim selected As New TreeLocation(If(selectedNode, Me.TreeViewDmsFolders.SelectedNode))
+        Dim top As New TreeLocation(Me.TreeViewDmsFolders.TopNode)
+        Dim expanded As New List(Of TreeLocation)
+        Dim capture As Action(Of TreeNode) = Nothing
+        capture = Sub(node)
+                      If node.IsExpanded Then expanded.Add(New TreeLocation(node))
+                      For Each child As TreeNode In node.Nodes
+                          If child.Tag IsNot Nothing Then capture(child)
+                      Next
+                  End Sub
+        capture(Me.RootNode)
+        Dim previousSuppression = Me.SuppressSelectionRefresh
         Me.SuppressSelectionRefresh = True
         Me.TreeViewDmsFolders.BeginUpdate()
         Try
-            If Me.RootNode IsNot Nothing Then Await Me.RefreshLoadedTreeAsync(Me.RootNode, selectionAncestors.FirstOrDefault())
+            Await RefreshLoadedTreeAsync(target, If(selectedNode, Me.TreeViewDmsFolders.SelectedNode))
+            If Me.IsDisposed OrElse Me.DmsProvider IsNot provider OrElse Me.InitialFolder <> scope Then Return
             Me.TreeViewDmsFolders.Sort()
-            Me.TreeViewDmsFolders.SelectedNode = selectionAncestors.FirstOrDefault(Function(node) node.TreeView Is Me.TreeViewDmsFolders)
-            If Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Me.TreeViewDmsFolders.SelectedNode = Me.RootNode
+            For Each savedLocation As TreeLocation In expanded
+                Dim node = Await ResolveTreeLocationAsync(savedLocation)
+                If node IsNot Nothing Then
+                    Await AddTreeChildrenAsync(node)
+                    node.Expand()
+                End If
+            Next
+            Me.TreeViewDmsFolders.SelectedNode = Await ResolveTreeLocationAsync(selected)
+            Me.TreeViewDmsFolders.TopNode = Await ResolveTreeLocationAsync(top)
+            Me.TreeViewDmsFolders.SelectedNode?.EnsureVisible()
             Me.SelectedFolder = Me.SelectedFolderPath()
         Finally
             Me.TreeViewDmsFolders.EndUpdate()
-            Me.SuppressSelectionRefresh = False
+            Me.SuppressSelectionRefresh = previousSuppression
         End Try
-        Await Me.RefreshFilesListAsync()
     End Function
 
     Private Async Function RefreshLoadedTreeAsync(node As TreeNode, selectedNode As TreeNode) As Task
@@ -218,7 +279,7 @@ Partial Public Class DmsBrowser
                  (data.DmsResourceItem IsNot Nothing AndAlso data.DmsResourceItem.ItemType <> DmsResourceItem.ItemTypes.Collection)) Then Continue For
             Dim existing As TreeNode = previousNodes.FirstOrDefault(Function(child)
                                                                        Dim resource = DirectCast(child.Tag, NodeTagData).DmsResourceItem
-                                                                       Return resource.FullName = item.FullName AndAlso resource.ItemType = item.ItemType
+                                                                       Return SameTreeResource(resource, item)
                                                                    End Function)
             If existing Is Nothing Then
                 Me.AddDirectoryTreeNode(node, item)
