@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>Ignoré</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>Envoi terminé : {0} fichiers envoyés, {1} ignorés.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>La destination a changé avant l’envoi : {0}.</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>Ce fournisseur n’accepte pas de fichiers directement à la racine du serveur.</value></data>
 </root>

@@ -238,7 +238,7 @@ Partial Public Class DmsBrowser
                           If child.Tag IsNot Nothing Then capture(child)
                       Next
                   End Sub
-        capture(Me.RootNode)
+        If Me.RootNode IsNot Nothing Then capture(Me.RootNode)
         Dim previousSuppression = Me.SuppressSelectionRefresh
         Me.SuppressSelectionRefresh = True
         Me.TreeViewDmsFolders.BeginUpdate()
@@ -277,10 +277,8 @@ Partial Public Class DmsBrowser
             If item.ItemType = DmsResourceItem.ItemTypes.Collection AndAlso
                 (Not Me.DmsProvider.SupportsCollections OrElse
                  (data.DmsResourceItem IsNot Nothing AndAlso data.DmsResourceItem.ItemType <> DmsResourceItem.ItemTypes.Collection)) Then Continue For
-            Dim existing As TreeNode = previousNodes.FirstOrDefault(Function(child)
-                                                                       Dim resource = DirectCast(child.Tag, NodeTagData).DmsResourceItem
-                                                                       Return SameTreeResource(resource, item)
-                                                                   End Function)
+            Dim matches = previousNodes.Where(Function(child) SameTreeResource(DirectCast(child.Tag, NodeTagData).DmsResourceItem, item)).ToArray()
+            Dim existing As TreeNode = If(matches.Length = 1, matches(0), Nothing)
             If existing Is Nothing Then
                 Me.AddDirectoryTreeNode(node, item)
             Else

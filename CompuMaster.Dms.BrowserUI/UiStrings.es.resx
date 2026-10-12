@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>Omitido</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>Subida finalizada: {0} archivos subidos, {1} omitidos.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>El destino cambió antes de la subida: {0}.</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>Este proveedor no admite archivos directamente en la raíz del servidor.</value></data>
 </root>

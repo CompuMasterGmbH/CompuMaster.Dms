@@ -12,6 +12,10 @@ Friend NotInheritable Class ShellDownloadData
     Friend Shared ReadOnly DescriptorFormat As Short = ClipboardFormat("FileGroupDescriptorW")
     Friend Shared ReadOnly ContentsFormat As Short = ClipboardFormat("FileContents")
     Private Shared ReadOnly CopyFormat As Short = ClipboardFormat("Preferred DropEffect")
+    Friend Const InternalMoveFormatName As String = "CompuMaster.Dms.BrowserUI.RemoteMove.1"
+    Friend Shared ReadOnly InternalMoveFormat As Short = ClipboardFormat(InternalMoveFormatName)
+    Private ReadOnly MoveToken As Byte()
+    Private ReadOnly OfferDownloads As Boolean
     Private ReadOnly Items As DmsResourceItem()
     Private ReadOnly Fetch As Action(Of DmsResourceItem, String)
     Private ReadOnly Root As String
@@ -20,9 +24,11 @@ Friend NotInheritable Class ShellDownloadData
     Private ReadOnly Streams As New List(Of ShellFileStream)
     Private Disposed As Boolean
 
-    Friend Sub New(items As DmsResourceItem(), fetch As Action(Of DmsResourceItem, String))
+    Friend Sub New(items As DmsResourceItem(), fetch As Action(Of DmsResourceItem, String), Optional moveToken As Byte() = Nothing, Optional offerDownloads As Boolean = True)
         Me.Items = CType(items.Clone(), DmsResourceItem())
         Me.Fetch = fetch
+        Me.MoveToken = If(moveToken Is Nothing, Nothing, CType(moveToken.Clone(), Byte()))
+        Me.OfferDownloads = offerDownloads
         Root = Path.Combine(Path.GetTempPath(), "dms-drag-" & Guid.NewGuid().ToString("N"))
         If Directory.Exists(Root) Then Throw New IOException("The drag staging directory already exists.")
     End Sub
@@ -41,7 +47,10 @@ Friend NotInheritable Class ShellDownloadData
         If Disposed Then Throw New ObjectDisposedException(NameOf(ShellDownloadData))
         Marshal.ThrowExceptionForHR(QueryGetData(format))
         medium = New STGMEDIUM()
-        If format.cfFormat = DescriptorFormat Then
+        If format.cfFormat = InternalMoveFormat Then
+            medium.tymed = TYMED.TYMED_HGLOBAL
+            medium.unionmember = Allocate(MoveToken)
+        ElseIf format.cfFormat = DescriptorFormat Then
             medium.tymed = TYMED.TYMED_HGLOBAL
             medium.unionmember = Allocate(Descriptors())
         ElseIf format.cfFormat = CopyFormat Then
@@ -111,6 +120,8 @@ Friend NotInheritable Class ShellDownloadData
 
     Public Function QueryGetData(ByRef format As FORMATETC) As Integer Implements System.Runtime.InteropServices.ComTypes.IDataObject.QueryGetData
         If format.dwAspect <> DVASPECT.DVASPECT_CONTENT Then Return &H8004006B
+        If MoveToken IsNot Nothing AndAlso format.cfFormat = InternalMoveFormat AndAlso (format.tymed And TYMED.TYMED_HGLOBAL) <> 0 Then Return 0
+        If Not OfferDownloads Then Return &H80040064
         If (format.cfFormat = DescriptorFormat OrElse format.cfFormat = CopyFormat) AndAlso (format.tymed And TYMED.TYMED_HGLOBAL) <> 0 Then Return 0
         If format.cfFormat = ContentsFormat AndAlso (format.tymed And TYMED.TYMED_ISTREAM) <> 0 AndAlso format.lindex >= 0 AndAlso format.lindex < Items.Length Then Return 0
         Return &H80040064
@@ -129,10 +140,15 @@ Friend NotInheritable Class ShellDownloadData
     End Sub
     Public Function EnumFormatEtc(direction As DATADIR) As IEnumFORMATETC Implements System.Runtime.InteropServices.ComTypes.IDataObject.EnumFormatEtc
         If direction <> DATADIR.DATADIR_GET Then Throw New COMException("Only get formats are available.", &H80004001)
-        Dim formats As New List(Of FORMATETC) From {FileFormat(DescriptorFormat, -1, TYMED.TYMED_HGLOBAL), FileFormat(CopyFormat, -1, TYMED.TYMED_HGLOBAL)}
-        For index = 0 To Items.Length - 1
-            formats.Add(FileFormat(ContentsFormat, index, TYMED.TYMED_ISTREAM))
-        Next
+        Dim formats As New List(Of FORMATETC)
+        If MoveToken IsNot Nothing Then formats.Add(FileFormat(InternalMoveFormat, -1, TYMED.TYMED_HGLOBAL))
+        If OfferDownloads Then
+            formats.Add(FileFormat(DescriptorFormat, -1, TYMED.TYMED_HGLOBAL))
+            formats.Add(FileFormat(CopyFormat, -1, TYMED.TYMED_HGLOBAL))
+            For index = 0 To Items.Length - 1
+                formats.Add(FileFormat(ContentsFormat, index, TYMED.TYMED_ISTREAM))
+            Next
+        End If
         Return New FormatEnumerator(formats.ToArray())
     End Function
     Public Function DAdvise(ByRef format As FORMATETC, flags As ADVF, sink As IAdviseSink, ByRef connection As Integer) As Integer Implements System.Runtime.InteropServices.ComTypes.IDataObject.DAdvise

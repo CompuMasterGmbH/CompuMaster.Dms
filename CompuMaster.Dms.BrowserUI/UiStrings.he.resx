@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>דולג</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>ההעלאה הסתיימה: {0} קבצים הועלו, {1} דולגו.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>היעד השתנה לפני ההעלאה: {0}.</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>ספק זה אינו מאפשר קבצים ישירות בשורש השרת.</value></data>
 </root>

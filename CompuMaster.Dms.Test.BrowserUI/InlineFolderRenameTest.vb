@@ -10,6 +10,28 @@ Imports NUnit.Framework
 <TestFixture, Apartment(ApartmentState.STA), NonParallelizable>
 Public Class InlineFolderRenameTest
     <Test>
+    Public Sub ConfirmedInlineRenameReloadsDescendantsWithTheNewParentPath()
+        Dim provider As New RenameProvider With {.ChildFolder = True}
+        Using dispatcher As New UiTestDispatcher(), browser As New RenameBrowser(provider)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            Dim parent = browser.TreeViewDmsFolders.Nodes(0).Nodes(0)
+            dispatcher.Finish(browser.AddTreeChildrenAsync(parent))
+            browser.TreeViewDmsFolders.SelectedNode = parent
+            dispatcher.WaitForEvents()
+            RaiseLabelEvent(browser, "OnAfterLabelEdit", New NodeLabelEditEventArgs(parent, "New"))
+            dispatcher.WaitForEvents()
+            parent = browser.TreeViewDmsFolders.SelectedNode
+            dispatcher.Finish(browser.AddTreeChildrenAsync(parent))
+            Dim child = parent.Nodes(0)
+            Dim resource = DirectCast(child.Tag.GetType().GetField("DmsResourceItem").GetValue(child.Tag), DmsResourceItem)
+            Assert.That(resource.FullName, [Is].EqualTo("New/Child"))
+            Assert.That(resource.ExtendedInfosFolderID, [Is].EqualTo("child-id"))
+            Assert.That(provider.Moves, [Is].EqualTo(1))
+            Assert.That(browser.Failure, [Is].Null, browser.Failure?.ToString())
+        End Using
+    End Sub
+    <Test>
     Public Sub F2OnlyStartsNativeEditingForAnIdlePermittedChild()
         Dim provider As New RenameProvider()
         Using dispatcher As New UiTestDispatcher(), browser As New RenameBrowser(provider)
@@ -176,6 +198,7 @@ Public Class InlineFolderRenameTest
         Friend Fail As Boolean
         Friend LastDestination As String
         Friend BeforeLookup As Action
+        Friend ChildFolder As Boolean
         Public Overrides ReadOnly Property SupportsCollections As Boolean = False
         Protected Overrides ReadOnly Property SupportsAsynchronousCopyMove As Boolean = True
         Public Overrides Function ListRemoteItemAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
@@ -186,7 +209,9 @@ Public Class InlineFolderRenameTest
         Public Overrides Function ListDirectoryEntriesAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
             Dim entries As New List(Of DmsResourceItem)
             If If(path, "").Trim(DirectorySeparator) = RootPath.Trim(DirectorySeparator) Then
-                entries.Add(New DmsResourceItem With {.Name = FolderName, .FullName = CombinePath(RootPath, FolderName), .ExtendedInfosFolderID = "folder-id", .ItemType = DmsResourceItem.ItemTypes.Folder, .HasChildDirectories = False})
+                entries.Add(New DmsResourceItem With {.Name = FolderName, .FullName = CombinePath(RootPath, FolderName), .ExtendedInfosFolderID = "folder-id", .ItemType = DmsResourceItem.ItemTypes.Folder, .HasChildDirectories = ChildFolder})
+            ElseIf ChildFolder AndAlso path = CombinePath(RootPath, FolderName) Then
+                entries.Add(New DmsResourceItem With {.Name = "Child", .FullName = CombinePath(path, "Child"), .ExtendedInfosFolderID = "child-id", .ItemType = DmsResourceItem.ItemTypes.Folder, .HasChildDirectories = False})
             End If
             Return Task.FromResult(entries)
         End Function
