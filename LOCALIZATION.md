@@ -361,3 +361,19 @@ Publication requires a separately approved release after those required CI gates
 The 2026.10.11.0 release predates PR #99 and this follow-up. Full RTL remains
 outside these language/demo tickets and is tracked in #66; exhaustive coverage
 of all Windows/font installations is not claimed.
+The first Framework native-message run retained 18/20 passing cases and two
+Chinese primary-monitor measurement failures (28 native client pixels versus a
+39-pixel managed Font/TextRenderer estimate). The native messages were visually
+complete. The corrected audit uses the control's own HDC/HFONT, GetClientRect and
+DrawTextW with DT_CALCRECT/DT_WORDBREAK/DT_NOPREFIX, avoiding conversion between
+managed-font, physical-window and native-client units. The targeted zh-CN/zh-TW
+run passed all four culture/start-monitor cases and retained complete message
+previews. Failure previews are now captured before assertions. This corrects the
+test oracle; no production dialog or translation change is inferred.
+The final native-measurement .NET 8 matrix passed 20/20 culture/start-monitor
+cases in 206.2 seconds at physical 100%/96 DPI and 125%/120 DPI. It checked all
+fifteen scenarios, two monitor round trips, minimum/wide/constrained sizes and
+all four native dialog types per case (80 observed dialogs). The earlier snapshot
+matrix also passed 20/20; representative native Hindi/Chinese/Spanish and
+mixed-Unicode font/instance previews were inspected. The final Framework rerun
+is recorded separately after completion; the earlier 18/20 result is retained.

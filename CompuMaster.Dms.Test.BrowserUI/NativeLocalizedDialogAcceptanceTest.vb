@@ -96,6 +96,7 @@ Public Class NativeLocalizedDialogAcceptanceTest
                     timer.Stop()
                     Try
                         Dim bounds = ReadBounds(dialog)
+                        SavePreview(dialog, bounds, scenario, owner)
                         Assert.That(Screen.FromHandle(dialog).WorkingArea.Contains(bounds), [Is].True, scenario & " must fit its monitor: " & bounds.ToString())
                         Assert.That(Screen.FromHandle(dialog).DeviceName, [Is].EqualTo(Screen.FromControl(owner).DeviceName), "The modal window must use the owner's display.")
                         If title IsNot Nothing Then Assert.That(ReadText(dialog), [Is].EqualTo(title), "The localized title must remain complete.")
@@ -108,12 +109,7 @@ Public Class NativeLocalizedDialogAcceptanceTest
                                         Dim text = ReadText(child)
                                         texts.Add(text)
                                         If scenario = "message" AndAlso text = expectedText Then
-                                            Dim childBounds = ReadBounds(child)
-                                            Dim fontHandle = SendMessage(child, &H31, IntPtr.Zero, IntPtr.Zero)
-                                            Using nativeFont = If(fontHandle = IntPtr.Zero, DirectCast(SystemFonts.MessageBoxFont.Clone(), Font), Font.FromHfont(fontHandle))
-                                                Dim measured = TextRenderer.MeasureText(text, nativeFont, New Size(childBounds.Width, Integer.MaxValue), TextFormatFlags.WordBreak Or TextFormatFlags.NoPadding)
-                                                Assert.That(childBounds.Height, [Is].GreaterThanOrEqualTo(measured.Height), "The complete Unicode message must fit vertically.")
-                                            End Using
+                                            InspectMessageHeight(child, text)
                                         End If
                                     End If
                                     Return True
@@ -124,7 +120,6 @@ Public Class NativeLocalizedDialogAcceptanceTest
                             End Function, IntPtr.Zero)
                         If childFailure IsNot Nothing Then Throw childFailure
                         If expectedText IsNot Nothing Then Assert.That(texts, Does.Contain(expectedText), "The component message/Unicode filename must reach a visible native control unchanged.")
-                        SavePreview(dialog, bounds, scenario, owner)
                         Console.WriteLine($"Native dialog {CultureInfo.CurrentUICulture.Name}/{scenario}: dpi={GetDpiForWindow(dialog)}; bounds={bounds}; monitor={Screen.FromHandle(dialog).DeviceName}.")
                         observed = True
                     Catch ex As Exception
@@ -144,6 +139,27 @@ Public Class NativeLocalizedDialogAcceptanceTest
         If failure IsNot Nothing Then Throw New InvalidOperationException("Native " & scenario & " acceptance failed.", failure)
         Assert.That(timedOut, [Is].Zero, "The owned modal dialog exceeded its ten-second deadline.")
         Assert.That(observed, [Is].True, "The owned modal dialog must actually be observed.")
+    End Sub
+
+    Private Shared Sub InspectMessageHeight(window As IntPtr, text As String)
+        'Use the native control's client coordinates and selected HFONT. Converting
+        'HFONT through a managed Font can change wrapping on Framework after a
+        'monitor transition; physical screen bounds also differ from client units.
+        Dim available As NativeRectangle
+        If Not GetClientRect(window, available) Then Throw New System.ComponentModel.Win32Exception()
+        Dim measured As New NativeRectangle With {.Right = available.Right}
+        Dim dc = GetDC(window)
+        If dc = IntPtr.Zero Then Throw New System.ComponentModel.Win32Exception()
+        Dim font = SendMessage(window, &H31, IntPtr.Zero, IntPtr.Zero)
+        Dim previous = If(font = IntPtr.Zero, IntPtr.Zero, SelectObject(dc, font))
+        Try
+            Dim height = DrawText(dc, text, text.Length, measured, &H400UI Or &H10UI Or &H800UI)
+            Assert.That(height, [Is].GreaterThan(0))
+            Assert.That(available.Bottom, [Is].GreaterThanOrEqualTo(measured.Bottom), "The complete Unicode message must fit vertically in the native control's client units.")
+        Finally
+            If previous <> IntPtr.Zero Then SelectObject(dc, previous)
+            ReleaseDC(window, dc)
+        End Try
     End Sub
 
     Private Shared Sub SavePreview(dialog As IntPtr, bounds As Rectangle, scenario As String, owner As Form)
@@ -214,6 +230,21 @@ Public Class NativeLocalizedDialogAcceptanceTest
     End Function
     <DllImport("user32.dll", SetLastError:=True)>
     Private Shared Function GetWindowRect(window As IntPtr, ByRef bounds As NativeRectangle) As Boolean
+    End Function
+    <DllImport("user32.dll", SetLastError:=True)>
+    Private Shared Function GetClientRect(window As IntPtr, ByRef bounds As NativeRectangle) As Boolean
+    End Function
+    <DllImport("user32.dll")>
+    Private Shared Function GetDC(window As IntPtr) As IntPtr
+    End Function
+    <DllImport("user32.dll")>
+    Private Shared Function ReleaseDC(window As IntPtr, dc As IntPtr) As Integer
+    End Function
+    <DllImport("gdi32.dll")>
+    Private Shared Function SelectObject(dc As IntPtr, value As IntPtr) As IntPtr
+    End Function
+    <DllImport("user32.dll", EntryPoint:="DrawTextW", CharSet:=CharSet.Unicode)>
+    Private Shared Function DrawText(dc As IntPtr, text As String, count As Integer, ByRef bounds As NativeRectangle, flags As UInteger) As Integer
     End Function
     <DllImport("user32.dll")>
     Private Shared Function GetDpiForWindow(window As IntPtr) As UInteger
