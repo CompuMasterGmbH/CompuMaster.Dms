@@ -1455,13 +1455,14 @@ Public Class DmsBrowser
         End Try
     End Function
 
-    Private Async Function RunFolderActionAsync(action As ResourceAction) As Task
-        If ResourceActionRunning OrElse TransferRunning Then Return
+    Private Async Function RunFolderActionAsync(action As ResourceAction, Optional editedNode As TreeNode = Nothing, Optional editedName As String = Nothing) As Task
+        If ResourceActionRunning OrElse TransferRunning OrElse DragDownloadRunning Then Return
+        If editedNode IsNot Nothing AndAlso Not CanRenameFolderNode(editedNode) Then Return
         ResourceActionRunning = True
         Dim refreshRequired As Boolean = False
         Dim refreshPath As String = Nothing
         Try
-            Dim source As DmsResourceItem = Me.CurrentSelectedFolder()
+            Dim source As DmsResourceItem = If(editedNode Is Nothing, Me.CurrentSelectedFolder(), TryCast(editedNode.Tag, NodeTagData)?.DmsResourceItem)
             If source Is Nothing Then Throw New DmsUserInputInvalidException(UiStrings.GetText("NoFolderSelected"))
             If source.ItemType = DmsResourceItem.ItemTypes.Root OrElse Me.CurrentSelectedFolderNode() Is Me.RootNode Then
                 Throw New DmsUserInputInvalidException(UiStrings.GetText("RootFolderCannotBeChanged"))
@@ -1470,11 +1471,28 @@ Public Class DmsBrowser
             Dim parentPath As String = Me.DmsProvider.ParentDirectoryPath(source.FullName)
             If action <> ResourceAction.Rename AndAlso Not Me.TrySelectDestinationDirectory(parentPath) Then Return
             Dim targetName As String = source.Name
-            If Not Me.TryGetDestinationName(action, source, targetName) Then Return
+            If editedNode Is Nothing Then
+                If Not Me.TryGetDestinationName(action, source, targetName) Then Return
+            Else
+                targetName = editedName.Trim()
+                If Not IsValidResourceName(targetName, DmsProvider.DirectorySeparator) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("InvalidDestinationName"))
+                If String.Equals(targetName, source.Name, StringComparison.Ordinal) Then Return
+            End If
             Dim destinationPath As String = Me.DmsProvider.CombinePath(parentPath, targetName)
             refreshPath = source.FullName
             refreshRequired = True
-            If Await Me.ExecuteResourceActionAsync(source, destinationPath, action) Then refreshPath = destinationPath
+            Dim canExecute As Func(Of Boolean) = Nothing
+            If editedNode IsNot Nothing Then
+                Dim provider = DmsProvider
+                Dim sourcePath = source.FullName
+                Dim sourceID = source.ExtendedInfosFolderID
+                Dim collectionID = source.ExtendedInfosCollectionID
+                canExecute = Function() CanRenameFolderNode(editedNode, True) AndAlso DmsProvider Is provider AndAlso
+                    String.Equals(TryCast(editedNode.Tag, NodeTagData)?.DmsResourceItem?.FullName, sourcePath, StringComparison.Ordinal) AndAlso
+                    String.Equals(TryCast(editedNode.Tag, NodeTagData)?.DmsResourceItem?.ExtendedInfosFolderID, sourceID, StringComparison.Ordinal) AndAlso
+                    String.Equals(TryCast(editedNode.Tag, NodeTagData)?.DmsResourceItem?.ExtendedInfosCollectionID, collectionID, StringComparison.Ordinal)
+            End If
+            If Await Me.ExecuteResourceActionAsync(source, destinationPath, action, canExecute) Then refreshPath = destinationPath
         Catch ex As Exception
             Me.ShowResourceActionError(ex)
         Finally
@@ -1551,7 +1569,8 @@ Public Class DmsBrowser
         Return True
     End Function
 
-    Friend Async Function ExecuteResourceActionAsync(source As DmsResourceItem, destinationPath As String, action As ResourceAction) As Task(Of Boolean)
+    Friend Async Function ExecuteResourceActionAsync(source As DmsResourceItem, destinationPath As String, action As ResourceAction, Optional canExecute As Func(Of Boolean) = Nothing) As Task(Of Boolean)
+        If canExecute IsNot Nothing AndAlso Not canExecute() Then Return False
         EnsureCollectionActionWithinBrowserScope(source)
         If Not IsWithinBrowserRoot(destinationPath) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("DestinationOutsideBrowserRoot"))
         If String.Equals(source.FullName.TrimEnd(Me.DmsProvider.DirectorySeparator), destinationPath.TrimEnd(Me.DmsProvider.DirectorySeparator), StringComparison.Ordinal) Then
@@ -1568,6 +1587,7 @@ Public Class DmsBrowser
             If MessageBox.Show(Me, UiStrings.Format(questionKey, destinationPath), Me.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return False
             allowOverwrite = True
         End If
+        If canExecute IsNot Nothing AndAlso Not canExecute() Then Return False
         Select Case action
             Case ResourceAction.Copy
                 Await Me.RunTransferAsync(Function() Me.DmsProvider.CopyAsync(source, destinationPath, allowOverwrite, False))
