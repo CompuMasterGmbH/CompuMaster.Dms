@@ -317,15 +317,34 @@ Namespace Providers
         End Function
 
         Private Function RequestTeamworkTenantIdForOrganisation(organisationID As Long) As String
-            Dim OpenScopeClient As OpenScopeApiClient = Me.GetOpenScopeClient()
-            Dim OpenScopeConfig As Configuration = OpenScopeClient.Config
-            Dim OrganisationToken As TokenResponse = OpenScopeClient.AuthorizationApi.TokenWithHttpInfo(
+            Dim OrganisationClient = CreateOrganisationClient(Me.GetOpenScopeClient(), organisationID)
+            Return OrganisationClient.Token.TeamworkTenantId
+        End Function
+
+        Friend Shared Function CreateOrganisationClient(currentClient As OpenScopeApiClient, organisationID As Long) As OpenScopeApiClient
+            Dim currentConfig = currentClient.Config
+            'Token requests update Configuration.AccessToken. A discovery request must
+            'never replace the active client's bearer or reuse its cached account context.
+            Dim config As New Configuration(New Dictionary(Of String, String)(currentConfig.DefaultHeader),
+                                            New Dictionary(Of String, String)(currentConfig.ApiKey),
+                                            New Dictionary(Of String, String)(currentConfig.ApiKeyPrefix), currentConfig.BasePath) With {
+                .Username = currentConfig.Username, .Password = currentConfig.Password,
+                .ClientNumber = currentConfig.ClientNumber, .UserAgent = currentConfig.UserAgent,
+                .HttpClient = currentConfig.HttpClient, .Timeout = currentConfig.Timeout,
+                .DateTimeFormat = currentConfig.DateTimeFormat
+            }
+            Dim client As New OpenScopeApiClient(config)
+            Dim token = client.AuthorizationApi.TokenWithHttpInfo(
                 grantType:="password",
-                customer:=OpenScopeConfig.ClientNumber,
-                username:=OpenScopeConfig.Username,
+                customer:=config.ClientNumber,
+                username:=config.Username,
                 organisationId:=organisationID,
-                password:=OpenScopeConfig.Password).Data
-            Return If(OrganisationToken Is Nothing, Nothing, OrganisationToken.TeamworkTenantId)
+                password:=config.Password).Data
+            If token Is Nothing OrElse token.OrganisationId <> organisationID OrElse String.IsNullOrWhiteSpace(token.AccessToken) Then
+                Throw New InvalidOperationException("Scopevisio did not authenticate the requested organisation.")
+            End If
+            client.Token = token
+            Return client
         End Function
 
         ''' <summary>
@@ -348,14 +367,16 @@ Namespace Providers
         ''' </summary>
         ''' <param name="organisation">The Scopevisio organisation to select.</param>
         Protected Overridable Sub ApplyOrganisation(organisation As Organisation)
-            Dim OpenScopeClient As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient = Me.GetOpenScopeClient()
-            OpenScopeClient.AuthorizationApi.ChangeOrganisationById(organisation.Id)
-            OpenScopeClient.Token.OrganisationId = organisation.Id
-            OpenScopeClient.Token.OrganisationName = organisation.Name
-            OpenScopeClient.Token.TeamworkTenantId = organisation.TeamworkTenantId
-            Me.IOClient = Nothing
+            Dim selectedClient = CreateOrganisationClient(Me.GetOpenScopeClient(), organisation.Id)
+            If Not String.Equals(selectedClient.Token.TeamworkTenantId, organisation.TeamworkTenantId, StringComparison.Ordinal) Then
+                Throw New InvalidOperationException("Scopevisio did not authenticate the requested DMS instance.")
+            End If
+            Dim selectedIO = ScopevisioSessionIOClient.CreateAsync(selectedClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
+            'Commit only after authorization and account lookup succeeded. Failed
+            'switches leave the previous authenticated instance intact.
+            Me._OpenScopeClient = selectedClient
+            Me.IOClient = selectedIO
             Me._AllUploadLinks = Nothing
-            Me.IOClient = ScopevisioSessionIOClient.CreateAsync(OpenScopeClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
         End Sub
 
         Private Function GetOpenScopeClient() As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient
