@@ -7,6 +7,7 @@ Imports CompuMaster.Dms.Data
 Partial Public Class DmsBrowser
     Private DragDownloadRunning As Boolean
     Private DragDownloadFailureDisplayed As Boolean
+    Friend ShellDragOperation As Func(Of System.Runtime.InteropServices.ComTypes.IDataObject, IntPtr, Integer)
 
     Friend Function CanDragDownload() As Boolean
         Return Not DragDownloadRunning AndAlso Not TransferRunning AndAlso Not ResourceActionRunning AndAlso (AllowedActions And FileOrFolderActions.AllowDownloadFiles) <> 0 AndAlso BrowseMode = BrowseModes.FoldersAndFiles
@@ -14,7 +15,7 @@ Partial Public Class DmsBrowser
 
     Private Sub DragRemoteFiles(sender As Object, e As ItemDragEventArgs)
         If e.Button <> MouseButtons.Left OrElse Not CanDragDownload() Then Return
-        Dim files = CurrentSelectedFiles.ToArray()
+        Dim files = DragDownloadSelection(TryCast(e.Item, ListViewItem))
         If files.Length = 0 Then Return
         DragDownloadRunning = True
         DragDownloadFailureDisplayed = False
@@ -28,7 +29,7 @@ Partial Public Class DmsBrowser
                     Dim effect As Integer
                     ListViewDmsFiles.Capture = False
                     Using source As New CopyDragSource()
-                        Dim result = StartShellDrag(data, source.Pointer, 1, effect)
+                        Dim result = If(ShellDragOperation Is Nothing, StartShellDrag(data, source.Pointer, 1, effect), ShellDragOperation(data, source.Pointer))
                         If result < 0 Then Marshal.ThrowExceptionForHR(result)
                     End Using
                 Finally
@@ -44,6 +45,17 @@ Partial Public Class DmsBrowser
             UpdateFolderDownloadAccess()
         End Try
     End Sub
+
+    Friend Function DragDownloadSelection(origin As ListViewItem) As DmsResourceItem()
+        If origin Is Nothing OrElse origin.ListView IsNot ListViewDmsFiles Then Return New DmsResourceItem() {}
+        Dim originFile = TryCast(origin.Tag, DmsResourceItem)
+        If originFile Is Nothing OrElse originFile.ItemType <> DmsResourceItem.ItemTypes.File Then Return New DmsResourceItem() {}
+        'ItemDrag identifies the originating row. Its selection notification may
+        'not yet be reflected in SelectedItems; never silently lose that drag or
+        'substitute a previously selected remote file.
+        If Not origin.Selected Then Return {originFile}
+        Return CurrentSelectedFiles().Where(Function(file) file IsNot Nothing AndAlso file.ItemType = DmsResourceItem.ItemTypes.File).ToArray()
+    End Function
 
     Private Sub SupplyDraggedFile(file As DmsResourceItem, path As String)
         If (AllowedActions And FileOrFolderActions.AllowDownloadFiles) = 0 Then Throw New UnauthorizedAccessException()

@@ -619,7 +619,7 @@ Public Class DmsBrowser
     End Sub
 
     Friend Async Sub ChangeDmsInstance_Click(sender As Object, e As EventArgs)
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Dim InstanceChangeStarted As Boolean = False
         Try
             Dim InstanceProvider As IDmsInstanceProvider = CType(Me.DmsProvider, IDmsInstanceProvider)
