@@ -250,6 +250,11 @@ Public Class WebDavSharingTest
     <TestCase("https://cloud.example.test/owncloud/remote.php/webdav/Shared/", "https://cloud.example.test/owncloud", "/Shared")>
     <TestCase("https://cloud.example.test/dav/files/alice/Personal/", "https://cloud.example.test", "/Personal")>
     <TestCase("https://cloud.example.test/webdav/Personal/", "https://cloud.example.test", "/Personal")>
+    <TestCase("https://cloud.example.test/prefix/remote.php/webdav/webdav/Reports/", "https://cloud.example.test/prefix", "/webdav/Reports")>
+    <TestCase("https://cloud.example.test/prefix/remote.php/webdav/Folder/dav/files/other/", "https://cloud.example.test/prefix", "/Folder/dav/files/other")>
+    <TestCase("https://cloud.example.test/prefix/webdav/Folder/dav/spaces/other/", "https://cloud.example.test/prefix", "/Folder/dav/spaces/other")>
+    <TestCase("https://cloud.example.test/prefix/dav/files/user/Folder/dav/files/other/", "https://cloud.example.test/prefix", "/Folder/dav/files/other")>
+    <TestCase("https://cloud.example.test/prefix/dav/files/user/Folder+one/", "https://cloud.example.test/prefix", "/Folder+one")>
     Public Sub OcsConnectionInfoRecognizesKnownWebDavEndpoints(webDavUrl As String, expectedBaseUrl As String, expectedRootPath As String)
         Dim BaseUrl As String = Nothing
         Dim RootPath As String = Nothing
@@ -264,6 +269,8 @@ Public Class WebDavSharingTest
     <TestCase("https://dav.example.test/documents/")>
     <TestCase("https://cloud.example.test/webdav-backup/")>
     <TestCase("https://cloud.example.test/remote.php/webdav2/")>
+    <TestCase("https://cloud.example.test/prefix/dav/spaces/space/Folder/dav/files/user/")>
+    <TestCase("https://cloud.example.test/prefix/dav/spaces/space/Folder/webdav/")>
     Public Sub OcsConnectionInfoLeavesGenericWebDavUnchanged(webDavUrl As String)
         Dim BaseUrl As String = Nothing
         Dim RootPath As String = Nothing

@@ -263,15 +263,16 @@ Namespace Providers
             Dim MarkerPosition As Integer = -1
             Dim RelativeRootPath As String
 
-            For Each CandidateMarker As String In New String() {"/remote.php/dav/files/", "/dav/files/"}
-                MarkerPosition = AbsolutePath.IndexOf(CandidateMarker, StringComparison.OrdinalIgnoreCase)
-                If MarkerPosition >= 0 Then
+            For Each CandidateMarker As String In New String() {"/remote.php/dav/files/", "/dav/files/", "/remote.php/webdav", "/webdav", "/remote.php/dav/spaces/", "/dav/spaces/"}
+                Dim position = If(CandidateMarker.EndsWith("/", StringComparison.Ordinal), AbsolutePath.IndexOf(CandidateMarker, StringComparison.OrdinalIgnoreCase), FindPathMarker(AbsolutePath, CandidateMarker))
+                If position >= 0 AndAlso (MarkerPosition < 0 OrElse position < MarkerPosition) Then
+                    MarkerPosition = position
                     MatchedMarker = CandidateMarker
-                    Exit For
                 End If
             Next
+            If MatchedMarker Is Nothing OrElse MatchedMarker.EndsWith("/spaces/", StringComparison.Ordinal) Then Return False
 
-            If MarkerPosition >= 0 Then
+            If MatchedMarker.EndsWith("/files/", StringComparison.Ordinal) Then
                 Dim PathBehindMarker As String = AbsolutePath.Substring(MarkerPosition + MatchedMarker.Length)
                 Dim FirstSeparatorPosition As Integer = PathBehindMarker.IndexOf("/"c)
                 If FirstSeparatorPosition < 0 Then
@@ -280,16 +281,6 @@ Namespace Providers
                     RelativeRootPath = PathBehindMarker.Substring(FirstSeparatorPosition + 1)
                 End If
             Else
-                For Each CandidateMarker As String In New String() {"/remote.php/webdav", "/webdav"}
-                    MarkerPosition = FindPathMarker(AbsolutePath, CandidateMarker)
-                    If MarkerPosition >= 0 Then
-                        MatchedMarker = CandidateMarker
-                        Exit For
-                    End If
-                Next
-                If MatchedMarker Is Nothing Then
-                    Return False
-                End If
                 RelativeRootPath = AbsolutePath.Substring(MarkerPosition + MatchedMarker.Length).TrimStart("/"c)
             End If
 
@@ -300,7 +291,7 @@ Namespace Providers
             }
             ocsBaseUrl = BaseUriBuilder.Uri.AbsoluteUri.TrimEnd("/"c)
 
-            RelativeRootPath = WebUtility.UrlDecode(RelativeRootPath).Trim("/"c)
+            RelativeRootPath = Uri.UnescapeDataString(RelativeRootPath).Trim("/"c)
             If RelativeRootPath.Length = 0 Then
                 remoteRootPath = "/"
             Else
