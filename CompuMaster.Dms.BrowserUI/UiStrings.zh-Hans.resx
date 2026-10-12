@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>服务器返回了无效的版本历史。</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} 个版本</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>版本日期</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>正在规划本地选择…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>正在准备远程文件夹：已完成 {0}/{1}</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>总计：{0} · {1}/s · 剩余时间 {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>未知（等待传输测量数据）</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>未知（文件大小不可用）</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>未知（等待服务器确认）</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>正在启动传输（提供程序准备中）</value></data>
 </root>

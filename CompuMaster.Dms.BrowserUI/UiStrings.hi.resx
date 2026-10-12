@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>सर्वर ने अमान्य संस्करण इतिहास लौटाया।</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} संस्करण</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>संस्करण दिनांक</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>स्थानीय चयन की योजना बनाई जा रही है…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>दूरस्थ फ़ोल्डर तैयार करना: {1} में से {0} पूर्ण</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>कुल: {0} · {1}/s · शेष समय {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>अज्ञात (स्थानांतरण माप की प्रतीक्षा)</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>अज्ञात (फ़ाइल आकार उपलब्ध नहीं हैं)</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>अज्ञात (सर्वर की पुष्टि की प्रतीक्षा)</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>स्थानांतरण शुरू हो रहा है (प्रदाता की तैयारी)</value></data>
 </root>

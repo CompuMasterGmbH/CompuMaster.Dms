@@ -8,6 +8,10 @@ Friend NotInheritable Class TransferDisplay
     Private Started As Double
     Private LastBytes As Long
     Private ActiveFile As Integer = -1
+    Private BatchStarted As Double?
+    Private LastBatchBytes As Decimal
+    Private BatchInitialBytes As Decimal
+    Private ReadOnly BatchSamples As New Queue(Of Tuple(Of Double, Decimal))
 
     Friend Sub New(Optional clock As Func(Of Double) = Nothing)
         Dim timer = Stopwatch.StartNew()
@@ -50,6 +54,49 @@ Friend NotInheritable Class TransferDisplay
             End If
         End If
         Return UiStrings.Format("TransferDetails", processed, speed, eta)
+    End Function
+
+    Friend Function DescribeBatch(snapshot As UploadBatchSnapshot) As String
+        Dim now = Clock()
+        Dim consumed = snapshot.Counters.Where(Function(value) value IsNot Nothing AndAlso value.BytesTransferred.HasValue).Sum(Function(value) CDec(value.BytesTransferred.Value))
+        If Not BatchStarted.HasValue OrElse consumed < LastBatchBytes Then
+            BatchStarted = now
+            BatchInitialBytes = consumed
+            BatchSamples.Clear()
+            BatchSamples.Enqueue(Tuple.Create(now, consumed))
+        End If
+        LastBatchBytes = consumed
+        BatchSamples.Enqueue(Tuple.Create(now, consumed))
+        While BatchSamples.Count > 1 AndAlso BatchSamples.ElementAt(1).Item1 <= now - 2
+            BatchSamples.Dequeue()
+        End While
+        Dim knownBytes = Not Enumerable.Range(0, snapshot.Files.Length).Any(Function(index) snapshot.States(index) <> UploadFileState.Waiting AndAlso (snapshot.Counters(index) Is Nothing OrElse Not snapshot.Counters(index).BytesTransferred.HasValue))
+        Dim totals = Enumerable.Range(0, snapshot.Files.Length).Select(Function(index) If(snapshot.Counters(index)?.TotalBytes, If(snapshot.PlannedTotals Is Nothing, Nothing, snapshot.PlannedTotals(index)))).ToArray()
+        Dim knownTotal = totals.All(Function(value) value.HasValue)
+        Dim total As Decimal = If(knownTotal, totals.Sum(Function(value) CDec(value.Value)), 0D)
+        Dim processed = If(knownBytes, FormatBytes(consumed), UiStrings.GetText("UploadBytesUnknown"))
+        If knownBytes AndAlso knownTotal Then
+            Dim unit = UnitIndex(total)
+            processed = UiStrings.Format("UploadSourceBytes", Amount(consumed, unit), Amount(total, unit), UnitName(unit))
+        End If
+        Dim rate = UiStrings.GetText("TransferUnknown")
+        Dim span = now - BatchSamples.Peek().Item1
+        If knownBytes AndAlso span > 0 Then rate = FormatBytes(Math.Max(0D, (consumed - BatchSamples.Peek().Item2) / CDec(span)))
+        Dim eta = UiStrings.GetText("TransferAwaitingSamples")
+        If snapshot.States.All(Function(state) state = UploadFileState.Completed) Then
+            eta = "00:00:00"
+        ElseIf Not knownTotal Then
+            eta = UiStrings.GetText("TransferBatchSizeUnknown")
+        ElseIf Not knownBytes Then
+            eta = UiStrings.GetText("TransferAwaitingSamples")
+        ElseIf total > consumed AndAlso consumed > BatchInitialBytes AndAlso now > BatchStarted.Value Then
+            eta = UiStrings.GetText("TransferUnknown")
+            Dim seconds = (total - consumed) * CDec(now - BatchStarted.Value) / (consumed - BatchInitialBytes)
+            If seconds < CDec(TimeSpan.MaxValue.TotalSeconds) - 1 Then eta = TimeSpan.FromSeconds(CDbl(Math.Ceiling(seconds))).ToString("c", CultureInfo.InvariantCulture)
+        ElseIf snapshot.States.Any(Function(state) state = UploadFileState.Finalizing) Then
+            eta = UiStrings.GetText("TransferAwaitingConfirmation")
+        End If
+        Return UiStrings.Format("TransferBatchDetails", processed, rate, eta)
     End Function
 
     Private Sub Reset(file As Integer, now As Double)

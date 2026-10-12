@@ -9,13 +9,29 @@ Partial Public Class DmsBrowser
         Using dialog = CreateTransferDialog(files, False, Not Me.DmsProvider.SupportsNonUniqueRemoteItems)
             Dim previous As UploadBatchSnapshot = Nothing
             Dim retryFailed As Boolean = True
+            Dim plannedTotals As Long?() = Nothing
             Do
                 dialog.PrepareAttempt()
+                dialog.ReportPlanning()
                 dialog.Show(Me)
                 Dim failure As Exception = Nothing
                 Try
-                    If directories IsNot Nothing Then Await EnsureUploadDirectoriesAsync(Me.DmsProvider, remoteFolder, directories, dialog.CancellationToken, Sub(path) dialog.ReportPreparation(path))
-                    Await UploadBatchWithProgressAsync(Me.DmsProvider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths)
+                    If plannedTotals Is Nothing Then
+                        Dim planningClock = Diagnostics.Stopwatch.StartNew()
+                        plannedTotals = Await Task.Run(Function() ReadLocalUploadSizes(files, dialog.CancellationToken))
+                        TraceUploadTiming(String.Format(Globalization.CultureInfo.InvariantCulture, "DMS upload preparation: phase=localSizes; files={0}; seconds={1:F3}", files.Length, planningClock.Elapsed.TotalSeconds))
+                    End If
+                    If directories IsNot Nothing AndAlso directories.Length > 0 Then
+                        Dim prepared As Integer
+                        dialog.ReportPreparation(Nothing, prepared, directories.Length)
+                        Await EnsureUploadDirectoriesAsync(Me.DmsProvider, remoteFolder, directories, dialog.CancellationToken,
+                            Sub(path)
+                                dialog.ReportPreparation(path, prepared, directories.Length)
+                                prepared += 1
+                            End Sub)
+                        dialog.ReportPreparation(Nothing, directories.Length, directories.Length)
+                    End If
+                    Await UploadBatchWithProgressAsync(Me.DmsProvider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths, plannedTotals)
                 Catch ex As Exception
                     failure = ex
                     If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
@@ -49,7 +65,15 @@ Partial Public Class DmsBrowser
         Return True
     End Function
 
-    Friend Shared Async Function UploadBatchWithProgressAsync(provider As BaseDmsProvider, remoteFolder As String, files As String(), observer As IProgress(Of UploadBatchSnapshot), cancellationToken As CancellationToken, Optional previous As UploadBatchSnapshot = Nothing, Optional retryFailed As Boolean = True, Optional relativePaths As String() = Nothing) As Task
+    Friend Shared Function ReadLocalUploadSizes(files As String(), token As CancellationToken) As Long?()
+        Return files.Select(Function(path)
+                                token.ThrowIfCancellationRequested()
+                                Dim file As New System.IO.FileInfo(path)
+                                Return If(file.Exists, CType(file.Length, Long?), Nothing)
+                            End Function).ToArray()
+    End Function
+
+    Friend Shared Async Function UploadBatchWithProgressAsync(provider As BaseDmsProvider, remoteFolder As String, files As String(), observer As IProgress(Of UploadBatchSnapshot), cancellationToken As CancellationToken, Optional previous As UploadBatchSnapshot = Nothing, Optional retryFailed As Boolean = True, Optional relativePaths As String() = Nothing, Optional plannedTotals As Long?() = Nothing) As Task
         Dim states = If(previous Is Nothing, Enumerable.Repeat(UploadFileState.Waiting, files.Length).ToArray(), CType(previous.States.Clone(), UploadFileState()))
         Dim counters = If(previous Is Nothing, New DmsTransferProgress(files.Length - 1) {}, CType(previous.Counters.Clone(), DmsTransferProgress()))
         Dim errors = If(previous Is Nothing, New Exception(files.Length - 1) {}, CType(previous.Errors.Clone(), Exception()))
@@ -57,20 +81,20 @@ Partial Public Class DmsBrowser
             Dim current = index
             If states(current) = UploadFileState.Completed OrElse (Not retryFailed AndAlso states(current) <> UploadFileState.Waiting) Then Continue For
             If cancellationToken.IsCancellationRequested Then
-                observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors))
+                observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
                 cancellationToken.ThrowIfCancellationRequested()
             End If
-            states(current) = UploadFileState.Transferring
-            counters(current) = Nothing
+            states(current) = UploadFileState.Starting
+            counters(current) = New DmsTransferProgress(0, If(plannedTotals Is Nothing, Nothing, plannedTotals(current)), DmsTransferPhase.Transferring)
             errors(current) = Nothing
-            observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors))
+            observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
             Dim active As Boolean = True
             Dim progress As New UploadProgressRecorder(Sub(value)
                                                                      If Not active Then Return
                                                                      counters(current) = value
                                                                      'Only task success can mark a file complete.
                                                                      states(current) = If(value.Phase = DmsTransferPhase.Finalizing OrElse value.Phase = DmsTransferPhase.Completed, UploadFileState.Finalizing, UploadFileState.Transferring)
-                                                                     observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors))
+                                                                     observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
                                                                  End Sub)
             Try
                 Dim destination = UploadDestinationPath(provider, remoteFolder, If(relativePaths Is Nothing, System.IO.Path.GetFileName(files(current)), relativePaths(current)))
@@ -83,17 +107,21 @@ Partial Public Class DmsBrowser
                 counters(current) = progress.Latest
                 states(current) = UploadFileState.Cancelled
                 errors(current) = ex
-                observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors))
+                observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
                 Throw
             Catch ex As Exception
                 active = False
                 counters(current) = progress.Latest
                 states(current) = UploadFileState.Failed
                 errors(current) = ex
-                observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors))
+                observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
                 Throw
+            Finally
+                TraceUploadTiming(String.Format(Globalization.CultureInfo.InvariantCulture,
+                    "DMS upload phases: provider={0}; fileIndex={1}; firstSourceBytesSeconds={2}; finalizingSeconds={3}; providerCallSeconds={4:F3}; outcome={5}",
+                    provider.GetType().Name, current, progress.FirstSourceBytesSeconds, progress.FinalizingSeconds, progress.ElapsedSeconds, states(current)))
             End Try
-            observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors))
+            observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
         Next
     End Function
 
@@ -106,33 +134,76 @@ Partial Public Class DmsBrowser
     End Function
 
     Friend Shared Async Function EnsureUploadDirectoriesAsync(provider As BaseDmsProvider, remoteFolder As String, directories As String(), token As CancellationToken, Optional preparing As Action(Of String) = Nothing) As Task
-        For Each relative In directories
-            token.ThrowIfCancellationRequested()
-            Dim destination = UploadDestinationPath(provider, remoteFolder, relative)
-            preparing?.Invoke(destination)
-            Dim item = Await provider.ListRemoteItemAsync(destination, token)
-            If item Is Nothing Then
-                Await provider.CreateDirectoryAsync(destination, token)
-            ElseIf item.ItemType = DmsResourceItem.ItemTypes.File Then
-                Throw New System.IO.IOException(UiStrings.Format("UploadSelectionCollision", destination))
-            End If
-        Next
+        Dim clock = Diagnostics.Stopwatch.StartNew()
+        Dim lookups As Integer
+        Dim creations As Integer
+        Try
+            For Each relative In directories
+                token.ThrowIfCancellationRequested()
+                Dim destination = UploadDestinationPath(provider, remoteFolder, relative)
+                preparing?.Invoke(destination)
+                lookups += 1
+                Dim item = Await provider.ListRemoteItemAsync(destination, token)
+                If item Is Nothing Then
+                    creations += 1
+                    Await provider.CreateDirectoryAsync(destination, token)
+                ElseIf item.ItemType = DmsResourceItem.ItemTypes.File Then
+                    Throw New System.IO.IOException(UiStrings.Format("UploadSelectionCollision", destination))
+                End If
+            Next
+        Finally
+            TraceUploadTiming(String.Format(Globalization.CultureInfo.InvariantCulture,
+                "DMS upload preparation: phase=remoteFolders; provider={0}; lookupCalls={1}; createCalls={2}; seconds={3:F3}", provider.GetType().Name, lookups, creations, clock.Elapsed.TotalSeconds))
+        End Try
     End Function
+
+    Private Shared Sub TraceUploadTiming(text As String)
+        Try
+            Diagnostics.Trace.WriteLine(text)
+        Catch
+            'Optional diagnostic listeners must not change transfer outcomes.
+        End Try
+    End Sub
 End Class
 
 Friend NotInheritable Class UploadProgressRecorder
     Implements IProgress(Of DmsTransferProgress)
     Private ReadOnly Dispatch As IProgress(Of DmsTransferProgress)
     Private Snapshot As DmsTransferProgress
-    Friend Sub New(callback As Action(Of DmsTransferProgress))
+    Private ReadOnly Clock As Func(Of Double)
+    Private FirstSourceTime As Double = -1
+    Private FinalizingTime As Double = -1
+    Friend Sub New(callback As Action(Of DmsTransferProgress), Optional clock As Func(Of Double) = Nothing)
         Dispatch = New Progress(Of DmsTransferProgress)(callback)
+        Dim timer = Diagnostics.Stopwatch.StartNew()
+        Me.Clock = If(clock, Function() timer.Elapsed.TotalSeconds)
     End Sub
+    Friend ReadOnly Property ElapsedSeconds As Double
+        Get
+            Return Clock()
+        End Get
+    End Property
+    Friend ReadOnly Property FirstSourceBytesSeconds As Double?
+        Get
+            Dim value = Volatile.Read(FirstSourceTime)
+            Return If(value < 0, Nothing, CType(value, Double?))
+        End Get
+    End Property
+    Friend ReadOnly Property FinalizingSeconds As Double?
+        Get
+            Dim value = Volatile.Read(FinalizingTime)
+            Return If(value < 0, Nothing, CType(value, Double?))
+        End Get
+    End Property
     Friend ReadOnly Property Latest As DmsTransferProgress
         Get
             Return Volatile.Read(Snapshot)
         End Get
     End Property
     Public Sub Report(value As DmsTransferProgress) Implements IProgress(Of DmsTransferProgress).Report
+        Dim now = Clock()
+        If value.BytesTransferred.GetValueOrDefault() > 0 Then Interlocked.CompareExchange(FirstSourceTime, now, -1)
+        If value.Phase = DmsTransferPhase.Finalizing Then Interlocked.CompareExchange(FinalizingTime, now, -1)
         Interlocked.Exchange(Snapshot, value)
         Dispatch.Report(value)
     End Sub
@@ -145,21 +216,25 @@ Friend Enum UploadFileState
     Completed
     Failed
     Cancelled
+    Starting
 End Enum
 
 Friend NotInheritable Class UploadBatchSnapshot
-    Friend Sub New(files As String(), states As UploadFileState(), counters As DmsTransferProgress(), current As Integer, Optional errors As Exception() = Nothing)
+    Friend Sub New(files As String(), states As UploadFileState(), counters As DmsTransferProgress(), current As Integer, Optional errors As Exception() = Nothing, Optional plannedTotals As Long?() = Nothing)
         Me.Files = CType(files.Clone(), String())
         Me.States = CType(states.Clone(), UploadFileState())
         Me.Counters = CType(counters.Clone(), DmsTransferProgress())
         Me.Current = current
         Me.Errors = If(errors Is Nothing, New Exception(files.Length - 1) {}, CType(errors.Clone(), Exception()))
+        If plannedTotals IsNot Nothing AndAlso plannedTotals.Length <> files.Length Then Throw New ArgumentException(NameOf(plannedTotals))
+        Me.PlannedTotals = If(plannedTotals Is Nothing, Nothing, CType(plannedTotals.Clone(), Long?()))
     End Sub
     Friend ReadOnly Files As String()
     Friend ReadOnly States As UploadFileState()
     Friend ReadOnly Counters As DmsTransferProgress()
     Friend ReadOnly Current As Integer
     Friend ReadOnly Errors As Exception()
+    Friend ReadOnly PlannedTotals As Long?()
 
     Friend ReadOnly Property OverallPercent As Integer?
         Get
@@ -199,6 +274,12 @@ Friend NotInheritable Class UploadProgressDialog
     Private Finished As Boolean
     Private HasFailure As Boolean
     Private ArrangingProgress As Boolean
+    Private Preparing As Boolean
+    Private RowWidths As Integer() = New Integer() {}
+    Private RowSnapshot As UploadBatchSnapshot
+    Private RowCulture As String
+    Private RowFont As Drawing.Font
+    Friend Property RowMeasurements As Integer
 
     Friend Sub New(files As String(), Optional download As Boolean = False, Optional allowRetry As Boolean = True, Optional formIcon As Drawing.Icon = Nothing)
         AutoScaleMode = AutoScaleMode.Font
@@ -276,10 +357,12 @@ Friend NotInheritable Class UploadProgressDialog
         If IsDisposed OrElse Finished Then Return
         LastSnapshot = value
         If value.Files.Length = 0 Then
-            FileLabel.Text = UiStrings.GetText("UploadPreparingFolders")
+            FileLabel.Text = UiStrings.GetText("UploadPlanningSelection")
             ByteLabel.Text = UiStrings.GetText("UploadBytesUnknown")
             Return
         End If
+        If Preparing AndAlso value.States.All(Function(state) state = UploadFileState.Waiting) Then Return
+        Preparing = False
         FileLabel.Text = UiStrings.Format("UploadFilePosition", value.Current + 1, value.Files.Length, System.IO.Path.GetFileName(value.Files(value.Current)))
         Dim counter = value.Counters(value.Current)
         Dim percent As Integer? = Nothing
@@ -294,13 +377,45 @@ Friend NotInheritable Class UploadProgressDialog
         BatchLabel.Text = UiStrings.Format("UploadBatchCount", value.States.Count(Function(state) state = UploadFileState.Completed), value.Files.Length)
         If Not Cancellation.IsCancellationRequested Then StatusLabel.Text = ItemStateText(value, value.Current)
         DiagnosticTip.SetToolTip(StatusLabel, If(value.Errors(value.Current)?.ToString(), String.Empty))
-        FilesList.Items.Clear()
-        For index As Integer = 0 To value.Files.Length - 1
-            FilesList.Items.Add(System.IO.Path.GetFileName(value.Files(index)) & " — " & ItemStateText(value, index))
-        Next
-        FilesList.HorizontalExtent = FilesList.Items.Cast(Of String)().Max(Function(text) TextRenderer.MeasureText(text, FilesList.Font).Width)
+        UpdateFileRows(value)
         ConstrainProgressLabels()
         ArrangeProgressControls()
+    End Sub
+
+    Private Sub UpdateFileRows(value As UploadBatchSnapshot)
+        Dim culture = Globalization.CultureInfo.CurrentUICulture.Name
+        If RowSnapshot IsNot Nothing AndAlso RowCulture = culture AndAlso RowFont Is FilesList.Font AndAlso
+           RowSnapshot.Files.SequenceEqual(value.Files) AndAlso RowSnapshot.States.SequenceEqual(value.States) AndAlso RowSnapshot.Errors.SequenceEqual(value.Errors) Then
+            RowSnapshot = value
+            Return
+        End If
+        Dim remeasure = RowFont IsNot FilesList.Font
+        Dim changed As Boolean
+        FilesList.BeginUpdate()
+        Try
+            If FilesList.Items.Count <> value.Files.Length Then
+                FilesList.Items.Clear()
+                RowWidths = New Integer(value.Files.Length - 1) {}
+                For index = 0 To value.Files.Length - 1
+                    FilesList.Items.Add(String.Empty)
+                Next
+            End If
+            For index = 0 To value.Files.Length - 1
+                Dim caption = System.IO.Path.GetFileName(value.Files(index)) & " — " & ItemStateText(value, index)
+                If remeasure OrElse Not String.Equals(TryCast(FilesList.Items(index), String), caption, StringComparison.Ordinal) Then
+                    FilesList.Items(index) = caption
+                    RowWidths(index) = TextRenderer.MeasureText(caption, FilesList.Font).Width
+                    RowMeasurements += 1
+                    changed = True
+                End If
+            Next
+            If changed Then FilesList.HorizontalExtent = If(RowWidths.Length = 0, 0, RowWidths.Max())
+            RowSnapshot = value
+            RowCulture = culture
+            RowFont = FilesList.Font
+        Finally
+            FilesList.EndUpdate()
+        End Try
     End Sub
 
     Private Sub ArrangeProgressControls()
@@ -330,7 +445,12 @@ Friend NotInheritable Class UploadProgressDialog
 
     Private Sub UpdateTransferDetails(value As UploadBatchSnapshot)
         If value.Files.Length = 0 Then Return
-        ByteLabel.Text = Display.Describe(value.Current, value.Counters(value.Current), value.States(value.Current))
+        Dim batchDetails = Display.DescribeBatch(value)
+        If Preparing Then
+            ByteLabel.Text = batchDetails
+            Return
+        End If
+        ByteLabel.Text = Display.Describe(value.Current, value.Counters(value.Current), value.States(value.Current)) & Environment.NewLine & batchDetails
         ArrangeProgressControls()
     End Sub
 
@@ -365,6 +485,7 @@ Friend NotInheritable Class UploadProgressDialog
         Display = New TransferDisplay()
         Finished = False
         HasFailure = False
+        Preparing = False
         DialogResult = DialogResult.None
         RetryFiles.Visible = False
         ContinueFiles.Visible = False
@@ -392,9 +513,23 @@ Friend NotInheritable Class UploadProgressDialog
         Hide()
     End Sub
 
-    Friend Sub ReportPreparation(path As String)
+    Friend Sub ReportPreparation(path As String, Optional completed As Integer = 0, Optional total As Integer = 0)
         If Finished OrElse IsDisposed Then Return
-        StatusLabel.Text = UiStrings.Format("UploadPreparingFolder", path)
+        Preparing = True
+        FileLabel.Text = If(total > 0, UiStrings.Format("UploadPreparingFolderCount", completed, total), UiStrings.GetText("UploadPreparingFolders"))
+        StatusLabel.Text = If(path Is Nothing, UiStrings.GetText("UploadPreparingFolders"), UiStrings.Format("UploadPreparingFolder", path))
+        SetProgress(FileBar, If(total > 0, CType(CInt(Math.Floor(completed * 100D / total)), Integer?), Nothing))
+        If LastSnapshot IsNot Nothing Then UpdateTransferDetails(LastSnapshot)
+        ArrangeProgressControls()
+    End Sub
+
+    Friend Sub ReportPlanning()
+        If Finished OrElse IsDisposed Then Return
+        Preparing = True
+        FileLabel.Text = UiStrings.GetText("UploadPlanningSelection")
+        StatusLabel.Text = FileLabel.Text
+        ByteLabel.Text = UiStrings.GetText("UploadBytesUnknown")
+        SetProgress(FileBar, Nothing)
         ArrangeProgressControls()
     End Sub
 
