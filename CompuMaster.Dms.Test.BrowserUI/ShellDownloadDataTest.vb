@@ -10,6 +10,105 @@ Imports NUnit.Framework
 
 <TestFixture, Apartment(ApartmentState.STA), NonParallelizable>
 Public Class ShellDownloadDataTest
+    <TestCase(0), TestCase(1), TestCase(2)>
+    Public Sub ItemDragStartsForItsOriginAndPreservesAnExistingMultiSelection(selection As Integer)
+        Using browser As New DmsBrowser(New NoDmsProvider())
+            browser.BrowseMode = DmsBrowser.BrowseModes.FoldersAndFiles
+            browser.AllowedActions = DmsBrowser.FileOrFolderActions.AllowDownloadFiles
+            Dim list = browser.ListViewDmsFiles
+            Dim handle = list.Handle
+            Dim first = list.Items.Add(New ListViewItem("first") With {.Tag = Item("first-id", "first.txt")})
+            Dim second = list.Items.Add(New ListViewItem("second") With {.Tag = Item("second-id", "second.txt")})
+            first.Selected = selection = 2
+            second.Selected = selection > 0
+            Dim calls As Integer
+            Dim count As Integer
+            Dim caption As String = Nothing
+            Dim blocked As Boolean
+            browser.ShellDragOperation = Function(data, source)
+                                             calls += 1
+                                             blocked = Not browser.CanDragDownload()
+                                             Dim format = ShellDownloadData.FileFormat(ShellDownloadData.DescriptorFormat, -1, TYMED.TYMED_HGLOBAL)
+                                             Dim medium As New STGMEDIUM()
+                                             data.GetData(format, medium)
+                                             Dim memory = ShellDownloadData.GlobalLock(medium.unionmember)
+                                             Try
+                                                 count = Marshal.ReadInt32(memory)
+                                                 caption = Text.Encoding.Unicode.GetString(ReadBytes(memory, 4 + 72, 520)).TrimEnd(ChrW(0))
+                                             Finally
+                                                 ShellDownloadData.GlobalUnlock(medium.unionmember)
+                                                 ShellDownloadData.ReleaseStgMedium(medium)
+                                             End Try
+                                             Return &H40101
+                                         End Function
+            GetType(ListView).GetMethod("OnItemDrag", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic).Invoke(list, {New ItemDragEventArgs(MouseButtons.Left, first)})
+            Assert.That(calls, [Is].EqualTo(1))
+            Assert.That(blocked, [Is].True)
+            Assert.That(count, [Is].EqualTo(If(selection = 2, 2, 1)))
+            Assert.That(caption, [Is].EqualTo("first.txt"))
+            Assert.That(browser.CanDragDownload(), [Is].True)
+        End Using
+    End Sub
+
+    Private Shared Function ReadBytes(pointer As IntPtr, offset As Integer, length As Integer) As Byte()
+        Dim bytes(length - 1) As Byte
+        Marshal.Copy(IntPtr.Add(pointer, offset), bytes, 0, length)
+        Return bytes
+    End Function
+
+    <TestCase(1), TestCase(2)>
+    Public Sub NativeShellFolderAcceptsAndCopiesVirtualFilesWithoutFetchingOnHover(count As Integer)
+        Dim root = Path.Combine(Path.GetTempPath(), "dms-shell-target-" & Guid.NewGuid().ToString("N"))
+        Assert.That(Directory.Exists(root), [Is].False)
+        Directory.CreateDirectory(root)
+        Dim shellItem As IntPtr
+        Dim target As IntPtr
+        Dim pointer As IntPtr
+        Try
+            Dim itemID As New Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")
+            Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(root, IntPtr.Zero, itemID, shellItem))
+            Dim bind = DirectCast(Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(Marshal.ReadIntPtr(shellItem), 3 * IntPtr.Size), GetType(BindCallback)), BindCallback)
+            Dim handlerID As New Guid("3981e225-f559-11d3-8e3a-00c04f6837d5")
+            Dim targetID As New Guid("00000122-0000-0000-C000-000000000046")
+            Marshal.ThrowExceptionForHR(bind(shellItem, IntPtr.Zero, handlerID, targetID, target))
+            Dim calls As Integer
+            Dim files = Enumerable.Range(1, count).Select(Function(index) Item("selected-" & index, "file-" & index & ".txt")).ToArray()
+            Using data As New ShellDownloadData(files, Sub(item, path)
+                                                          calls += 1
+                                                          File.WriteAllText(path, item.ExtendedInfosFileID)
+                                                      End Sub)
+                pointer = Marshal.GetComInterfaceForObject(data, GetType(System.Runtime.InteropServices.ComTypes.IDataObject))
+                Dim enter = DirectCast(Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(Marshal.ReadIntPtr(target), 3 * IntPtr.Size), GetType(DragEnterCallback)), DragEnterCallback)
+                Dim effect = 1
+                Marshal.ThrowExceptionForHR(enter(target, pointer, 1, 0L, effect))
+                Assert.That(effect, [Is].EqualTo(1), "The Windows shell must offer Copy for the virtual files.")
+                Assert.That(calls, [Is].Zero, "Hover negotiation must not fetch remote content.")
+                Dim drop = DirectCast(Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(Marshal.ReadIntPtr(target), 6 * IntPtr.Size), GetType(DragEnterCallback)), DragEnterCallback)
+                Marshal.ThrowExceptionForHR(drop(target, pointer, 0, 0L, effect))
+                Assert.That(effect, [Is].EqualTo(1))
+                Assert.That(calls, [Is].EqualTo(count))
+                For Each selectedFile As DmsResourceItem In files
+                    Assert.That(File.ReadAllText(Path.Combine(root, selectedFile.Name)), [Is].EqualTo(selectedFile.ExtendedInfosFileID))
+                Next
+            End Using
+        Finally
+            If pointer <> IntPtr.Zero Then Marshal.Release(pointer)
+            If target <> IntPtr.Zero Then Marshal.Release(target)
+            If shellItem <> IntPtr.Zero Then Marshal.Release(shellItem)
+            Directory.Delete(root, True)
+        End Try
+    End Sub
+
+    <DllImport("shell32.dll", CharSet:=CharSet.Unicode)>
+    Private Shared Function SHCreateItemFromParsingName(path As String, context As IntPtr, ByRef iid As Guid, ByRef item As IntPtr) As Integer
+    End Function
+    <UnmanagedFunctionPointer(CallingConvention.StdCall)>
+    Private Delegate Function BindCallback(instance As IntPtr, context As IntPtr, ByRef handler As Guid, ByRef iid As Guid, ByRef result As IntPtr) As Integer
+    <UnmanagedFunctionPointer(CallingConvention.StdCall)>
+    Private Delegate Function DragEnterCallback(instance As IntPtr, data As IntPtr, keys As Integer, point As Long, ByRef effect As Integer) As Integer
+    <UnmanagedFunctionPointer(CallingConvention.StdCall)>
+    Private Delegate Function DragLeaveCallback(instance As IntPtr) As Integer
+
     <Test>
     Public Sub DescriptorsDoNotDownloadAndDisambiguateCollidingUnicodeNames()
         Dim calls As Integer
@@ -45,7 +144,7 @@ Public Class ShellDownloadDataTest
                     Dim result(3) As Byte
                     stream.Read(result, 4, IntPtr.Zero)
                     Assert.That(result, [Is].EqualTo(New Byte() {1, 2, 3, 4}))
-                    Dim stat As New STATSTG()
+                    Dim stat As New System.Runtime.InteropServices.ComTypes.STATSTG()
                     stream.Stat(stat, 1)
                     Assert.That(stat.cbSize, [Is].EqualTo(4))
                 Finally
