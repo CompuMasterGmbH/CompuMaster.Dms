@@ -8,6 +8,7 @@ Imports System.Text
 Imports System.Threading
 Imports System.Windows.Forms
 Imports CompuMaster.Dms.BrowserUI
+Imports CompuMaster.Dms.Data
 Imports NUnit.Framework
 
 ''' <summary>Checks representative component text in Windows-owned dialogs on the installed desktop.</summary>
@@ -29,6 +30,15 @@ Public Class NativeLocalizedDialogAcceptanceTest
     Public Sub NativeDialogsPreserveLocalizedTextAndFitTheDisplay(cultureName As String, startOnRight As Boolean)
         If Environment.GetEnvironmentVariable("DMS_LOCALIZATION_EXTENDED_TESTS") <> "1" Then Assert.Ignore("Opt in with DMS_LOCALIZATION_EXTENDED_TESTS=1.")
         VerifyDialogs(cultureName, startOnRight)
+    End Sub
+
+    ''' <summary>Checks localized tooltip size on either physical-DPI display.</summary>
+    ''' <param name="cultureName">The UI culture used for the retry hint.</param>
+    ''' <param name="startOnRight">Whether the tooltip owner starts on the right-hand monitor.</param>
+    <TestCaseSource(NameOf(DialogCases))>
+    Public Sub NativeRetryTooltipFitsItsPhysicalDpiDisplay(cultureName As String, startOnRight As Boolean)
+        If Environment.GetEnvironmentVariable("DMS_LOCALIZATION_EXTENDED_TESTS") <> "1" OrElse Environment.GetEnvironmentVariable("DMS_PHYSICAL_DPI_TESTS") <> "1" Then Assert.Ignore("Use the opt-in physical-DPI executable or configure a physical-DPI test host explicitly.")
+        VerifyTooltip(cultureName, startOnRight)
     End Sub
 
     Friend Shared Sub VerifyDialogs(cultureName As String, startOnRight As Boolean)
@@ -73,6 +83,59 @@ Public Class NativeLocalizedDialogAcceptanceTest
                 If originalFailure Is Nothing Then Throw
                 Throw New AggregateException("Native localization acceptance and local cleanup failed.", originalFailure, cleanupFailure)
             End Try
+        End Try
+    End Sub
+
+    Friend Shared Sub VerifyTooltip(cultureName As String, startOnRight As Boolean)
+        Dim previous = CultureInfo.CurrentUICulture
+        Dim primary = Screen.PrimaryScreen
+        Dim right = Screen.AllScreens.Where(Function(screen) screen.Bounds.Left >= primary.Bounds.Right).OrderBy(Function(screen) screen.Bounds.Left).FirstOrDefault()
+        If startOnRight AndAlso right Is Nothing Then Assert.Ignore("A right-hand display is required for this case.")
+        Dim targetScreen = If(startOnRight, right, primary)
+        Try
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName)
+            Using dialog As New UploadProgressDialog({"Présentation — 文件 — दस्तावेज़.txt"}, False, False)
+                dialog.ShowInTaskbar = True
+                dialog.PerformAutoScale()
+                dialog.StartPosition = FormStartPosition.Manual
+                dialog.Location = targetScreen.WorkingArea.Location + New Size(24, 24)
+                dialog.Show()
+                dialog.Report(New UploadBatchSnapshot({"Présentation — 文件 — दस्तावेज़.txt"}, {UploadFileState.Failed}, {Nothing}, 0, {New System.IO.IOException("test diagnostic")}))
+                dialog.Finish()
+                dialog.Show()
+                Application.DoEvents()
+                Dim scale As Integer
+                Marshal.ThrowExceptionForHR(GetScaleFactorForMonitor(MonitorFromWindow(dialog.Handle, 2), scale))
+                Dim expectedDpi = CInt(Math.Round(scale * 96.0 / 100.0))
+                Assert.That(dialog.DeviceDpi, [Is].EqualTo(expectedDpi))
+                Assert.That(GetDpiForWindow(dialog.Handle), [Is].EqualTo(CUInt(expectedDpi)))
+                Dim retry = dialog.Controls.Find("RetryFailed", True).Single()
+                Dim tip = DirectCast(GetType(UploadProgressDialog).GetField("DiagnosticTip", System.Reflection.BindingFlags.Instance Or System.Reflection.BindingFlags.NonPublic).GetValue(dialog), ToolTip)
+                'The standalone acceptance host may not own foreground focus after the notice.
+                'Force this explicitly requested popup to render even for an inactive owner.
+                tip.ShowAlways = True
+                Dim popup As PopupEventArgs = Nothing
+                AddHandler tip.Popup, Sub(sender, args) popup = args
+                Try
+                    tip.Show(tip.GetToolTip(retry), dialog, 20, 20, 2000)
+                    Dim deadline = DateTime.UtcNow.AddSeconds(5)
+                    While popup Is Nothing AndAlso DateTime.UtcNow < deadline
+                        Application.DoEvents()
+                        Thread.Sleep(1)
+                    End While
+                    Assert.That(popup, [Is].Not.Null, "A native tooltip popup must actually be raised.")
+                    Dim area = Screen.FromControl(dialog).WorkingArea
+                    Assert.That(popup.ToolTipSize.Width, [Is].GreaterThan(0).And.LessThanOrEqualTo(area.Width))
+                    Assert.That(popup.ToolTipSize.Height, [Is].GreaterThan(0).And.LessThanOrEqualTo(area.Height))
+                    Assert.That(tip.GetToolTip(retry), [Is].EqualTo(UiStrings.GetText("UploadRetryUnsupported")))
+                    Console.WriteLine($"Native tooltip {cultureName}: dpi={expectedDpi}; size={popup.ToolTipSize}; monitor={targetScreen.DeviceName}.")
+                Finally
+                    tip.Hide(dialog)
+                    dialog.Close()
+                End Try
+            End Using
+        Finally
+            CultureInfo.CurrentUICulture = previous
         End Try
     End Sub
 
@@ -248,6 +311,12 @@ Public Class NativeLocalizedDialogAcceptanceTest
     End Function
     <DllImport("user32.dll")>
     Private Shared Function GetDpiForWindow(window As IntPtr) As UInteger
+    End Function
+    <DllImport("user32.dll")>
+    Private Shared Function MonitorFromWindow(window As IntPtr, flags As UInteger) As IntPtr
+    End Function
+    <DllImport("shcore.dll")>
+    Private Shared Function GetScaleFactorForMonitor(monitor As IntPtr, ByRef scale As Integer) As Integer
     End Function
     <DllImport("user32.dll", EntryPoint:="SendMessageW")>
     Private Shared Function SendMessage(window As IntPtr, message As UInteger, wParam As IntPtr, lParam As IntPtr) As IntPtr
