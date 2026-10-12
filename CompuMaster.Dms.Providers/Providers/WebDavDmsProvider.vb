@@ -164,6 +164,7 @@ Namespace Providers
                 'An account-change attempt invalidates the previous version session even when authorization fails.
                 Me.FileVersionClient = Nothing
                 Me.FileVersionDiscoveryFailure = Nothing
+                Me.FileVersionFilesRoot = Nothing
 #End If
                 Dim Url As String = Me.CustomizedWebApiUrl(loginCredentials)
                 Me.NativeUploadNamespace = Nothing
@@ -205,6 +206,7 @@ Namespace Providers
 #If OCS_FILE_VERSIONS Then
             Me.FileVersionClient = Nothing
             Me.FileVersionDiscoveryFailure = Nothing
+            Me.FileVersionFilesRoot = Nothing
 #End If
             Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.OcsDiscovery)
                 Me.OcsSharingClient = Nothing
@@ -213,14 +215,24 @@ Namespace Providers
 
                 Dim OcsBaseUrl As String = Nothing
                 Dim RemoteRootPath As String = Nothing
-                If Not TryGetOcsConnectionInfo(webDavUrl, OcsBaseUrl, RemoteRootPath) Then
+                Dim classicSharingEndpoint = TryGetOcsConnectionInfo(webDavUrl, OcsBaseUrl, RemoteRootPath)
+                If Not classicSharingEndpoint Then
+#If OCS_FILE_VERSIONS Then
+                    'Discover version capabilities for spaces independently from classic OCS sharing.
+                    Dim spaceAddress As Uri = Nothing
+                    If Not Uri.TryCreate(webDavUrl, UriKind.Absolute, spaceAddress) Then Return
+                    Dim spaceMatch = System.Text.RegularExpressions.Regex.Match(spaceAddress.AbsolutePath, "^(.*?)/(?:remote\.php/)?dav/spaces/[^/]+(?:/|$)", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                    If Not spaceMatch.Success OrElse spaceAddress.UserInfo.Length <> 0 OrElse spaceAddress.Query.Length <> 0 OrElse spaceAddress.Fragment.Length <> 0 Then Return
+                    OcsBaseUrl = spaceAddress.GetLeftPart(UriPartial.Authority) & spaceMatch.Groups(1).Value.TrimEnd("/"c)
+#Else
                     Return
+#End If
                 End If
 
                 Dim Candidate As New OcsSharingClientAdapter(OcsBaseUrl, userID, password)
                 Try
                     Candidate.ProbeCapabilities()
-                    If Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
+                    If classicSharingEndpoint AndAlso Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
                         Me.OcsSharingClient = Candidate
                         Me.OcsRootPath = RemoteRootPath
                     End If
