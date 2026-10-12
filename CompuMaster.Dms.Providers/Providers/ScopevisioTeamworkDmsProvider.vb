@@ -372,6 +372,9 @@ Namespace Providers
                 Throw New InvalidOperationException("Scopevisio did not authenticate the requested DMS instance.")
             End If
             Dim selectedIO = ScopevisioSessionIOClient.CreateAsync(selectedClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
+            If selectedIO.ApplicationContext.Organisation IsNot Nothing AndAlso selectedIO.ApplicationContext.Organisation.Id <> organisation.Id Then
+                Throw New InvalidOperationException("Scopevisio returned an account context for another organisation.")
+            End If
             'Commit only after authorization and account lookup succeeded. Failed
             'switches leave the previous authenticated instance intact.
             Me._OpenScopeClient = selectedClient
