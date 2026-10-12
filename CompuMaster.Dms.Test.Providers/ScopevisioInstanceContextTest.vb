@@ -39,7 +39,7 @@ Public Class ScopevisioInstanceContextTest
         End Using
     End Sub
 
-    <TestCase("token"), TestCase("tenant"), TestCase("account")>
+    <TestCase("token"), TestCase("tenant"), TestCase("account"), TestCase("account-identity")>
     Public Sub FailedSwitchPreservesTheAuthenticatedInstanceAndCanRecover(failure As String)
         Dim handler As New InstanceHandler()
         Using transport As New HttpClient(handler)
@@ -101,7 +101,7 @@ Public Class ScopevisioInstanceContextTest
                 Dim bearer = request.Headers.Authorization.Parameter
                 AccountBearers.Add(bearer)
                 Dim id = If(bearer = "bearer-2", 2, 1)
-                result = Newtonsoft.Json.Linq.JObject.FromObject(New With {.user = New With {.login = "fixture-login"}, .organisation = New With {.id = id}})
+                result = Newtonsoft.Json.Linq.JObject.FromObject(New With {.user = New With {.login = "fixture-login"}, .organisation = New With {.id = If(Failure = "account-identity", 99, id)}})
             Else
                 Throw New InvalidOperationException("Unexpected fixture request: " & request.Method.ToString() & " " & request.RequestUri.AbsolutePath)
             End If
