@@ -21,6 +21,7 @@ Partial Public Class DmsBrowser
         Friend MovePath As String
         Friend MoveIdentity As DmsResourceItem
         Friend HoverTarget As TreeNode
+        Friend ValidationFailure As Exception
         Friend Sub New(provider As BaseDmsProvider, scope As String, files As DmsResourceItem())
             Me.Provider = provider
             Me.Instance = TryCast(provider, IDmsInstanceProvider)?.CurrentDmsInstance?.ID
@@ -43,10 +44,11 @@ Partial Public Class DmsBrowser
         If files.Length = 0 Then Return
         DragDownloadRunning = True
         DragDownloadFailureDisplayed = False
-        Dim context As New RemoteDragContext(DmsProvider, InitialFolder, files)
-        ActiveRemoteDrag = context
+        Dim context As RemoteDragContext = Nothing
         Dim dropped As Boolean
         Try
+            context = New RemoteDragContext(DmsProvider, InitialFolder, files)
+            ActiveRemoteDrag = context
             'The OLE operation is synchronous: the shell consumes file streams before cleanup.
             'External shell targets only consume virtual copies. A move commits
             'after OLE returns, and only for a validated internal tree target.
@@ -66,6 +68,10 @@ Partial Public Class DmsBrowser
                     UninitializeOle()
                 End Try
             End Using
+            If context.ValidationFailure IsNot Nothing Then
+                dropped = False
+                Throw context.ValidationFailure
+            End If
         Catch ex As OperationCanceledException
             Return
         Catch ex As Exception
@@ -99,7 +105,7 @@ Partial Public Class DmsBrowser
 
     Private Function CanMoveTo(context As RemoteDragContext, node As TreeNode, Optional ownsAction As Boolean = False) As Boolean
         If context Is Nothing OrElse IsDisposed OrElse DmsProvider IsNot context.Provider OrElse InitialFolder <> context.Scope OrElse
-            TryCast(DmsProvider, IDmsInstanceProvider)?.CurrentDmsInstance?.ID <> context.Instance OrElse
+            Not HasMatchingRemoteInstance(context) OrElse
             TransferRunning OrElse (ResourceActionRunning AndAlso Not ownsAction) OrElse
             (AllowedActions And FileOrFolderActions.AllowCopyRenameMoveFiles) = 0 OrElse BrowseMode <> BrowseModes.FoldersAndFiles OrElse
             node Is Nothing OrElse node.TreeView IsNot TreeViewDmsFolders OrElse Not TreeViewDmsFolders.Enabled Then Return False
@@ -119,6 +125,18 @@ Partial Public Class DmsBrowser
             If If(DmsProvider.ParentDirectoryPath(file.FullName), "").Trim(DmsProvider.DirectorySeparator) <> If(path, "").Trim(DmsProvider.DirectorySeparator) Then changes = True
         Next
         Return changes
+    End Function
+
+    Private Function HasMatchingRemoteInstance(context As RemoteDragContext) As Boolean
+        If context.ValidationFailure IsNot Nothing Then Return False
+        Try
+            Return TryCast(DmsProvider, IDmsInstanceProvider)?.CurrentDmsInstance?.ID = context.Instance
+        Catch ex As Exception
+            'Native OLE feedback must reject the target without throwing across
+            'the callback boundary. Display the original failure after OLE returns.
+            context.ValidationFailure = ex
+            Return False
+        End Try
     End Function
 
     Private Sub DragRemoteMoveOver(sender As Object, e As DragEventArgs)
@@ -145,14 +163,21 @@ Partial Public Class DmsBrowser
     End Sub
 
     Private Async Function MoveDroppedFilesAsync(context As RemoteDragContext) As Task
-        If Not CanMoveTo(context, context.MoveTarget) Then Return
-        ResourceActionRunning = True
-        Dim canExecute As Func(Of Boolean) = Function()
-                                                If Not CanMoveTo(context, context.MoveTarget, True) OrElse UploadDestination(context.MoveTarget) <> context.MovePath Then Return False
-                                                Dim current = TryCast(context.MoveTarget.Tag, NodeTagData)?.DmsResourceItem
-                                                Return (current Is Nothing AndAlso context.MoveIdentity Is Nothing) OrElse SameTreeResource(context.MoveIdentity, current)
-                                            End Function
+        Dim ownsAction As Boolean
         Try
+            If Not CanMoveTo(context, context.MoveTarget) Then
+                If context.ValidationFailure IsNot Nothing Then Throw context.ValidationFailure
+                Return
+            End If
+            ResourceActionRunning = True
+            ownsAction = True
+            Dim canExecute As Func(Of Boolean) = Function()
+                                                    Dim allowed = CanMoveTo(context, context.MoveTarget, True)
+                                                    If context.ValidationFailure IsNot Nothing Then Throw context.ValidationFailure
+                                                    If Not allowed OrElse UploadDestination(context.MoveTarget) <> context.MovePath Then Return False
+                                                    Dim current = TryCast(context.MoveTarget.Tag, NodeTagData)?.DmsResourceItem
+                                                    Return (current Is Nothing AndAlso context.MoveIdentity Is Nothing) OrElse SameTreeResource(context.MoveIdentity, current)
+                                                End Function
             Await RunOperationAndRefreshAsync(
                 Async Function()
                     For Each file In context.Files
@@ -168,8 +193,10 @@ Partial Public Class DmsBrowser
         Catch ex As Exception
             ShowResourceActionError(ex)
         Finally
-            ResourceActionRunning = False
-            UpdateFolderDownloadAccess()
+            If ownsAction Then
+                ResourceActionRunning = False
+                UpdateFolderDownloadAccess()
+            End If
         End Try
     End Function
 

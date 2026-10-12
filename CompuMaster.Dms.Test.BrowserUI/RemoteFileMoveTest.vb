@@ -10,6 +10,65 @@ Imports NUnit.Framework
 
 <TestFixture, Apartment(ApartmentState.STA), NonParallelizable>
 Public Class RemoteFileMoveTest
+    <TestCase(False), TestCase(True)>
+    Public Sub FailedInstanceValidationDuringHoverOrCommitPreservesTheOriginalDiagnostic(failAtCommit As Boolean)
+        Dim provider As New MoveProvider()
+        Using dispatcher As New UiTestDispatcher(), browser As New MoveBrowser(provider)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            Dim tree = browser.TreeViewDmsFolders
+            tree.SelectedNode = tree.Nodes(0).Nodes.Cast(Of TreeNode)().Single(Function(node) node.Text = "source")
+            dispatcher.WaitForEvents()
+            browser.AllowedActions = DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or DmsBrowser.FileOrFolderActions.AllowDownloadFiles
+            Dim failure As New InvalidOperationException("Fixture instance validation failed")
+            Dim effect As DragDropEffects
+            browser.ShellDragOperation = Function(data, dropSource)
+                                             Dim destination = tree.Nodes(0).Nodes.Cast(Of TreeNode)().Single(Function(node) node.Text = "destination")
+                                             Dim point = tree.PointToScreen(New Drawing.Point(destination.Bounds.Left + 2, destination.Bounds.Top + 2))
+                                             Dim over As New DragEventArgs(New DataObject(data), 1, point.X, point.Y, DragDropEffects.Copy Or DragDropEffects.Move, DragDropEffects.None)
+                                             If Not failAtCommit Then provider.InstanceFailure = failure
+                                             RaiseDrag(tree, "OnDragOver", over)
+                                             effect = over.Effect
+                                             RaiseDrag(tree, "OnDragDrop", over)
+                                             If failAtCommit Then provider.InstanceFailure = failure
+                                             Return If(failAtCommit, &H40100, &H40101)
+                                         End Function
+            GetType(ListView).GetMethod("OnItemDrag", BindingFlags.Instance Or BindingFlags.NonPublic).Invoke(browser.ListViewDmsFiles, {New ItemDragEventArgs(MouseButtons.Left, browser.ListViewDmsFiles.Items(0))})
+            dispatcher.WaitForEvents()
+            Assert.That(browser.Failure, [Is].SameAs(failure))
+            Assert.That(effect, [Is].EqualTo(If(failAtCommit, DragDropEffects.Move, DragDropEffects.None)))
+            Assert.That(provider.Moved, [Is].Empty)
+            provider.InstanceFailure = Nothing
+            Assert.That(browser.CanDragDownload(), [Is].True)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub FailedInstanceSnapshotDoesNotEscapeTheCallbackOrLeaveTheDragBusy()
+        Dim provider As New MoveProvider()
+        Using dispatcher As New UiTestDispatcher(), browser As New MoveBrowser(provider)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            browser.TreeViewDmsFolders.SelectedNode = browser.TreeViewDmsFolders.Nodes(0).Nodes.Cast(Of TreeNode)().Single(Function(node) node.Text = "source")
+            dispatcher.WaitForEvents()
+            browser.AllowedActions = DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or DmsBrowser.FileOrFolderActions.AllowDownloadFiles
+            Dim shellCalls As Integer
+            browser.ShellDragOperation = Function(data, dropSource)
+                                             shellCalls += 1
+                                             Return &H40101
+                                         End Function
+            Dim failure As New InvalidOperationException("Fixture current instance could not be read")
+            provider.InstanceFailure = failure
+            GetType(ListView).GetMethod("OnItemDrag", BindingFlags.Instance Or BindingFlags.NonPublic).Invoke(browser.ListViewDmsFiles, {New ItemDragEventArgs(MouseButtons.Left, browser.ListViewDmsFiles.Items(0))})
+            dispatcher.WaitForEvents()
+            Assert.That(browser.Failure, [Is].SameAs(failure))
+            Assert.That(shellCalls, [Is].Zero)
+            Assert.That(provider.Moved, [Is].Empty)
+            provider.InstanceFailure = Nothing
+            Assert.That(browser.CanDragDownload(), [Is].True, "A failed context snapshot must release the drag operation lock.")
+        End Using
+    End Sub
+
     <TestCase(0), TestCase(1), TestCase(2), TestCase(3), TestCase(4), TestCase(5), TestCase(6), TestCase(7), TestCase(8), TestCase(9), TestCase(10)>
     Public Sub NativePayloadRoutesOnlyAValidInternalMoveAndPreservesPartialResults(scenario As Integer)
         Dim provider As New MoveProvider With {.SecondFile = scenario = 3 OrElse scenario = 5, .DuplicateIdentity = scenario = 3, .AmbiguousDestination = scenario = 4, .FailSecond = scenario = 5,
@@ -113,8 +172,10 @@ Public Class RemoteFileMoveTest
         Inherits NoDmsProvider
         Implements IDmsInstanceProvider
         Friend InstanceId As String = "fixture-instance"
+        Friend InstanceFailure As Exception
         Public ReadOnly Property CurrentDmsInstance As DmsInstanceInfo Implements IDmsInstanceProvider.CurrentDmsInstance
             Get
+                If InstanceFailure IsNot Nothing Then Throw InstanceFailure
                 Return New DmsInstanceInfo(InstanceId, "Fixture", True)
             End Get
         End Property
