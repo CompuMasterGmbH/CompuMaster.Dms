@@ -37,8 +37,22 @@ Public Class DevelopmentGuiTestSession
             NoticeThread = New Thread(
                 Sub()
                     Try
-                        Using window As New GuiTestNotice(estimate, ready, StopRequested)
-                            Application.Run(window)
+                        Using lease As New Mutex(False, "Local\CompuMaster.Dms.WorkstationGuiTests")
+                            Dim acquired As Boolean
+                            Try
+                                Try
+                                    acquired = lease.WaitOne(0)
+                                Catch ex As AbandonedMutexException
+                                    acquired = True
+                                    Console.WriteLine("Recovered an abandoned workstation GUI-test lease.")
+                                End Try
+                                If Not acquired Then Throw New InvalidOperationException("The workstation GUI-test window is reserved by another test process. Coordinate before starting another GUI run.")
+                                Using window As New GuiTestNotice(estimate, ready, StopRequested)
+                                    Application.Run(window)
+                                End Using
+                            Finally
+                                If acquired Then lease.ReleaseMutex()
+                            End Try
                         End Using
                     Catch ex As Exception
                         startupFailure = ex
