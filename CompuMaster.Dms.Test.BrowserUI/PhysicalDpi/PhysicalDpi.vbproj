@@ -15,6 +15,7 @@
     <Compile Include="PhysicalDpiProgram.vb" />
     <Compile Include="../LocalizedLayoutAcceptanceTest.vb" Link="LocalizedLayoutAcceptanceTest.vb" />
     <Compile Include="../LocalizedMonitorDpiTest.vb" Link="LocalizedMonitorDpiTest.vb" />
+    <Compile Include="../NativeLocalizedDialogAcceptanceTest.vb" Link="NativeLocalizedDialogAcceptanceTest.vb" />
     <Compile Include="../DevelopmentGuiTestSession.vb" Link="DevelopmentGuiTestSession.vb" />
     <ProjectReference Include="../../CompuMaster.Dms.BrowserUI/CompuMaster.Dms.BrowserUI.vbproj" />
     <ProjectReference Include="../../CompuMaster.Dms.TestDemo.WebDav/CompuMaster.Dms.TestDemo.WebDav.vbproj" />

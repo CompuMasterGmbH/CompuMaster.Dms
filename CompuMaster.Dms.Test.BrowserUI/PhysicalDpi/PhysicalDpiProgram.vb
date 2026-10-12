@@ -30,12 +30,13 @@ Friend Module PhysicalDpiProgram
                 DevelopmentGuiTestSession.ConfigurePhysicalDpiHost()
                 Dim displays = LocalizedMonitorDpiTest.ReadTimingConfiguration()
                 Dim scenarios = LocalizedMonitorDpiTest.ReadSelectedScenarios()
-                Environment.SetEnvironmentVariable("DMS_GUI_TEST_RUN_KEY", "physical-monitor-v2|" & Environment.Version.ToString() & "|screenshots=" & screenshots.ToString() & "|displays=" & displays.Key & "|scenarios=" & String.Join(",", scenarios))
+                Dim nativeDialogs = Environment.GetEnvironmentVariable("DMS_NATIVE_DIALOG_ACCEPTANCE") = "1"
+                Environment.SetEnvironmentVariable("DMS_GUI_TEST_RUN_KEY", "physical-monitor-v2|" & Environment.Version.ToString() & "|screenshots=" & screenshots.ToString() & "|displays=" & displays.Key & "|scenarios=" & String.Join(",", scenarios) & "|nativeDialogs=" & nativeDialogs.ToString())
                 Environment.SetEnvironmentVariable("DMS_GUI_TEST_WORK_UNITS", (selected.Length * 2).ToString(CultureInfo.InvariantCulture))
                 'Larger native surfaces cost more to lay out and repaint. Once measured,
                 'history for this actual monitor configuration replaces the initial budget.
                 Dim areaFactor = Math.Pow(Math.Max(125, displays.Value) / 125.0, 2)
-                Dim fallback = CInt(Math.Ceiling(selected.Length * If(screenshots, 45, 20) * areaFactor * scenarios.Length / 13.0 + 5))
+                Dim fallback = CInt(Math.Ceiling(selected.Length * If(screenshots, 45, 20) * areaFactor * scenarios.Length / 13.0 + If(nativeDialogs, selected.Length * 6, 0) + 5))
                 Environment.SetEnvironmentVariable("DMS_GUI_TEST_FALLBACK_SECONDS", fallback.ToString(CultureInfo.InvariantCulture))
                 notice.StartNotice()
                 For Each culture In selected
@@ -44,6 +45,7 @@ Friend Module PhysicalDpiProgram
                             Using context As New NUnit.Framework.Internal.TestExecutionContext.IsolatedContext()
                                 Dim fixture As New LocalizedMonitorDpiTest()
                                 fixture.ControlsFitAcrossNativeMonitors(culture, startOnRight)
+                                If nativeDialogs Then NativeLocalizedDialogAcceptanceTest.VerifyDialogs(culture, startOnRight)
                             End Using
                             passed += 1
                             log.WriteLine($"PASS {culture}; startOnRight={startOnRight}")

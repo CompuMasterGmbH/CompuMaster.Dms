@@ -19,6 +19,7 @@
     <Compile Include="../LocalizedLayoutAcceptanceTest.vb" Link="LocalizedLayoutAcceptanceTest.vb" />
     <Compile Include="../LocalizedFontAcceptanceTest.vb" Link="LocalizedFontAcceptanceTest.vb" />
     <Compile Include="../LocalizedMessageAcceptanceTest.vb" Link="LocalizedMessageAcceptanceTest.vb" />
+    <Compile Include="../NativeLocalizedDialogAcceptanceTest.vb" Link="NativeLocalizedDialogAcceptanceTest.vb" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../CompuMaster.Dms.BrowserUI/CompuMaster.Dms.BrowserUI.vbproj" />
