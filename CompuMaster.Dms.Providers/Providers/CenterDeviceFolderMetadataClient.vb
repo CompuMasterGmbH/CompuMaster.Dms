@@ -3,6 +3,7 @@ Option Strict On
 
 Imports System.Net
 Imports System.Reflection
+Imports System.Text.Json
 Imports System.Text.Json.Serialization
 Imports CenterDevice.Rest
 Imports CenterDevice.Rest.Clients
@@ -12,8 +13,8 @@ Imports RestSharp
 
 Namespace Providers
 
-    'The CenterDevice package's Folder.HasSubFoldersServerInfo property is private, so
-    'its default JSON deserializer does not populate the requested server value.
+    'Request child existence together with the sharing metadata needed by the browser.
+    'The response model supports both the published SDK and its corrected JSON binding.
     Partial Friend Class CenterDeviceFolderMetadataClient
         Inherits CenterDevice.Rest.Clients.Folders.FoldersRestClient
 
@@ -64,8 +65,38 @@ Namespace Providers
     Friend NotInheritable Class FolderWithChildMetadata
         Inherits CenterDevice.Rest.Clients.Folders.Folder
 
-        <JsonPropertyName("has-subfolders")>
+        'Older SDKs leave has-subfolders unbound. New SDKs bind it on Folder itself;
+        'extension data captures only unbound JSON, avoiding a duplicate inherited name.
+        <JsonExtensionData>
+        Public Property UnboundMetadata As Dictionary(Of String, JsonElement)
+
+        Private legacyChildMetadata As Boolean?
+
+        <JsonIgnore>
         Public Property HasSubFoldersMetadata As Boolean?
+            Get
+                Dim known As Boolean? = Me.HasSubFolders
+                If known.HasValue Then Return known
+                If legacyChildMetadata.HasValue Then Return legacyChildMetadata
+                Dim value As JsonElement
+                If UnboundMetadata IsNot Nothing AndAlso UnboundMetadata.TryGetValue("has-subfolders", value) Then
+                    Select Case value.ValueKind
+                        Case JsonValueKind.True
+                            Return True
+                        Case JsonValueKind.False
+                            Return False
+                        Case JsonValueKind.Null
+                            Return Nothing
+                        Case Else
+                            Throw New JsonException("Folder child existence metadata must be a boolean or null.")
+                    End Select
+                End If
+                Return Nothing
+            End Get
+            Set(value As Boolean?)
+                legacyChildMetadata = value
+            End Set
+        End Property
     End Class
 
 End Namespace
