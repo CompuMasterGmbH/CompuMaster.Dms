@@ -61,6 +61,10 @@
 - BrowserUI tests implement this notice automatically on WKS08 in `DevelopmentGuiTestSession`. On another interactive development workstation, set `DMS_GUI_TEST_NOTICE=1`. Set `DMS_GUI_TEST_ETA_SECONDS` to an appropriate estimate for a filtered or extended run (default: 60 seconds). Do not disable the notice on WKS08. Other GUI test harnesses and ad hoc GUI checks must provide the same notice before starting. Headless CI runners do not display the notice.
 - Already populated demo login forms may be submitted by clicking their sign-in button without asking the user to do so. Do not expose, copy, or change the stored credentials. This authorization does not replace exclusive access requirements for tests that mutate remote servers.
 
+## Workstation GUI-test coordination
+
+- Coordinate interactive workstation GUI-test windows across chats before launching a run. The development notice thread holds `Local\CompuMaster.Dms.WorkstationGuiTests` for the entire GUI run, before its countdown starts and through cleanup. Ad hoc and physical-monitor runners must honor the same mutex. A busy lease fails setup before opening or activating test windows; do not bypass it. This desktop lease does not grant shared DMS-server access.
+
 ## Test resource lifecycle
 
 - Before dynamically creating test files, folders, or collections, ensure the resources to be created do not already exist. Remove leftovers from interrupted earlier runs within the explicitly owned test scope, then verify absence before creating fresh resources.

@@ -12,10 +12,12 @@ Friend NotInheritable Class UiTestDispatcher
     Private ReadOnly PreviousAutoInstall As Boolean = WindowsFormsSynchronizationContext.AutoInstall
     Private ReadOnly Callbacks As New System.Collections.Concurrent.ConcurrentQueue(Of Action)
     Private ActiveEvents As Integer
+    Private ReadOnly UiFailures As New System.Collections.Concurrent.ConcurrentQueue(Of Exception)
 
     Friend Sub New()
         WindowsFormsSynchronizationContext.AutoInstall = False
         SynchronizationContext.SetSynchronizationContext(Me)
+        AddHandler Application.ThreadException, AddressOf CaptureUiFailure
     End Sub
 
     Public Overrides Sub Post(callback As SendOrPostCallback, state As Object)
@@ -47,13 +49,21 @@ Friend NotInheritable Class UiTestDispatcher
                 Callback()
             End While
             Application.DoEvents()
+            Dim failure As Exception = Nothing
+            If UiFailures.TryDequeue(failure) Then Throw New InvalidOperationException("The isolated UI test raised an unhandled window callback exception.", failure)
             Thread.Sleep(1)
         End While
         Assert.That(condition(), [Is].True, "The pending UI operation did not complete.")
     End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
+        RemoveHandler Application.ThreadException, AddressOf CaptureUiFailure
         SynchronizationContext.SetSynchronizationContext(PreviousContext)
         WindowsFormsSynchronizationContext.AutoInstall = PreviousAutoInstall
+    End Sub
+
+    Private Sub CaptureUiFailure(sender As Object, args As ThreadExceptionEventArgs)
+        'Never display the runtime's modal exception dialog from a test timer.
+        UiFailures.Enqueue(args.Exception)
     End Sub
 End Class
