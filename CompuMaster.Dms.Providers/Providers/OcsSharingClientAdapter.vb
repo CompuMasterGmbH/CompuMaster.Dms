@@ -7,6 +7,7 @@ Imports CompuMaster.Ocs.Types
 Imports System.Net.Http
 Imports System.Net.Http.Headers
 Imports System.Text
+Imports System.IO
 Imports Newtonsoft.Json.Linq
 
 Namespace Providers
@@ -108,6 +109,7 @@ Namespace Providers
         Private _Capabilities As OcsSharingCapabilities
         Friend Property ObservedServerFamily As OcsServerFamily
         Friend Property ObservedVersionCapabilitiesJson As String
+        Friend Property ObservedProtocolUserId As String
 
         Public Sub New(baseUrl As String, userID As String, password As String)
             Me.Client = New OcsClient(baseUrl, userID, password)
@@ -133,6 +135,15 @@ Namespace Providers
             Me.ObservedServerFamily = DetectServerFamily(Config)
             Dim CapabilityJson As String = Me.ReadJson("cloud/capabilities")
             Me.ObservedVersionCapabilitiesJson = CapabilityJson
+            Me.ObservedServerFamily = DetectServerFamily(Config, CapabilityJson)
+#If OCS_FILE_VERSIONS Then
+            Try
+                Me.ObservedProtocolUserId = ParseProtocolUserId(Me.ReadJson("cloud/user"))
+            Catch
+                'Direct file/space endpoints remain usable; legacy version mapping cannot guess a user ID.
+                Me.ObservedProtocolUserId = Nothing
+            End Try
+#End If
             Me.GetShares(Nothing, False, False)
 
             Dim SupportsShareeDiscovery As Boolean
@@ -187,12 +198,31 @@ Namespace Providers
             Return Value.Type = JTokenType.Boolean AndAlso CBool(Value)
         End Function
 
-        Private Shared Function DetectServerFamily(config As Config) As OcsServerFamily
+        Friend Shared Function ParseProtocolUserId(json As String) As String
+            Dim document = JObject.Parse(json)
+            Dim status = CStr(document.SelectToken("ocs.meta.statuscode"))
+            If status <> "100" AndAlso status <> "200" Then Throw New InvalidDataException("Authenticated OCS user discovery failed.")
+            Dim id = document.SelectToken("ocs.data.id")
+            If id Is Nothing OrElse id.Type <> JTokenType.String OrElse String.IsNullOrWhiteSpace(CStr(id)) Then Throw New InvalidDataException("Authenticated OCS user discovery returned no protocol ID.")
+            Return CStr(id)
+        End Function
+
+        Friend Shared Function DetectServerFamily(config As Config, Optional capabilityJson As String = Nothing) As OcsServerFamily
             Dim Fingerprint As String = String.Join(" ", New String() {
                 config?.Website,
                 config?.Host,
                 config?.Version
             }).ToLowerInvariant()
+
+            If Not String.IsNullOrEmpty(capabilityJson) Then
+                Dim document = JObject.Parse(capabilityJson)
+                Dim status = CStr(document.SelectToken("ocs.meta.statuscode"))
+                If status <> "100" AndAlso status <> "200" Then Return OcsServerFamily.Unknown
+                Fingerprint &= " " & CStr(document.SelectToken("ocs.data.version.productname"))?.ToLowerInvariant()
+                Fingerprint &= " " & CStr(document.SelectToken("ocs.data.version.product"))?.ToLowerInvariant()
+                'An authenticated spaces capability is specific to Infinite Scale; it does not enable classic sharing.
+                If document.SelectToken("ocs.data.capabilities.spaces.enabled")?.Type = JTokenType.Boolean AndAlso CBool(document.SelectToken("ocs.data.capabilities.spaces.enabled")) Then Return OcsServerFamily.OwnCloudInfiniteScale
+            End If
 
             If Fingerprint.Contains("nextcloud") Then
                 Return OcsServerFamily.Nextcloud

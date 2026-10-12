@@ -7,10 +7,11 @@ Namespace Providers
     Partial Public Class WebDavDmsProvider
         Private FileVersionClient As DavFileVersionClient
         Private FileVersionDiscoveryFailure As Exception
+        Private FileVersionFilesRoot As Uri
 
         Private Sub InitializeFileVersions(candidate As OcsSharingClientAdapter, baseUrl As String)
             Try
-                Me.ConfigureFileVersions(Me.WebDavClient, baseUrl, candidate.ObservedServerFamily, candidate.ObservedVersionCapabilitiesJson)
+                Me.ConfigureFileVersions(Me.WebDavClient, baseUrl, candidate.ObservedServerFamily, candidate.ObservedVersionCapabilitiesJson, candidate.ObservedProtocolUserId)
             Catch ex As Exception
                 'Optional discovery never breaks existing generic DAV authorization. Retain its cause for direct workflow calls.
                 Me.FileVersionClient = Nothing
@@ -18,21 +19,16 @@ Namespace Providers
             End Try
         End Sub
 
-        Friend Sub ConfigureFileVersions(transport As Global.WebDav.IWebDavClient, baseUrl As String, family As OcsServerFamily, capabilityJson As String)
+        Friend Sub ConfigureFileVersions(transport As Global.WebDav.IWebDavClient, baseUrl As String, family As OcsServerFamily, capabilityJson As String, Optional authenticatedUserId As String = Nothing)
             Me.FileVersionClient = Nothing
             Me.FileVersionDiscoveryFailure = Nothing
+            Me.FileVersionFilesRoot = Nothing
             If String.IsNullOrEmpty(capabilityJson) OrElse family = OcsServerFamily.Unknown Then Return
             Dim document = JObject.Parse(capabilityJson)
             Dim status = CStr(document.SelectToken("ocs.meta.statuscode"))
             If status <> "100" AndAlso status <> "200" Then Throw New InvalidDataException("Version capability discovery failed.")
             Dim enabled = document.SelectToken("ocs.data.capabilities.files.versioning")
             If enabled Is Nothing OrElse enabled.Type <> JTokenType.Boolean OrElse Not CBool(enabled) Then Return
-            Dim address As New Uri(baseUrl, UriKind.Absolute)
-            If address.UserInfo.Length <> 0 OrElse address.Query.Length <> 0 OrElse address.Fragment.Length <> 0 Then Return
-            Dim match = System.Text.RegularExpressions.Regex.Match(address.AbsolutePath, "^(.*/(?:remote\.php/)?dav/)files/([^/]+)(?:/|$)", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
-            'Legacy /webdav URLs cannot safely identify Nextcloud's protocol user; no login-name substitution.
-            If Not match.Success Then Return
-            Dim root As New Uri(address.GetLeftPart(UriPartial.Authority) & match.Groups(1).Value)
             Dim protocol As DavFileVersionProtocol
             Select Case family
                 Case OcsServerFamily.Nextcloud : protocol = DavFileVersionProtocol.Nextcloud
@@ -40,9 +36,11 @@ Namespace Providers
                 Case OcsServerFamily.OwnCloudInfiniteScale : protocol = DavFileVersionProtocol.OwnCloudInfiniteScale
                 Case Else : Return
             End Select
+            Dim endpoint = DavFileVersionEndpoint.Resolve(New Uri(baseUrl, UriKind.Absolute), protocol, authenticatedUserId)
             Dim deletionToken = document.SelectToken("ocs.data.capabilities.files.version_deletion")
             Dim deletion As Boolean? = If(deletionToken IsNot Nothing AndAlso deletionToken.Type = JTokenType.Boolean, CType(CBool(deletionToken), Boolean?), Nothing)
-            Me.FileVersionClient = New DavFileVersionClient(transport, root, protocol, Uri.UnescapeDataString(match.Groups(2).Value), deletion)
+            Me.FileVersionClient = New DavFileVersionClient(transport, endpoint.DavRoot, protocol, endpoint.UserId, deletion)
+            Me.FileVersionFilesRoot = endpoint.FilesRoot
             Me.CustomWebApiUrl = baseUrl.TrimEnd("/"c) & "/"
         End Sub
 
@@ -95,7 +93,7 @@ Namespace Providers
             If String.IsNullOrWhiteSpace(path) Then Throw New ArgumentException("A file path is required.", NameOf(path))
             Dim segments = path.TrimStart("/"c).Split("/"c)
             If segments.Any(Function(segment) segment = "." OrElse segment = ".." OrElse segment.Length = 0 OrElse segment.Contains("\") OrElse segment.Any(Function(c) Char.IsControl(c))) Then Throw New ArgumentException("The file path contains an invalid segment.", NameOf(path))
-            Return New Uri(Me.CustomWebApiUrl & String.Join("/", segments.Select(Function(segment) Uri.EscapeDataString(segment))))
+            Return New Uri(Me.FileVersionFilesRoot, String.Join("/", segments.Select(Function(segment) Uri.EscapeDataString(segment))))
         End Function
 
         ''' <inheritdoc/>

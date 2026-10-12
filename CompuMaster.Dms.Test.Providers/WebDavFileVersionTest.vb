@@ -100,20 +100,73 @@ Public Class WebDavFileVersionTest
         End Using
     End Sub
 
+    <TestCase(1, "remote.php/webdav/Folder/", "remote.php/dav/files/auth%2B%20id/Folder/", "MOVE")>
+    <TestCase(2, "webdav/Folder/", "dav/files/auth%2B%20id/Folder/", "COPY")>
+    <TestCase(3, "dav/spaces/storage%24space!id/Folder/", "dav/spaces/storage%24space!id/Folder/", "COPY")>
+    <TestCase(3, "remote.php/dav/spaces/storage%24space!id/Folder/", "remote.php/dav/spaces/storage%24space!id/Folder/", "COPY")>
+    Public Sub LegacyAndSpacePathsPreserveSelectedFolderAndBoundFile(family As Integer, selectedRoot As String, expectedRoot As String, method As String)
+        Using wire As New Wire With {.Family = family}, http As New HttpClient(wire), output As New MemoryStream()
+            Dim provider As New WebDavDmsProvider()
+            Dim prefix = "https://fixture.test:8443/prefix/"
+            provider.ConfigureFileVersions(New Global.WebDav.WebDavClient(http), prefix & selectedRoot, CType(family, OcsServerFamily), Capabilities("true", "false"), "auth+ id")
+            Dim version = provider.ListFileVersions(SelectedFile()).Single()
+            Assert.That(wire.Requests.First(), [Is].EqualTo("PROPFIND " & prefix & expectedRoot & "report%2B%20one.txt"))
+            provider.DownloadFileVersion(version, output)
+            Assert.That(output.ToArray(), [Is].EqualTo(New Byte() {3, 1, 7}))
+            provider.RestoreFileVersion(version)
+            Assert.That(wire.Requests.Last(), Does.StartWith(method & " "))
+            Assert.That(wire.LastDestination, [Is].EqualTo(If(family = 1, prefix & "remote.php/dav/versions/auth%2B%20id/restore/target", prefix & expectedRoot & "report%2B%20one.txt")))
+            Assert.That(provider.SupportsSharingSetup, [Is].False, "Space versions do not introduce classic OCS sharing.")
+        End Using
+    End Sub
+
+    <TestCase(1), TestCase(2), TestCase(3)>
+    Public Sub ReadOnlyHistoryRemainsReadableWhileRestoreRetainsPermissionFailure(family As Integer)
+        Using wire As New Wire With {.Family = family, .MutationStatus = 403}, http As New HttpClient(wire), output As New MemoryStream()
+            Dim provider As New WebDavDmsProvider()
+            provider.ConfigureFileVersions(New Global.WebDav.WebDavClient(http), BaseUrl, CType(family, OcsServerFamily), Capabilities("true", "false"))
+            Dim version = provider.ListFileVersions(SelectedFile()).Single()
+            provider.DownloadFileVersion(version, output)
+            Dim errorValue = Assert.Throws(Of FileActionFailedException)(Sub() provider.RestoreFileVersion(version))
+            Assert.That(DirectCast(errorValue.InnerException, CompuMaster.Ocs.Exceptions.ResponseException).HttpStatusCode, [Is].EqualTo(HttpStatusCode.Forbidden))
+            Assert.That(wire.Requests.Where(Function(r) r.StartsWith("COPY ") OrElse r.StartsWith("MOVE ")).Count(), [Is].EqualTo(1), "Denied mutations are not replayed.")
+        End Using
+    End Sub
+
+    <TestCase("false"), TestCase("null"), TestCase("""true""")>
+    Public Sub DisabledOrUnknownVersioningRejectsWorkflowWithoutRequests(enabled As String)
+        Using wire As New Wire(), http As New HttpClient(wire)
+            Dim provider As New WebDavDmsProvider()
+            provider.ConfigureFileVersions(New Global.WebDav.WebDavClient(http), BaseUrl, OcsServerFamily.Nextcloud, Capabilities(enabled, "true"))
+            Assert.Throws(Of NotSupportedException)(Sub() provider.ListFileVersions(SelectedFile()))
+            Assert.That(wire.Requests, [Is].Empty)
+        End Using
+    End Sub
+
+    <Test>
+    Public Sub AuthenticatedDiscoveryPreservesProtocolIdAndDetectsSpacesWithoutClassicSharing()
+        Dim json = "{""ocs"":{""meta"":{""statuscode"":100},""data"":{""id"":""opaque-id"",""displayname"":""Display Name"",""username"":""login-name""}}}"
+        Assert.That(OcsSharingClientAdapter.ParseProtocolUserId(json), [Is].EqualTo("opaque-id"))
+        Assert.Throws(Of InvalidDataException)(Sub() OcsSharingClientAdapter.ParseProtocolUserId(json.Replace("""id"":""opaque-id"",", "")))
+        Dim capabilitiesJson = "{""ocs"":{""meta"":{""statuscode"":100},""data"":{""version"":{""product"":""Infinite Scale""},""capabilities"":{""spaces"":{""enabled"":true}}}}}"
+        Assert.That(OcsSharingClientAdapter.DetectServerFamily(Nothing, capabilitiesJson), [Is].EqualTo(OcsServerFamily.OwnCloudInfiniteScale))
+    End Sub
+
     Private Class Wire
         Inherits HttpMessageHandler
         Friend Family As Integer = 1
         Friend FileID As String = "stable-file"
         Friend Status As Integer = 207
+        Friend MutationStatus As Integer = 204
         Friend LastDestination As String
         Friend ReadOnly Requests As New List(Of String)
         Protected Overrides Function SendAsync(request As HttpRequestMessage, token As CancellationToken) As Task(Of HttpResponseMessage)
             Requests.Add(request.Method.Method & " " & request.RequestUri.AbsoluteUri)
             If request.Headers.Contains("Destination") Then LastDestination = request.Headers.GetValues("Destination").Single()
             If request.Method = HttpMethod.Get Then Return Task.FromResult(New HttpResponseMessage(HttpStatusCode.OK) With {.Content = New ByteArrayContent(New Byte() {3, 1, 7})})
-            If request.Method.Method <> "PROPFIND" Then Return Task.FromResult(New HttpResponseMessage(HttpStatusCode.NoContent))
+            If request.Method.Method <> "PROPFIND" Then Return Task.FromResult(New HttpResponseMessage(CType(MutationStatus, HttpStatusCode)))
             If Status <> 207 Then Return Task.FromResult(New HttpResponseMessage(CType(Status, HttpStatusCode)) With {.Content = New StringContent("DAV failure")})
-            Dim file = request.RequestUri.AbsoluteUri.StartsWith(BaseUrl, StringComparison.Ordinal)
+            Dim file = request.Headers.GetValues("Depth").Single() = "0"
             Dim path As String = request.RequestUri.AbsolutePath
             Dim props = If(file, "<oc:fileid>" & FileID & "</oc:fileid><d:getetag>&quot;current&quot;</d:getetag><d:resourcetype/>", "<d:resourcetype><d:collection/></d:resourcetype>")
             Dim xml = "<d:multistatus xmlns:d=""DAV:"" xmlns:oc=""http://owncloud.org/ns""><d:response><d:href>" & path & "</d:href><d:propstat><d:prop>" & props & "</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
