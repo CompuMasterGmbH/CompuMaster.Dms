@@ -269,4 +269,12 @@
   <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>अज्ञात (फ़ाइल आकार उपलब्ध नहीं हैं)</value></data>
   <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>अज्ञात (सर्वर की पुष्टि की प्रतीक्षा)</value></data>
   <data name="UploadStarting" xml:space="preserve"><value>स्थानांतरण शुरू हो रहा है (प्रदाता की तैयारी)</value></data>
+  <data name="UploadConflictTitle" xml:space="preserve"><value>गंतव्य पर मौजूदा फ़ाइल</value></data>
+  <data name="UploadYes" xml:space="preserve"><value>हाँ</value></data>
+  <data name="UploadYesAll" xml:space="preserve"><value>सभी के लिए हाँ</value></data>
+  <data name="UploadNo" xml:space="preserve"><value>नहीं</value></data>
+  <data name="UploadNoAll" xml:space="preserve"><value>सभी के लिए नहीं</value></data>
+  <data name="UploadSkipped" xml:space="preserve"><value>छोड़ दिया गया</value></data>
+  <data name="UploadSummary" xml:space="preserve"><value>अपलोड समाप्त: {0} फ़ाइलें अपलोड हुईं, {1} छोड़ी गईं।</value></data>
+  <data name="UploadDestinationChanged" xml:space="preserve"><value>अपलोड से पहले गंतव्य बदल गया: {0}।</value></data>
 </root>

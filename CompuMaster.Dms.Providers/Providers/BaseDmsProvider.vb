@@ -686,6 +686,24 @@ Namespace Providers
             progress?.Report(If(tracked Is Nothing, New DmsTransferProgress(Nothing, Nothing, DmsTransferPhase.Completed), tracked.Snapshot(DmsTransferPhase.Completed)))
         End Function
 
+        ''' <summary>Replaces an explicitly selected existing remote file with a local file.</summary>
+        ''' <param name="remoteFile">The existing destination resource, including its identifier when names are not unique.</param>
+        ''' <param name="localFilePath">The local source file.</param>
+        ''' <param name="progress">Receives source-byte and phase snapshots, or Nothing.</param>
+        ''' <param name="cancellationToken">Cancels the supported transfer or queued fallback.</param>
+        ''' <returns>A task that completes only after the provider confirms replacement or creation of a new version.</returns>
+        ''' <remarks>Path-unique providers retain their existing upload behavior. Providers allowing duplicate names must override this method to preserve the selected identity. This operation does not provide a transactional path or version precondition.</remarks>
+        ''' <exception cref="ArgumentNullException">The destination resource is Nothing.</exception>
+        ''' <exception cref="ArgumentException">The destination is not a file or has no path.</exception>
+        ''' <exception cref="NotSupportedException">The provider cannot bind replacement to a selected identity.</exception>
+        ''' <exception cref="OperationCanceledException">The supported operation is cancelled.</exception>
+        Public Overridable Function ReplaceFileWithProgressAsync(remoteFile As DmsResourceItem, localFilePath As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
+            If remoteFile Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFile))
+            If remoteFile.ItemType <> DmsResourceItem.ItemTypes.File OrElse String.IsNullOrEmpty(remoteFile.FullName) Then Throw New ArgumentException("The replacement destination must be an existing file with a path.", NameOf(remoteFile))
+            If Me.SupportsNonUniqueRemoteItems Then Throw New NotSupportedException("This provider cannot replace a selected file without resolving its name again.")
+            Return Me.UploadFileWithProgressAsync(remoteFile.FullName, localFilePath, progress, cancellationToken)
+        End Function
+
         Private Async Function EnsureUploadParentAsync(remoteFilePath As String, recursive As Boolean, cancellationToken As CancellationToken) As Task
             If remoteFilePath Is Nothing Then Throw New ArgumentNullException(NameOf(remoteFilePath))
             Dim parentDirectory As String = Me.ParentDirectoryPath(remoteFilePath)

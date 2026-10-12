@@ -31,9 +31,9 @@ Friend NotInheritable Class DownloadConflictDialog
     Friend ReadOnly ApplyToAll As New CheckBox With {.AutoSize = True, .Text = UiStrings.GetText("DownloadApplyToAll")}
     Friend Property Choice As DownloadConflictAction = DownloadConflictAction.Cancel
 
-    Friend Sub New(path As String, windowIcon As Icon)
+    Friend Sub New(path As String, windowIcon As Icon, Optional upload As Boolean = False)
         Me.Icon = windowIcon
-        Me.Text = UiStrings.GetText("DownloadConflictTitle")
+        Me.Text = UiStrings.GetText(If(upload, "UploadConflictTitle", "DownloadConflictTitle"))
         Me.StartPosition = FormStartPosition.CenterParent
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
@@ -45,17 +45,23 @@ Friend NotInheritable Class DownloadConflictDialog
         Me.Padding = New Padding(12)
         Dim message As New Label With {.AutoSize = True, .Text = UiStrings.Format("OverwriteFileQuestion", path), .MaximumSize = New Size(600, 0), .Margin = New Padding(3, 3, 3, 12)}
         Dim buttons As New FlowLayoutPanel With {.AutoSize = True, .AutoSizeMode = AutoSizeMode.GrowAndShrink, .WrapContents = True, .Margin = New Padding(0, 12, 0, 0)}
-        For Each action In New DownloadConflictAction() {DownloadConflictAction.Replace, DownloadConflictAction.Skip, DownloadConflictAction.Cancel}
-            Dim current = action
-            Dim key = If(action = DownloadConflictAction.Replace, "DownloadReplace", If(action = DownloadConflictAction.Skip, "DownloadSkip", "ActionCancel"))
-            Dim button As New Button With {.AutoSize = True, .Text = UiStrings.GetText(key), .Padding = New Padding(10, 3, 10, 3), .DialogResult = If(action = DownloadConflictAction.Cancel, DialogResult.Cancel, DialogResult.OK)}
-            AddHandler button.Click, Sub(sender, e) Me.Choice = current
+        Dim actions = If(upload, {DownloadConflictAction.Replace, DownloadConflictAction.Replace, DownloadConflictAction.Skip, DownloadConflictAction.Skip, DownloadConflictAction.Cancel}, {DownloadConflictAction.Replace, DownloadConflictAction.Skip, DownloadConflictAction.Cancel})
+        For index = 0 To actions.Length - 1
+            Dim current = actions(index)
+            Dim all = upload AndAlso (index = 1 OrElse index = 3)
+            Dim key = If(current = DownloadConflictAction.Cancel, "ActionCancel", If(current = DownloadConflictAction.Replace, "DownloadReplace", "DownloadSkip"))
+            If upload AndAlso current <> DownloadConflictAction.Cancel Then key = If(current = DownloadConflictAction.Replace, If(all, "UploadYesAll", "UploadYes"), If(all, "UploadNoAll", "UploadNo"))
+            Dim button As New Button With {.AutoSize = True, .Text = UiStrings.GetText(key), .Padding = New Padding(10, 3, 10, 3), .DialogResult = If(current = DownloadConflictAction.Cancel, DialogResult.Cancel, DialogResult.OK)}
+            AddHandler button.Click, Sub(sender, e)
+                                         Me.Choice = current
+                                         If upload Then ApplyToAll.Checked = all
+                                     End Sub
             buttons.Controls.Add(button)
-            If action = DownloadConflictAction.Cancel Then Me.CancelButton = button
+            If current = DownloadConflictAction.Cancel Then Me.CancelButton = button
         Next
         Dim layout As New TableLayoutPanel With {.AutoSize = True, .AutoSizeMode = AutoSizeMode.GrowAndShrink, .ColumnCount = 1, .RowCount = 3, .Dock = DockStyle.Fill}
         layout.Controls.Add(message, 0, 0)
-        layout.Controls.Add(ApplyToAll, 0, 1)
+        If Not upload Then layout.Controls.Add(ApplyToAll, 0, 1)
         layout.Controls.Add(buttons, 0, 2)
         Me.Controls.Add(layout)
         LocalizedLayout.Bind(Me, Sub()

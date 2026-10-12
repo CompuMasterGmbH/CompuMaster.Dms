@@ -12,6 +12,37 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public Class CenterDeviceNativeTransferTest
+    <TestCase(False), TestCase(True)>
+    Public Async Function SelectedReplacementUsesTheSecondDuplicateIdAndInvalidatesItsParent(fail As Boolean) As Task
+        Dim provider As New TransferProvider(True, True) With {.FailUpload = fail}
+        Dim localPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"))
+        Assert.That(File.Exists(localPath), [Is].False)
+        Try
+            File.WriteAllBytes(localPath, {CByte(1), CByte(2)})
+            Dim modified As New DateTime(2024, 2, 3, 4, 5, 6, DateTimeKind.Utc)
+            File.SetLastWriteTimeUtc(localPath, modified)
+            Dim item As New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.File, .FullName = "collection/fixture.bin", .Name = "fixture.bin",
+                .ExtendedInfosFileID = "second-id", .ExtendedInfosAssignedCollectionID = "collection-id", .ExtendedInfosCollisionDetected = True}
+            Dim observer As New DownloadCollector()
+            Dim operation = provider.ReplaceFileWithProgressAsync(item, localPath, observer)
+            If fail Then
+                Assert.ThrowsAsync(Of IOException)(Function() operation)
+                Assert.That(observer.Values.Any(Function(value) value.Phase = DmsTransferPhase.Completed), [Is].False)
+            Else
+                Await operation
+                Assert.That(observer.Values.Last().Phase, [Is].EqualTo(DmsTransferPhase.Completed))
+                Assert.That(provider.UploadedBytes, [Is].EqualTo({CByte(1), CByte(2)}))
+            End If
+            Assert.That(provider.VersionId, [Is].EqualTo("second-id"))
+            Assert.That(provider.ModificationTime, [Is].EqualTo(modified))
+            Assert.That(provider.UploadCalls, [Is].EqualTo(1))
+            Await provider.LastUploadParent.GetFilesAsync()
+            Assert.That(provider.Io.FileCalls, [Is].EqualTo(2))
+        Finally
+            If File.Exists(localPath) Then File.Delete(localPath)
+        End Try
+    End Function
+
     <TestCase(False, "bytes"), TestCase(True, "bytes"), TestCase(False, "factory"), TestCase(True, "factory"), TestCase(False, "file"), TestCase(True, "file"), TestCase(False, "progress"), TestCase(True, "progress")>
     Public Async Function UploadPreservesVersionSelectionAndInvalidatesTheCache(existing As Boolean, input As String) As Task
         Dim provider As New TransferProvider(existing)
@@ -179,17 +210,22 @@ Public Class CenterDeviceNativeTransferTest
         Public RequestPath As String
         Public RequestToken As CancellationToken
         Public UploadCalls As Integer
+        Public LastUploadParent As Global.CenterDevice.IO.DirectoryInfo
         Public FailUpload As Boolean
         Public BlockUpload As Boolean
         Public FailDownload As Boolean
         Public BlockDownload As Boolean
         Public DownloadStream As FixtureStream
         Public ReadOnly UploadEntered As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
-        Public Sub New(existing As Boolean)
-            Io = New FixtureIo(existing)
+        Public Sub New(existing As Boolean, Optional duplicates As Boolean = False)
+            Io = New FixtureIo(existing, duplicates)
             Me.IOClient = Io
         End Sub
+        Protected Overrides Function LoadNativeCollectionByIdAsync(id As String, cancellationToken As CancellationToken) As Task(Of Collection)
+            Return Task.FromResult(New Collection With {.Id = id, .Name = "collection"})
+        End Function
         Protected Overrides Async Function UploadNativeFileAsync(parent As Global.CenterDevice.IO.DirectoryInfo, existingFile As Global.CenterDevice.IO.FileInfo, fileName As String, binaryData As Func(Of Stream), cancellationToken As CancellationToken) As Task
+            LastUploadParent = parent
             UploadCalls += 1
             VersionId = existingFile?.ID
             UploadName = fileName
@@ -224,17 +260,21 @@ Public Class CenterDeviceNativeTransferTest
     Private Class FixtureIo
         Inherits Global.CenterDevice.IO.IOClientBase
         Private ReadOnly Existing As Boolean
+        Private ReadOnly Duplicates As Boolean
         Public FileCalls As Integer
-        Public Sub New(existing As Boolean)
+        Public Sub New(existing As Boolean, Optional duplicates As Boolean = False)
             MyBase.New(Nothing, "fixture-user")
             Me.Existing = existing
+            Me.Duplicates = duplicates
         End Sub
         Protected Overrides Function LookupCollectionsAsync(cancellationToken As CancellationToken) As Task(Of List(Of Collection))
             Return Task.FromResult(New List(Of Collection) From {New Collection With {.Id = "collection-id", .Name = "collection"}})
         End Function
         Protected Overrides Function LookupChildDocumentsAsync(collectionId As String, parentId As String, cancellationToken As CancellationToken) As Task(Of List(Of DocumentFullMetadata))
             FileCalls += 1
-            Return Task.FromResult(If(Existing, New List(Of DocumentFullMetadata) From {New DocumentFullMetadata With {.Id = "selected-id", .Filename = "fixture.bin"}}, New List(Of DocumentFullMetadata)()))
+            Dim items = If(Existing, New List(Of DocumentFullMetadata) From {New DocumentFullMetadata With {.Id = "selected-id", .Filename = "fixture.bin"}}, New List(Of DocumentFullMetadata)())
+            If Duplicates Then items.Add(New DocumentFullMetadata With {.Id = "second-id", .Filename = "fixture.bin"})
+            Return Task.FromResult(items)
         End Function
     End Class
 

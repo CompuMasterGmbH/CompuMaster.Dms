@@ -269,4 +269,12 @@
   <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>不明（ファイルサイズを取得できません）</value></data>
   <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>不明（サーバーの確認を待機中）</value></data>
   <data name="UploadStarting" xml:space="preserve"><value>転送を開始中（プロバイダーの準備）</value></data>
+  <data name="UploadConflictTitle" xml:space="preserve"><value>既存の転送先ファイル</value></data>
+  <data name="UploadYes" xml:space="preserve"><value>はい</value></data>
+  <data name="UploadYesAll" xml:space="preserve"><value>すべてはい</value></data>
+  <data name="UploadNo" xml:space="preserve"><value>いいえ</value></data>
+  <data name="UploadNoAll" xml:space="preserve"><value>すべていいえ</value></data>
+  <data name="UploadSkipped" xml:space="preserve"><value>スキップ</value></data>
+  <data name="UploadSummary" xml:space="preserve"><value>アップロード終了：{0} 件をアップロード、{1} 件をスキップ。</value></data>
+  <data name="UploadDestinationChanged" xml:space="preserve"><value>アップロード前に転送先が変更されました：{0}。</value></data>
 </root>

@@ -269,4 +269,12 @@
   <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>غير معروف (أحجام الملفات غير متوفرة)</value></data>
   <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>غير معروف (بانتظار تأكيد الخادم)</value></data>
   <data name="UploadStarting" xml:space="preserve"><value>بدء النقل (إعداد المزوّد)</value></data>
+  <data name="UploadConflictTitle" xml:space="preserve"><value>ملف وجهة موجود</value></data>
+  <data name="UploadYes" xml:space="preserve"><value>نعم</value></data>
+  <data name="UploadYesAll" xml:space="preserve"><value>نعم للكل</value></data>
+  <data name="UploadNo" xml:space="preserve"><value>لا</value></data>
+  <data name="UploadNoAll" xml:space="preserve"><value>لا للكل</value></data>
+  <data name="UploadSkipped" xml:space="preserve"><value>تم التخطي</value></data>
+  <data name="UploadSummary" xml:space="preserve"><value>اكتمل الرفع: تم رفع {0} ملف وتخطي {1}.</value></data>
+  <data name="UploadDestinationChanged" xml:space="preserve"><value>تغيرت الوجهة قبل الرفع: {0}.</value></data>
 </root>
