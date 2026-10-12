@@ -11,6 +11,17 @@ Imports NUnit.Framework
 <TestFixture, Apartment(ApartmentState.STA), NonParallelizable>
 Public Class FolderUploadTest
     <Test>
+    Public Sub AmbiguousExistingDirectoriesFailBeforeAnyCreationOrPayload()
+        Using dispatcher As New UiTestDispatcher()
+            Dim provider As New FixtureProvider With {.AmbiguousExisting = True}
+            Dim operation = DmsBrowser.EnsureUploadDirectoriesAsync(provider, "destination", {"Folder", "Folder/Sub"}, CancellationToken.None)
+            dispatcher.PumpUntil(Function() operation.IsCompleted)
+            Assert.Throws(Of RemotePathNotUniqueException)(Sub() operation.GetAwaiter().GetResult())
+            Assert.That(provider.Created, [Is].Empty)
+            Assert.That(provider.Uploaded, [Is].Empty)
+        End Using
+    End Sub
+    <Test>
     Public Sub MixedSelectionsPreserveHierarchyEmptyFoldersAndAvoidDoubleUploads()
         InLocalScope(Sub(root)
                          Dim folder = Path.Combine(root, "Folder")
@@ -208,8 +219,9 @@ Public Class FolderUploadTest
         Inherits NoDmsProvider
         Friend ReadOnly Created As New List(Of String)
         Friend ReadOnly Uploaded As New List(Of String)
+        Friend AmbiguousExisting As Boolean
         Public Overrides Function ListRemoteItemAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
-            Return Task.FromResult(If(Created.Contains(path), New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = path}, Nothing))
+            Return Task.FromResult(If(Created.Contains(path) OrElse AmbiguousExisting, New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = path, .ExtendedInfosCollisionDetected = AmbiguousExisting}, Nothing))
         End Function
         Public Overrides Function CreateDirectoryAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task
             Created.Add(path)

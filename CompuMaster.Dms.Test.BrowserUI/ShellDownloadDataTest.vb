@@ -56,8 +56,8 @@ Public Class ShellDownloadDataTest
         Return bytes
     End Function
 
-    <TestCase(1), TestCase(2)>
-    Public Sub NativeShellFolderAcceptsAndCopiesVirtualFilesWithoutFetchingOnHover(count As Integer)
+    <TestCase(1, False), TestCase(2, False), TestCase(1, True)>
+    Public Sub NativeShellFolderAcceptsAndCopiesVirtualFilesWithoutFetchingOnHover(count As Integer, internalMove As Boolean)
         Dim root = Path.Combine(Path.GetTempPath(), "dms-shell-target-" & Guid.NewGuid().ToString("N"))
         Assert.That(Directory.Exists(root), [Is].False)
         Directory.CreateDirectory(root)
@@ -76,10 +76,10 @@ Public Class ShellDownloadDataTest
             Using data As New ShellDownloadData(files, Sub(item, path)
                                                           calls += 1
                                                           File.WriteAllText(path, item.ExtendedInfosFileID)
-                                                      End Sub)
+                                                      End Sub, If(internalMove, Guid.NewGuid().ToByteArray(), Nothing))
                 pointer = Marshal.GetComInterfaceForObject(data, GetType(System.Runtime.InteropServices.ComTypes.IDataObject))
                 Dim enter = DirectCast(Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(Marshal.ReadIntPtr(target), 3 * IntPtr.Size), GetType(DragEnterCallback)), DragEnterCallback)
-                Dim effect = 1
+                Dim effect = If(internalMove, 3, 1)
                 Marshal.ThrowExceptionForHR(enter(target, pointer, 1, 0L, effect))
                 Assert.That(effect, [Is].EqualTo(1), "The Windows shell must offer Copy for the virtual files.")
                 Assert.That(calls, [Is].Zero, "Hover negotiation must not fetch remote content.")
@@ -197,6 +197,26 @@ Public Class ShellDownloadDataTest
             Assert.That(callback.DynamicInvoke(pointer, False, 0), [Is].EqualTo(&H40100))
             Assert.That(callback.DynamicInvoke(pointer, True, 1), [Is].EqualTo(&H40101))
         End Using
+    End Sub
+
+    <TestCase(False), TestCase(True)>
+    Public Sub NativeMoveFeedbackAndReleaseRequireAnApprovedInternalTarget(approved As Boolean)
+        Dim sourceType = GetType(DmsBrowser).GetNestedType("CopyDragSource", Reflection.BindingFlags.NonPublic)
+        Dim previousCursor = Cursor.Current
+        Try
+            Using source = DirectCast(Activator.CreateInstance(sourceType, Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic, Nothing, {CType(Function() approved, Func(Of Boolean))}, Nothing), IDisposable)
+                Dim pointer = DirectCast(sourceType.GetProperty("Pointer", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic).GetValue(source), IntPtr)
+                Dim vtable = Marshal.ReadIntPtr(pointer)
+                Dim feedback = Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(vtable, 4 * IntPtr.Size), sourceType.GetNestedType("FeedbackCallback", Reflection.BindingFlags.NonPublic))
+                Dim release = Marshal.GetDelegateForFunctionPointer(Marshal.ReadIntPtr(vtable, 3 * IntPtr.Size), sourceType.GetNestedType("ContinueCallback", Reflection.BindingFlags.NonPublic))
+                Assert.That(feedback.DynamicInvoke(pointer, 2), [Is].EqualTo(If(approved, &H40102, 0)))
+                Assert.That(release.DynamicInvoke(pointer, False, 0), [Is].EqualTo(If(approved, &H40100, &H40101)))
+                Assert.That(feedback.DynamicInvoke(pointer, 1), [Is].EqualTo(&H40102))
+                Assert.That(release.DynamicInvoke(pointer, False, 0), [Is].EqualTo(&H40100), "External Copy remains supported.")
+            End Using
+        Finally
+            Cursor.Current = previousCursor
+        End Try
     End Sub
 
     <Test>

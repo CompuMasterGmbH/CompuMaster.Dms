@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>已跳过</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>上传结束：已上传 {0} 个文件，已跳过 {1} 个。</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>上传前目标已更改：{0}。</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>此提供程序不允许在服务器根目录直接放置文件。</value></data>
 </root>

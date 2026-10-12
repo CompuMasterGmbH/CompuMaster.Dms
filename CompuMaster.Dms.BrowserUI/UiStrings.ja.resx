@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>スキップ</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>アップロード終了：{0} 件をアップロード、{1} 件をスキップ。</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>アップロード前に転送先が変更されました：{0}。</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>このプロバイダーではサーバーのルートにファイルを直接配置できません。</value></data>
 </root>

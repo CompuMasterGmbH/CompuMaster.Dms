@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>تم التخطي</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>اكتمل الرفع: تم رفع {0} ملف وتخطي {1}.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>تغيرت الوجهة قبل الرفع: {0}.</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>لا يسمح هذا المزود بملفات مباشرة في جذر الخادم.</value></data>
 </root>

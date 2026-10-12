@@ -277,4 +277,5 @@
   <data name="UploadSkipped" xml:space="preserve"><value>Übersprungen</value></data>
   <data name="UploadSummary" xml:space="preserve"><value>Upload beendet: {0} Dateien hochgeladen, {1} übersprungen.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>Das Ziel wurde vor dem Upload geändert: {0}.</value></data>
+  <data name="RootFileDropUnavailable" xml:space="preserve"><value>Dieser Provider erlaubt keine Dateien direkt im Server-Stammverzeichnis.</value></data>
 </root>

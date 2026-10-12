@@ -860,7 +860,7 @@ Public Class DmsBrowser
 
     Private Async Sub TreeViewDmsFolders_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles TreeViewDmsFolders.AfterSelect
         If Me.IsDisposed OrElse Me.Disposing Then Return
-        If Me.SuppressSelectionRefresh OrElse TransferRunning OrElse Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Return
+        If Me.SuppressSelectionRefresh OrElse TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning OrElse Me.TreeViewDmsFolders.SelectedNode Is Nothing Then Return
         Try
             Me.SelectedFolder = Me.SelectedFolderPath()
             Await Me.RunTransferAsync(Function() Me.RefreshFilesListAsync(), DmsBrowserFailurePhase.Refresh)
@@ -875,7 +875,7 @@ Public Class DmsBrowser
         If data Is Nothing OrElse data.ChildrenLoaded Then Return
         'WinForms consumes Cancel before an asynchronous event continuation can run.
         e.Cancel = True
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Await Me.RunTransferAsync(Function() Me.AddTreeChildrenAsync(e.Node))
             If Not Me.IsDisposed AndAlso e.Node.TreeView Is Me.TreeViewDmsFolders Then e.Node.Expand()
@@ -891,7 +891,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ButtonCreateNewFolder_Click(sender As Object, e As EventArgs) Handles ButtonCreateNewFolder.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim NewFolderName As String = Nothing
             If Not UITools.TryInputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"), "", NewFolderName) Then Return
@@ -1289,7 +1289,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripButtonDownloadFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonDownloadFile.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then
@@ -1374,7 +1374,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripButtonDeleteFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonDeleteFile.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFileSelected"))
@@ -1411,7 +1411,7 @@ Public Class DmsBrowser
     Private ResourceActionRunning As Boolean
 
     Private Async Function RunFileActionAsync(action As ResourceAction) As Task
-        If ResourceActionRunning OrElse TransferRunning Then Return
+        If ResourceActionRunning OrElse TransferRunning OrElse DragDownloadRunning Then Return
         ResourceActionRunning = True
         Try
             Await Me.RunOperationAndRefreshAsync(Function() Me.RunFileActionCoreAsync(action),
@@ -1556,6 +1556,7 @@ Public Class DmsBrowser
         Dim allowOverwrite As Boolean = False
         Dim existing As DmsResourceItem = Me.DmsProvider.ListRemoteItem(destinationPath)
         If existing IsNot Nothing Then
+            If existing.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(destinationPath)
             Dim questionKey As String = If(source.ItemType = DmsResourceItem.ItemTypes.File, "OverwriteFileQuestion", "MergeFolderQuestion")
             If MessageBox.Show(Me, UiStrings.Format(questionKey, destinationPath), Me.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return False
             allowOverwrite = True
@@ -1583,6 +1584,7 @@ Public Class DmsBrowser
                                       existing = Await Me.DmsProvider.ListRemoteItemAsync(destinationPath)
                                   End Function)
         If existing IsNot Nothing Then
+            If existing.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(destinationPath)
             Dim questionKey As String = If(source.ItemType = DmsResourceItem.ItemTypes.File, "OverwriteFileQuestion", "MergeFolderQuestion")
             If MessageBox.Show(Me, UiStrings.Format(questionKey, destinationPath), Me.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return False
             allowOverwrite = True
@@ -1639,7 +1641,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripButtonSharingsFolder_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFolder.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             If CurrentSelectedFolder() Is Nothing OrElse CurrentSelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootSharingUnsupported"))
             Dim selected = CurrentSelectedFolder()
@@ -1661,7 +1663,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripButtonSharingsFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonSharingsFile.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFileSelected"))
@@ -1800,7 +1802,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripButtonPropertiesFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonPropertiesFile.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count <> 1 Then Throw New DmsUserInputInvalidException(UiStrings.GetText("ExactlyOneItemRequired"))
@@ -2038,7 +2040,7 @@ Public Class DmsBrowser
     End Function
 
     Private Async Sub ToolStripButtonPropertiesFolder_Click(sender As Object, e As EventArgs) Handles ToolStripButtonPropertiesFolder.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFolder As DmsResourceItem = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem
             If SelectedFolder IsNot Nothing Then
@@ -2061,7 +2063,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripButtonRefreshFilesList_Click(sender As Object, e As EventArgs) Handles ToolStripButtonRefreshFilesList.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Await Me.RunTransferAsync(Function() Me.RefreshCurrentFolderAndFilesAsync(), DmsBrowserFailurePhase.Refresh)
         Catch ex As Data.DirectoryNotFoundException
@@ -2173,7 +2175,7 @@ Public Class DmsBrowser
     End Sub
 
     Private Async Sub ToolStripFolderContextButtonDeleteFolder_Click(sender As Object, e As EventArgs) Handles ToolStripFolderContextButtonDeleteFolder.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFolderNode As TreeNode = Me.CurrentSelectedFolderNode
             Dim SelectedFolder As DmsResourceItem = Me.CurrentSelectedFolder
@@ -2294,7 +2296,7 @@ Public Class DmsBrowser
     ''' <param name="sender"></param>
     ''' <param name="e"></param>
     Private Async Sub ToolStripButtonOpenFile_Click(sender As Object, e As EventArgs) Handles ToolStripButtonOpenFile.Click
-        If TransferRunning OrElse ResourceActionRunning Then Return
+        If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then

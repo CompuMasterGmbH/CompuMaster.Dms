@@ -6,8 +6,9 @@ Imports CompuMaster.Dms.Providers
 
 Partial Public Class DmsBrowser
     Private LastUploadSummary As String
-    Private Async Function UploadWithDialogAsync(remoteFolder As String, files As String(), Optional relativePaths As String() = Nothing, Optional directories As String() = Nothing) As Task(Of Boolean)
-        Using dialog = CreateTransferDialog(files, False, Not Me.DmsProvider.SupportsNonUniqueRemoteItems)
+    Private Async Function UploadWithDialogAsync(remoteFolder As String, files As String(), Optional relativePaths As String() = Nothing, Optional directories As String() = Nothing, Optional canWrite As Func(Of Boolean) = Nothing) As Task(Of Boolean)
+        Dim provider = Me.DmsProvider
+        Using dialog = CreateTransferDialog(files, False, Not provider.SupportsNonUniqueRemoteItems)
             Dim conflicts As New UploadConflictPolicy(Function(path)
                                                          Using question As New DownloadConflictDialog(path, Me.Icon, True)
                                                              question.ShowDialog(dialog)
@@ -32,14 +33,14 @@ Partial Public Class DmsBrowser
                     If directories IsNot Nothing AndAlso directories.Length > 0 Then
                         Dim prepared As Integer
                         dialog.ReportPreparation(Nothing, prepared, directories.Length)
-                        Await EnsureUploadDirectoriesAsync(Me.DmsProvider, remoteFolder, directories, dialog.CancellationToken,
+                        Await EnsureUploadDirectoriesAsync(provider, remoteFolder, directories, dialog.CancellationToken,
                             Sub(path)
                                 dialog.ReportPreparation(path, prepared, directories.Length)
                                 prepared += 1
-                            End Sub)
+                            End Sub, canWrite)
                         dialog.ReportPreparation(Nothing, directories.Length, directories.Length)
                     End If
-                    Await UploadBatchWithProgressAsync(Me.DmsProvider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths, plannedTotals, conflicts)
+                    Await UploadBatchWithProgressAsync(provider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths, plannedTotals, conflicts, canWrite)
                 Catch ex As Exception
                     failure = ex
                     If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
@@ -83,7 +84,7 @@ Partial Public Class DmsBrowser
                             End Function).ToArray()
     End Function
 
-    Friend Shared Async Function UploadBatchWithProgressAsync(provider As BaseDmsProvider, remoteFolder As String, files As String(), observer As IProgress(Of UploadBatchSnapshot), cancellationToken As CancellationToken, Optional previous As UploadBatchSnapshot = Nothing, Optional retryFailed As Boolean = True, Optional relativePaths As String() = Nothing, Optional plannedTotals As Long?() = Nothing, Optional conflicts As UploadConflictPolicy = Nothing) As Task
+    Friend Shared Async Function UploadBatchWithProgressAsync(provider As BaseDmsProvider, remoteFolder As String, files As String(), observer As IProgress(Of UploadBatchSnapshot), cancellationToken As CancellationToken, Optional previous As UploadBatchSnapshot = Nothing, Optional retryFailed As Boolean = True, Optional relativePaths As String() = Nothing, Optional plannedTotals As Long?() = Nothing, Optional conflicts As UploadConflictPolicy = Nothing, Optional canWrite As Func(Of Boolean) = Nothing) As Task
         Dim states = If(previous Is Nothing, Enumerable.Repeat(UploadFileState.Waiting, files.Length).ToArray(), CType(previous.States.Clone(), UploadFileState()))
         Dim counters = If(previous Is Nothing, New DmsTransferProgress(files.Length - 1) {}, CType(previous.Counters.Clone(), DmsTransferProgress()))
         Dim errors = If(previous Is Nothing, New Exception(files.Length - 1) {}, CType(previous.Errors.Clone(), Exception()))
@@ -99,6 +100,7 @@ Partial Public Class DmsBrowser
             errors(current) = Nothing
             observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
             Dim active As Boolean = True
+            Dim providerCall As Diagnostics.Stopwatch = Nothing
             Dim progress As New UploadProgressRecorder(Sub(value)
                                                                      If Not active Then Return
                                                                      counters(current) = value
@@ -107,6 +109,7 @@ Partial Public Class DmsBrowser
                                                                      observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
                                                                  End Sub)
             Try
+                If canWrite IsNot Nothing AndAlso Not canWrite() Then Throw New UnauthorizedAccessException()
                 Dim destination = UploadDestinationPath(provider, remoteFolder, If(relativePaths Is Nothing, System.IO.Path.GetFileName(files(current)), relativePaths(current)))
                 If conflicts IsNot Nothing Then
                     Dim choice = Await conflicts.ResolveAsync(provider, destination, cancellationToken)
@@ -120,12 +123,18 @@ Partial Public Class DmsBrowser
                     End If
                 End If
                 cancellationToken.ThrowIfCancellationRequested()
+                If canWrite IsNot Nothing AndAlso Not canWrite() Then Throw New UnauthorizedAccessException()
                 Dim replacement = conflicts?.ApprovedResource(destination)
-                If replacement Is Nothing Then
-                    Await provider.UploadFileWithProgressAsync(destination, files(current), progress, cancellationToken)
-                Else
-                    Await provider.ReplaceFileWithProgressAsync(replacement, files(current), progress, cancellationToken)
-                End If
+                providerCall = Diagnostics.Stopwatch.StartNew()
+                Try
+                    If replacement Is Nothing Then
+                        Await provider.UploadFileWithProgressAsync(destination, files(current), progress, cancellationToken)
+                    Else
+                        Await provider.ReplaceFileWithProgressAsync(replacement, files(current), progress, cancellationToken)
+                    End If
+                Finally
+                    providerCall.Stop()
+                End Try
                 active = False
                 counters(current) = progress.Latest
                 states(current) = UploadFileState.Completed
@@ -145,8 +154,9 @@ Partial Public Class DmsBrowser
                 Throw
             Finally
                 TraceUploadTiming(String.Format(Globalization.CultureInfo.InvariantCulture,
-                    "DMS upload phases: provider={0}; fileIndex={1}; firstSourceBytesSeconds={2}; finalizingSeconds={3}; providerCallSeconds={4:F3}; outcome={5}",
-                    provider.GetType().Name, current, progress.FirstSourceBytesSeconds, progress.FinalizingSeconds, progress.ElapsedSeconds, states(current)))
+                    "DMS upload phases: provider={0}; fileIndex={1}; firstSourceBytesSeconds={2}; finalizingSeconds={3}; fileAttemptSeconds={4:F3}; providerCallSeconds={5}; outcome={6}",
+                    provider.GetType().Name, current, progress.FirstSourceBytesSeconds, progress.FinalizingSeconds, progress.ElapsedSeconds,
+                    If(providerCall Is Nothing, Nothing, CType(providerCall.Elapsed.TotalSeconds, Double?)), states(current)))
             End Try
             observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
         Next
@@ -160,18 +170,21 @@ Partial Public Class DmsBrowser
         Return remoteFolder
     End Function
 
-    Friend Shared Async Function EnsureUploadDirectoriesAsync(provider As BaseDmsProvider, remoteFolder As String, directories As String(), token As CancellationToken, Optional preparing As Action(Of String) = Nothing) As Task
+    Friend Shared Async Function EnsureUploadDirectoriesAsync(provider As BaseDmsProvider, remoteFolder As String, directories As String(), token As CancellationToken, Optional preparing As Action(Of String) = Nothing, Optional canWrite As Func(Of Boolean) = Nothing) As Task
         Dim clock = Diagnostics.Stopwatch.StartNew()
         Dim lookups As Integer
         Dim creations As Integer
         Try
             For Each relative In directories
                 token.ThrowIfCancellationRequested()
+                If canWrite IsNot Nothing AndAlso Not canWrite() Then Throw New UnauthorizedAccessException()
                 Dim destination = UploadDestinationPath(provider, remoteFolder, relative)
                 preparing?.Invoke(destination)
                 lookups += 1
                 Dim item = Await provider.ListRemoteItemAsync(destination, token)
+                If item?.ExtendedInfosCollisionDetected Then Throw New RemotePathNotUniqueException(destination)
                 If item Is Nothing Then
+                    If canWrite IsNot Nothing AndAlso Not canWrite() Then Throw New UnauthorizedAccessException()
                     creations += 1
                     Await provider.CreateDirectoryAsync(destination, token)
                 ElseIf item.ItemType = DmsResourceItem.ItemTypes.File Then
