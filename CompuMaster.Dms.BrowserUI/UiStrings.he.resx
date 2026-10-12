@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>השרת החזיר היסטוריית גרסאות לא תקינה.</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} גרסאות</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>תאריך גרסה</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>תכנון הבחירה המקומית…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>הכנת תיקיות מרוחקות: הושלמו {0} מתוך {1}</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>סה״כ: {0} · {1}/s · זמן נותר {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>לא ידוע (ממתין למדידות העברה)</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>לא ידוע (גדלי הקבצים אינם זמינים)</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>לא ידוע (ממתין לאישור השרת)</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>התחלת העברה (הכנת הספק)</value></data>
 </root>

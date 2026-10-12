@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>أعاد الخادم سجل إصدارات غير صالح.</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} إصدارات</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>تاريخ الإصدار</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>جارٍ تخطيط التحديد المحلي…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>إعداد المجلدات البعيدة: اكتمل {0} من {1}</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>الإجمالي: {0} · {1}/s · الوقت المتبقي {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>غير معروف (بانتظار قياسات النقل)</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>غير معروف (أحجام الملفات غير متوفرة)</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>غير معروف (بانتظار تأكيد الخادم)</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>بدء النقل (إعداد المزوّد)</value></data>
 </root>

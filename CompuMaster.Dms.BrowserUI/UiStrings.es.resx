@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>El servidor devolvió un historial de versiones no válido.</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} versiones</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>Fecha de versión</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>Planificando la selección local…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>Preparando carpetas remotas: {0} de {1} completadas</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>Total: {0} · {1}/s · Tiempo restante {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>Desconocido (esperando datos de transferencia)</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>Desconocido (tamaños de archivo no disponibles)</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>Desconocido (esperando confirmación del servidor)</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>Iniciando transferencia (preparación del proveedor)</value></data>
 </root>

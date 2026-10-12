@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>伺服器傳回了無效的版本歷程。</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} 個版本</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>版本日期</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>正在規劃本機選取項目…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>正在準備遠端資料夾：已完成 {0}/{1}</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>總計：{0} · {1}/s · 剩餘時間 {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>未知（等待傳輸測量資料）</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>未知（無法取得檔案大小）</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>未知（等待伺服器確認）</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>正在啟動傳輸（提供者準備中）</value></data>
 </root>

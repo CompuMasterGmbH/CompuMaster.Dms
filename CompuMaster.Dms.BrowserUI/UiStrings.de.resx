@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>Der Server hat eine ungültige Versionshistorie zurückgegeben.</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} Versionen</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>Versionsdatum</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>Lokale Auswahl wird geplant…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>Remote-Ordner vorbereiten: {0} von {1} abgeschlossen</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>Gesamt: {0} · {1}/s · Restzeit {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>Unbekannt (noch keine Übertragungswerte)</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>Unbekannt (Dateigrößen fehlen)</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>Unbekannt (Serverbestätigung steht aus)</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>Übertragung starten (Provider-Vorbereitung)</value></data>
 </root>

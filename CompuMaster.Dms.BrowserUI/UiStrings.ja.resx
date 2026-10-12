@@ -262,4 +262,11 @@
   <data name="VersionInvalidHistory" xml:space="preserve"><value>サーバーから無効なバージョン履歴が返されました。</value></data>
   <data name="VersionCount" xml:space="preserve"><value>{0} 件のバージョン</value></data>
   <data name="VersionTimestamp" xml:space="preserve"><value>バージョン日時</value></data>
+  <data name="UploadPlanningSelection" xml:space="preserve"><value>ローカルの選択を計画中…</value></data>
+  <data name="UploadPreparingFolderCount" xml:space="preserve"><value>リモートフォルダーを準備中：{1} 個中 {0} 個完了</value></data>
+  <data name="TransferBatchDetails" xml:space="preserve"><value>全体：{0} · {1}/s · 残り時間 {2}</value></data>
+  <data name="TransferAwaitingSamples" xml:space="preserve"><value>不明（転送測定値を待機中）</value></data>
+  <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>不明（ファイルサイズを取得できません）</value></data>
+  <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>不明（サーバーの確認を待機中）</value></data>
+  <data name="UploadStarting" xml:space="preserve"><value>転送を開始中（プロバイダーの準備）</value></data>
 </root>
