@@ -113,12 +113,14 @@ Public Class TransferDisplayTest
     Public Sub ClosingTheFailedUploadDialogDoesNotRethrowTheDisplayedFailure()
         Using dispatcher As New UiTestDispatcher(), browser As New PreviewBrowser(New FixtureProvider With {.FailUpload = True}), timer As New System.Windows.Forms.Timer With {.Interval = 10}
             Dim observed As Boolean
+            Dim observedStatus As String = Nothing
+            Dim observedIcon As IntPtr
             AddHandler timer.Tick,
                 Sub()
                     Dim dialog = Application.OpenForms.OfType(Of UploadProgressDialog)().FirstOrDefault()
                     If dialog Is Nothing OrElse Not dialog.Modal Then Return
-                    Assert.That(dialog.Controls.Find("TransferStatus", True).Single().Text, Does.Contain("Connection reset"))
-                    Assert.That(dialog.Icon.Handle, [Is].EqualTo(browser.Icon.Handle))
+                    observedStatus = dialog.Controls.Find("TransferStatus", True).Single().Text
+                    observedIcon = dialog.Icon.Handle
                     observed = True
                     timer.Stop()
                     dialog.Close()
@@ -129,6 +131,8 @@ Public Class TransferDisplayTest
             Dim operation = DirectCast(method.Invoke(browser, {"folder", New String() {"file"}, Nothing, Nothing}), Task(Of Boolean))
             Assert.DoesNotThrow(Sub() dispatcher.Finish(operation))
             Assert.That(observed, [Is].True)
+            Assert.That(observedStatus, Does.Contain("Connection reset"))
+            Assert.That(observedIcon, [Is].EqualTo(browser.Icon.Handle))
             Assert.That(operation.Result, [Is].False, "A displayed failure must not become a success notification.")
         End Using
     End Sub
@@ -159,6 +163,12 @@ Public Class TransferDisplayTest
         Friend SelectedItem As DmsResourceItem
         Friend Token As CancellationToken
         Friend FailUpload As Boolean
+        Public Overrides Function ListRemoteItemAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of DmsResourceItem)
+            Return Task.FromResult(Of DmsResourceItem)(Nothing)
+        End Function
+        Public Overrides Function ResetCachesForRemoteItemsAsync(path As String, searchType As SearchItemType, Optional cancellationToken As CancellationToken = Nothing) As Task
+            Return Task.CompletedTask
+        End Function
         Public Overrides Function UploadFileWithProgressAsync(path As String, local As String, progress As IProgress(Of DmsTransferProgress), Optional cancellationToken As CancellationToken = Nothing) As Task
             Paths.Add(path)
             If FailUpload Then Return Task.FromException(New System.IO.IOException("Connection reset"))

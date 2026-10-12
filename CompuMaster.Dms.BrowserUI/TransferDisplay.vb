@@ -83,7 +83,7 @@ Friend NotInheritable Class TransferDisplay
         Dim span = now - BatchSamples.Peek().Item1
         If knownBytes AndAlso span > 0 Then rate = FormatBytes(Math.Max(0D, (consumed - BatchSamples.Peek().Item2) / CDec(span)))
         Dim eta = UiStrings.GetText("TransferAwaitingSamples")
-        If snapshot.States.All(Function(state) state = UploadFileState.Completed) Then
+        If snapshot.States.All(Function(state) state = UploadFileState.Completed OrElse state = UploadFileState.Skipped) Then
             eta = "00:00:00"
         ElseIf Not knownTotal Then
             eta = UiStrings.GetText("TransferBatchSizeUnknown")

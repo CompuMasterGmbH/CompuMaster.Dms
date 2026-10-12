@@ -269,4 +269,12 @@
   <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>Unbekannt (Dateigrößen fehlen)</value></data>
   <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>Unbekannt (Serverbestätigung steht aus)</value></data>
   <data name="UploadStarting" xml:space="preserve"><value>Übertragung starten (Provider-Vorbereitung)</value></data>
+  <data name="UploadConflictTitle" xml:space="preserve"><value>Vorhandene Zieldatei</value></data>
+  <data name="UploadYes" xml:space="preserve"><value>&amp;Ja</value></data>
+  <data name="UploadYesAll" xml:space="preserve"><value>Ja für &amp;alle</value></data>
+  <data name="UploadNo" xml:space="preserve"><value>&amp;Nein</value></data>
+  <data name="UploadNoAll" xml:space="preserve"><value>Nein für a&amp;lle</value></data>
+  <data name="UploadSkipped" xml:space="preserve"><value>Übersprungen</value></data>
+  <data name="UploadSummary" xml:space="preserve"><value>Upload beendet: {0} Dateien hochgeladen, {1} übersprungen.</value></data>
+  <data name="UploadDestinationChanged" xml:space="preserve"><value>Das Ziel wurde vor dem Upload geändert: {0}.</value></data>
 </root>

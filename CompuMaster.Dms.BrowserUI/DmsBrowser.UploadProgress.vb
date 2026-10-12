@@ -5,8 +5,16 @@ Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms.Providers
 
 Partial Public Class DmsBrowser
+    Private LastUploadSummary As String
     Private Async Function UploadWithDialogAsync(remoteFolder As String, files As String(), Optional relativePaths As String() = Nothing, Optional directories As String() = Nothing) As Task(Of Boolean)
         Using dialog = CreateTransferDialog(files, False, Not Me.DmsProvider.SupportsNonUniqueRemoteItems)
+            Dim conflicts As New UploadConflictPolicy(Function(path)
+                                                         Using question As New DownloadConflictDialog(path, Me.Icon, True)
+                                                             question.ShowDialog(dialog)
+                                                             If question.Choice = DownloadConflictAction.Cancel Then dialog.CancelOperation()
+                                                             Return New DownloadConflictDecision With {.Choice = question.Choice, .ApplyToAll = question.ApplyToAll.Checked}
+                                                         End Using
+                                                     End Function)
             Dim previous As UploadBatchSnapshot = Nothing
             Dim retryFailed As Boolean = True
             Dim plannedTotals As Long?() = Nothing
@@ -31,7 +39,7 @@ Partial Public Class DmsBrowser
                             End Sub)
                         dialog.ReportPreparation(Nothing, directories.Length, directories.Length)
                     End If
-                    Await UploadBatchWithProgressAsync(Me.DmsProvider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths, plannedTotals)
+                    Await UploadBatchWithProgressAsync(Me.DmsProvider, remoteFolder, files, dialog, dialog.CancellationToken, previous, retryFailed, relativePaths, plannedTotals, conflicts)
                 Catch ex As Exception
                     failure = ex
                     If Not (TypeOf ex Is OperationCanceledException AndAlso dialog.CancellationToken.IsCancellationRequested) Then Me.HandleBrowserFailure(ex, showDialog:=False)
@@ -61,6 +69,8 @@ Partial Public Class DmsBrowser
                 End If
                 Exit Do
             Loop
+            Dim skipped = dialog.LatestSnapshot.States.Count(Function(state) state = UploadFileState.Skipped)
+            LastUploadSummary = If(skipped = 0, UiStrings.GetText("UploadSuccessful"), UiStrings.Format("UploadSummary", dialog.LatestSnapshot.States.Count(Function(state) state = UploadFileState.Completed), skipped))
         End Using
         Return True
     End Function
@@ -73,13 +83,13 @@ Partial Public Class DmsBrowser
                             End Function).ToArray()
     End Function
 
-    Friend Shared Async Function UploadBatchWithProgressAsync(provider As BaseDmsProvider, remoteFolder As String, files As String(), observer As IProgress(Of UploadBatchSnapshot), cancellationToken As CancellationToken, Optional previous As UploadBatchSnapshot = Nothing, Optional retryFailed As Boolean = True, Optional relativePaths As String() = Nothing, Optional plannedTotals As Long?() = Nothing) As Task
+    Friend Shared Async Function UploadBatchWithProgressAsync(provider As BaseDmsProvider, remoteFolder As String, files As String(), observer As IProgress(Of UploadBatchSnapshot), cancellationToken As CancellationToken, Optional previous As UploadBatchSnapshot = Nothing, Optional retryFailed As Boolean = True, Optional relativePaths As String() = Nothing, Optional plannedTotals As Long?() = Nothing, Optional conflicts As UploadConflictPolicy = Nothing) As Task
         Dim states = If(previous Is Nothing, Enumerable.Repeat(UploadFileState.Waiting, files.Length).ToArray(), CType(previous.States.Clone(), UploadFileState()))
         Dim counters = If(previous Is Nothing, New DmsTransferProgress(files.Length - 1) {}, CType(previous.Counters.Clone(), DmsTransferProgress()))
         Dim errors = If(previous Is Nothing, New Exception(files.Length - 1) {}, CType(previous.Errors.Clone(), Exception()))
         For index As Integer = 0 To files.Length - 1
             Dim current = index
-            If states(current) = UploadFileState.Completed OrElse (Not retryFailed AndAlso states(current) <> UploadFileState.Waiting) Then Continue For
+            If states(current) = UploadFileState.Completed OrElse states(current) = UploadFileState.Skipped OrElse (Not retryFailed AndAlso states(current) <> UploadFileState.Waiting) Then Continue For
             If cancellationToken.IsCancellationRequested Then
                 observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
                 cancellationToken.ThrowIfCancellationRequested()
@@ -98,7 +108,24 @@ Partial Public Class DmsBrowser
                                                                  End Sub)
             Try
                 Dim destination = UploadDestinationPath(provider, remoteFolder, If(relativePaths Is Nothing, System.IO.Path.GetFileName(files(current)), relativePaths(current)))
-                Await provider.UploadFileWithProgressAsync(destination, files(current), progress, cancellationToken)
+                If conflicts IsNot Nothing Then
+                    Dim choice = Await conflicts.ResolveAsync(provider, destination, cancellationToken)
+                    If choice = DownloadConflictAction.Cancel Then Throw New OperationCanceledException(cancellationToken)
+                    If choice = DownloadConflictAction.Skip Then
+                        active = False
+                        states(current) = UploadFileState.Skipped
+                        counters(current) = New DmsTransferProgress(0, 0, DmsTransferPhase.Transferring)
+                        observer.Report(New UploadBatchSnapshot(files, states, counters, current, errors, plannedTotals))
+                        Continue For
+                    End If
+                End If
+                cancellationToken.ThrowIfCancellationRequested()
+                Dim replacement = conflicts?.ApprovedResource(destination)
+                If replacement Is Nothing Then
+                    Await provider.UploadFileWithProgressAsync(destination, files(current), progress, cancellationToken)
+                Else
+                    Await provider.ReplaceFileWithProgressAsync(replacement, files(current), progress, cancellationToken)
+                End If
                 active = False
                 counters(current) = progress.Latest
                 states(current) = UploadFileState.Completed
@@ -217,6 +244,7 @@ Friend Enum UploadFileState
     Failed
     Cancelled
     Starting
+    Skipped
 End Enum
 
 Friend NotInheritable Class UploadBatchSnapshot
@@ -241,7 +269,7 @@ Friend NotInheritable Class UploadBatchSnapshot
             If Counters.Any(Function(value) value Is Nothing OrElse Not value.TotalBytes.HasValue OrElse Not value.BytesTransferred.HasValue) Then Return Nothing
             Dim total As Decimal = Counters.Sum(Function(value) CDec(value.TotalBytes.Value))
             Dim consumed As Decimal = Counters.Sum(Function(value) CDec(Math.Min(value.BytesTransferred.Value, value.TotalBytes.Value)))
-            If total = 0 Then Return If(States.All(Function(state) state = UploadFileState.Completed), 100, 0)
+            If total = 0 Then Return If(States.All(Function(state) state = UploadFileState.Completed OrElse state = UploadFileState.Skipped), 100, 0)
             Return CInt(Math.Min(100D, Math.Floor(consumed * 100D / total)))
         End Get
     End Property
@@ -477,6 +505,10 @@ Friend NotInheritable Class UploadProgressDialog
         StatusLabel.Text = UiStrings.GetText(If(TypeOf failure Is OperationCanceledException, "UploadCancelled", "UploadFailed")) & ": " & failure.Message
         DiagnosticTip.SetToolTip(StatusLabel, failure.ToString())
         ArrangeProgressControls()
+    End Sub
+
+    Friend Sub CancelOperation()
+        Cancellation.Cancel()
     End Sub
 
     Friend Sub PrepareAttempt()

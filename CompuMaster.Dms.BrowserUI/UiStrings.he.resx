@@ -269,4 +269,12 @@
   <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>לא ידוע (גדלי הקבצים אינם זמינים)</value></data>
   <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>לא ידוע (ממתין לאישור השרת)</value></data>
   <data name="UploadStarting" xml:space="preserve"><value>התחלת העברה (הכנת הספק)</value></data>
+  <data name="UploadConflictTitle" xml:space="preserve"><value>קובץ יעד קיים</value></data>
+  <data name="UploadYes" xml:space="preserve"><value>כן</value></data>
+  <data name="UploadYesAll" xml:space="preserve"><value>כן לכולם</value></data>
+  <data name="UploadNo" xml:space="preserve"><value>לא</value></data>
+  <data name="UploadNoAll" xml:space="preserve"><value>לא לכולם</value></data>
+  <data name="UploadSkipped" xml:space="preserve"><value>דולג</value></data>
+  <data name="UploadSummary" xml:space="preserve"><value>ההעלאה הסתיימה: {0} קבצים הועלו, {1} דולגו.</value></data>
+  <data name="UploadDestinationChanged" xml:space="preserve"><value>היעד השתנה לפני ההעלאה: {0}.</value></data>
 </root>

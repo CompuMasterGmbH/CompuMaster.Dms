@@ -269,4 +269,12 @@
   <data name="TransferBatchSizeUnknown" xml:space="preserve"><value>未知（文件大小不可用）</value></data>
   <data name="TransferAwaitingConfirmation" xml:space="preserve"><value>未知（等待服务器确认）</value></data>
   <data name="UploadStarting" xml:space="preserve"><value>正在启动传输（提供程序准备中）</value></data>
+  <data name="UploadConflictTitle" xml:space="preserve"><value>目标文件已存在</value></data>
+  <data name="UploadYes" xml:space="preserve"><value>是</value></data>
+  <data name="UploadYesAll" xml:space="preserve"><value>全部是</value></data>
+  <data name="UploadNo" xml:space="preserve"><value>否</value></data>
+  <data name="UploadNoAll" xml:space="preserve"><value>全部否</value></data>
+  <data name="UploadSkipped" xml:space="preserve"><value>已跳过</value></data>
+  <data name="UploadSummary" xml:space="preserve"><value>上传结束：已上传 {0} 个文件，已跳过 {1} 个。</value></data>
+  <data name="UploadDestinationChanged" xml:space="preserve"><value>上传前目标已更改：{0}。</value></data>
 </root>

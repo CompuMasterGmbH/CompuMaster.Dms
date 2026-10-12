@@ -96,7 +96,7 @@ Partial Public Class DmsBrowser
                                        successful = Await UploadWithDialogAsync(destination, plan.Files, plan.RelativePaths, plan.Directories)
                                        Await RefreshTreePreservingViewAsync(target)
                                    End Function)
-            If successful Then MessageBox.Show(Me, UiStrings.GetText("UploadSuccessful"), Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
+            If successful Then MessageBox.Show(Me, LastUploadSummary, Text, MessageBoxButtons.OK, MessageBoxIcon.Information)
         Catch ex As OperationCanceledException
             Return
         Catch ex As Exception
