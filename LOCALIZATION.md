@@ -317,3 +317,47 @@ configuration, including two round trips. Framework took 38 seconds; .NET 8 took
 36 seconds. This does not reverify all fifteen native scenarios or physical
 150%/200%. OS-owned message-box/file-dialog text and placement, physical 150%,
 other font installations and full RTL UX remain separate acceptance in #52/#66.
+## Native dialog closeout verification (2026-10-12)
+
+The closeout for #67, #68, #69 and #71 starts from exact main
+`107cf50dc0e565a4395735aea1ff40b3b2bac044`. No library, provider, resource,
+SDK dependency or public/protected API changes are included in this follow-up.
+
+The extended acceptance subset actually executed and passed 97/97 cases on each
+of net48 and net8.0-windows, with no skipped cases. This includes all ten cultures,
+installed Segoe UI/Arial/Tahoma, fifteen layout scenarios, independent formatting
+culture, unsupported-culture fallback and the eleven native retry-tooltip cases.
+The current-main focus fixture passed 17/17; its foreground prerequisite was
+established successfully. Provider localization checks passed 14/14 isolated cases.
+
+`NativeLocalizedDialogAcceptanceTest` adds optional Windows-owned message, open,
+save and folder dialog acceptance for all ten cultures, starting on either display.
+It verifies actual modal visibility, owner-monitor placement, work-area bounds,
+complete localized titles, mixed-Unicode message/filename preservation and measured
+message height. OS-provided buttons/navigation follow the installed Windows language;
+this does not promise to translate Windows itself with CurrentUICulture.
+Native window DPI is recorded rather than assuming Windows MessageBox uses the
+same DPI awareness as the application. Optional PrintWindow previews support visual
+review. The ten-second watchdog closes only a dialog owned by the test's window;
+callback failures are propagated outside the modal loop. Each run creates and
+verifies removal of one unique, empty local temporary directory, preserving any
+original failure if cleanup also fails. No DMS server or saved profile is used.
+
+The fixture is linked into the dual-target acceptance project. Without
+`DMS_LOCALIZATION_EXTENDED_TESTS=1`, its twenty cases are explicitly skipped.
+The native executable can run these checks after each culture/monitor layout case
+with `DMS_NATIVE_DIALOG_ACCEPTANCE=1`, preserving the real application's manifest
+and DPI configuration on both frameworks. The optional native-dialog scope is
+included in the notice timing key and initial estimate.
+
+The workstation GUI window was explicitly coordinated with the concurrent DMS
+chat. Launchers hold `Local\CompuMaster.Dms.WorkstationGuiTests` before countdown
+and release it in finally; a busy lease fails before starting a test process.
+The existing nonactivating notice, countdown, ETA/overrun display and cleanup remain
+active. This follow-up does not change Windows display scaling.
+
+Physical 150% acceptance and coordinated post-merge server CI remain pending.
+Publication requires a separately approved release after those required CI gates.
+The 2026.10.11.0 release predates PR #99 and this follow-up. Full RTL remains
+outside these language/demo tickets and is tracked in #66; exhaustive coverage
+of all Windows/font installations is not claimed.
