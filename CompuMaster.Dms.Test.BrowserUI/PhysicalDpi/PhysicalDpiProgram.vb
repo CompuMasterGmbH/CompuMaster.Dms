@@ -31,21 +31,27 @@ Friend Module PhysicalDpiProgram
                 Dim displays = LocalizedMonitorDpiTest.ReadTimingConfiguration()
                 Dim scenarios = LocalizedMonitorDpiTest.ReadSelectedScenarios()
                 Dim nativeDialogs = Environment.GetEnvironmentVariable("DMS_NATIVE_DIALOG_ACCEPTANCE") = "1"
-                Environment.SetEnvironmentVariable("DMS_GUI_TEST_RUN_KEY", "physical-monitor-v2|" & Environment.Version.ToString() & "|screenshots=" & screenshots.ToString() & "|displays=" & displays.Key & "|scenarios=" & String.Join(",", scenarios) & "|nativeDialogs=" & nativeDialogs.ToString())
+                Dim tooltipsOnly = Environment.GetEnvironmentVariable("DMS_NATIVE_TOOLTIP_ONLY") = "1"
+                Environment.SetEnvironmentVariable("DMS_GUI_TEST_RUN_KEY", "physical-monitor-v2|" & Environment.Version.ToString() & "|screenshots=" & screenshots.ToString() & "|displays=" & displays.Key & "|scenarios=" & String.Join(",", scenarios) & "|nativeDialogs=" & nativeDialogs.ToString() & "|tooltipsOnly=" & tooltipsOnly.ToString())
                 Environment.SetEnvironmentVariable("DMS_GUI_TEST_WORK_UNITS", (selected.Length * 2).ToString(CultureInfo.InvariantCulture))
                 'Larger native surfaces cost more to lay out and repaint. Once measured,
                 'history for this actual monitor configuration replaces the initial budget.
                 Dim areaFactor = Math.Pow(Math.Max(125, displays.Value) / 125.0, 2)
                 Dim fallback = CInt(Math.Ceiling(selected.Length * If(screenshots, 45, 20) * areaFactor * scenarios.Length / 13.0 + If(nativeDialogs, selected.Length * 6, 0) + 5))
+                If tooltipsOnly Then fallback = selected.Length * 2 + 5
                 Environment.SetEnvironmentVariable("DMS_GUI_TEST_FALLBACK_SECONDS", fallback.ToString(CultureInfo.InvariantCulture))
                 notice.StartNotice()
                 For Each culture In selected
                     For Each startOnRight In {False, True}
                         Try
                             Using context As New NUnit.Framework.Internal.TestExecutionContext.IsolatedContext()
-                                Dim fixture As New LocalizedMonitorDpiTest()
-                                fixture.ControlsFitAcrossNativeMonitors(culture, startOnRight)
-                                If nativeDialogs Then NativeLocalizedDialogAcceptanceTest.VerifyDialogs(culture, startOnRight)
+                                If tooltipsOnly Then
+                                    NativeLocalizedDialogAcceptanceTest.VerifyTooltip(culture, startOnRight)
+                                Else
+                                    Dim fixture As New LocalizedMonitorDpiTest()
+                                    fixture.ControlsFitAcrossNativeMonitors(culture, startOnRight)
+                                    If nativeDialogs Then NativeLocalizedDialogAcceptanceTest.VerifyDialogs(culture, startOnRight)
+                                End If
                             End Using
                             passed += 1
                             log.WriteLine($"PASS {culture}; startOnRight={startOnRight}")

@@ -344,7 +344,9 @@ verifies removal of one unique, empty local temporary directory, preserving any
 original failure if cleanup also fails. No DMS server or saved profile is used.
 
 The fixture is linked into the dual-target acceptance project. Without
-`DMS_LOCALIZATION_EXTENDED_TESTS=1`, its twenty cases are explicitly skipped.
+`DMS_LOCALIZATION_EXTENDED_TESTS=1`, its twenty native-dialog cases are explicitly skipped.
+The twenty physical-tooltip cases additionally require `DMS_PHYSICAL_DPI_TESTS=1`.
+Ordinary CI explicitly skips all forty optional cases.
 The native executable can run these checks after each culture/monitor layout case
 with `DMS_NATIVE_DIALOG_ACCEPTANCE=1`, preserving the real application's manifest
 and DPI configuration on both frameworks. The optional native-dialog scope is
@@ -354,9 +356,10 @@ The workstation GUI window was explicitly coordinated with the concurrent DMS
 chat. Launchers hold `Local\CompuMaster.Dms.WorkstationGuiTests` before countdown
 and release it in finally; a busy lease fails before starting a test process.
 The existing nonactivating notice, countdown, ETA/overrun display and cleanup remain
-active. This follow-up does not change Windows display scaling.
+active. The fixture does not change Windows display scaling. The user separately
+authorized the temporary physical 150% workstation configuration described below.
 
-Physical 150% acceptance and coordinated post-merge server CI remain pending.
+Coordinated post-merge server CI remains pending.
 Publication requires a separately approved release after those required CI gates.
 The 2026.10.11.0 release predates PR #99 and this follow-up. Full RTL remains
 outside these language/demo tickets and is tracked in #66; exhaustive coverage
@@ -375,5 +378,32 @@ cases in 206.2 seconds at physical 100%/96 DPI and 125%/120 DPI. It checked all
 fifteen scenarios, two monitor round trips, minimum/wide/constrained sizes and
 all four native dialog types per case (80 observed dialogs). The earlier snapshot
 matrix also passed 20/20; representative native Hindi/Chinese/Spanish and
-mixed-Unicode font/instance previews were inspected. The final Framework rerun
-is recorded separately after completion; the earlier 18/20 result is retained.
+mixed-Unicode font/instance previews were inspected. The corrected final Framework
+matrix also passed 20/20 in 197.5 seconds; the
+earlier 18/20 test-oracle result is retained.
+
+The approved physical 100%/150% (96/144 DPI) matrices passed all twenty
+culture/start-monitor cases on each runtime: Framework in 257.7 seconds and
+.NET 8 in 226.3 seconds. Each matrix checks all fifteen scenarios, both round
+trips, three window sizes and eighty observed native modal dialogs. Representative
+150% Hindi login and French sharing previews were inspected. The right-hand
+3840x2160 monitor was restored to its original 125%; all four monitors' scaling,
+resolution and position matched the inventory taken before the temporary change.
+No registry writes, saved credentials, remote DMS resources or SDK pins were used.
+
+`DMS_NATIVE_TOOLTIP_ONLY=1` selects only the twenty physical-monitor retry-tooltip
+cases in the native executable. It retains the application manifest/DPI settings,
+notice/countdown, measured ETA and cleanup. The audit checks actual native popup
+creation, exact localized text, positive size within the monitor work area and
+matching WinForms/native owner DPI. A completed failed-transfer fixture supplies
+the retry hint. ShowAlways is enabled only on this fixture because foreground
+ownership after a nonactivating notice is not a tooltip-fit prerequisite.
+
+The final tooltip-only matrices passed 20/20 cases on each runtime at both
+100%/125% and 100%/150% (80/80 additional native popups in total). On the right
+monitor, both native and WinForms owner DPI were 120 or 144 as configured.
+The first inactive-host attempt retained 19/20 and the foreground-prerequisite
+attempt retained 0/20; these fixture prerequisites were corrected before the
+final four successful matrices. The final ordinary resource/demo/default-gate
+run passed 53 cases with all forty optional native cases explicitly skipped.
+The GUI lease was returned after verified display restoration and notice cleanup.
