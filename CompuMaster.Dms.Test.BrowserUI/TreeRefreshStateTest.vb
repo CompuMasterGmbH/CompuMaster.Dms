@@ -8,6 +8,32 @@ Imports NUnit.Framework
 
 <TestFixture, Apartment(ApartmentState.STA), NonParallelizable>
 Public Class TreeRefreshStateTest
+    <Test>
+    Public Sub SelectionAndExpansionSurviveCompleteNodeReplacementDuringRefresh()
+        Dim provider As New TreeProvider()
+        Using dispatcher As New UiTestDispatcher(), browser As New TreeBrowser(provider)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            Dim parent = browser.TreeViewDmsFolders.Nodes(0).Nodes.Cast(Of TreeNode)().Single(Function(node) node.Text = "Folder40")
+            dispatcher.Finish(browser.AddTreeChildrenAsync(parent))
+            parent.Expand()
+            Dim previous = parent.Nodes(0)
+            browser.TreeViewDmsFolders.SelectedNode = previous
+            dispatcher.WaitForEvents()
+            provider.BeforeRootListing = Async Function()
+                                             provider.BeforeRootListing = Nothing
+                                             Await browser.LoadTreeAsync()
+                                         End Function
+            dispatcher.Finish(browser.RefreshCurrentFolderAndFilesAsync())
+            Dim selected = browser.TreeViewDmsFolders.SelectedNode
+            Assert.That(Object.ReferenceEquals(selected, previous), [Is].False)
+            Assert.That(selected.Text, [Is].EqualTo("Child"))
+            Assert.That(selected.Parent.Text, [Is].EqualTo("Folder40"))
+            Assert.That(selected.Parent.IsExpanded, [Is].True)
+            Assert.That(selected.IsVisible, [Is].True)
+            Assert.That(provider.LastFilesPath, [Is].EqualTo("Folder40/Child"))
+        End Using
+    End Sub
     <TestCase(False), TestCase(True)>
     Public Sub RefreshKeepsExpandedSelectionAfterMetadataOrPathChanges(rename As Boolean)
         Dim provider As New TreeProvider()
@@ -27,6 +53,7 @@ Public Class TreeRefreshStateTest
             Assert.That(selected.Text, [Is].EqualTo("Child"))
             Assert.That(selected.Parent.Text, [Is].EqualTo(provider.ParentName))
             Assert.That(selected.Parent.IsExpanded, [Is].True)
+            Assert.That(selected.IsVisible, [Is].True)
             Assert.That(provider.LastFilesPath, [Is].EqualTo(provider.ParentName & "/Child"))
             Assert.That(browser.Failure, [Is].Null, browser.Failure?.ToString())
         End Using
@@ -85,10 +112,12 @@ Public Class TreeRefreshStateTest
         Friend ParentName As String = "Folder40"
         Friend RemoveChild As Boolean
         Friend LastFilesPath As String
+        Friend BeforeRootListing As Func(Of Task)
         Public Overrides ReadOnly Property SupportsCollections As Boolean = False
-        Public Overrides Function ListDirectoryEntriesAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
+        Public Overrides Async Function ListDirectoryEntriesAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
             Dim items As New List(Of DmsResourceItem)
             If String.IsNullOrEmpty(path) Then
+                If BeforeRootListing IsNot Nothing Then Await BeforeRootListing()
                 For index = 0 To 49
                     Dim name = If(index = 40, ParentName, "Folder" & index.ToString("00"))
                     items.Add(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = name, .Name = name,
@@ -98,7 +127,7 @@ Public Class TreeRefreshStateTest
                 items.Add(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = ParentName & "/Child", .Name = "Child",
                     .ExtendedInfosFolderID = "child", .HasChildDirectories = False})
             End If
-            Return Task.FromResult(items)
+            Return items
         End Function
         Public Overrides Function ListEntriesAsync(path As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of List(Of DmsResourceItem))
             Return ListDirectoryEntriesAsync(path, cancellationToken)
