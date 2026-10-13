@@ -103,8 +103,48 @@ Friend NotInheritable Class ReadOnlyDiagnosticSupport
 
     Friend Shared Function SafeFailure(server As String, phase As String, failure As Exception) As String
         Dim diagnostic = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.Unavailable, OcsSharingDiscoveryPhase.Capabilities, failure)
+        Dim kind = diagnostic.FailureKind
+        Dim status = diagnostic.HttpStatus
+        Dim current = failure
+        For depth = 0 To 7
+            If current Is Nothing Then Exit For
+            Dim knownStatus As Integer? = Nothing
+            If TypeOf current Is CenterDevice.Rest.Exceptions.InternalServerErrorException Then
+                knownStatus = 500
+            ElseIf TypeOf current Is CenterDevice.Rest.Exceptions.NotFoundException Then
+                knownStatus = 404
+            ElseIf TypeOf current Is CenterDevice.Rest.Exceptions.ForbiddenException Then
+                knownStatus = 403
+            ElseIf TypeOf current Is CenterDevice.Rest.Exceptions.UnauthorizedException Then
+                knownStatus = 401
+            ElseIf TypeOf current Is CenterDevice.Rest.Exceptions.BadRequestException Then
+                knownStatus = 400
+            End If
+            If knownStatus.HasValue Then
+                kind = "CenterDeviceHttp"
+            ElseIf TypeOf current Is Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException Then
+                kind = "ScopevisioApi"
+                knownStatus = DirectCast(current, Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException).ErrorCode
+            ElseIf TypeOf current Is Net.WebException Then
+                Try
+                    'The published Teamwork handler sets this exact integer key, including when the transport cause is null.
+                    Dim value = current.Data("CompuMaster.Scopevisio.Teamwork.HttpStatusCode")
+                    If TypeOf value Is Integer AndAlso CInt(value) >= 100 AndAlso CInt(value) <= 599 Then
+                        knownStatus = CInt(value)
+                        kind = "TeamworkHttp"
+                    End If
+                Catch
+                    'An optional metadata probe must never break safe reporting.
+                End Try
+            End If
+            If knownStatus.HasValue AndAlso knownStatus.Value >= 100 AndAlso knownStatus.Value <= 599 Then
+                If Not status.HasValue Then status = knownStatus
+                Exit For
+            End If
+            current = current.InnerException
+        Next
         'The callers supply fixed phase/server labels; the original exception is never rethrown.
-        Return "Read-only " & server & " phase=" & phase & "; failure=" & diagnostic.FailureKind &
-            "; HTTP=" & If(diagnostic.HttpStatus.HasValue, diagnostic.HttpStatus.Value.ToString(Globalization.CultureInfo.InvariantCulture), "unknown") & "."
+        Return "Read-only " & server & " phase=" & phase & "; failure=" & kind &
+            "; HTTP=" & If(status.HasValue, status.Value.ToString(Globalization.CultureInfo.InvariantCulture), "unknown") & "."
     End Function
 End Class

@@ -52,4 +52,58 @@ Public NotInheritable Class ReadOnlyServerDiagnosticTest
         Assert.DoesNotThrow(Sub() ReadOnlyDiagnosticSupport.ValidateCiWindow(True, True, valid, now))
         Assert.DoesNotThrow(Sub() ReadOnlyDiagnosticSupport.ValidateCiWindow(True, True, "2026-10-13T12:00:00+02:00", now))
     End Sub
+
+    <TestCase(500), TestCase(404), TestCase(403), TestCase(401), TestCase(400)>
+    Public Sub TypedSdkHttpErrorRetainsKnownStatusWithoutExposingPayload(status As Integer)
+        Dim failure As Exception
+        Select Case status
+            Case 500 : failure = New CenterDevice.Rest.Exceptions.InternalServerErrorException("secret response body", Nothing)
+            Case 404 : failure = New CenterDevice.Rest.Exceptions.NotFoundException("secret response body", Nothing)
+            Case 403 : failure = New CenterDevice.Rest.Exceptions.ForbiddenException("secret response body", Nothing)
+            Case 401 : failure = New CenterDevice.Rest.Exceptions.UnauthorizedException("secret response body", Nothing)
+            Case Else : failure = New CenterDevice.Rest.Exceptions.BadRequestException("secret response body", Nothing)
+        End Select
+        failure.Data("Authorization") = "secret bearer"
+        Assert.That(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", "CollectionsSync", failure),
+                    [Is].EqualTo("Read-only Scopevisio phase=CollectionsSync; failure=CenterDeviceHttp; HTTP=" & status.ToString() & "."))
+    End Sub
+
+    <Test>
+    Public Sub WrappedScopevisioApiFailureRetainsKnownAuthorizationStatus()
+        Dim failure = CreateApiFailure(401)
+        failure.Data("Authorization") = "secret bearer"
+        Dim wrapper As New Exception("secret account URL", failure)
+        Assert.That(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", "Authorize", wrapper),
+                    [Is].EqualTo("Read-only Scopevisio phase=Authorize; failure=ScopevisioApi; HTTP=401."))
+    End Sub
+
+    <TestCase(0), TestCase(99), TestCase(600)>
+    Public Sub ApiErrorCodesOutsideHttpRangeRemainUnknown(status As Integer)
+        Assert.That(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", "Authorize", CreateApiFailure(status)),
+                    [Is].EqualTo("Read-only Scopevisio phase=Authorize; failure=ScopevisioApi; HTTP=unknown."))
+    End Sub
+
+    <Test>
+    Public Sub BridgeStructuredStatusSurvivesWhenNoInnerHttpExceptionExists()
+        Dim failure As New Net.WebException("secret bridge response")
+        failure.Data("CompuMaster.Scopevisio.Teamwork.HttpStatusCode") = 500
+        failure.Data("Authorization") = "secret bearer"
+        Assert.That(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", "CollectionsSync", failure),
+                    [Is].EqualTo("Read-only Scopevisio phase=CollectionsSync; failure=TeamworkHttp; HTTP=500."))
+    End Sub
+
+    <TestCase("500"), TestCase(0), TestCase(600)>
+    Public Sub BridgeStatusRequiresTheExactKeyAndABoundedInteger(value As Object)
+        Dim failure As New Net.WebException("secret response HTTP500")
+        failure.Data("HttpStatusCode") = 500
+        failure.Data("CompuMaster.Scopevisio.Teamwork.HttpStatusCode") = value
+        Assert.That(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", "CollectionsSync", failure),
+                    [Is].EqualTo("Read-only Scopevisio phase=CollectionsSync; failure=WebRequest; HTTP=unknown."))
+    End Sub
+
+    Private Shared Function CreateApiFailure(status As Integer) As Exception
+        Dim constructor = GetType(Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException).GetConstructor(
+            Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic, Nothing, {GetType(Integer), GetType(String)}, Nothing)
+        Return DirectCast(constructor.Invoke(New Object() {status, "secret response body"}), Exception)
+    End Function
 End Class
