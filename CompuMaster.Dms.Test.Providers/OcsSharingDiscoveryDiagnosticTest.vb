@@ -68,4 +68,20 @@ Public Class OcsSharingDiscoveryDiagnosticTest
         Assert.That(diagnostic.HttpStatus.HasValue, [Is].False)
         Assert.That(diagnostic.ToSafeSummary(), Does.Not.Contain("secret"))
     End Sub
+
+    <TestCase("JsonPayload"), TestCase("PayloadShape"), TestCase("Cancellation"), TestCase("Format"), TestCase("Argument")>
+    Public Sub CapabilityFailuresUseFiniteCategoriesWithoutExposingMessages(expected As String)
+        Dim failure As Exception
+        Select Case expected
+            Case "JsonPayload" : failure = New Newtonsoft.Json.JsonReaderException("secret body")
+            Case "PayloadShape" : failure = New InvalidCastException("secret body")
+            Case "Cancellation" : failure = New Threading.Tasks.TaskCanceledException("secret URL")
+            Case "Argument" : failure = New ArgumentNullException("secret field")
+            Case Else : failure = New FormatException("secret field")
+        End Select
+        Dim diagnostic = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.Unavailable, OcsSharingDiscoveryPhase.Capabilities,
+                                                              New Exception("secret wrapper", failure))
+        Assert.That(diagnostic.FailureKind, [Is].EqualTo(expected))
+        Assert.That(diagnostic.ToSafeSummary(), Does.Not.Contain("secret"))
+    End Sub
 End Class

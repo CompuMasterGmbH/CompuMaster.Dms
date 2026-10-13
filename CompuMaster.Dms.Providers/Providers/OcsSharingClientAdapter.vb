@@ -137,6 +137,7 @@ Namespace Providers
             Me.DiscoveryPhase = OcsSharingDiscoveryPhase.Capabilities
             Dim CapabilityJson As String = Me.ReadJson("cloud/capabilities")
             Me.ObservedVersionCapabilitiesJson = CapabilityJson
+            Me.DiscoveryPhase = OcsSharingDiscoveryPhase.CapabilityFamily
             Me.ObservedServerFamily = DetectServerFamily(Config, CapabilityJson)
 #If OCS_FILE_VERSIONS Then
             Try
@@ -222,10 +223,15 @@ Namespace Providers
                 Dim document = JObject.Parse(capabilityJson)
                 Dim status = CStr(document.SelectToken("ocs.meta.statuscode"))
                 If status <> "100" AndAlso status <> "200" Then Return OcsServerFamily.Unknown
-                Fingerprint &= " " & CStr(document.SelectToken("ocs.data.version.productname"))?.ToLowerInvariant()
-                Fingerprint &= " " & CStr(document.SelectToken("ocs.data.version.product"))?.ToLowerInvariant()
+                For Each path In {"ocs.data.version.productname", "ocs.data.version.product"}
+                    Dim product = document.SelectToken(path)
+                    If product IsNot Nothing AndAlso product.Type = JTokenType.String Then
+                        Fingerprint &= " " & CStr(product).ToLowerInvariant()
+                    End If
+                Next
                 'An authenticated spaces capability is specific to Infinite Scale; it does not enable classic sharing.
-                If document.SelectToken("ocs.data.capabilities.spaces.enabled")?.Type = JTokenType.Boolean AndAlso CBool(document.SelectToken("ocs.data.capabilities.spaces.enabled")) Then Return OcsServerFamily.OwnCloudInfiniteScale
+                Dim spaces = document.SelectToken("ocs.data.capabilities.spaces.enabled")
+                If spaces IsNot Nothing AndAlso spaces.Type = JTokenType.Boolean AndAlso CBool(spaces) Then Return OcsServerFamily.OwnCloudInfiniteScale
             End If
 
             If Fingerprint.Contains("nextcloud") Then
