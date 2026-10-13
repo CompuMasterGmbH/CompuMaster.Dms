@@ -45,13 +45,21 @@ Namespace Providers
                 If TypeOf current Is HttpRequestException Then
                     failureKind = "HttpRequest"
                     'StatusCode is unavailable in the net48/netstandard2 reference assemblies.
-                    Dim statusProperty = GetType(HttpRequestException).GetProperty("StatusCode")
-                    Dim value = statusProperty?.GetValue(current)
-                    If TypeOf value Is HttpStatusCode Then status = CInt(DirectCast(value, HttpStatusCode))
+                    Try
+                        Dim statusProperty = GetType(HttpRequestException).GetProperty("StatusCode")
+                        Dim value = statusProperty?.GetValue(current)
+                        If TypeOf value Is HttpStatusCode Then status = CInt(DirectCast(value, HttpStatusCode))
+                    Catch
+                        'Optional diagnostics must not interrupt the generic WebDAV fallback.
+                    End Try
                 ElseIf TypeOf current Is WebException Then
                     failureKind = "WebRequest"
-                    Dim response = TryCast(DirectCast(current, WebException).Response, HttpWebResponse)
-                    If response IsNot Nothing Then status = CInt(response.StatusCode)
+                    Try
+                        Dim response = TryCast(DirectCast(current, WebException).Response, HttpWebResponse)
+                        If response IsNot Nothing Then status = CInt(response.StatusCode)
+                    Catch
+                        'Closed responses can throw when their status is read. Keep any known status.
+                    End Try
                 ElseIf failureKind = "None" Then
                     failureKind = If(TypeOf current Is IO.InvalidDataException OrElse TypeOf current Is InvalidOperationException, "Protocol", "Other")
                 End If
