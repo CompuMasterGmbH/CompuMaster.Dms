@@ -1102,8 +1102,9 @@ Public MustInherit Class BaseDmsProviderTestBase
         Dim original As Exception = Nothing
         Dim actions = OwnedCopyTestCleanup.ForChildren(provider, Me.RemoteTestFolderName,
             Me.CopyFileTestFileTargets.Concat(New String() {Me.CopyFileTestFileSource.Key}))
+        Dim rootScope As New OwnedCopyTestRoot(provider, Me.RemoteTestFolderName)
         Try
-            CreateRemoteTestCollectionOrFolderIfNotExisting(provider, Me.RemoteTestFolderName)
+            rootScope.Prepare()
             'Recover exact owned leftovers and verify absence before creating fresh resources.
             OwnedCopyTestCleanup.Complete(actions, Nothing)
             If provider.SupportsCollections Then
@@ -1125,9 +1126,9 @@ Public MustInherit Class BaseDmsProviderTestBase
             original = failure
         End Try
         'VB cannot await inside Finally; these synchronous actions always run before rethrow.
-        'Keep the configured parent root. Remove only this case's exact owned file names
-        'and empty owned target subfolders; unexpected children remain for reconciliation.
-        OwnedCopyTestCleanup.Complete(actions, original)
+        'Children are removed before a confirmed, newly created empty case root.
+        'Configured/pre-existing roots and uncertain identities or contents are preserved.
+        OwnedCopyTestCleanup.CompleteScope(actions, rootScope, original)
     End Sub
 
     <Test, Category("TestLevel2")> Public Sub Copy_Directories()
