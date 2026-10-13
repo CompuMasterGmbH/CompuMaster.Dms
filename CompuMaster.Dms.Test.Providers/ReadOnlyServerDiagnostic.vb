@@ -39,6 +39,8 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
         Dim phase = "CiAdmission"
         Try
             ReadOnlyDiagnosticSupport.RequireCiWindow({"TEST_SCOPEVISIOTEAMWORK_USERNAME", "TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO", "TEST_SCOPEVISIOTEAMWORK_PASSWORD"})
+            phase = "HistoricalWitnessAdmission"
+            Dim witness = HistoricalReadOnlyPreflight.ValidateWitness(Environment.GetEnvironmentVariable("DMS_DIAGNOSTIC_TEMPORARY_NAME"))
             phase = "Authorize"
             Dim settings As New ScopevisioTeamworkSettings()
             Dim profile As New DmsLoginProfile With {
@@ -47,8 +49,17 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
                 .CustomerInstance = settings.InputLine("customer no."),
                 .Password = settings.InputLine("password")}
             Dim provider = DirectCast(Dms.Providers.CreateAuthorizedDmsProviderInstance(profile), ScopevisioTeamworkDmsProvider)
-            phase = "CollectionsSync"
             Dim io = provider.IOClient
+            phase = "HistoricalIdentity"
+            Dim userId = io.CurrentAuthenticationContextUserID
+            Dim tenantId = provider.CurrentDmsInstance?.ID
+            If String.IsNullOrWhiteSpace(userId) OrElse String.IsNullOrWhiteSpace(tenantId) OrElse
+                Not String.Equals(userId, provider.CurrentContextUserID, StringComparison.Ordinal) Then Throw New IO.InvalidDataException()
+            Console.WriteLine("Historical identity: authenticatedUserFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(userId) &
+                              "; configuredAccountFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(profile.CustomerInstance) &
+                              "; authenticatedTenantFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(tenantId) &
+                              "; contextUserConsistent=True; accountOwnershipUnproven=True.")
+            phase = "CollectionsSync"
             Dim collections = io.ApiClient.Collections.GetCollections(io.CurrentAuthenticationContextUserID, Nothing, True)?.Collections
             If collections Is Nothing Then Throw New System.IO.InvalidDataException()
             Dim candidates = ReadOnlyDiagnosticSupport.CollectionMoveCandidates(collections.Select(Function(item) item.Name))
@@ -58,16 +69,12 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
                 Console.WriteLine("CollectionMove candidate: " & candidate)
             Next
             Console.WriteLine("Candidate inventory is bounded to 20 names; exact historical owned absence remains unverified.")
-            phase = "FixtureRootSyncFacade"
-            Dim rootPresent = provider.ListRemoteItem("ZZZ_UnitTests_CM.Dms") IsNot Nothing
-            Console.WriteLine("Read-only Scopevisio: fixture root present=" & rootPresent.ToString() & ".")
-            If rootPresent Then
-                phase = "FixtureFolderSyncFacade"
-                Dim folderPresent = provider.ListRemoteItem("ZZZ_UnitTests_CM.Dms/Folder") IsNot Nothing
-                Console.WriteLine("Read-only Scopevisio: fixture folder present=" & folderPresent.ToString() & ".")
-            Else
-                Console.WriteLine("Read-only Scopevisio: missing fixture root was not created; folder probe not performed.")
-            End If
+            phase = "HistoricalScopeReads"
+            HistoricalReadOnlyPreflight.Inspect(collections, witness,
+                Function(id) io.ApiClient.Collection.GetCollection(userId, id),
+                Function(collectionId, parentId) io.ApiClient.Folders.GetFolders(userId, collectionId, If(parentId, CenterDevice.Rest.RestApiConstants.NONE), Nothing, Nothing, Nothing, {"id", "name", "collection", "parent"}).Folders,
+                Function(collectionId, folderId) io.ApiClient.Documents.Get(Of CenterDevice.Rest.Clients.Documents.Metadata.DocumentFullMetadata)(userId, collectionId, Nothing, If(folderId, CenterDevice.Rest.RestApiConstants.NONE), 0, HistoricalReadOnlyPreflight.MaximumDocuments + 1),
+                AddressOf Console.WriteLine)
         Catch ex As Exception
             Assert.Fail(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", phase, ex))
         End Try

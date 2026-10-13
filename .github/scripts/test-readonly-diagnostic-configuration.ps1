@@ -19,10 +19,11 @@ foreach ($server in @('WebDav', 'Nextcloud')) {
 }
 $guard = Join-Path $PSScriptRoot 'assert-readonly-diagnostic-window.ps1'
 $priorFlags = @{}
-foreach ($name in @('GITHUB_ACTIONS', 'DMS_READ_ONLY_DIAGNOSTICS', 'DMS_DIAGNOSTIC_WINDOW_UNTIL')) {
+foreach ($name in @('GITHUB_ACTIONS', 'DMS_READ_ONLY_DIAGNOSTICS', 'DMS_DIAGNOSTIC_WINDOW_UNTIL', 'DMS_DIAGNOSTIC_TEMPORARY_NAME')) {
     $priorFlags[$name] = [Environment]::GetEnvironmentVariable($name)
 }
 try {
+    $env:DMS_DIAGNOSTIC_TEMPORARY_NAME = ''
     $env:GITHUB_ACTIONS = 'true'
     $env:DMS_READ_ONLY_DIAGNOSTICS = 'true'
     foreach ($invalid in @('', 'invalid', '2099-10-13T11:00:00', [DateTimeOffset]::UtcNow.AddMinutes(-1).ToString('o'), [DateTimeOffset]::UtcNow.AddMinutes(19).ToString('o'))) {
@@ -43,6 +44,14 @@ try {
     if (!$rejected) { throw 'Implicit diagnostic execution accepted.' }
     $env:DMS_READ_ONLY_DIAGNOSTICS = 'true'
     & $guard
+    $env:DMS_DIAGNOSTIC_TEMPORARY_NAME = '.compumaster-dms-' + ('a' * 32)
+    & $guard
+    foreach ($invalid in @(' ', '../outside', '.compumaster-dms-*', ('.compumaster-dms-' + ('A' * 32)), ('.compumaster-dms-' + ('a' * 32) + "`n"), ('.compumaster-dms-' + ('a' * 32) + '/child'))) {
+        $env:DMS_DIAGNOSTIC_TEMPORARY_NAME = $invalid
+        $rejected = $false
+        try { & $guard } catch { $rejected = $true }
+        if (!$rejected) { throw 'An unbounded or non-exact temporary witness was accepted.' }
+    }
 } finally {
     foreach ($name in $priorFlags.Keys) { [Environment]::SetEnvironmentVariable($name, $priorFlags[$name]) }
 }
