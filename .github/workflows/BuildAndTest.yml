@@ -24,6 +24,10 @@ on:
         description: 'Confirmed CI-only read-only exclusive-window end in ISO 8601 with UTC offset; at least 20 minutes remaining at each job startup.'
         type: string
         default: ''
+      diagnostic_temporary_name:
+        description: 'Optional exact historical .compumaster-dms name (32 lowercase hex digits); CI read-only observation only, never cleanup authority.'
+        type: string
+        default: ''
       native_dependency_mode:
         description: 'Native verification against released NuGet packages, or the pinned released source chain.'
         type: choice
@@ -280,6 +284,7 @@ jobs:
           DMS_TEST_SERVER_CATEGORY: ${{ matrix.server.category }}
           DMS_READ_ONLY_DIAGNOSTICS: ${{ github.event_name == 'workflow_dispatch' && inputs.read_only_diagnostics }}
           DMS_DIAGNOSTIC_WINDOW_UNTIL: ${{ inputs.diagnostic_window_until }}
+          DMS_DIAGNOSTIC_TEMPORARY_NAME: ${{ inputs.diagnostic_temporary_name }}
           TEST_COVERAGE: ${{ inputs.read_only_diagnostics && 'Full' || startsWith(matrix.os, 'windows') && 'Full' || 'Sample' }}
         run: ./.github/scripts/test-remote-dms.ps1 -TestLevel $env:DMS_TEST_LEVEL -ServerCategory $env:DMS_TEST_SERVER_CATEGORY -ReadOnlyDiagnostics:($env:DMS_READ_ONLY_DIAGNOSTICS -eq 'true') -Coverage $env:TEST_COVERAGE
 
