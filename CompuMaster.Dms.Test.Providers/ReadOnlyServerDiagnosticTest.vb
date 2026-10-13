@@ -101,6 +101,23 @@ Public NotInheritable Class ReadOnlyServerDiagnosticTest
                     [Is].EqualTo("Read-only Scopevisio phase=CollectionsSync; failure=WebRequest; HTTP=unknown."))
     End Sub
 
+    <TestCase(False), TestCase(True)>
+    Public Sub AuthoritativeResponseStatusOverridesConflictingTransportCause(bridge As Boolean)
+        Dim constructor = GetType(Net.Http.HttpRequestException).GetConstructor({GetType(String), GetType(Exception), GetType(Nullable(Of Net.HttpStatusCode))})
+        Dim inner As Exception = If(constructor Is Nothing, New Net.Http.HttpRequestException("secret transport cause"),
+            DirectCast(constructor.Invoke(New Object() {"secret transport cause", Nothing, CType(Net.HttpStatusCode.Forbidden, Nullable(Of Net.HttpStatusCode))}), Exception))
+        Dim failure As Exception
+        If bridge Then
+            failure = New Net.WebException("secret bridge response", inner)
+            failure.Data("CompuMaster.Scopevisio.Teamwork.HttpStatusCode") = 500
+        Else
+            failure = New CenterDevice.Rest.Exceptions.InternalServerErrorException("secret SDK response", inner)
+        End If
+        Dim kind = If(bridge, "TeamworkHttp", "CenterDeviceHttp")
+        Assert.That(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", "CollectionsSync", failure),
+                    [Is].EqualTo("Read-only Scopevisio phase=CollectionsSync; failure=" & kind & "; HTTP=500."))
+    End Sub
+
     Private Shared Function CreateApiFailure(status As Integer) As Exception
         Dim constructor = GetType(Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException).GetConstructor(
             Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic, Nothing, {GetType(Integer), GetType(String)}, Nothing)
