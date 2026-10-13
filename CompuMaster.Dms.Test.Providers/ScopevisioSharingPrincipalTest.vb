@@ -14,14 +14,12 @@ Public Class ScopevisioSharingPrincipalTest
     <Test>
     Public Sub AngeboteSharingPrincipalCanBeClassifiedWithoutExposingIdentity()
         Dim settings As New ScopevisioTeamworkSettings
-        Dim credentials As New ScopevisioLoginCredentials With {
-            .Username = settings.InputLine("username"),
-            .ClientNumber = settings.InputLine("customer no."),
-            .Password = settings.InputLine("password")
-        }
+        Dim credentials = settings.CreateLiveTestProfile()
         Dim provider As New InspectingScopevisioProvider
         provider.Authorize(credentials)
 
+        'This exact historical read-only witness is not a name-based creation or cleanup grant.
+        'Its availability in the separately verified demo tenant remains a live-acceptance prerequisite.
         Dim collection = provider.ListAllCollectionItems("/").SingleOrDefault(Function(item) item.Name = "Angebote")
         ClassicAssert.IsNotNull(collection, "The diagnostic collection is not visible to the test account.")
         ClassicAssert.IsNotNull(collection.ExtendedInfosUserSharings)
