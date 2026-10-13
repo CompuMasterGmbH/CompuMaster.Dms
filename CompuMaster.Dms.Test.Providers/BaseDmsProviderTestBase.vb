@@ -1097,36 +1097,37 @@ Public MustInherit Class BaseDmsProviderTestBase
     End Function
 
     <Test, Category("TestLevel2")> Public Sub Copy_Files()
-        Dim DmsProvider As CompuMaster.Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
-
-        If Me.UploadTestFilesAndCleanupAgainBinary.Length > 0 Then
-
-            'Prepare pre-requisites
-            CreateRemoteTestCollectionOrFolderIfNotExisting(DmsProvider, Me.RemoteTestFolderName)
-            If DmsProvider.SupportsCollections Then
-                ClassicAssert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+        Dim provider = Me.LoggedInDmsProvider()
+        If Me.UploadTestFilesAndCleanupAgainBinary.Length = 0 Then Return
+        Dim original As Exception = Nothing
+        Dim actions = OwnedCopyTestCleanup.ForChildren(provider, Me.RemoteTestFolderName,
+            Me.CopyFileTestFileTargets.Concat(New String() {Me.CopyFileTestFileSource.Key}))
+        Try
+            CreateRemoteTestCollectionOrFolderIfNotExisting(provider, Me.RemoteTestFolderName)
+            'Recover exact owned leftovers and verify absence before creating fresh resources.
+            OwnedCopyTestCleanup.Complete(actions, Nothing)
+            If provider.SupportsCollections Then
+                ClassicAssert.IsTrue(provider.CollectionExists(Me.RemoteTestFolderName))
             Else
-                ClassicAssert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+                ClassicAssert.IsTrue(provider.FolderExists(Me.RemoteTestFolderName))
             End If
-
-            'Run copy-file tests
-            For Each CopyTarget As String In Me.CopyFileTestFileTargets
-                UploadFileAndCreateCopy(DmsProvider, Me.CopyFileTestFileSource.Value, Me.CopyFileTestFileSource.Key, CopyTarget)
-                UploadFileAndCreateCopyAsync(DmsProvider, Me.CopyFileTestFileSource.Value, Me.CopyFileTestFileSource.Key, CopyTarget)
+            For Each target As String In Me.CopyFileTestFileTargets
+                UploadFileAndCreateCopy(provider, Me.CopyFileTestFileSource.Value, Me.CopyFileTestFileSource.Key, target)
+                UploadFileAndCreateCopyAsync(provider, Me.CopyFileTestFileSource.Value, Me.CopyFileTestFileSource.Key, target)
             Next
-
-            'Test the test
-            If DmsProvider.SupportsCollections Then
-                ClassicAssert.IsTrue(DmsProvider.CollectionExists(Me.RemoteTestFolderName))
+            'Retain the original post-copy root-existence acceptance assertion.
+            If provider.SupportsCollections Then
+                ClassicAssert.IsTrue(provider.CollectionExists(Me.RemoteTestFolderName))
             Else
-                ClassicAssert.IsTrue(DmsProvider.FolderExists(Me.RemoteTestFolderName))
+                ClassicAssert.IsTrue(provider.FolderExists(Me.RemoteTestFolderName))
             End If
-
-            'Cleanup
-            RemoveRemoteTestCollectionOrFolder(DmsProvider, Me.RemoteTestFolderName)
-
-        End If
-
+        Catch failure As Exception
+            original = failure
+        End Try
+        'VB cannot await inside Finally; these synchronous actions always run before rethrow.
+        'Keep the configured parent root. Remove only this case's exact owned file names
+        'and empty owned target subfolders; unexpected children remain for reconciliation.
+        OwnedCopyTestCleanup.Complete(actions, original)
     End Sub
 
     <Test, Category("TestLevel2")> Public Sub Copy_Directories()
