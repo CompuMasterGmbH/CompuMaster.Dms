@@ -205,7 +205,9 @@ Partial Public Class DmsBrowser
         If Not String.IsNullOrEmpty(previous.ExtendedInfosFolderID) AndAlso Not String.IsNullOrEmpty(current.ExtendedInfosFolderID) Then
             Return previous.ExtendedInfosFolderID = current.ExtendedInfosFolderID AndAlso previous.ExtendedInfosCollectionID = current.ExtendedInfosCollectionID
         End If
-        If Not String.IsNullOrEmpty(previous.ExtendedInfosCollectionID) AndAlso Not String.IsNullOrEmpty(current.ExtendedInfosCollectionID) Then
+        'A containing collection does not uniquely identify a folder within it.
+        If previous.ItemType = DmsResourceItem.ItemTypes.Collection AndAlso
+            Not String.IsNullOrEmpty(previous.ExtendedInfosCollectionID) AndAlso Not String.IsNullOrEmpty(current.ExtendedInfosCollectionID) Then
             Return previous.ExtendedInfosCollectionID = current.ExtendedInfosCollectionID
         End If
         Return previous.FullName = current.FullName

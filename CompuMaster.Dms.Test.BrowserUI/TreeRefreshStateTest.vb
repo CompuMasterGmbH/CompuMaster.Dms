@@ -93,6 +93,48 @@ Public Class TreeRefreshStateTest
         End Using
     End Sub
 
+    <TestCase(Nothing, Nothing), TestCase("child", Nothing), TestCase(Nothing, "other")>
+    Public Sub RemovedFolderWithIncompleteIdDoesNotSelectItsSiblingInTheSameCollection(previousId As String, currentId As String)
+        Dim provider As New TreeProvider With {.ChildFolderId = previousId}
+        Using dispatcher As New UiTestDispatcher(), browser As New TreeBrowser(provider)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            Dim parent = browser.TreeViewDmsFolders.Nodes(0).Nodes.Cast(Of TreeNode)().Single(Function(node) node.Text = "Folder40")
+            dispatcher.Finish(browser.AddTreeChildrenAsync(parent))
+            Dim previous = parent.Nodes(0)
+            browser.TreeViewDmsFolders.SelectedNode = previous
+            dispatcher.WaitForEvents()
+            provider.ChildName = "Other"
+            provider.ChildFolderId = currentId
+            dispatcher.Finish(browser.RefreshCurrentFolderAndFilesAsync())
+            Assert.That(parent.Nodes.Count, [Is].EqualTo(1))
+            Assert.That(parent.Nodes(0).Text, [Is].EqualTo("Other"))
+            Assert.That(Object.ReferenceEquals(parent.Nodes(0), previous), [Is].False)
+            Assert.That(browser.TreeViewDmsFolders.SelectedNode, [Is].SameAs(parent))
+            Assert.That(provider.LastFilesPath, [Is].EqualTo("Folder40"))
+            Assert.That(browser.Failure, [Is].Null, browser.Failure?.ToString())
+        End Using
+    End Sub
+
+    <TestCase(Nothing, Nothing), TestCase("child", Nothing), TestCase(Nothing, "child")>
+    Public Sub SurvivingFolderWithIncompleteIdKeepsItsPathSelection(previousId As String, currentId As String)
+        Dim provider As New TreeProvider With {.ChildFolderId = previousId}
+        Using dispatcher As New UiTestDispatcher(), browser As New TreeBrowser(provider)
+            browser.Show()
+            dispatcher.WaitForEvents()
+            Dim parent = browser.TreeViewDmsFolders.Nodes(0).Nodes.Cast(Of TreeNode)().Single(Function(node) node.Text = "Folder40")
+            dispatcher.Finish(browser.AddTreeChildrenAsync(parent))
+            Dim previous = parent.Nodes(0)
+            browser.TreeViewDmsFolders.SelectedNode = previous
+            dispatcher.WaitForEvents()
+            provider.ChildFolderId = currentId
+            dispatcher.Finish(browser.RefreshCurrentFolderAndFilesAsync())
+            Assert.That(browser.TreeViewDmsFolders.SelectedNode, [Is].SameAs(previous))
+            Assert.That(provider.LastFilesPath, [Is].EqualTo("Folder40/Child"))
+            Assert.That(browser.Failure, [Is].Null, browser.Failure?.ToString())
+        End Using
+    End Sub
+
     Private Class TreeBrowser
         Inherits DmsBrowser
         Friend Failure As Exception
@@ -110,6 +152,8 @@ Public Class TreeRefreshStateTest
     Private Class TreeProvider
         Inherits NoDmsProvider
         Friend ParentName As String = "Folder40"
+        Friend ChildName As String = "Child"
+        Friend ChildFolderId As String = "child"
         Friend RemoveChild As Boolean
         Friend LastFilesPath As String
         Friend BeforeRootListing As Func(Of Task)
@@ -124,8 +168,8 @@ Public Class TreeRefreshStateTest
                         .ExtendedInfosFolderID = index.ToString(), .HasChildDirectories = index = 40})
                 Next
             ElseIf path = ParentName AndAlso Not RemoveChild Then
-                items.Add(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = ParentName & "/Child", .Name = "Child",
-                    .ExtendedInfosFolderID = "child", .HasChildDirectories = False})
+                items.Add(New DmsResourceItem With {.ItemType = DmsResourceItem.ItemTypes.Folder, .FullName = ParentName & "/" & ChildName, .Name = ChildName,
+                    .ExtendedInfosFolderID = ChildFolderId, .ExtendedInfosCollectionID = "collection-40", .HasChildDirectories = False})
             End If
             Return items
         End Function
