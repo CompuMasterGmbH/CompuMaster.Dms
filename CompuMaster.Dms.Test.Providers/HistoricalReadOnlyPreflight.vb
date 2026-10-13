@@ -23,6 +23,15 @@ Friend NotInheritable Class HistoricalReadOnlyPreflight
         Return value
     End Function
 
+    Friend Shared Sub ValidateIdentity(authScopeUserId As String, accountScopeUserId As String, selectedTenantId As String, accountTenantId As String, bridgeDmsUserId As String)
+        'These values occupy two user-ID namespaces; the bridge ID is not a Scopevisio UID.
+        If {authScopeUserId, accountScopeUserId, selectedTenantId, accountTenantId, bridgeDmsUserId}.Any(Function(value) String.IsNullOrWhiteSpace(value)) OrElse
+            Not String.Equals(authScopeUserId, accountScopeUserId, StringComparison.Ordinal) OrElse
+            Not String.Equals(selectedTenantId, accountTenantId, StringComparison.Ordinal) Then
+            Throw New IO.InvalidDataException("Historical identity context is incomplete or inconsistent.")
+        End If
+    End Sub
+
     Friend Shared Function Fingerprint(value As String) As String
         If String.IsNullOrWhiteSpace(value) Then Return "unknown"
         Using algorithm = SHA256.Create()
