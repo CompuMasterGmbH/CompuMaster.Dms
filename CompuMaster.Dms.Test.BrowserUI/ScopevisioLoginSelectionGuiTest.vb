@@ -18,15 +18,23 @@ Public Class ScopevisioLoginSelectionGuiTest
     Private ReadOnly Fields As String() = {"username", "password", "customer no.", "start path", "organisation id", "expected teamwork tenant id"}
     Private ReadOnly Values As String() = {"fixture-login", "fixture-password", "fixture-customer", "/", "7", "fixture-tenant"}
     Private OriginalCulture As CultureInfo
+    Private DirectoryAdmitted As Boolean
+    Private ReadOnly TrackedFiles As New List(Of String)
     Private ReadOnly RequestedEnvironmentNames As New List(Of String)
 
     <SetUp>
     Public Sub AdmitPrivateBuffer()
         OriginalCulture = CultureInfo.CurrentUICulture
+        DirectoryAdmitted = False
+        Window = Nothing
+        Buffer = Nothing
+        BufferType = Nothing
+        TrackedFiles.Clear()
         RequestedEnvironmentNames.Clear()
         OwnedDirectory = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.WorkDirectory, ".task-work", "unittests_gui137_buffer_" & Guid.NewGuid().ToString("N")))
         Assert.That(Directory.Exists(OwnedDirectory), [Is].False)
         Directory.CreateDirectory(OwnedDirectory)
+        DirectoryAdmitted = True
         Dim formType = GetType(Global.CompuMaster.Dms.TestDemo.ScopevisioTeamwork.LoginForm)
         BufferType = formType.Assembly.GetType(formType.Namespace & ".DemoInputBuffer", True)
         Dim environmentReader As Func(Of String, String) =
@@ -40,6 +48,7 @@ Public Class ScopevisioLoginSelectionGuiTest
             Dim path = OwnedFieldPath(Fields(index))
             Assert.That(Global.System.IO.Path.GetDirectoryName(path), [Is].EqualTo(OwnedDirectory))
             Assert.That(File.Exists(path), [Is].False)
+            TrackedFiles.Add(path)
             BufferType.GetMethod("Persist", BindingFlags.Instance Or BindingFlags.NonPublic).Invoke(Buffer, New Object() {Fields(index), Values(index)})
         Next
     End Sub
@@ -108,23 +117,20 @@ Public Class ScopevisioLoginSelectionGuiTest
     <TearDown>
     Public Sub CloseOnlyOwnedWindowsAndFiles()
         Try
+            Dim close As Action = Nothing
+            Dim dispose As Action = Nothing
             If Window IsNot Nothing Then
-                Window.Close()
-                Window.Dispose()
-                Window = Nothing
+                close = Sub() Window.Close()
+                dispose = Sub() Window.Dispose()
             End If
-            If Buffer IsNot Nothing Then
-                For Each field In Fields
-                    Dim path = OwnedFieldPath(field)
-                    Assert.That(Global.System.IO.Path.GetDirectoryName(path), [Is].EqualTo(OwnedDirectory))
-                    If File.Exists(path) Then File.Delete(path)
-                Next
-                Directory.Delete(OwnedDirectory, False)
-                Assert.That(Directory.Exists(OwnedDirectory), [Is].False)
-            End If
+            OwnedLocalTestCleanup.Cleanup(close, dispose, OwnedDirectory, DirectoryAdmitted, TrackedFiles)
         Finally
             CultureInfo.CurrentUICulture = OriginalCulture
+            Window = Nothing
             Buffer = Nothing
+            BufferType = Nothing
+            DirectoryAdmitted = False
+            TrackedFiles.Clear()
         End Try
     End Sub
 End Class

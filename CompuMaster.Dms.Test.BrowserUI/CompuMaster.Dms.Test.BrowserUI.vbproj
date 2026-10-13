@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\CompuMaster.Dms.Test.Providers\OwnedLocalTestCleanup.vb" Link="OwnedLocalTestCleanup.vb" />
     <ProjectReference Include="..\CompuMaster.Dms.BrowserUI\CompuMaster.Dms.BrowserUI.vbproj" />
     <ProjectReference Include="..\CompuMaster.Dms.TestDemo.WebDav\CompuMaster.Dms.TestDemo.WebDav.vbproj" />
     <ProjectReference Include="..\CompuMaster.Dms.TestDemo.OwnCloudClassic\CompuMaster.Dms.TestDemo.OwnCloudClassic.vbproj" />
