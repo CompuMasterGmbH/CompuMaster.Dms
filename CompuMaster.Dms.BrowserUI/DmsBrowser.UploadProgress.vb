@@ -303,7 +303,7 @@ Friend NotInheritable Class UploadProgressDialog
     Private ReadOnly DiagnosticTip As New ToolTip With {.ShowAlways = True, .AutoPopDelay = 30000}
     Private ReadOnly RetryFiles As New Button With {.AutoSize = True, .Text = UiStrings.GetText("UploadRetryFailed"), .Visible = False, .Name = "RetryFailed"}
     Private ReadOnly ContinueFiles As New Button With {.AutoSize = True, .Text = UiStrings.GetText("UploadContinueRemaining"), .Visible = False, .Name = "ContinueRemaining"}
-    Private ReadOnly ButtonRow As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill, .WrapContents = True}
+    Private ReadOnly ButtonRow As New FlowLayoutPanel With {.Dock = DockStyle.Bottom, .WrapContents = True, .Padding = New Padding(15, 6, 15, 10), .Name = "TransferActions"}
     Private ReadOnly StatusLabel As New Label With {.AutoSize = True}
     Private ReadOnly BatchLabel As New Label With {.AutoSize = True}
     Private ReadOnly FileBar As New ProgressBar With {.Dock = DockStyle.Top, .Style = ProgressBarStyle.Marquee}
@@ -311,7 +311,8 @@ Friend NotInheritable Class UploadProgressDialog
     Private ReadOnly FilesList As New ListBox With {.Dock = DockStyle.Fill, .IntegralHeight = False}
     Private ReadOnly CancelUpload As New Button With {.AutoSize = True}
     Private ReadOnly PartialWarning As New Label With {.Text = UiStrings.GetText("UploadPartialWarning"), .AutoSize = True}
-    Private ReadOnly ProgressLayout As New TableLayoutPanel With {.Dock = DockStyle.Fill, .Padding = New Padding(15), .ColumnCount = 1, .RowCount = 9}
+    Private ReadOnly ProgressLayout As New TableLayoutPanel With {.Padding = New Padding(15), .ColumnCount = 1, .RowCount = 8, .Name = "TransferLayout"}
+    Private ReadOnly ContentViewport As New Panel With {.Dock = DockStyle.Fill, .AutoScroll = True, .Name = "TransferViewport"}
     Private Finished As Boolean
     Private HasFailure As Boolean
     Private ArrangingProgress As Boolean
@@ -352,14 +353,17 @@ Friend NotInheritable Class UploadProgressDialog
         Dim layout = ProgressLayout
         layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
         ButtonRow.Controls.AddRange({CancelUpload, RetryFiles, ContinueFiles})
-        For Each control As Control In New Control() {FileLabel, ByteLabel, FileBar, StatusLabel, BatchLabel, BatchBar, FilesList, PartialWarning, ButtonRow}
+        For Each control As Control In New Control() {FileLabel, ByteLabel, FileBar, StatusLabel, BatchLabel, BatchBar, FilesList, PartialWarning}
             layout.Controls.Add(control)
         Next
-        For row As Integer = 0 To 8
-            layout.RowStyles.Add(New RowStyle(If(row = 6, SizeType.Percent, SizeType.AutoSize), If(row = 6, 100, 0)))
+        For row As Integer = 0 To 7
+            layout.RowStyles.Add(New RowStyle(If(row = 6, SizeType.Absolute, SizeType.AutoSize), If(row = 6, Font.Height * 3, 0)))
         Next
-        Controls.Add(layout)
-        AddHandler layout.SizeChanged, Sub() ConstrainProgressLabels()
+        ContentViewport.Controls.Add(layout)
+        Controls.Add(ContentViewport)
+        Controls.Add(ButtonRow)
+        ContentViewport.BringToFront()
+        AddHandler ContentViewport.SizeChanged, Sub() ArrangeProgressControls()
         ConstrainProgressLabels()
         LocalizedLayout.Bind(Me, AddressOf ArrangeProgressControls)
         FilesList.HorizontalScrollbar = True
@@ -463,20 +467,52 @@ Friend NotInheritable Class UploadProgressDialog
         If ArrangingProgress OrElse IsDisposed Then Return
         ArrangingProgress = True
         Try
-            'Size recovery actions even while hidden so their first display fits the localized caption.
+            Dim available = Screen.FromControl(Me).WorkingArea.Size
+            If MaximumSize.Width > 0 Then available.Width = Math.Min(available.Width, MaximumSize.Width)
+            If MaximumSize.Height > 0 Then available.Height = Math.Min(available.Height, MaximumSize.Height)
+            MinimumSize = New Drawing.Size(Math.Min(650, available.Width), Math.Min(400, available.Height))
+            Dim actionWidth = Math.Max(1, ClientSize.Width - ButtonRow.Padding.Horizontal)
             For Each button In {CancelUpload, RetryFiles, ContinueFiles}
-                button.Size = button.GetPreferredSize(Drawing.Size.Empty)
+                Dim width = Math.Max(1, actionWidth - button.Margin.Horizontal)
+                button.MaximumSize = New Drawing.Size(width, 0)
+                button.Size = button.GetPreferredSize(New Drawing.Size(width, Integer.MaxValue))
             Next
-            ConstrainProgressLabels()
-            Dim labelsHeight = {FileLabel, ByteLabel, StatusLabel, BatchLabel, PartialWarning}.Sum(Function(label) label.GetPreferredSize(label.MaximumSize).Height + label.Margin.Vertical)
-            Dim requiredHeight = labelsHeight + FileBar.Height + BatchBar.Height + ButtonRow.GetPreferredSize(New Drawing.Size(ProgressLayout.ClientSize.Width - ProgressLayout.Padding.Horizontal, 0)).Height + Font.Height * 3 + 70
-            MinimumSize = New Drawing.Size(650, Math.Max(400, requiredHeight + Height - ClientSize.Height))
-            ProgressLayout.PerformLayout()
+            Dim rowWidth As Integer
+            Dim rowHeight As Integer
+            Dim actionHeight = ButtonRow.Padding.Vertical
+            For Each button In {CancelUpload, RetryFiles, ContinueFiles}
+                Dim participates = button Is CancelUpload OrElse (Finished AndAlso Not IsDownload AndAlso
+                    If(button Is RetryFiles, HasFailure OrElse (LastSnapshot IsNot Nothing AndAlso LastSnapshot.States.Any(Function(state) state = UploadFileState.Failed OrElse state = UploadFileState.Cancelled)),
+                       LastSnapshot IsNot Nothing AndAlso LastSnapshot.States.Any(Function(state) state = UploadFileState.Waiting)))
+                If Not participates Then Continue For
+                Dim width = button.Width + button.Margin.Horizontal
+                If rowWidth > 0 AndAlso rowWidth + width > actionWidth Then
+                    actionHeight += rowHeight
+                    rowWidth = 0
+                    rowHeight = 0
+                End If
+                rowWidth += width
+                rowHeight = Math.Max(rowHeight, button.Height + button.Margin.Vertical)
+            Next
+            ButtonRow.Height = actionHeight + rowHeight
+            PerformLayout()
+            'Remeasure once after the vertical scrollbar changes the viewport width.
+            For pass = 0 To 1
+                ProgressLayout.Width = Math.Max(1, ContentViewport.ClientSize.Width)
+                ConstrainProgressLabels()
+                Dim labelsHeight = {FileLabel, ByteLabel, StatusLabel, BatchLabel, PartialWarning}.Sum(Function(label) label.GetPreferredSize(label.MaximumSize).Height + label.Margin.Vertical)
+                Dim fixedHeight = labelsHeight + FileBar.Height + FileBar.Margin.Vertical + BatchBar.Height + BatchBar.Margin.Vertical + ProgressLayout.Padding.Vertical + FilesList.Margin.Vertical
+                Dim reserve = Math.Max(FilesList.ItemHeight * 3, Font.Height * 3) + SystemInformation.HorizontalScrollBarHeight
+                Dim listHeight = Math.Max(reserve, ContentViewport.ClientSize.Height - fixedHeight)
+                ProgressLayout.RowStyles(6).Height = listHeight
+                ProgressLayout.Height = fixedHeight + listHeight
+                ProgressLayout.PerformLayout()
+                ContentViewport.PerformLayout()
+            Next
         Finally
             ArrangingProgress = False
         End Try
     End Sub
-
     Private Sub ConstrainProgressLabels()
         Dim available = Math.Max(1, ProgressLayout.ClientSize.Width - ProgressLayout.Padding.Horizontal - FileLabel.Margin.Horizontal)
         For Each label In {FileLabel, ByteLabel, StatusLabel, BatchLabel, PartialWarning}

@@ -156,7 +156,9 @@ Public Class LocalizedLayoutAcceptanceTest
         Dim children = parent.Controls.Cast(Of Control)().Where(Function(c) c.Visible).ToArray()
         For Each child In children
             Dim childPath = path & "/" & If(String.IsNullOrEmpty(child.Name), child.GetType().Name, child.Name)
-            If Not parent.ClientRectangle.Contains(child.Bounds) Then failures.Add(childPath & " outside parent " & child.Bounds.ToString())
+            Dim scroll = TryCast(parent, ScrollableControl)
+            Dim contentBounds = If(scroll IsNot Nothing AndAlso scroll.AutoScroll, scroll.DisplayRectangle, parent.ClientRectangle)
+            If Not contentBounds.Contains(child.Bounds) Then failures.Add(childPath & " outside parent " & child.Bounds.ToString())
             If TypeOf child Is ButtonBase OrElse TypeOf child Is Label Then
                 Dim preferred = child.GetPreferredSize(If(TypeOf child Is Label AndAlso Not DirectCast(child, Label).AutoSize, New Size(child.ClientSize.Width, 0), Size.Empty))
                 If preferred.Width > child.Width OrElse preferred.Height > child.Height Then failures.Add(childPath & " clipped: actual=" & child.Size.ToString() & "; preferred=" & preferred.ToString() & "; text=" & child.Text)

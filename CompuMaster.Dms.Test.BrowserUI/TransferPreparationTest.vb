@@ -45,9 +45,9 @@ Public Class TransferPreparationTest
     Public Sub PreparingRemoteFoldersNeverAnnouncesTheFirstFileOrPayloadProgress()
         Using dialog As New UploadProgressDialog({"one", "two"})
             dialog.ReportPlanning()
-            Assert.That(dialog.Controls.OfType(Of TableLayoutPanel)().Single().Controls.OfType(Of Label)().First().Text, [Is].EqualTo(UiStrings.GetText("UploadPlanningSelection")))
+            Assert.That(DirectCast(dialog.Controls.Find("TransferLayout", True).Single(), TableLayoutPanel).Controls.OfType(Of Label)().First().Text, [Is].EqualTo(UiStrings.GetText("UploadPlanningSelection")))
             dialog.ReportPreparation("destination/folder", 3, 8)
-            Dim labels = dialog.Controls.OfType(Of TableLayoutPanel)().Single().Controls.OfType(Of Label)().ToArray()
+            Dim labels = DirectCast(dialog.Controls.Find("TransferLayout", True).Single(), TableLayoutPanel).Controls.OfType(Of Label)().ToArray()
             Assert.That(labels(0).Text, [Is].EqualTo(UiStrings.Format("UploadPreparingFolderCount", 3, 8)))
             Assert.That(labels(0).Text, Does.Not.Contain("one"))
             dialog.Report(New UploadBatchSnapshot({"one", "two"}, {UploadFileState.Starting, UploadFileState.Waiting}, {Nothing, Nothing}, 0))
@@ -63,7 +63,7 @@ Public Class TransferPreparationTest
         Dim states = Enumerable.Repeat(UploadFileState.Waiting, files.Length).ToArray()
         Dim counters(files.Length - 1) As DmsTransferProgress
         Using dialog As New UploadProgressDialog(files)
-            Dim rows = dialog.Controls.OfType(Of TableLayoutPanel)().Single().Controls.OfType(Of ListBox)().Single()
+            Dim rows = DirectCast(dialog.Controls.Find("TransferLayout", True).Single(), TableLayoutPanel).Controls.OfType(Of ListBox)().Single()
             rows.SelectedIndex = 150
             Dim initialMeasurements = dialog.RowMeasurements
             states(0) = UploadFileState.Transferring
