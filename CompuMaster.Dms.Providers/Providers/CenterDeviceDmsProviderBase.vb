@@ -561,47 +561,92 @@ Namespace Providers
             Dim ExistingDestination As CenterDevice.IO.FileInfo = destinationParent.TryGetFile(destinationName)
             If ExistingDestination IsNot Nothing Then RejectSameDocumentAction(sourceFile.ID, ExistingDestination.ID, destinationPath)
             If ExistingDestination Is Nothing Then
-                destinationParent.AddCopy(sourceFile, destinationName)
+                Me.CreateFileCopyByReturnedId(sourceFile, destinationParent, destinationName, sourcePath, destinationPath, Nothing)
                 Return
             End If
             If allowOverwrite <> True Then Throw New FileAlreadyExistsException(destinationPath)
 
             Dim TemporaryCopyName As String = Me.UniqueTemporaryName(destinationParent)
             Dim BackupName As String = Me.UniqueTemporaryName(destinationParent)
-            destinationParent.AddCopy(sourceFile, TemporaryCopyName)
-            destinationParent.ResetFilesCache()
-            Dim TemporaryCopy As CenterDevice.IO.FileInfo = destinationParent.GetFile(TemporaryCopyName)
+            Dim TemporaryCopy As CenterDevice.IO.FileInfo = Me.CreateFileCopyByReturnedId(sourceFile, destinationParent, TemporaryCopyName, sourcePath, destinationPath, ExistingDestination.ID)
             Try
-                ExistingDestination.Rename(BackupName)
+                Me.RenameCopyParticipant(ExistingDestination, BackupName)
             Catch ex As Exception
                 Try
-                    TemporaryCopy.Delete()
+                    Me.DeleteCopyParticipant(TemporaryCopy)
                 Catch rollbackException As Exception
                     Throw New FileActionFailedException("copy", sourcePath, destinationPath, New AggregateException(ex, rollbackException))
                 End Try
                 Throw New FileActionFailedException("copy", sourcePath, destinationPath, ex)
             End Try
             Try
-                TemporaryCopy.Rename(destinationName)
+                Me.RenameCopyParticipant(TemporaryCopy, destinationName)
             Catch ex As Exception
                 Dim RollbackErrors As New List(Of Exception) From {ex}
                 Try
-                    ExistingDestination.Rename(destinationName)
+                    Me.RenameCopyParticipant(ExistingDestination, destinationName)
                 Catch rollbackException As Exception
                     RollbackErrors.Add(rollbackException)
                 End Try
                 Try
-                    TemporaryCopy.Delete()
+                    Me.DeleteCopyParticipant(TemporaryCopy)
                 Catch rollbackException As Exception
                     RollbackErrors.Add(rollbackException)
                 End Try
                 Throw New FileActionFailedException("copy", sourcePath, destinationPath, New AggregateException(ProviderStrings.GetText("TheCopiedFileCouldnTBePromotedTo"), RollbackErrors))
             End Try
             Try
-                ExistingDestination.Delete()
+                Me.DeleteCopyParticipant(ExistingDestination)
             Catch ex As Exception
                 Throw New FileActionFailedException("copy", sourcePath, destinationPath, New InvalidOperationException(ProviderStrings.Format("TheCopySucceededButTheReplacedFileWith", ExistingDestination.ID, BackupName), ex))
             End Try
+        End Sub
+
+        Private Function CreateFileCopyByReturnedId(source As CenterDevice.IO.FileInfo, parent As CenterDevice.IO.DirectoryInfo, name As String,
+                                                     sourcePath As String, destinationPath As String, replacedId As String) As CenterDevice.IO.FileInfo
+            If parent.IsRootDirectory Then Throw New InvalidOperationException("Upload to root directory not allowed")
+            If parent.FileExists(name) Then Throw New CenterDevice.Model.Exceptions.FileAlreadyExistsException(Me.IOClient.Paths.CombinePath(parent.Path.Concat(New String() {name}).ToArray()))
+            Dim collectionDirectory = parent
+            Dim visited As New HashSet(Of CenterDevice.IO.DirectoryInfo)()
+            While collectionDirectory IsNot Nothing AndAlso String.IsNullOrEmpty(collectionDirectory.CollectionID)
+                If Not visited.Add(collectionDirectory) Then Throw New InvalidOperationException("The destination collection hierarchy contains a cycle.")
+                collectionDirectory = collectionDirectory.ParentDirectory
+            End While
+            If collectionDirectory Is Nothing Then Throw New InvalidOperationException("The destination has no assigned collection.")
+            Dim collectionId = collectionDirectory.CollectionID
+            Try
+                Dim document = CenterDeviceCopyUploadResult.Create(
+                    Function() Me.UploadCopyDocument(source, parent, name, collectionId),
+                    Function(id) Me.ReadCopyDocumentMetadata(id),
+                    name, sourcePath, destinationPath, New String() {source.ID, replacedId}, collectionId, parent.FolderID)
+                Return New CenterDevice.IO.FileInfo(Me.IOClient, parent, document)
+            Finally
+                parent.ResetFilesCache()
+            End Try
+        End Function
+
+        'Internal transport seams keep the actual synchronous copy transaction testable.
+        'They do not change the SDK API or opt-in native copy path.
+        Friend Overridable Function UploadCopyDocument(source As CenterDevice.IO.FileInfo, parent As CenterDevice.IO.DirectoryInfo, name As String, collectionId As String) As CenterDevice.Rest.Clients.Documents.UploadDocumentResponse
+            'Preserve the existing download/re-upload and memory-staging contract.
+            Using input = source.Download(), buffer As New MemoryStream()
+                input.CopyTo(buffer)
+                Dim bytes = buffer.ToArray()
+                Return Me.IOClient.ApiClient.Documents.UploadDocument(Me.IOClient.CurrentAuthenticationContextUserID, name,
+                    Function() CType(New MemoryStream(bytes, writable:=False), Stream), collectionId, parent.FolderID, Threading.CancellationToken.None)
+            End Using
+        End Function
+
+        Friend Overridable Function ReadCopyDocumentMetadata(id As String) As CenterDevice.Rest.Clients.Documents.Metadata.DocumentFullMetadata
+            Return Me.IOClient.ApiClient.Document.GetDocumentMetadata(Me.IOClient.CurrentAuthenticationContextUserID, id)
+        End Function
+
+        Friend Overridable Sub RenameCopyParticipant(file As CenterDevice.IO.FileInfo, name As String)
+            file.Rename(name)
+        End Sub
+
+        Friend Overridable Sub DeleteCopyParticipant(file As CenterDevice.IO.FileInfo)
+            file.Delete()
         End Sub
 
         Private Sub MoveFileExact(sourceFile As CenterDevice.IO.FileInfo, destinationParent As CenterDevice.IO.DirectoryInfo, destinationName As String, sourcePath As String, destinationPath As String, allowOverwrite As Boolean?)
