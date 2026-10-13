@@ -67,6 +67,8 @@
 
 ## Test resource lifecycle
 
+- Give newly created, nameable temporary test objects a visible `unittests_` prefix (or an established equivalent such as `ZZZ_UnitTests_`), with a case identifier and unique run identifier where practical. Apply this to files, child folders, collections, and future named admin/role/workflow fixtures, including rename and copy targets. When a test requires a specific name, contain it within a proven test-owned prefixed fixture.
+- Preserve permanent configured test roots and historical diagnostic names. A prefix alone does not prove ownership or authorize deletion; cleanup must also verify the admitted tenant/test scope and tracked resource identity and parent relationships. Never delete objects by a broad prefix match.
 - Before dynamically creating test files, folders, or collections, ensure the resources to be created do not already exist. Remove leftovers from interrupted earlier runs within the explicitly owned test scope, then verify absence before creating fresh resources.
 - Preserve permanent test paths configured as the usual starting point in DMS profiles. Never delete these roots or unrelated data; cleanup must target only resources owned by the tests. For root-level collections, identify the exact test-owned collections rather than clearing the server root.
 - If absence cannot be established or stale resources cannot be removed, fail setup with a clear diagnostic instead of reusing uncertain state or continuing into misleading test failures.
