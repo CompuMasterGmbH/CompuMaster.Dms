@@ -138,7 +138,7 @@ Friend NotInheritable Class ReadOnlyDiagnosticSupport
                 End Try
             End If
             If knownStatus.HasValue AndAlso knownStatus.Value >= 100 AndAlso knownStatus.Value <= 599 Then
-                If Not status.HasValue Then status = knownStatus
+                status = knownStatus
                 Exit For
             End If
             current = current.InnerException
