@@ -110,13 +110,7 @@ Namespace Providers
         ''' <param name="ignoreSslErrors">Whether the authorization transport bypasses certificate validation.</param>
         ''' <returns>A fresh configuration using a transport whose lifetime is owned by this provider implementation.</returns>
         Protected Overridable Function CreateNativeAuthorizationConfiguration(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean) As Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration
-            Return New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration With {
-                .Username = loginCredentials.Username,
-                .Password = loginCredentials.Password,
-                .ClientNumber = loginCredentials.ClientNumber,
-                .OrganisationName = loginCredentials.OrganisationName,
-                .HttpClient = If(ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
-            }
+            Return Me.CreateAuthorizationConfiguration(loginCredentials, ignoreSslErrors)
         End Function
     End Class
 End Namespace

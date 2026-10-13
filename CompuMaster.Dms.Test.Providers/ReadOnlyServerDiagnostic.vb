@@ -38,16 +38,12 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
     Public Sub InspectCollectionsAndExistingScopeWithoutMutatingResources()
         Dim phase = "CiAdmission"
         Try
-            ReadOnlyDiagnosticSupport.RequireCiWindow({"TEST_SCOPEVISIOTEAMWORK_USERNAME", "TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO", "TEST_SCOPEVISIOTEAMWORK_PASSWORD"})
+            ReadOnlyDiagnosticSupport.RequireCiWindow({"TEST_SCOPEVISIOTEAMWORK_USERNAME", "TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO", "TEST_SCOPEVISIOTEAMWORK_PASSWORD", "TEST_SCOPEVISIOTEAMWORK_ORGANISATIONID", "TEST_SCOPEVISIOTEAMWORK_EXPECTEDTEAMWORKTENANTID"})
             phase = "HistoricalWitnessAdmission"
             Dim witness = HistoricalReadOnlyPreflight.ValidateWitness(Environment.GetEnvironmentVariable("DMS_DIAGNOSTIC_TEMPORARY_NAME"))
             phase = "Authorize"
             Dim settings As New ScopevisioTeamworkSettings()
-            Dim profile As New DmsLoginProfile With {
-                .DmsProvider = BaseDmsProvider.DmsProviders.Scopevisio,
-                .Username = settings.InputLine("username"),
-                .CustomerInstance = settings.InputLine("customer no."),
-                .Password = settings.InputLine("password")}
+            Dim profile = settings.CreateLiveTestProfile()
             Dim provider = DirectCast(Dms.Providers.CreateAuthorizedDmsProviderInstance(profile), ScopevisioTeamworkDmsProvider)
             Dim io = provider.IOClient
             phase = "HistoricalIdentity"

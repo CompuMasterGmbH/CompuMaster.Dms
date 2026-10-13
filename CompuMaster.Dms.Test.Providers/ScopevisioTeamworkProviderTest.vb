@@ -9,18 +9,9 @@ Imports NUnit.Framework.Legacy
 Public Class ScopevisioTeamworkProviderTest
     Inherits BaseDmsProviderTestBase
 
-    Private Function CreateLoginProfile() As DmsLoginProfile
+    Private Function CreateLoginProfile() As Dms.Providers.ScopevisioLoginCredentials
         Dim Settings As New ScopevisioTeamworkSettings
-        Dim username As String = Settings.InputLine("username")
-        Dim customerno As String = Settings.InputLine("customer no.")
-        Dim password As String = Settings.InputLine("password")
-
-        Return New DmsLoginProfile() With {
-                            .DmsProvider = CompuMaster.Dms.Providers.BaseDmsProvider.DmsProviders.Scopevisio,
-                            .CustomerInstance = customerno,
-                            .Username = username,
-                            .Password = password
-                            }
+        Return Settings.CreateLiveTestProfile()
     End Function
 
     Protected Overrides Function UninitializedDmsProvider() As Dms.Providers.BaseDmsProvider

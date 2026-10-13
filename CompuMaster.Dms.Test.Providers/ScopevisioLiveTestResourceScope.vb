@@ -25,9 +25,7 @@ Friend Class ScopevisioLiveTestResourceScope
         Dim failures As New List(Of Exception)()
         Using deadline As New CancellationTokenSource(TimeSpan.FromMinutes(If(localBoundary, localExecutionMinutes, 60)))
             Try
-                Dim profile As New DmsLoginProfile With {.DmsProvider = BaseDmsProvider.DmsProviders.Scopevisio,
-                    .Username = RequiredEnvironment("TEST_SCOPEVISIOTEAMWORK_USERNAME"), .CustomerInstance = RequiredEnvironment("TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO"),
-                    .Password = RequiredEnvironment("TEST_SCOPEVISIOTEAMWORK_PASSWORD")}
+                Dim profile = ScopevisioTestSelection.CreateProfile(Function(field) RequiredEnvironment(ScopevisioTestSelection.EnvironmentName(field)))
                 Await provider.AuthorizeAsync(profile, deadline.Token)
                 authorized = True
                 Await RemoveOwnedCollectionAsync(provider, deadline.Token)
