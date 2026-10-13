@@ -115,7 +115,10 @@ Namespace Providers
                     .ClientNumber = loginCredentials.ClientNumber,
                     .OrganisationName = loginCredentials.OrganisationName
                 }
-                If ignoreSslErrors Then
+                If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then
+                    'Explicit sessions borrow a provider-owned transport, including the retained refresh staging client.
+                    OpenScopeConfig.HttpClient = If(ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
+                ElseIf ignoreSslErrors Then
                     Dim Handler As New System.Net.Http.HttpClientHandler() With {
                         .ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True
                         }

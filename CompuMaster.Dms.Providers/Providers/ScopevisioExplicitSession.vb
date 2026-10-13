@@ -16,11 +16,19 @@ Namespace Providers
         Private ReadOnly Identity As ScopevisioExplicitIdentity
         Private Account As AccountInfo
         Private ReadOnly Gate As New SemaphoreSlim(1, 1)
+        Private StagingClient As OpenScopeApiClient
+        Private ReadOnly CreateStagingClient As Func(Of Configuration, OpenScopeApiClient)
 
-        Friend Sub New(client As OpenScopeApiClient, account As AccountInfo, identity As ScopevisioExplicitIdentity)
+        Friend Sub New(client As OpenScopeApiClient, account As AccountInfo, identity As ScopevisioExplicitIdentity,
+                       Optional createStagingClient As Func(Of Configuration, OpenScopeApiClient) = Nothing)
             Me.Client = client
             Me.Account = account
             Me.Identity = identity
+            If createStagingClient Is Nothing Then
+                Me.CreateStagingClient = Function(configuration As Configuration) New OpenScopeApiClient(configuration)
+            Else
+                Me.CreateStagingClient = createStagingClient
+            End If
         End Sub
 
         Friend Function GetOAuthInfo() As OAuthInfo
@@ -50,8 +58,13 @@ Namespace Providers
                 If rejected IsNot Nothing AndAlso Not String.Equals(rejected.access_token, Client.Token.AccessToken, StringComparison.Ordinal) Then Return CurrentInfo()
                 Dim previous = Client.Token
                 If String.IsNullOrEmpty(previous.RefreshToken) Then Throw New InvalidOperationException("The session has no refresh credential.")
-                Dim config = CloneConfiguration(Client.Config)
-                Dim candidate As New OpenScopeApiClient(config)
+                'The gate protects one staging SDK wrapper per session, rather than allocating an undisposable wrapper per retry.
+                If StagingClient Is Nothing Then StagingClient = CreateStagingClient(CloneConfiguration(Client.Config))
+                Dim candidate = StagingClient
+                Dim config = candidate.Config
+                'Discard every previous candidate token/bearer, including one from an interrupted or rejected account lookup.
+                candidate.Token = Nothing
+                config.AccessToken = Client.Config.AccessToken
                 candidate.AuthorizationApi.ExceptionFactory = Client.AuthorizationApi.ExceptionFactory
                 candidate.AdditionalApi.ExceptionFactory = Client.AdditionalApi.ExceptionFactory
                 'Keep the existing refresh form; organisation selection is verified in the response, not added as an unsupported refresh argument.
@@ -64,10 +77,15 @@ Namespace Providers
                 admitted.ValidateAccount(accountResponse.Data, accountResponse.RawJsonContent)
                 cancellationToken.ThrowIfCancellationRequested()
                 'No active bearer/account installation until both raw responses and cancellation have passed.
+                Client.Config.AccessToken = response.Data.AccessToken
                 Client.Token = response.Data
                 Account = accountResponse.Data
                 Return CurrentInfo()
             Finally
+                If StagingClient IsNot Nothing Then
+                    StagingClient.Token = Nothing
+                    StagingClient.Config.AccessToken = Client.Config.AccessToken
+                End If
                 Gate.Release()
             End Try
         End Function

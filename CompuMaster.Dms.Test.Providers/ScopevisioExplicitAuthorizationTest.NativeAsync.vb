@@ -118,6 +118,66 @@ Public Class ScopevisioExplicitAuthorizationTest
         End Using
     End Function
 
+    <TestCase(False), TestCase(True)>
+    Public Async Function SuccessfulRefreshUpdatesTheActiveGeneratedApiBearer(inspectConfiguration As Boolean) As Task
+        Dim handler As New Handler()
+        Using transport As New HttpClient(handler)
+            Dim provider As New FixtureProvider(transport)
+            Await provider.AuthorizeAsync(Profile())
+            Dim client = provider.CurrentClient
+            Dim identity = ScopevisioExplicitIdentity.FromToken(client.Token, Handler.TokenBody(Nothing), 7, "fixture-tenant")
+            Dim session As New ScopevisioExplicitSession(client, JsonConvert.DeserializeObject(Of AccountInfo)(Handler.AccountBody(Nothing)), identity)
+            handler.Rotate = True
+            Await session.RefreshAsync(session.GetOAuthInfo(), CancellationToken.None)
+            If inspectConfiguration Then
+                Assert.That(client.Config.AccessToken, [Is].EqualTo("rotated-access"))
+            Else
+                Await client.AdditionalApi.GetApplicationContextAsyncWithHttpInfo(CancellationToken.None)
+                Assert.That(handler.Bearers.Last(), [Is].EqualTo("rotated-access"))
+            End If
+            Assert.That(handler.Disposed, [Is].False)
+        End Using
+    End Function
+
+    <TestCase("account-uid"), TestCase("token-fraction")>
+    Public Async Function FailedCandidateDoesNotLeakBearerIntoTheNextRefresh(mode As String) As Task
+        Dim handler As New Handler()
+        Using transport As New HttpClient(handler)
+            Dim provider As New FixtureProvider(transport)
+            Await provider.AuthorizeAsync(Profile())
+            Dim client = provider.CurrentClient
+            Dim identity = ScopevisioExplicitIdentity.FromToken(client.Token, Handler.TokenBody(Nothing), 7, "fixture-tenant")
+            Dim stagingConfigurations As New List(Of Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration)
+            Dim session As New ScopevisioExplicitSession(client, JsonConvert.DeserializeObject(Of AccountInfo)(Handler.AccountBody(Nothing)), identity,
+                createStagingClient:=Function(configuration)
+                                        stagingConfigurations.Add(configuration)
+                                        Return New OpenScopeApiClient(configuration)
+                                    End Function)
+            Dim requestAdmissionBearers As New List(Of String)
+            handler.TokenReturned = Sub() requestAdmissionBearers.Add(stagingConfigurations.Last().AccessToken)
+            Dim rejected = session.GetOAuthInfo()
+            handler.Rotate = True
+            handler.Mode = mode
+            Assert.CatchAsync(CType(Async Function() As Task
+                                       Await session.RefreshAsync(rejected, CancellationToken.None)
+                                   End Function, Func(Of Task)))
+            Assert.That(client.Config.AccessToken, [Is].EqualTo("fixture-access"))
+            handler.Mode = Nothing
+            Dim nextRequest = handler.Paths.Count
+            Await session.RefreshAsync(rejected, CancellationToken.None)
+            Assert.That(handler.Paths(nextRequest), [Is].EqualTo("/token"))
+            'The published token endpoint sends no Authorization header; inspect the candidate's snapshot at request admission instead.
+            Assert.That(handler.Bearers(nextRequest), [Is].Null)
+            Assert.That(requestAdmissionBearers, [Is].EqualTo(New String() {"fixture-access", "fixture-access"}))
+            Assert.That(handler.Bearers.Last(), [Is].EqualTo("rotated-access"))
+            Assert.That(client.Config.AccessToken, [Is].EqualTo("rotated-access"))
+            Await session.RefreshAsync(session.GetOAuthInfo(), CancellationToken.None)
+            Assert.That(stagingConfigurations.Count, [Is].EqualTo(1))
+            Assert.That(requestAdmissionBearers.Last(), [Is].EqualTo("rotated-access"))
+            Assert.That(handler.Disposed, [Is].False)
+        End Using
+    End Function
+
     <Test>
     Public Async Function ExplicitSelectionRejectsCatalogAndProtectedSwitchWithoutRequests() As Task
         Dim handler As New Handler()
@@ -217,6 +277,7 @@ Public Class ScopevisioExplicitAuthorizationTest
         Friend ReadOnly Entered As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         Friend ReadOnly Paths As New List(Of String)
         Friend ReadOnly Forms As New List(Of String)
+        Friend ReadOnly Bearers As New List(Of String)
         Friend Shared Function TokenBody(mode As String, Optional rotate As Boolean = False) As String
             Dim body As New JObject From {{"token_type", "bearer"}, {"access_token", If(rotate, "rotated-access", "fixture-access")}, {"refresh_token", "fixture-refresh"}, {"uid", If(mode = "token-uid", "different-scope-uid", "fixture-scope-uid")}, {"organisationId", JToken.Parse(If(mode = "token-fraction", "7.25", If(mode = "token-org", "8", "7")))}, {"teamworkTenantId", If(mode = "token-tenant", "other-tenant", "fixture-tenant")}}
             Return body.ToString()
@@ -226,6 +287,7 @@ Public Class ScopevisioExplicitAuthorizationTest
         End Function
         Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
             Paths.Add(request.RequestUri.AbsolutePath)
+            Bearers.Add(request.Headers.Authorization?.Parameter)
             Dim body As String
             If request.RequestUri.AbsolutePath = "/token" Then
                 Forms.Add(Await request.Content.ReadAsStringAsync())
