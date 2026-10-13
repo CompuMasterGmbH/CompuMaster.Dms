@@ -9,24 +9,35 @@ Imports CompuMaster.Dms.Providers
 Public Class ScopevisioDemoSelectionBufferTest
     Private DirectoryPath As String
     Private Buffer As DemoInputBuffer
+    Private DirectoryAdmitted As Boolean
+    Private ReadOnly TrackedFiles As New List(Of String)
 
     <SetUp>
     Public Sub SetupOwnedBuffer()
+        Buffer = Nothing
+        DirectoryAdmitted = False
+        TrackedFiles.Clear()
         DirectoryPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.WorkDirectory, ".task-work", "unittests_demo_selector_" & Guid.NewGuid().ToString("N")))
         Assert.That(Directory.Exists(DirectoryPath), [Is].False, "The fresh private buffer directory must be absent.")
         Directory.CreateDirectory(DirectoryPath)
+        DirectoryAdmitted = True
         Buffer = New DemoInputBuffer(DirectoryPath, "Scopevisio.Teamwork.Test", "SCOPEVISIOTEAMWORK", Function(name) Nothing)
+        For Each field In {"username", "password", "customer no.", "start path", ScopevisioDemoSelection.OrganisationField, ScopevisioDemoSelection.TenantField}
+            Dim file = Buffer.FilePath(field)
+            Assert.That(Global.System.IO.File.Exists(file), [Is].False)
+            TrackedFiles.Add(file)
+        Next
     End Sub
 
     <TearDown>
     Public Sub RemoveOwnedBuffers()
-        If Buffer Is Nothing Then Return
-        For Each field In {"username", "password", "customer no.", "start path", ScopevisioDemoSelection.OrganisationField, ScopevisioDemoSelection.TenantField}
-            Buffer.Remove(field)
-        Next
-        'Only the admitted empty private directory is removed; any untracked leftover prevents cleanup.
-        Directory.Delete(DirectoryPath, False)
-        Assert.That(Directory.Exists(DirectoryPath), [Is].False)
+        Try
+            OwnedLocalTestCleanup.Cleanup(Nothing, Nothing, DirectoryPath, DirectoryAdmitted, TrackedFiles)
+        Finally
+            Buffer = Nothing
+            DirectoryAdmitted = False
+            TrackedFiles.Clear()
+        End Try
     End Sub
 
     <Test>
