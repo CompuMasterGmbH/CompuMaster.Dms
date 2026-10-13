@@ -278,4 +278,6 @@
   <data name="UploadSummary" xml:space="preserve"><value>ההעלאה הסתיימה: {0} קבצים הועלו, {1} דולגו.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>היעד השתנה לפני ההעלאה: {0}.</value></data>
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>ספק זה אינו מאפשר קבצים ישירות בשורש השרת.</value></data>
+  <data name="PropertiesInstanceName" xml:space="preserve"><value>דייר / מופע: </value></data>
+  <data name="PropertiesInstanceId" xml:space="preserve"><value>מזהה דייר / מופע: </value></data>
 </root>

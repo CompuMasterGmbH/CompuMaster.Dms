@@ -278,4 +278,6 @@
   <data name="UploadSummary" xml:space="preserve"><value>Subida finalizada: {0} archivos subidos, {1} omitidos.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>El destino cambió antes de la subida: {0}.</value></data>
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>Este proveedor no admite archivos directamente en la raíz del servidor.</value></data>
+  <data name="PropertiesInstanceName" xml:space="preserve"><value>Inquilino / instancia: </value></data>
+  <data name="PropertiesInstanceId" xml:space="preserve"><value>ID del inquilino / instancia: </value></data>
 </root>

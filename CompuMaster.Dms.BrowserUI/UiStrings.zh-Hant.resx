@@ -278,4 +278,6 @@
   <data name="UploadSummary" xml:space="preserve"><value>上傳結束：已上傳 {0} 個檔案，已略過 {1} 個。</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>上傳前目標已變更：{0}。</value></data>
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>此提供者不允許在伺服器根目錄直接放置檔案。</value></data>
+  <data name="PropertiesInstanceName" xml:space="preserve"><value>租戶 / 執行個體：</value></data>
+  <data name="PropertiesInstanceId" xml:space="preserve"><value>租戶 / 執行個體 ID：</value></data>
 </root>

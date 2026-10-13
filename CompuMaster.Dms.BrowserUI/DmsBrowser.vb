@@ -2042,7 +2042,9 @@ Public Class DmsBrowser
     Private Async Sub ToolStripButtonPropertiesFolder_Click(sender As Object, e As EventArgs) Handles ToolStripButtonPropertiesFolder.Click
         If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
-            Dim SelectedFolder As DmsResourceItem = CType(Me.TreeViewDmsFolders.SelectedNode.Tag, NodeTagData).DmsResourceItem
+            Dim selectedNode = Me.TreeViewDmsFolders.SelectedNode
+            If selectedNode Is Nothing Then Return
+            Dim SelectedFolder As DmsResourceItem = TryCast(selectedNode.Tag, NodeTagData)?.DmsResourceItem
             If SelectedFolder IsNot Nothing Then
                 Dim Details As String = Nothing
                 Await Me.RunTransferAsync(Async Function()
@@ -2051,7 +2053,10 @@ Public Class DmsBrowser
                                          End Function)
                 InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFolder.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
             Else
-                InfoBox.InformationBox.Show(UiStrings.GetText("RootValue"), title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                Dim details = Me.RootPropertiesDetails(selectedNode)
+                If details IsNot Nothing Then
+                    InfoBox.InformationBox.Show(details, title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                End If
             End If
         Catch ex As Data.DmsUserErrorMessageException
             Me.HandleBrowserFailure(ex)

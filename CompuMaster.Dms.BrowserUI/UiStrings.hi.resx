@@ -278,4 +278,6 @@
   <data name="UploadSummary" xml:space="preserve"><value>अपलोड समाप्त: {0} फ़ाइलें अपलोड हुईं, {1} छोड़ी गईं।</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>अपलोड से पहले गंतव्य बदल गया: {0}।</value></data>
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>यह प्रदाता सर्वर के मूल फ़ोल्डर में सीधे फ़ाइलों की अनुमति नहीं देता।</value></data>
+  <data name="PropertiesInstanceName" xml:space="preserve"><value>टेनेंट / इंस्टेंस: </value></data>
+  <data name="PropertiesInstanceId" xml:space="preserve"><value>टेनेंट / इंस्टेंस आईडी: </value></data>
 </root>
