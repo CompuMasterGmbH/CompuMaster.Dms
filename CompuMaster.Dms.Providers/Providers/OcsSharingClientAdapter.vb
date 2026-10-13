@@ -110,6 +110,7 @@ Namespace Providers
         Friend Property ObservedServerFamily As OcsServerFamily
         Friend Property ObservedVersionCapabilitiesJson As String
         Friend Property ObservedProtocolUserId As String
+        Friend Property DiscoveryPhase As OcsSharingDiscoveryPhase
 
         Public Sub New(baseUrl As String, userID As String, password As String)
             Me.Client = New OcsClient(baseUrl, userID, password)
@@ -133,6 +134,7 @@ Namespace Providers
                 'Family detection is diagnostic only; capabilities decide support.
             End Try
             Me.ObservedServerFamily = DetectServerFamily(Config)
+            Me.DiscoveryPhase = OcsSharingDiscoveryPhase.Capabilities
             Dim CapabilityJson As String = Me.ReadJson("cloud/capabilities")
             Me.ObservedVersionCapabilitiesJson = CapabilityJson
             Me.ObservedServerFamily = DetectServerFamily(Config, CapabilityJson)
@@ -144,6 +146,7 @@ Namespace Providers
                 Me.ObservedProtocolUserId = Nothing
             End Try
 #End If
+            Me.DiscoveryPhase = OcsSharingDiscoveryPhase.ShareListing
             Me.GetShares(Nothing, False, False)
 
             Dim SupportsShareeDiscovery As Boolean
@@ -156,6 +159,7 @@ Namespace Providers
                 SupportsShareeDiscovery = False
             End Try
 
+            Me.DiscoveryPhase = OcsSharingDiscoveryPhase.CapabilityPolicy
             Me._Capabilities = ParseCapabilities(CapabilityJson, Me.ObservedServerFamily, SupportsShareeDiscovery)
         End Sub
 
