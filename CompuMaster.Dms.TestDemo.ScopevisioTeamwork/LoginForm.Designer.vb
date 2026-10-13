@@ -46,6 +46,10 @@ Partial Class LoginForm
         Me.CustomerNoTextBox = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.CheckboxPersistLoginCredentialsToDisk = New System.Windows.Forms.CheckBox()
+        Me.OrganisationIdLabel = New System.Windows.Forms.Label()
+        Me.OrganisationIdTextBox = New System.Windows.Forms.TextBox()
+        Me.ExpectedTeamworkTenantIdLabel = New System.Windows.Forms.Label()
+        Me.ExpectedTeamworkTenantIdTextBox = New System.Windows.Forms.TextBox()
         Me.StartPathTextBox = New System.Windows.Forms.TextBox()
         Me.Label3 = New System.Windows.Forms.Label()
         CType(Me.LogoPictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -58,7 +62,7 @@ Partial Class LoginForm
         Me.LogoPictureBox.Image = Nothing
         Me.LogoPictureBox.Location = New System.Drawing.Point(0, 0)
         Me.LogoPictureBox.Name = "LogoPictureBox"
-        Me.LogoPictureBox.Size = New System.Drawing.Size(158, 264)
+        Me.LogoPictureBox.Size = New System.Drawing.Size(158, 376)
         Me.LogoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
         Me.LogoPictureBox.TabIndex = 0
         Me.LogoPictureBox.TabStop = False
@@ -103,20 +107,20 @@ Partial Class LoginForm
         'OK
         '
         Me.OK.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.OK.Location = New System.Drawing.Point(563, 233)
+        Me.OK.Location = New System.Drawing.Point(563, 345)
         Me.OK.Name = "OK"
         Me.OK.Size = New System.Drawing.Size(94, 23)
-        Me.OK.TabIndex = 4
+        Me.OK.TabIndex = 8
         Me.OK.Text = "&OK"
         '
         'Cancel
         '
         Me.Cancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.Cancel.Location = New System.Drawing.Point(666, 233)
+        Me.Cancel.Location = New System.Drawing.Point(666, 345)
         Me.Cancel.Name = "Cancel"
         Me.Cancel.Size = New System.Drawing.Size(94, 23)
-        Me.Cancel.TabIndex = 5
+        Me.Cancel.TabIndex = 9
         Me.Cancel.Text = "E&xit"
         '
         'CustomerNoTextBox
@@ -140,7 +144,7 @@ Partial Class LoginForm
         'CheckboxPersistLoginCredentialsToDisk
         '
         Me.CheckboxPersistLoginCredentialsToDisk.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.CheckboxPersistLoginCredentialsToDisk.Location = New System.Drawing.Point(171, 232)
+        Me.CheckboxPersistLoginCredentialsToDisk.Location = New System.Drawing.Point(171, 344)
         Me.CheckboxPersistLoginCredentialsToDisk.Name = "CheckboxPersistLoginCredentialsToDisk"
         Me.CheckboxPersistLoginCredentialsToDisk.Size = New System.Drawing.Size(375, 23)
         Me.CheckboxPersistLoginCredentialsToDisk.TabIndex = 7
@@ -150,27 +154,51 @@ Partial Class LoginForm
         '
         Me.StartPathTextBox.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.StartPathTextBox.Location = New System.Drawing.Point(174, 174)
+        Me.StartPathTextBox.Location = New System.Drawing.Point(174, 270)
         Me.StartPathTextBox.Name = "StartPathTextBox"
         Me.StartPathTextBox.Size = New System.Drawing.Size(586, 23)
-        Me.StartPathTextBox.TabIndex = 9
+        Me.StartPathTextBox.TabIndex = 6
         '
         'Label3
         '
-        Me.Label3.Location = New System.Drawing.Point(172, 154)
+        Me.Label3.Location = New System.Drawing.Point(172, 250)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(220, 23)
         Me.Label3.TabIndex = 8
         Me.Label3.Text = "&Start-Pfad"
         Me.Label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
+        Me.OrganisationIdLabel.Location = New System.Drawing.Point(172, 154)
+        Me.OrganisationIdLabel.Name = "OrganisationIdLabel"
+        Me.OrganisationIdLabel.Size = New System.Drawing.Size(586, 23)
+        Me.OrganisationIdLabel.Text = "Organisation ID (optional)"
+        Me.OrganisationIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.OrganisationIdTextBox.Anchor = System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right
+        Me.OrganisationIdTextBox.Location = New System.Drawing.Point(174, 174)
+        Me.OrganisationIdTextBox.Name = "OrganisationIdTextBox"
+        Me.OrganisationIdTextBox.Size = New System.Drawing.Size(586, 23)
+        Me.OrganisationIdTextBox.TabIndex = 4
+        Me.ExpectedTeamworkTenantIdLabel.Location = New System.Drawing.Point(172, 202)
+        Me.ExpectedTeamworkTenantIdLabel.Name = "ExpectedTeamworkTenantIdLabel"
+        Me.ExpectedTeamworkTenantIdLabel.Size = New System.Drawing.Size(586, 23)
+        Me.ExpectedTeamworkTenantIdLabel.Text = "Expected Teamwork tenant ID (optional)"
+        Me.ExpectedTeamworkTenantIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.ExpectedTeamworkTenantIdTextBox.Anchor = System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right
+        Me.ExpectedTeamworkTenantIdTextBox.Location = New System.Drawing.Point(174, 222)
+        Me.ExpectedTeamworkTenantIdTextBox.Name = "ExpectedTeamworkTenantIdTextBox"
+        Me.ExpectedTeamworkTenantIdTextBox.Size = New System.Drawing.Size(586, 23)
+        Me.ExpectedTeamworkTenantIdTextBox.TabIndex = 5
         'LoginForm
         '
         Me.AcceptButton = Me.OK
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.Cancel
-        Me.ClientSize = New System.Drawing.Size(767, 264)
+        Me.ClientSize = New System.Drawing.Size(767, 376)
+        Me.Controls.Add(Me.OrganisationIdLabel)
+        Me.Controls.Add(Me.OrganisationIdTextBox)
+        Me.Controls.Add(Me.ExpectedTeamworkTenantIdLabel)
+        Me.Controls.Add(Me.ExpectedTeamworkTenantIdTextBox)
         Me.Controls.Add(Me.StartPathTextBox)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.CheckboxPersistLoginCredentialsToDisk)
@@ -196,6 +224,10 @@ Partial Class LoginForm
 
     End Sub
 
+    Friend WithEvents OrganisationIdLabel As System.Windows.Forms.Label
+    Friend WithEvents OrganisationIdTextBox As System.Windows.Forms.TextBox
+    Friend WithEvents ExpectedTeamworkTenantIdLabel As System.Windows.Forms.Label
+    Friend WithEvents ExpectedTeamworkTenantIdTextBox As System.Windows.Forms.TextBox
     Friend WithEvents CustomerNoTextBox As System.Windows.Forms.TextBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents CheckboxPersistLoginCredentialsToDisk As System.Windows.Forms.CheckBox

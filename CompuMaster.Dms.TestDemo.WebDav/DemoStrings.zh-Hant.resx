@@ -14,4 +14,7 @@
   <data name="ServerUrl" xml:space="preserve"><value>WebDAV 伺服器 URL</value></data>
   <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>Nextcloud 伺服器 URL 必須是絕對 HTTP 或 HTTPS URL。</value></data>
   <data name="OpenDmsFailed" xml:space="preserve"><value>無法開啟DMS</value></data>
+  <data name="OrganisationId" xml:space="preserve"><value>組織 ID（選填）</value></data>
+  <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>預期的 Teamwork 租戶 ID（選填）</value></data>
+  <data name="InvalidOrganisationId" xml:space="preserve"><value>組織 ID 必須為正整數。</value></data>
 </root>

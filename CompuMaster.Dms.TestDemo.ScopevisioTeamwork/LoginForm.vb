@@ -50,8 +50,11 @@ Public Class LoginForm
         Me.UsernameTextBox.Text = Settings.InputFromBufferFile("username")
         Me.PasswordTextBox.Text = Settings.InputFromBufferFile("password")
         Me.CustomerNoTextBox.Text = Settings.InputFromBufferFile("customer no.")
+        Me.OrganisationIdTextBox.Text = Settings.InputFromBufferFile(ScopevisioDemoSelection.OrganisationField)
+        Me.ExpectedTeamworkTenantIdTextBox.Text = Settings.InputFromBufferFile(ScopevisioDemoSelection.TenantField)
         Me.StartPathTextBox.Text = If(Settings.InputFromBufferFile("start path") <> Nothing, Settings.InputFromBufferFile("start path"), "/")
-        If Settings.IsBufferedByFile("username") OrElse Settings.IsBufferedByFile("password") OrElse Settings.IsBufferedByFile("customer no.") Then
+        If Settings.IsBufferedByFile("username") OrElse Settings.IsBufferedByFile("password") OrElse Settings.IsBufferedByFile("customer no.") OrElse
+           Settings.IsBufferedByFile(ScopevisioDemoSelection.OrganisationField) OrElse Settings.IsBufferedByFile(ScopevisioDemoSelection.TenantField) Then
             Me.CheckboxPersistLoginCredentialsToDisk.Checked = True
         Else
             Me.CheckboxPersistLoginCredentialsToDisk.Checked = False
@@ -60,15 +63,21 @@ Public Class LoginForm
 
     Private Sub LoginForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Me.CheckboxPersistLoginCredentialsToDisk.Checked Then
-            Settings.PersistInputValue("username", Me.UsernameTextBox.Text)
-            Settings.PersistInputValue("password", Me.PasswordTextBox.Text)
-            Settings.PersistInputValue("customer no.", Me.CustomerNoTextBox.Text)
-            Settings.PersistInputValue("start path", Me.StartPathTextBox.Text)
+            Try
+                Settings.PersistLoginInputs(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.CustomerNoTextBox.Text, Me.StartPathTextBox.Text,
+                    Me.OrganisationIdTextBox.Text, Me.ExpectedTeamworkTenantIdTextBox.Text, DemoStrings.GetText("InvalidOrganisationId"))
+            Catch ex As ArgumentException
+                e.Cancel = True
+                MessageBox.Show(Me, ex.Message, DemoStrings.GetText("OpenDmsFailed"), MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return
+            End Try
         Else
             Settings.RemoveBufferFile("username")
             Settings.RemoveBufferFile("password")
             Settings.RemoveBufferFile("customer no.")
             Settings.RemoveBufferFile("start path")
+            Settings.RemoveBufferFile(ScopevisioDemoSelection.OrganisationField)
+            Settings.RemoveBufferFile(ScopevisioDemoSelection.TenantField)
         End If
     End Sub
 
@@ -77,23 +86,29 @@ Public Class LoginForm
             Me.UseWaitCursor = True
             Me.Cursor = Cursors.WaitCursor
             Me.Refresh()
-            Dim LoginProfile As New DmsLoginProfile() With {
-                            .DmsProvider = Providers.BaseDmsProvider.DmsProviders.Scopevisio,
-                            .CustomerInstance = Me.CustomerNoTextBox.Text,
-                            .Username = Me.UsernameTextBox.Text,
-                            .Password = Me.PasswordTextBox.Text
-                        }
+            Dim LoginProfile = ScopevisioDemoSelection.CreateProfile(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.CustomerNoTextBox.Text,
+                Me.OrganisationIdTextBox.Text, Me.ExpectedTeamworkTenantIdTextBox.Text, DemoStrings.GetText("InvalidOrganisationId"))
+            Dim explicitSelection = TypeOf LoginProfile Is Providers.ScopevisioLoginCredentials
             Dim InstanceSelector As New BrowserUI.RemoteInstanceSelector(
                         BrowserUI.RemoteInstanceSelector.StartupInstance.SelectionDialog,
                         AddressOf BrowserUI.RemoteInstanceSelector.ShowDefaultSelectionDialog)
-            Dim SelectedProvider As Providers.BaseDmsProvider = InstanceSelector.CreateSelectedProvider(LoginProfile, Me)
+            Dim SelectedProvider As Providers.BaseDmsProvider
+            If explicitSelection Then
+                Dim direct As New Providers.ScopevisioTeamworkDmsProvider()
+                direct.Authorize(DirectCast(LoginProfile, Providers.ScopevisioLoginCredentials))
+                SelectedProvider = direct
+            Else
+                SelectedProvider = InstanceSelector.CreateSelectedProvider(LoginProfile, Me)
+            End If
             If SelectedProvider Is Nothing Then Return
+            Dim allowedActions = BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowViewFileVersionHistory Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRestoreFileVersions Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRemoveFileVersions
+            If explicitSelection Then allowedActions = allowedActions And Not BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance
             Using Browser As New CompuMaster.Dms.BrowserUI.DmsBrowser(
                         SelectedProvider, InstanceSelector.SelectionDialog,
                         "DMS Browser DEMO for Scopevisio Teamwork", Me.Icon,
                         If(Me.StartPathTextBox.Text.StartsWith("/"), Me.StartPathTextBox.Text.Substring(1), Me.StartPathTextBox.Text), "",
                         BrowserUI.DmsBrowser.BrowseModes.FoldersAndFiles,
-                        BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowViewFileVersionHistory Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRestoreFileVersions Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRemoveFileVersions,
+                        allowedActions,
                         BrowserUI.DmsBrowser.DialogOperationModes.NoResults,
                         "", "", ""
                     )

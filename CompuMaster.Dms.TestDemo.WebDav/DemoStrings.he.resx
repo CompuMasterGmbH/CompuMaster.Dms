@@ -14,4 +14,7 @@
   <data name="ServerUrl" xml:space="preserve"><value>כתובת URL של שרת WebDAV</value></data>
   <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>כתובת האתר של שרת Nextcloud חייבת להיות כתובת URL מוחלטת של HTTP או HTTPS.</value></data>
   <data name="OpenDmsFailed" xml:space="preserve"><value>לא ניתן לפתוח את ה-DMS</value></data>
+  <data name="OrganisationId" xml:space="preserve"><value>מזהה ארגון (אופציונלי)</value></data>
+  <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>מזהה דייר Teamwork צפוי (אופציונלי)</value></data>
+  <data name="InvalidOrganisationId" xml:space="preserve"><value>מזהה הארגון חייב להיות מספר שלם חיובי.</value></data>
 </root>

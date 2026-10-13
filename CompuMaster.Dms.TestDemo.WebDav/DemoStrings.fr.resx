@@ -14,4 +14,7 @@
   <data name="ServerUrl" xml:space="preserve"><value>&amp;URL du serveur WebDAV</value></data>
   <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>L'URL du serveur Nextcloud doit être une URL HTTP ou HTTPS absolue.</value></data>
   <data name="OpenDmsFailed" xml:space="preserve"><value>Impossible d'ouvrir le DMS</value></data>
+  <data name="OrganisationId" xml:space="preserve"><value>ID de l’organisation (facultatif)</value></data>
+  <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>ID du locataire Teamwork attendu (facultatif)</value></data>
+  <data name="InvalidOrganisationId" xml:space="preserve"><value>L’ID de l’organisation doit être un entier positif.</value></data>
 </root>
