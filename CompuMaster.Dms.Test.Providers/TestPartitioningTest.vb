@@ -58,6 +58,24 @@ Public NotInheritable Class TestPartitioningTest
         Next
     End Sub
 
+    <Test>
+    Public Sub RepresentativeRemoteSamplesRemainAvailableForEveryServerPartition()
+        Dim suite = New NUnit.Framework.Api.DefaultTestAssemblyBuilder().Build(GetType(BaseDmsProviderTestBase).Assembly, New Dictionary(Of String, Object)())
+        Dim tests As New List(Of KeyValuePair(Of String, String()))()
+        CollectRemoteTests(suite, New String() {}, tests)
+        For Each serverPartition As String In RemotePartitionCategories
+            Dim methods = New List(Of String) From {"LoginAtRestApiWebservice", "ListAllRemoteItems", "BasicFileRoundTripAndCleanup"}
+            If serverPartition = "ScopevisioTeamwork" Then methods.Add("ExplicitSessionRenewalPreservesIdentityAndSubsequentBrowsing")
+            If serverPartition = "OwnCloud" OrElse serverPartition = "Nextcloud" Then methods.Add("CloudOcsPublicLinkRoundTrip")
+            For Each method As String In methods
+                Dim selected = tests.Where(Function(test) test.Value.Contains(serverPartition) AndAlso
+                    (test.Key.EndsWith("." & method, StringComparison.Ordinal) OrElse test.Key.Contains("." & method & "("))).ToArray()
+                Assert.That(selected, [Is].Not.Empty, serverPartition & ": " & method)
+                Assert.That(selected.All(Function(test) Not test.Value.Contains("ReadOnlyDiagnostic")), [Is].True)
+            Next
+        Next
+    End Sub
+
     Private Shared Sub CollectRemoteTests(test As NUnit.Framework.Interfaces.ITest, inheritedCategories As String(), results As List(Of KeyValuePair(Of String, String())))
         Dim categories = inheritedCategories.Concat(test.Properties("Category").Cast(Of String)()).Distinct().ToArray()
         If test.IsSuite Then

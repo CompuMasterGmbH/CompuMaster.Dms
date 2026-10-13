@@ -1,7 +1,8 @@
 ﻿# DMS test-level control. Change the value below to 1 or 2; do not rename this file.
-# PR/main CI and local test scripts read it. A manual workflow can override it.
+# Local scripts read it and can override it. CI validates it but promotes normal
+# Windows/net8 to full cumulative Level 2; other platforms select named samples.
 #
-# Level 1 (default): quick isolated regressions and provider smoke tests on all OS.
+# Level 1: quick local isolated regressions and provider smoke tests.
 # Remote checks cover login/listing/existence/path, explicit session renewal,
 # and a small file lifecycle:
 # upload/version/copy/move/download/delete, with owned setup and verified cleanup.
@@ -29,4 +30,4 @@
 # Server locks and complete setup/cleanup are mandatory at BOTH levels.
 # See TESTING.md for commands, scope, access-window and release requirements.
 
-TEST_LEVEL=1
+TEST_LEVEL=2

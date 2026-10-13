@@ -125,7 +125,7 @@
 ## Releases and publishing
 
 - Creating a GitHub release is a public deployment action: `.github/workflows/PublishRelease.yml` publishes `CompuMaster.Dms.Providers` and `CompuMaster.Dms.BrowserUI` to NuGet.org and attaches compiled Provider, BrowserUI, Scopevisio demo, and WebDAV demo archives to the GitHub release.
-- Create a release only after the related pull request has been merged into `main` and the complete serialized GitHub Actions test matrix, including all Scopevisio Teamwork and WebDAV integration tests on every configured operating system, has completed successfully.
+- Create a release only after the related pull request has been merged into `main` and the final merged-head serialized GitHub Actions pipeline has completed successfully: complete normally enabled Windows/.NET 8 provider, BrowserUI and configured remote integration tests, plus named representative samples on Linux/macOS and Windows/.NET 4.8. Report the reduced coverage, actual executed/ignored counts and deferred acceptance explicitly; samples are not full cross-platform verification.
 - Require explicit user approval immediately before creating the GitHub release. Do not infer release authorization from approval to commit, push, or merge code.
 - Use a new, unused release tag that is also a valid NuGet version without a leading `v`, for example `2026.08.12.0`. Verify existing GitHub releases, Git tags, and NuGet package versions before selecting it.
 - Trigger publishing by creating the GitHub release so that the `release: created` workflow event supplies the version through `github.ref_name`.
