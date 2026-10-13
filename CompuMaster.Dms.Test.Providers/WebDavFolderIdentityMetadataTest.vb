@@ -81,15 +81,15 @@ Public Class WebDavFolderIdentityMetadataTest
         Return If(asynchronous, provider.ListAllRemoteItemsAsync("", BaseDmsProvider.SearchItemType.Folders).GetAwaiter().GetResult().Single(), provider.ListAllRemoteItems("", BaseDmsProvider.SearchItemType.Folders).Single())
     End Function
 
-    Private Shared Function CreateProvider(client As HttpClient) As WebDavDmsProvider
+    Friend Shared Function CreateProvider(client As HttpClient) As WebDavDmsProvider
         Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = "https://fixture.invalid/"}
         GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic).SetValue(provider, New WebDav.WebDavClient(client))
         Return provider
     End Function
 
-    Private Class MetadataHandler
+    Friend Class MetadataHandler
         Inherits HttpMessageHandler
-        Private ReadOnly Properties As String
+        Friend Properties As String
         Private ReadOnly Status As Integer
         Friend ResourcePath As String = "item"
         Friend IsFolder As Boolean = True
