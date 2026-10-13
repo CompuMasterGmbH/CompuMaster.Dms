@@ -16,6 +16,14 @@ on:
         description: 'Native-only Level 2 verification; skips the default-package matrix and requires coordinated exclusive Scopevisio access.'
         type: boolean
         default: false
+      read_only_diagnostics:
+        description: 'Manual Windows Scopevisio/ownCloud read-only diagnosis under coordinated exclusive locks; not full matrix acceptance.'
+        type: boolean
+        default: false
+      diagnostic_window_until:
+        description: 'Confirmed CI-only read-only exclusive-window end in ISO 8601 with UTC offset; at least 20 minutes remaining at each job startup.'
+        type: string
+        default: ''
       native_dependency_mode:
         description: 'Native verification against released NuGet packages, or the pinned released source chain.'
         type: choice
@@ -40,6 +48,7 @@ env:
 
 jobs:
   isolated-tests:
+    if: github.event_name != 'workflow_dispatch' || !inputs.read_only_diagnostics
     name: Isolated tests (${{ matrix.os }})
     needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
@@ -151,17 +160,24 @@ jobs:
         env:
           REQUESTED_TEST_LEVEL: ${{ inputs.test_level || 'repository' }}
           NATIVE_ONLY: ${{ inputs.run_native_scopevisio }}
+          READ_ONLY_DIAGNOSTICS: ${{ github.event_name == 'workflow_dispatch' && inputs.read_only_diagnostics }}
         run: |
           ./.github/scripts/test-test-level-configuration.ps1
           $level = ./.github/scripts/read-test-level.ps1 -RequestedLevel $env:REQUESTED_TEST_LEVEL
+          if ($env:READ_ONLY_DIAGNOSTICS -eq 'true' -and $env:NATIVE_ONLY -eq 'true') { throw 'Read-only diagnosis and native live verification are mutually exclusive.' }
+          if ($env:READ_ONLY_DIAGNOSTICS -eq 'true') { $level = '1' }
           if ($env:NATIVE_ONLY -eq 'true') { $level = '2' }
           "level=$level" >> $env:GITHUB_OUTPUT
           Write-Host "Selected test level: $level"
       - id: matrix
         name: Select configured remote test servers
         shell: bash
+        env:
+          READ_ONLY_DIAGNOSTICS: ${{ github.event_name == 'workflow_dispatch' && inputs.read_only_diagnostics }}
         run: |
-          if [[ -n "$TEST_WEBDAV_SERVERURL" && -n "$TEST_WEBDAV_USERNAME" && -n "$TEST_WEBDAV_PASSWORD" ]]; then
+          if [[ "$READ_ONLY_DIAGNOSTICS" == 'true' ]]; then
+            matrix='{"os":["windows-latest"],"server":[{"id":"scopevisio-teamwork","displayName":"Scopevisio Teamwork","category":"ScopevisioTeamwork","lock":"dms-test-server-scopevisio-teamwork"},{"id":"owncloud-webdav","displayName":"OwnCloud","category":"OwnCloud","lock":"dms-test-server-owncloud"}]}'
+          elif [[ -n "$TEST_WEBDAV_SERVERURL" && -n "$TEST_WEBDAV_USERNAME" && -n "$TEST_WEBDAV_PASSWORD" ]]; then
             matrix='{"os":["windows-latest","ubuntu-latest","macos-latest"],"server":[{"id":"scopevisio-teamwork","displayName":"Scopevisio Teamwork","category":"ScopevisioTeamwork","lock":"dms-test-server-scopevisio-teamwork"},{"id":"owncloud-webdav","displayName":"OwnCloud","category":"OwnCloud","lock":"dms-test-server-owncloud"},{"id":"generic-webdav","displayName":"WebDAV","category":"WebDav","lock":"dms-test-server-webdav"},{"id":"nextcloud-webdav","displayName":"Nextcloud","category":"Nextcloud","lock":"dms-test-server-nextcloud-webdav"}]}'
           else
             matrix='{"os":["windows-latest","ubuntu-latest","macos-latest"],"server":[{"id":"scopevisio-teamwork","displayName":"Scopevisio Teamwork","category":"ScopevisioTeamwork","lock":"dms-test-server-scopevisio-teamwork"},{"id":"owncloud-webdav","displayName":"OwnCloud","category":"OwnCloud","lock":"dms-test-server-owncloud"},{"id":"nextcloud-webdav","displayName":"Nextcloud","category":"Nextcloud","lock":"dms-test-server-nextcloud-webdav"}]}'
@@ -173,9 +189,10 @@ jobs:
   remote-integration-tests:
     # A native-only dispatch does not duplicate the default-package matrix.
     if: github.event_name != 'workflow_dispatch' || !inputs.run_native_scopevisio
-    name: ${{ matrix.server.displayName }} integration tests (${{ matrix.os }}, Level ${{ needs.prepare-remote-test-matrix.outputs.level }})
+    name: ${{ matrix.server.displayName }} ${{ inputs.read_only_diagnostics && 'read-only diagnostics' || 'integration tests' }} (${{ matrix.os }}, Level ${{ needs.prepare-remote-test-matrix.outputs.level }})
     needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ inputs.read_only_diagnostics && 20 || 360 }}
 
     # Every entry identifies one exclusive account/test dataset. Jobs for the same
     # account are serialized across workflows and operating systems. Independent
@@ -226,7 +243,9 @@ jobs:
         shell: pwsh
         env:
           DMS_TEST_SERVER_CATEGORY: ${{ matrix.server.category }}
-        run: ./.github/scripts/test-remote-dms.ps1 -TestLevel $env:DMS_TEST_LEVEL -ServerCategory $env:DMS_TEST_SERVER_CATEGORY
+          DMS_READ_ONLY_DIAGNOSTICS: ${{ github.event_name == 'workflow_dispatch' && inputs.read_only_diagnostics }}
+          DMS_DIAGNOSTIC_WINDOW_UNTIL: ${{ inputs.diagnostic_window_until }}
+        run: ./.github/scripts/test-remote-dms.ps1 -TestLevel $env:DMS_TEST_LEVEL -ServerCategory $env:DMS_TEST_SERVER_CATEGORY -ReadOnlyDiagnostics:($env:DMS_READ_ONLY_DIAGNOSTICS -eq 'true')
 
       - name: Publish integration test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
