@@ -14,24 +14,29 @@ Namespace Providers
         Private ReadOnly Client As OpenScopeApiClient
         Private ReadOnly Information As TeamworkOAuthInfoProvider
         Private ReadOnly Errors As TeamworkClientErrorHandler
+        Private ReadOnly ExplicitSession As ScopevisioExplicitSession
 
-        Friend Sub New(client As OpenScopeApiClient, account As AccountInfo)
+        Friend Sub New(client As OpenScopeApiClient, account As AccountInfo, Optional identity As ScopevisioExplicitIdentity = Nothing)
             Me.Client = client
+            If identity IsNot Nothing Then ExplicitSession = New ScopevisioExplicitSession(client, account, identity)
             Information = New TeamworkOAuthInfoProvider(client)
             Errors = New TeamworkClientErrorHandler(account.User.Login, Information)
         End Sub
 
         Public Function GetOAuthInfo(userId As String) As OAuthInfo Implements IOAuthInfoProvider.GetOAuthInfo
+            If ExplicitSession IsNot Nothing Then Return ExplicitSession.GetOAuthInfo()
             Return Information.GetOAuthInfo(userId)
         End Function
 
         Public Function GetOAuthInfoAsync(userId As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of OAuthInfo) Implements IAsyncOAuthInfoProvider.GetOAuthInfoAsync
+            If ExplicitSession IsNot Nothing Then Return ExplicitSession.GetOAuthInfoAsync(cancellationToken)
             Return Information.GetOAuthInfoAsync(userId, cancellationToken)
         End Function
 
         Public Function RefreshToken(info As OAuthInfo) As OAuthInfo Implements IRestClientErrorHandler.RefreshToken
             EnsureRefreshCredentials()
             Try
+                If ExplicitSession IsNot Nothing Then Return ExplicitSession.RefreshAsync(info, CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
                 Return Errors.RefreshToken(info)
             Catch ex As Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 If IsPermanentRenewalFailure(ex) Then Throw New Data.DmsUserAuthenticationException(ProviderStrings.GetText("SessionReauthorizationRequired"), ex)
@@ -43,6 +48,7 @@ Namespace Providers
             cancellationToken.ThrowIfCancellationRequested()
             EnsureRefreshCredentials()
             Try
+                If ExplicitSession IsNot Nothing Then Return Await ExplicitSession.RefreshAsync(info, cancellationToken).ConfigureAwait(False)
                 Return Await Errors.RefreshTokenAsync(info, cancellationToken).ConfigureAwait(False)
             Catch ex As Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 If IsPermanentRenewalFailure(ex) Then Throw New Data.DmsUserAuthenticationException(ProviderStrings.GetText("SessionReauthorizationRequired"), ex)
@@ -89,10 +95,13 @@ Namespace Providers
     Friend NotInheritable Class ScopevisioSessionIOClient
         Inherits Global.CenterDevice.IO.IOClientBase
         Friend ReadOnly ApplicationContext As AccountInfo
-        Private Sub New(client As OpenScopeApiClient, account As AccountInfo)
-            MyBase.New(New ScopevisioSessionRestClient(New ScopevisioSessionAuthorization(client, account), client.Config.UserAgent), client.Token.Uid)
+        Private Sub New(client As OpenScopeApiClient, account As AccountInfo, Optional identity As ScopevisioExplicitIdentity = Nothing)
+            MyBase.New(New ScopevisioSessionRestClient(New ScopevisioSessionAuthorization(client, account, identity), client.Config.UserAgent), client.Token.Uid)
             ApplicationContext = account
         End Sub
+        Friend Shared Function CreateValidated(client As OpenScopeApiClient, account As AccountInfo, identity As ScopevisioExplicitIdentity) As ScopevisioSessionIOClient
+            Return New ScopevisioSessionIOClient(client, account, identity)
+        End Function
         Friend Shared Async Function CreateAsync(client As OpenScopeApiClient, cancellationToken As CancellationToken) As Task(Of ScopevisioSessionIOClient)
             'Reuse the SDK's per-token-owner account cache populated during construction.
             Dim sdk = Await TeamworkRestClient.CreateAsync(client, cancellationToken).ConfigureAwait(False)
