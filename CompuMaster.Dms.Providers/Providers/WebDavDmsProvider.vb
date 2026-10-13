@@ -458,6 +458,8 @@ Namespace Providers
                 If res.PropertyStatuses Is Nothing OrElse Not res.PropertyStatuses.Any(Function(status) status.Name = fileIDProperty AndAlso Not status.IsSuccessful) Then
                     Result.ExtendedInfosFileID = PropertyText(res, fileIDProperty)
                 End If
+            ElseIf Result.ItemType = DmsResourceItem.ItemTypes.Folder Then
+                Result.ExtendedInfosFolderID = SuccessfulFolderIdentity(res)
             End If
             Return Result
         End Function
@@ -529,6 +531,15 @@ Namespace Providers
             }
         End Function
 
+        Private Shared Function SuccessfulFolderIdentity(resource As Global.WebDav.WebDavResource) As String
+            Dim propertyName = XName.Get("fileid", "http://owncloud.org/ns")
+            If resource.Properties Is Nothing OrElse resource.PropertyStatuses Is Nothing Then Return Nothing
+            If Not resource.PropertyStatuses.Any(Function(status) status.Name = propertyName AndAlso status.IsSuccessful) OrElse
+                resource.PropertyStatuses.Any(Function(status) status.Name = propertyName AndAlso Not status.IsSuccessful) Then Return Nothing
+            If resource.Properties.Where(Function(prop) prop.Name = propertyName).Count() <> 1 Then Return Nothing
+            'This optional server identifier is instance-scoped. Neither a path nor an ETag is a substitute.
+            Return PropertyText(resource, propertyName)
+        End Function
         Private Shared Function ResourceOwner(resource As Global.WebDav.WebDavResource) As DmsUser
             Dim ownerId As String = PropertyText(resource, OwnCloudOwnerId)
             Dim displayName As String = PropertyText(resource, OwnCloudOwnerDisplayName)
