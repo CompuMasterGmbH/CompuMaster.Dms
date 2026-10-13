@@ -14,4 +14,7 @@
   <data name="ServerUrl" xml:space="preserve"><value>WebDAV सर्वर URL</value></data>
   <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>नेक्स्टक्लाउड सर्वर यूआरएल एक पूर्ण HTTP या HTTPS यूआरएल होना चाहिए।</value></data>
   <data name="OpenDmsFailed" xml:space="preserve"><value>डीएमएस खोलने में असमर्थ</value></data>
+  <data name="OrganisationId" xml:space="preserve"><value>संगठन ID (वैकल्पिक)</value></data>
+  <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>अपेक्षित Teamwork टेनेंट ID (वैकल्पिक)</value></data>
+  <data name="InvalidOrganisationId" xml:space="preserve"><value>संगठन ID एक धनात्मक पूर्णांक होना चाहिए।</value></data>
 </root>

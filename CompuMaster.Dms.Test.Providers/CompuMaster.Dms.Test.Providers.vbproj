@@ -40,6 +40,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CompuMaster.Dms.Providers\CompuMaster.Dms.Providers.vbproj" />
+    <Compile Include="..\CompuMaster.Dms.TestDemo.ScopevisioTeamwork\DemoInputBuffer.vb" Link="DemoInputBuffer.vb" />
+    <Compile Include="..\CompuMaster.Dms.TestDemo.ScopevisioTeamwork\ScopevisioDemoSelection.vb" Link="ScopevisioDemoSelection.vb" />
   </ItemGroup>
   <ItemGroup Condition="'$(EnableNativeAsync)' != 'true'">
     <Compile Remove="*.NativeAsync.vb" />

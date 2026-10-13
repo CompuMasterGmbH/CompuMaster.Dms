@@ -21,6 +21,7 @@ Friend NotInheritable Class DemoStrings
         Dim names As New Dictionary(Of String, String) From {
             {"UsernameLabel", "UserName"}, {"PasswordLabel", "Password"},
             {"StartPathLabel", "StartPath"}, {"Label3", "StartPath"},
+            {"OrganisationIdLabel", "OrganisationId"}, {"ExpectedTeamworkTenantIdLabel", "ExpectedTeamworkTenantId"},
             {"OK", "SignIn"}, {"Cancel", "Exit"},
             {"CheckboxPersistLoginCredentialsToDisk", "PersistCredentials"}}
         Dim customerLogin = form.Controls.Find("CustomerNoTextBox", True).Length <> 0
@@ -80,11 +81,19 @@ Friend NotInheritable Class DemoStrings
         Next
         exitButton.Left = form.ClientSize.Width - exitButton.Width - 12
         signInButton.Left = exitButton.Left - signInButton.Width - 9
-        Dim pairs As String(,) = {{"Label1", If(customerLogin, "CustomerNoTextBox", "ServerAddress")}, {"UsernameLabel", "UsernameTextBox"}, {"PasswordLabel", "PasswordTextBox"}, {If(customerLogin, "Label3", "StartPathLabel"), "StartPathTextBox"}}
+        Dim pairs As New List(Of KeyValuePair(Of String, String)) From {
+            New KeyValuePair(Of String, String)("Label1", If(customerLogin, "CustomerNoTextBox", "ServerAddress")),
+            New KeyValuePair(Of String, String)("UsernameLabel", "UsernameTextBox"),
+            New KeyValuePair(Of String, String)("PasswordLabel", "PasswordTextBox")}
+        For Each optionalPair In {New KeyValuePair(Of String, String)("OrganisationIdLabel", "OrganisationIdTextBox"),
+                                  New KeyValuePair(Of String, String)("ExpectedTeamworkTenantIdLabel", "ExpectedTeamworkTenantIdTextBox")}
+            If form.Controls.Find(optionalPair.Key, False).Length = 1 AndAlso form.Controls.Find(optionalPair.Value, False).Length = 1 Then pairs.Add(optionalPair)
+        Next
+        pairs.Add(New KeyValuePair(Of String, String)(If(customerLogin, "Label3", "StartPathLabel"), "StartPathTextBox"))
         Dim nextTop As Integer = 7
-        For row As Integer = 0 To pairs.GetLength(0) - 1
-            Dim label = DirectCast(form.Controls.Find(pairs(row, 0), False).Single(), Label)
-            Dim input = form.Controls.Find(pairs(row, 1), False).Single()
+        For Each pair In pairs
+            Dim label = DirectCast(form.Controls.Find(pair.Key, False).Single(), Label)
+            Dim input = form.Controls.Find(pair.Value, False).Single()
             label.AutoSize = True
             label.Size = TextRenderer.MeasureText(label.Text, label.Font)
             label.Top = nextTop

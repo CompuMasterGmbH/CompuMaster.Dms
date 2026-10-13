@@ -14,4 +14,7 @@
   <data name="ServerUrl" xml:space="preserve"><value>WebDAV サーバー URL</value></data>
   <data name="InvalidNextcloudServerUrl" xml:space="preserve"><value>Nextcloud サーバー URL は、絶対 HTTP または HTTPS URL である必要があります。</value></data>
   <data name="OpenDmsFailed" xml:space="preserve"><value>DMSを開けません</value></data>
+  <data name="OrganisationId" xml:space="preserve"><value>組織 ID（任意）</value></data>
+  <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>期待される Teamwork テナント ID（任意）</value></data>
+  <data name="InvalidOrganisationId" xml:space="preserve"><value>組織 ID には正の整数を指定してください。</value></data>
 </root>
