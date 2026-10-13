@@ -55,4 +55,17 @@ Public Class OcsSharingDiscoveryDiagnosticTest
         Assert.That(provider.OcsSharingDiscoveryForTesting.Outcome, [Is].EqualTo(OcsSharingDiscoveryOutcome.EndpointUnrecognized))
         Assert.That(provider.OcsSharingDiscoveryForTesting.ToSafeSummary(), Does.Not.Contain("example.test"))
     End Sub
+
+    <Test>
+    Public Sub ClosedResponseCannotInterruptFallbackDiagnostics()
+        'Creates and closes an empty response locally; no request or transport exists.
+        Dim response = DirectCast(Activator.CreateInstance(GetType(HttpWebResponse)), HttpWebResponse)
+        response.Close()
+        Dim failure As New WebException("secret response", Nothing, WebExceptionStatus.ProtocolError, response)
+        Dim diagnostic As OcsSharingDiscoveryDiagnostic = Nothing
+        Assert.DoesNotThrow(Sub() diagnostic = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.Unavailable, OcsSharingDiscoveryPhase.Capabilities, failure))
+        Assert.That(diagnostic.FailureKind, [Is].EqualTo("WebRequest"))
+        Assert.That(diagnostic.HttpStatus.HasValue, [Is].False)
+        Assert.That(diagnostic.ToSafeSummary(), Does.Not.Contain("secret"))
+    End Sub
 End Class
