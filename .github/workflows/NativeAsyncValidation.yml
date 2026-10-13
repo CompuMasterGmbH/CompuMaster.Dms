@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       test_level:
-        description: 'Repository default reads testing.ci-pipeline-attributes; Level 1 is quick, Level 2 includes extended isolated cases.'
+        description: 'Validates the local level control; Windows/net8 is full, other platforms/runtimes use isolated samples.'
         type: choice
         options: ['repository', '1', '2']
         default: 'repository'
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   isolated-native-async:
-    name: Native async isolated tests (${{ matrix.os }})
+    name: Native async isolated tests (${{ matrix.os }}, ${{ startsWith(matrix.os, 'windows') && 'full net8 plus net48 samples' || 'samples' }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -54,4 +54,11 @@ jobs:
         shell: pwsh
         env:
           REQUESTED_TEST_LEVEL: ${{ inputs.test_level || 'repository' }}
-        run: ./.github/scripts/test-native-async.ps1 -TestLevel $env:REQUESTED_TEST_LEVEL
+          TEST_COVERAGE: ${{ startsWith(matrix.os, 'windows') && 'Full' || 'Sample' }}
+        run: ./.github/scripts/test-native-async.ps1 -TestLevel $env:REQUESTED_TEST_LEVEL -Coverage $env:TEST_COVERAGE
+      - name: Retain native isolated coverage evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: native-isolated-${{ matrix.os }}
+          path: native-isolated-results/

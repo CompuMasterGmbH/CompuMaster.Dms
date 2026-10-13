@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       test_level:
-        description: 'Repository default reads testing.ci-pipeline-attributes. Level 1 is quick; Level 2 is extended with coordinated native live access.'
+        description: 'Validates the repository/local level; normal CI always runs cumulative Windows/net8 Level 2 and named samples elsewhere.'
         type: choice
         options: ['repository', '1', '2']
         default: 'repository'
@@ -38,7 +38,7 @@ on:
         type: number
         default: 256
       native_scopevisio_mode:
-        description: 'Verification runs all three OS; upload_boundary is a Windows-only diagnostic and does not satisfy large-transfer acceptance.'
+        description: 'Verification runs the complete Windows/net8 native suite; upload_boundary is a Windows-only diagnostic and does not satisfy large-transfer acceptance.'
         type: choice
         options: [verification, upload_boundary]
         default: verification
@@ -49,7 +49,7 @@ env:
 jobs:
   isolated-tests:
     if: github.event_name != 'workflow_dispatch' || !inputs.read_only_diagnostics
-    name: Isolated tests (${{ matrix.os }})
+    name: Isolated tests (${{ matrix.os }}, ${{ startsWith(matrix.os, 'windows') && 'full' || 'sample' }})
     needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
 
@@ -73,8 +73,31 @@ jobs:
       - name: Build
         run: dotnet build --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
 
-      - name: Run isolated tests
-        run: dotnet test --framework net8.0 --results-directory test-results --logger junit --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore --filter "${{ needs.prepare-remote-test-matrix.outputs.level == '2' && 'TestCategory!=RemoteDms' || 'TestCategory!=RemoteDms&TestCategory!=TestLevel2' }}"
+      - name: Run full Windows net8 or sampled isolated tests
+        shell: pwsh
+        env:
+          TEST_COVERAGE: ${{ startsWith(matrix.os, 'windows') && 'Full' || 'Sample' }}
+        run: |
+          $filter = ./.github/scripts/get-isolated-dms-test-filter.ps1 -Coverage $env:TEST_COVERAGE
+          dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --results-directory test-results --logger junit --logger 'trx;LogFileName=isolated.trx' --configuration=${{ env.BUILD_CONFIGURATION }} --no-build --no-restore --filter $filter
+          if ($LASTEXITCODE -ne 0) { throw 'Isolated tests failed.' }
+          ./.github/scripts/assert-dms-test-results.ps1 -Path test-results/isolated.trx
+
+      - name: Run isolated Windows net48 samples
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          $filter = ./.github/scripts/get-isolated-dms-test-filter.ps1 -Coverage Sample
+          dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net48 --results-directory test-results-net48 --logger junit --logger 'trx;LogFileName=sample.trx' --configuration=${{ env.BUILD_CONFIGURATION }} --no-build --no-restore --filter $filter
+          if ($LASTEXITCODE -ne 0) { throw 'Windows net48 samples failed.' }
+          ./.github/scripts/assert-dms-test-results.ps1 -Path test-results-net48/sample.trx
+
+      - name: Upload Windows net48 sample results
+        uses: actions/upload-artifact@v6
+        if: always() && startsWith(matrix.os, 'windows')
+        with:
+          name: NUnit Sample Test Results windows-latest net48
+          path: test-results-net48/
 
       - name: Build Scopevisio Teamwork demo
         if: startsWith(matrix.os, 'windows')
@@ -92,13 +115,24 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: dotnet build CompuMaster.Dms.TestDemo.Nextcloud/CompuMaster.Dms.TestDemo.Nextcloud.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
 
-      - name: Build BrowserUI smoke tests
+      - name: Build BrowserUI tests
         if: startsWith(matrix.os, 'windows')
         run: dotnet build CompuMaster.Dms.Test.BrowserUI/CompuMaster.Dms.Test.BrowserUI.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
 
-      - name: Run BrowserUI smoke tests
+      - name: Run full Windows net8 BrowserUI tests
         if: startsWith(matrix.os, 'windows')
-        run: dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/${{ env.BUILD_CONFIGURATION }}/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll --TestCaseFilter:"${{ needs.prepare-remote-test-matrix.outputs.level == '2' && 'TestCategory!=RemoteDms' || 'TestCategory!=RemoteDms&TestCategory!=TestLevel2' }}"
+        shell: pwsh
+        run: |
+          dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/${{ env.BUILD_CONFIGURATION }}/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll --TestCaseFilter:'TestCategory!=RemoteDms' --logger:'trx;LogFileName=browserui.trx' --ResultsDirectory:test-results-browserui
+          if ($LASTEXITCODE -ne 0) { throw 'BrowserUI tests failed.' }
+          ./.github/scripts/assert-dms-test-results.ps1 -Path test-results-browserui/browserui.trx
+
+      - name: Upload full Windows net8 BrowserUI results
+        uses: actions/upload-artifact@v6
+        if: always() && startsWith(matrix.os, 'windows')
+        with:
+          name: NUnit Full BrowserUI Test Results windows-latest net8
+          path: test-results-browserui/
 
       - name: Publish isolated test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -163,9 +197,10 @@ jobs:
           READ_ONLY_DIAGNOSTICS: ${{ github.event_name == 'workflow_dispatch' && inputs.read_only_diagnostics }}
         run: |
           ./.github/scripts/test-test-level-configuration.ps1
+          ./.github/scripts/test-ci-coverage-configuration.ps1
           $level = ./.github/scripts/read-test-level.ps1 -RequestedLevel $env:REQUESTED_TEST_LEVEL
           if ($env:READ_ONLY_DIAGNOSTICS -eq 'true' -and $env:NATIVE_ONLY -eq 'true') { throw 'Read-only diagnosis and native live verification are mutually exclusive.' }
-          if ($env:READ_ONLY_DIAGNOSTICS -eq 'true') { $level = '1' }
+          if ($env:READ_ONLY_DIAGNOSTICS -eq 'true') { $level = '1' } else { $level = '2' }
           if ($env:NATIVE_ONLY -eq 'true') { $level = '2' }
           "level=$level" >> $env:GITHUB_OUTPUT
           Write-Host "Selected test level: $level"
@@ -189,7 +224,7 @@ jobs:
   remote-integration-tests:
     # A native-only dispatch does not duplicate the default-package matrix.
     if: github.event_name != 'workflow_dispatch' || !inputs.run_native_scopevisio
-    name: ${{ matrix.server.displayName }} ${{ inputs.read_only_diagnostics && 'read-only diagnostics' || 'integration tests' }} (${{ matrix.os }}, Level ${{ needs.prepare-remote-test-matrix.outputs.level }})
+    name: ${{ matrix.server.displayName }} ${{ inputs.read_only_diagnostics && 'read-only diagnostics' || startsWith(matrix.os, 'windows') && 'full integration tests' || 'sample integration tests' }} (${{ matrix.os }}, Level ${{ needs.prepare-remote-test-matrix.outputs.level }})
     needs: prepare-remote-test-matrix
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ inputs.read_only_diagnostics && 20 || 360 }}
@@ -245,7 +280,8 @@ jobs:
           DMS_TEST_SERVER_CATEGORY: ${{ matrix.server.category }}
           DMS_READ_ONLY_DIAGNOSTICS: ${{ github.event_name == 'workflow_dispatch' && inputs.read_only_diagnostics }}
           DMS_DIAGNOSTIC_WINDOW_UNTIL: ${{ inputs.diagnostic_window_until }}
-        run: ./.github/scripts/test-remote-dms.ps1 -TestLevel $env:DMS_TEST_LEVEL -ServerCategory $env:DMS_TEST_SERVER_CATEGORY -ReadOnlyDiagnostics:($env:DMS_READ_ONLY_DIAGNOSTICS -eq 'true')
+          TEST_COVERAGE: ${{ inputs.read_only_diagnostics && 'Full' || startsWith(matrix.os, 'windows') && 'Full' || 'Sample' }}
+        run: ./.github/scripts/test-remote-dms.ps1 -TestLevel $env:DMS_TEST_LEVEL -ServerCategory $env:DMS_TEST_SERVER_CATEGORY -ReadOnlyDiagnostics:($env:DMS_READ_ONLY_DIAGNOSTICS -eq 'true') -Coverage $env:TEST_COVERAGE
 
       - name: Publish integration test results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -304,7 +340,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        os: ${{ inputs.native_scopevisio_mode == 'upload_boundary' && fromJSON('["windows-latest"]') || fromJSON('["windows-latest","ubuntu-latest","macos-latest"]') }}
+        os: [windows-latest]
     env:
       NATIVE_SCOPEVISIO_EXCLUSIVE_CI: 'true'
       TEST_SCOPEVISIOTEAMWORK_USERNAME: ${{ secrets.TEST_SCOPEVISIOTEAMWORK_USERNAME }}
