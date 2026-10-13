@@ -7,22 +7,32 @@ Imports NUnit.Framework
 <TestFixture>
 Public Class OwnedLocalTestCleanupTest
     Private OwnedDirectory As String
+    Private DirectoryAdmitted As Boolean
     Private ReadOnly CreatedFiles As New List(Of String)
 
     <SetUp>
     Public Sub AdmitFreshPrivateDirectory()
+        DirectoryAdmitted = False
+        OwnedDirectory = Nothing
         CreatedFiles.Clear()
         OwnedDirectory = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.WorkDirectory, ".task-work", "unittests_cleanup137_" & Guid.NewGuid().ToString("N")))
         Assert.That(Directory.Exists(OwnedDirectory), [Is].False)
         Directory.CreateDirectory(OwnedDirectory)
+        DirectoryAdmitted = True
     End Sub
 
     <TearDown>
     Public Sub RemoveOnlyExactFixtureFiles()
-        For Each file In CreatedFiles
-            If Global.System.IO.File.Exists(file) Then Global.System.IO.File.Delete(file)
-        Next
-        If Directory.Exists(OwnedDirectory) Then Directory.Delete(OwnedDirectory, False)
+        Try
+            For Each file In CreatedFiles
+                If Global.System.IO.File.Exists(file) Then Global.System.IO.File.Delete(file)
+            Next
+            If DirectoryAdmitted AndAlso Directory.Exists(OwnedDirectory) Then Directory.Delete(OwnedDirectory, False)
+        Finally
+            DirectoryAdmitted = False
+            OwnedDirectory = Nothing
+            CreatedFiles.Clear()
+        End Try
     End Sub
 
     Private Function CreateOwnedFile(name As String) As String
