@@ -149,6 +149,33 @@ Public NotInheritable Class HistoricalReadOnlyPreflightTest
         Assert.That(output, Does.Contain("ownershipUnproven=True; contentNotRead=True"))
     End Sub
 
+    <TestCase("center-device-user"), TestCase("scope-user")>
+    Public Sub ValidIdentityAllowsDifferentScopeAndBridgeUserNamespaces(bridgeUserId As String)
+        Assert.DoesNotThrow(Sub() HistoricalReadOnlyPreflight.ValidateIdentity("scope-user", "scope-user", "tenant", "tenant", bridgeUserId))
+    End Sub
+
+    <TestCase(True), TestCase(False)>
+    Public Sub TrueScopeUserOrTenantMismatchIsRejected(scopeMismatch As Boolean)
+        Dim accountUser = If(scopeMismatch, "other-scope-user", "scope-user")
+        Dim accountTenant = If(scopeMismatch, "tenant", "other-tenant")
+        Assert.Throws(Of IO.InvalidDataException)(Sub() HistoricalReadOnlyPreflight.ValidateIdentity("scope-user", accountUser, "tenant", accountTenant, "scope-user"))
+    End Sub
+
+    <TestCase(0), TestCase(1), TestCase(2), TestCase(3), TestCase(4)>
+    Public Sub MissingIdentityMemberFailsBeforeScopeInspection(index As Integer)
+        Dim values = {"scope-user", "scope-user", "tenant", "tenant", "bridge-user"}
+        For Each missing In {Nothing, "", " "}
+            values(index) = missing
+            Assert.Throws(Of IO.InvalidDataException)(Sub() HistoricalReadOnlyPreflight.ValidateIdentity(values(0), values(1), values(2), values(3), values(4)))
+        Next
+    End Sub
+
+    <Test>
+    Public Sub IdentityValidationFailureNeverEchoesRawValues()
+        Dim failure = Assert.Throws(Of IO.InvalidDataException)(Sub() HistoricalReadOnlyPreflight.ValidateIdentity("secret-scope", "different-secret-scope", "secret-tenant", "secret-tenant", "secret-bridge"))
+        Assert.That(failure.Message, [Is].EqualTo("Historical identity context is incomplete or inconsistent."))
+    End Sub
+
     <Test>
     Public Sub FingerprintsAreStableAndDoNotPrintControlCharacters()
         Dim raw = "secret" & vbCrLf & "injected"

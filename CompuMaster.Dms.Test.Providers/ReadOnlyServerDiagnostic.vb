@@ -53,12 +53,14 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
             phase = "HistoricalIdentity"
             Dim userId = io.CurrentAuthenticationContextUserID
             Dim tenantId = provider.CurrentDmsInstance?.ID
-            If String.IsNullOrWhiteSpace(userId) OrElse String.IsNullOrWhiteSpace(tenantId) OrElse
-                Not String.Equals(userId, provider.CurrentContextUserID, StringComparison.Ordinal) Then Throw New IO.InvalidDataException()
-            Console.WriteLine("Historical identity: authenticatedUserFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(userId) &
+            Dim account = provider.ApplicationContext
+            Dim bridgeDmsUserId = provider.CurrentContextUserID
+            HistoricalReadOnlyPreflight.ValidateIdentity(userId, account?.User?.Uid, tenantId, account?.Organisation?.TeamworkTenantId, bridgeDmsUserId)
+            Console.WriteLine("Historical identity: authenticatedScopeUserFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(userId) &
+                              "; bridgeDmsUserFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(bridgeDmsUserId) &
                               "; configuredAccountFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(profile.CustomerInstance) &
                               "; authenticatedTenantFingerprint=" & HistoricalReadOnlyPreflight.Fingerprint(tenantId) &
-                              "; contextUserConsistent=True; accountOwnershipUnproven=True.")
+                              "; scopeUserMatchesAccount=True; tenantMatchesAccount=True; accountOwnershipUnproven=True.")
             phase = "CollectionsSync"
             Dim collections = io.ApiClient.Collections.GetCollections(io.CurrentAuthenticationContextUserID, Nothing, True)?.Collections
             If collections Is Nothing Then Throw New System.IO.InvalidDataException()
