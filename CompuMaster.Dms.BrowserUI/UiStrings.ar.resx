@@ -278,4 +278,6 @@
   <data name="UploadSummary" xml:space="preserve"><value>اكتمل الرفع: تم رفع {0} ملف وتخطي {1}.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>تغيرت الوجهة قبل الرفع: {0}.</value></data>
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>لا يسمح هذا المزود بملفات مباشرة في جذر الخادم.</value></data>
+  <data name="PropertiesInstanceName" xml:space="preserve"><value>المستأجر / المثيل: </value></data>
+  <data name="PropertiesInstanceId" xml:space="preserve"><value>معرّف المستأجر / المثيل: </value></data>
 </root>

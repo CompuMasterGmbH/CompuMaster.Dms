@@ -278,4 +278,6 @@
   <data name="UploadSummary" xml:space="preserve"><value>Upload finished: {0} files uploaded, {1} skipped.</value></data>
   <data name="UploadDestinationChanged" xml:space="preserve"><value>The destination changed before uploading: {0}.</value></data>
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>This provider does not accept files directly in its server root.</value></data>
+  <data name="PropertiesInstanceName" xml:space="preserve"><value>Tenant / instance: </value></data>
+  <data name="PropertiesInstanceId" xml:space="preserve"><value>Tenant / instance ID: </value></data>
 </root>
