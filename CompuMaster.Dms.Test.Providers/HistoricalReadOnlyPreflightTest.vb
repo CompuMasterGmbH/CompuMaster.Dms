@@ -96,6 +96,21 @@ Public NotInheritable Class HistoricalReadOnlyPreflightTest
         Assert.That(observation, Does.Contain("globalAbsenceUnverified=True"))
     End Sub
 
+    <TestCase(0), TestCase(1), TestCase(2), TestCase(3)>
+    Public Sub UninspectableNamingMetadataCannotEstablishEvenIndexedAbsence(kind As Integer)
+        Dim fake As New ReadFixture
+        Dim document As DocumentFullMetadata = Nothing
+        Select Case kind
+            Case 1 : document = New DocumentFullMetadata With {.Filename = Nothing}
+            Case 2 : document = New DocumentFullMetadata With {.Filename = ""}
+            Case 3 : document = New DocumentFullMetadata With {.Filename = " "}
+        End Select
+        fake.DocumentPages("copy-id/none") = New DocumentSearchResults(Of DocumentFullMetadata) With {.Hits = 1, .Documents = New List(Of DocumentFullMetadata) From {document}}
+        Assert.Throws(Of IO.InvalidDataException)(Sub() fake.Run(Witness))
+        Assert.That(fake.Output.Any(Function(line) line.Contains("indexedAbsence=") OrElse line.Contains("pageComplete=True")), [Is].False)
+        Assert.That(fake.Calls, [Is].EqualTo({"collection:copy-id", "documents:copy-id/none"}))
+    End Sub
+
     <Test>
     Public Sub TwentyFirstRowNeverBecomesASelectedCandidateOrACompletePage()
         Dim fake As New ReadFixture

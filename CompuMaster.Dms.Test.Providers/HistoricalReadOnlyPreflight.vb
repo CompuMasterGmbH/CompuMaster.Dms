@@ -87,6 +87,10 @@ Friend NotInheritable Class HistoricalReadOnlyPreflight
         If page Is Nothing OrElse page.Documents Is Nothing OrElse page.Hits < 0 OrElse page.Documents.Count > MaximumDocuments + 1 OrElse page.Hits < page.Documents.Count Then
             Throw New IO.InvalidDataException("Invalid bounded document inventory.")
         End If
+        'A count-complete page is not name-complete when a row cannot be inspected.
+        If page.Documents.Any(Function(item) item Is Nothing OrElse String.IsNullOrWhiteSpace(item.Filename)) Then
+            Throw New IO.InvalidDataException("Bounded document naming metadata is incomplete.")
+        End If
         Dim complete = page.Hits = page.Documents.Count AndAlso page.Documents.Count <= MaximumDocuments
         writeObservation("Historical parent=" & label & "; indexedHits=" & page.Hits.ToString(CultureInfo.InvariantCulture) & "; observed=" & Math.Min(MaximumDocuments, page.Documents.Count).ToString(CultureInfo.InvariantCulture) & "; pageComplete=" & complete.ToString() & ".")
         If Not label.StartsWith(CopyRoot, StringComparison.Ordinal) Then
