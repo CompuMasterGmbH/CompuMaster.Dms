@@ -26,6 +26,7 @@ Namespace Providers
         Implements IDmsInstanceProvider
 
         Private _OpenScopeClient As CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient
+        Private _ExplicitIdentity As ScopevisioExplicitIdentity
 
         Private Shared ReadOnly NameLookupClient As HttpClient = CreateNameLookupTransport(False)
         Private Shared ReadOnly NameLookupClientIgnoringSslErrors As HttpClient = CreateNameLookupTransport(True)
@@ -103,6 +104,9 @@ Namespace Providers
 #If NATIVE_ASYNC Then
             Me.AuthorizeNativeCoreAsync(loginCredentials, ignoreSslErrors, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult()
 #Else
+            Dim requestedOrganisation = loginCredentials.OrganisationId
+            Dim expectedTenant = loginCredentials.ExpectedTeamworkTenantId
+            If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then loginCredentials.Validate()
             Dim IsTokenRequest As Boolean = False
             Try
                 Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration With {
@@ -119,12 +123,33 @@ Namespace Providers
                 End If
                 Dim OpenScopeClient As New CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient(OpenScopeConfig)
                 IsTokenRequest = True
-                OpenScopeClient.AuthorizeWithUserCredentials()
-                IsTokenRequest = False
+                Dim candidateIO As Global.CenterDevice.IO.IOClientBase = Nothing
+                Dim candidateIdentity As ScopevisioExplicitIdentity = Nothing
+                If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then
+                    Dim response = OpenScopeClient.AuthorizationApi.TokenWithHttpInfo("password", OpenScopeConfig.ClientNumber,
+                        username:=OpenScopeConfig.Username, password:=OpenScopeConfig.Password,
+                        organisationId:=requestedOrganisation,
+                        organisation:=If(requestedOrganisation.HasValue, Nothing, OpenScopeConfig.OrganisationName))
+                    IsTokenRequest = False
+                    If response.Data Is Nothing OrElse response.Data.OrganisationId <= 0 Then Throw New InvalidOperationException("Scopevisio returned an unverified authentication context.")
+                    Dim identity = ScopevisioExplicitIdentity.FromToken(response.Data, response.RawJsonContent,
+                        If(requestedOrganisation, response.Data.OrganisationId), expectedTenant)
+                    OpenScopeClient.Token = response.Data
+                    Dim account = OpenScopeClient.AdditionalApi.GetApplicationContextWithHttpInfo()
+                    identity.ValidateAccount(account.Data, account.RawJsonContent)
+                    candidateIO = ScopevisioSessionIOClient.CreateValidated(OpenScopeClient, account.Data, identity)
+                    candidateIdentity = identity
+                Else
+                    OpenScopeClient.AuthorizeWithUserCredentials()
+                    IsTokenRequest = False
+                    candidateIO = If(OpenScopeClient.Token Is Nothing OrElse String.IsNullOrWhiteSpace(OpenScopeClient.Token.TeamworkTenantId),
+                        Nothing, ScopevisioSessionIOClient.CreateAsync(OpenScopeClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult())
+                End If
+                If candidateIdentity IsNot Nothing Then ValidateUnchangedExplicitSelection(loginCredentials, requestedOrganisation, expectedTenant)
                 Me._OpenScopeClient = OpenScopeClient
-                Me.IOClient = If(OpenScopeClient.Token Is Nothing OrElse String.IsNullOrWhiteSpace(OpenScopeClient.Token.TeamworkTenantId),
-                                 Nothing,
-                                 ScopevisioSessionIOClient.CreateAsync(OpenScopeClient, Threading.CancellationToken.None).ConfigureAwait(False).GetAwaiter().GetResult())
+                Me.IOClient = candidateIO
+                Me._ExplicitIdentity = candidateIdentity
+                Me._AllUploadLinks = Nothing
                 Me._ignoreSslErrors = ignoreSslErrors
             Catch ex As CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 Throw CreateAuthorizationException(ex.ErrorCode, ex.ErrorContent, ex, IsTokenRequest)
@@ -239,8 +264,14 @@ Namespace Providers
         End Property
 
         ''' <inheritdoc/>
+        ''' <remarks>An explicitly guarded login exposes only its admitted instance and performs no instance catalog lookup.</remarks>
         Public Function ListAvailableDmsInstances() As IReadOnlyList(Of DmsInstanceInfo) Implements IDmsInstanceProvider.ListAvailableDmsInstances
             Dim Result As New List(Of DmsInstanceInfo)
+            If Me._ExplicitIdentity IsNot Nothing Then
+                Me._ExplicitIdentity.ValidateInstalledToken(Me.GetOpenScopeClient().Token)
+                Result.Add(Me.CurrentDmsInstance)
+                Return Result.AsReadOnly()
+            End If
             Dim InstanceIndexes As New Dictionary(Of String, Integer)(StringComparer.Ordinal)
             Dim CurrentOrganisation As Organisation = Me.GetCurrentOrganisation()
             Dim CurrentTenantID As String = If(CurrentOrganisation Is Nothing, Nothing, CurrentOrganisation.TeamworkTenantId)
@@ -270,8 +301,15 @@ Namespace Providers
         End Function
 
         ''' <inheritdoc/>
+        ''' <remarks>An explicitly guarded login remains pinned to its admitted instance. A different instance requires a new explicit authorization.</remarks>
+        ''' <exception cref="InvalidOperationException">An explicit login is asked to select a different instance.</exception>
         Public Sub SelectDmsInstance(instanceID As String) Implements IDmsInstanceProvider.SelectDmsInstance
             If String.IsNullOrWhiteSpace(instanceID) Then Throw New ArgumentException(ProviderStrings.GetText("ADMSInstanceIDIsRequired"), NameOf(instanceID))
+            If Me._ExplicitIdentity IsNot Nothing Then
+                Me._ExplicitIdentity.ValidateInstalledToken(Me.GetOpenScopeClient().Token)
+                If String.Equals(instanceID, Me._ExplicitIdentity.TeamworkTenantId, StringComparison.Ordinal) Then Return
+                Throw New InvalidOperationException("An explicitly authorized instance cannot be replaced by instance discovery.")
+            End If
 
             Dim CurrentOrganisation As Organisation = Me.GetCurrentOrganisation()
             If CurrentOrganisation IsNot Nothing AndAlso
@@ -367,6 +405,12 @@ Namespace Providers
         ''' </summary>
         ''' <param name="organisation">The Scopevisio organisation to select.</param>
         Protected Overridable Sub ApplyOrganisation(organisation As Organisation)
+            If Me._ExplicitIdentity IsNot Nothing Then
+                Me._ExplicitIdentity.ValidateInstalledToken(Me.GetOpenScopeClient().Token)
+                If organisation IsNot Nothing AndAlso organisation.Id = Me._ExplicitIdentity.OrganisationId AndAlso
+                   String.Equals(organisation.TeamworkTenantId, Me._ExplicitIdentity.TeamworkTenantId, StringComparison.Ordinal) Then Return
+                Throw New InvalidOperationException("An explicitly authorized instance cannot be replaced by instance discovery.")
+            End If
             Dim selectedClient = CreateOrganisationClient(Me.GetOpenScopeClient(), organisation.Id)
             If Not String.Equals(selectedClient.Token.TeamworkTenantId, organisation.TeamworkTenantId, StringComparison.Ordinal) Then
                 Throw New InvalidOperationException("Scopevisio did not authenticate the requested DMS instance.")
@@ -386,6 +430,13 @@ Namespace Providers
             If Me._OpenScopeClient Is Nothing Then Throw New InvalidOperationException(ProviderStrings.GetText("TheDMSProviderMustBeAuthorizedBeforeAccessing"))
             Return Me._OpenScopeClient
         End Function
+
+        Private Shared Sub ValidateUnchangedExplicitSelection(credentials As ScopevisioLoginCredentials, organisationId As Long?, expectedTenant As String)
+            If Not Nullable.Equals(credentials.OrganisationId, organisationId) OrElse
+               Not String.Equals(If(credentials.ExpectedTeamworkTenantId, ""), If(expectedTenant, ""), StringComparison.Ordinal) Then
+                Throw New InvalidOperationException("The explicit authentication selection changed while authorization was in progress.")
+            End If
+        End Sub
 
         Private Function CreateDmsInstanceInfo(organisation As Organisation, isSelected As Boolean) As DmsInstanceInfo
             Dim DisplayName As String = If(String.IsNullOrWhiteSpace(organisation.TeamworkTenantName), organisation.Name, organisation.TeamworkTenantName)

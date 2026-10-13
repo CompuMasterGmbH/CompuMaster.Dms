@@ -62,20 +62,43 @@ Namespace Providers
         ''' <returns>A task representing successful authorization and provider-state installation.</returns>
         Protected Overridable Async Function AuthorizeNativeCoreAsync(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean, cancellationToken As CancellationToken) As Task
             cancellationToken.ThrowIfCancellationRequested()
+            Dim requestedOrganisation = loginCredentials.OrganisationId
+            Dim expectedTenant = loginCredentials.ExpectedTeamworkTenantId
+            If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then loginCredentials.Validate()
             Dim isTokenRequest As Boolean = False
             Try
                 Dim configuration = Me.CreateNativeAuthorizationConfiguration(loginCredentials, ignoreSslErrors)
                 Dim openScopeClient As New Global.CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient(configuration)
-                isTokenRequest = True
-                Await openScopeClient.AuthorizeWithUserCredentialsAsync(cancellationToken).ConfigureAwait(False)
-                isTokenRequest = False
                 Dim client As Global.CenterDevice.IO.IOClientBase = Nothing
-                If openScopeClient.Token IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(openScopeClient.Token.TeamworkTenantId) Then
-                    client = Await ScopevisioSessionIOClient.CreateAsync(openScopeClient, cancellationToken).ConfigureAwait(False)
+                Dim candidateIdentity As ScopevisioExplicitIdentity = Nothing
+                isTokenRequest = True
+                If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then
+                    Dim response = Await openScopeClient.AuthorizationApi.TokenAsyncWithHttpInfo("password", configuration.ClientNumber, cancellationToken,
+                        username:=configuration.Username, password:=configuration.Password,
+                        organisationId:=requestedOrganisation,
+                        organisation:=If(requestedOrganisation.HasValue, Nothing, configuration.OrganisationName)).ConfigureAwait(False)
+                    isTokenRequest = False
+                    If response.Data Is Nothing OrElse response.Data.OrganisationId <= 0 Then Throw New InvalidOperationException("Scopevisio returned an unverified authentication context.")
+                    Dim identity = ScopevisioExplicitIdentity.FromToken(response.Data, response.RawJsonContent,
+                        If(requestedOrganisation, response.Data.OrganisationId), expectedTenant)
+                    openScopeClient.Token = response.Data
+                    Dim account = Await openScopeClient.AdditionalApi.GetApplicationContextAsyncWithHttpInfo(cancellationToken).ConfigureAwait(False)
+                    identity.ValidateAccount(account.Data, account.RawJsonContent)
+                    client = ScopevisioSessionIOClient.CreateValidated(openScopeClient, account.Data, identity)
+                    candidateIdentity = identity
+                Else
+                    Await openScopeClient.AuthorizeWithUserCredentialsAsync(cancellationToken).ConfigureAwait(False)
+                    isTokenRequest = False
+                    If openScopeClient.Token IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(openScopeClient.Token.TeamworkTenantId) Then
+                        client = Await ScopevisioSessionIOClient.CreateAsync(openScopeClient, cancellationToken).ConfigureAwait(False)
+                    End If
                 End If
                 cancellationToken.ThrowIfCancellationRequested()
+                If candidateIdentity IsNot Nothing Then ValidateUnchangedExplicitSelection(loginCredentials, requestedOrganisation, expectedTenant)
                 Me._OpenScopeClient = openScopeClient
                 Me.IOClient = client
+                Me._ExplicitIdentity = candidateIdentity
+                Me._AllUploadLinks = Nothing
                 Me._ignoreSslErrors = ignoreSslErrors
             Catch ex As Global.CompuMaster.Scopevisio.OpenApi.Client.ApiException
                 Throw CreateAuthorizationException(ex.ErrorCode, ex.ErrorContent, ex, isTokenRequest)
