@@ -109,21 +109,7 @@ Namespace Providers
             If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then loginCredentials.Validate()
             Dim IsTokenRequest As Boolean = False
             Try
-                Dim OpenScopeConfig As New Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration With {
-                    .Username = loginCredentials.Username,
-                    .Password = loginCredentials.Password,
-                    .ClientNumber = loginCredentials.ClientNumber,
-                    .OrganisationName = loginCredentials.OrganisationName
-                }
-                If requestedOrganisation.HasValue OrElse Not String.IsNullOrEmpty(expectedTenant) Then
-                    'Explicit sessions borrow a provider-owned transport, including the retained refresh staging client.
-                    OpenScopeConfig.HttpClient = If(ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
-                ElseIf ignoreSslErrors Then
-                    Dim Handler As New System.Net.Http.HttpClientHandler() With {
-                        .ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True
-                        }
-                    OpenScopeConfig.HttpClient = New System.Net.Http.HttpClient(Handler)
-                End If
+                Dim OpenScopeConfig = Me.CreateAuthorizationConfiguration(loginCredentials, ignoreSslErrors)
                 Dim OpenScopeClient As New CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient(OpenScopeConfig)
                 IsTokenRequest = True
                 Dim candidateIO As Global.CenterDevice.IO.IOClientBase = Nothing
@@ -159,6 +145,27 @@ Namespace Providers
             End Try
 #End If
         End Sub
+
+        ''' <summary>Creates a fresh authorization configuration for synchronous and native session admission.</summary>
+        ''' <param name="loginCredentials">The Scopevisio credentials to copy into the configuration.</param>
+        ''' <param name="ignoreSslErrors">Whether the authorization transport bypasses certificate validation.</param>
+        ''' <returns>A fresh configuration preserving the configured customer and legacy organisation name.</returns>
+        ''' <remarks>Native and explicitly guarded sessions borrow a provider-owned shared transport. Legacy non-native transport defaults are preserved. Overrides retain ownership of any supplied transport.</remarks>
+        Protected Overridable Function CreateAuthorizationConfiguration(loginCredentials As ScopevisioLoginCredentials, ignoreSslErrors As Boolean) As Configuration
+            Dim result As New Configuration With {.Username = loginCredentials.Username, .Password = loginCredentials.Password,
+                .ClientNumber = loginCredentials.ClientNumber, .OrganisationName = loginCredentials.OrganisationName}
+#If NATIVE_ASYNC Then
+            result.HttpClient = If(ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
+#Else
+            If loginCredentials.OrganisationId.HasValue OrElse Not String.IsNullOrEmpty(loginCredentials.ExpectedTeamworkTenantId) Then
+                result.HttpClient = If(ignoreSslErrors, NameLookupClientIgnoringSslErrors, NameLookupClient)
+            ElseIf ignoreSslErrors Then
+                Dim handler As New HttpClientHandler With {.ServerCertificateCustomValidationCallback = Function(sender, certificate, chain, sslPolicyErrors) True}
+                result.HttpClient = New HttpClient(handler)
+            End If
+#End If
+            Return result
+        End Function
 
         ''' <inheritdoc/>
         ''' <remarks>The bundled SDK does not map the API's hyphenated name fields, so this provider reads them when the SDK supplies no name.</remarks>

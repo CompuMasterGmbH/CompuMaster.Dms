@@ -3,6 +3,7 @@ Imports System.Windows.Forms
 Imports System.Drawing
 
 Public Class LoginForm
+    Private ReadOnly InputBuffer As DemoInputBuffer
 
     ''' <summary>Creates the login form with the provider-independent default icon.</summary>
     <Obsolete("Use overload instead")>
@@ -22,7 +23,14 @@ Public Class LoginForm
     ''' <param name="loginImage">The artwork copied for this form, or <see langword="Nothing"/> to use the common document-management illustration.</param>
     ''' <remarks>The caller retains ownership of the supplied image and may dispose it after construction.</remarks>
     Public Sub New(formIcon As Icon, loginImage As Image)
+        Me.New(formIcon, loginImage, Settings.Storage())
+    End Sub
+
+    'The isolated GUI harness can inject private buffers and a fake environment before any Load/Closing event.
+    Friend Sub New(formIcon As Icon, loginImage As Image, inputBuffer As DemoInputBuffer)
         MyBase.New()
+        If inputBuffer Is Nothing Then Throw New ArgumentNullException(NameOf(inputBuffer))
+        Me.InputBuffer = inputBuffer
         InitializeComponent()
         Me.LoginImage = loginImage
         DemoStrings.ApplyLoginLabels(Me)
@@ -47,14 +55,15 @@ Public Class LoginForm
     End Property
 
     Private Sub Form_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Me.Load
-        Me.UsernameTextBox.Text = Settings.InputFromBufferFile("username")
-        Me.PasswordTextBox.Text = Settings.InputFromBufferFile("password")
-        Me.CustomerNoTextBox.Text = Settings.InputFromBufferFile("customer no.")
-        Me.OrganisationIdTextBox.Text = Settings.InputFromBufferFile(ScopevisioDemoSelection.OrganisationField)
-        Me.ExpectedTeamworkTenantIdTextBox.Text = Settings.InputFromBufferFile(ScopevisioDemoSelection.TenantField)
-        Me.StartPathTextBox.Text = If(Settings.InputFromBufferFile("start path") <> Nothing, Settings.InputFromBufferFile("start path"), "/")
-        If Settings.IsBufferedByFile("username") OrElse Settings.IsBufferedByFile("password") OrElse Settings.IsBufferedByFile("customer no.") OrElse
-           Settings.IsBufferedByFile(ScopevisioDemoSelection.OrganisationField) OrElse Settings.IsBufferedByFile(ScopevisioDemoSelection.TenantField) Then
+        Me.UsernameTextBox.Text = InputBuffer.Read("username")
+        Me.PasswordTextBox.Text = InputBuffer.Read("password")
+        Me.CustomerNoTextBox.Text = InputBuffer.Read("customer no.")
+        Me.OrganisationIdTextBox.Text = InputBuffer.Read(ScopevisioDemoSelection.OrganisationField)
+        Me.ExpectedTeamworkTenantIdTextBox.Text = InputBuffer.Read(ScopevisioDemoSelection.TenantField)
+        Dim startPath = InputBuffer.Read("start path")
+        Me.StartPathTextBox.Text = If(startPath <> Nothing, startPath, "/")
+        If InputBuffer.Exists("username") OrElse InputBuffer.Exists("password") OrElse InputBuffer.Exists("customer no.") OrElse
+           InputBuffer.Exists(ScopevisioDemoSelection.OrganisationField) OrElse InputBuffer.Exists(ScopevisioDemoSelection.TenantField) Then
             Me.CheckboxPersistLoginCredentialsToDisk.Checked = True
         Else
             Me.CheckboxPersistLoginCredentialsToDisk.Checked = False
@@ -64,7 +73,7 @@ Public Class LoginForm
     Private Sub LoginForm_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Me.CheckboxPersistLoginCredentialsToDisk.Checked Then
             Try
-                Settings.PersistLoginInputs(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.CustomerNoTextBox.Text, Me.StartPathTextBox.Text,
+                ScopevisioDemoSelection.PersistInputs(InputBuffer, Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.CustomerNoTextBox.Text, Me.StartPathTextBox.Text,
                     Me.OrganisationIdTextBox.Text, Me.ExpectedTeamworkTenantIdTextBox.Text, DemoStrings.GetText("InvalidOrganisationId"))
             Catch ex As ArgumentException
                 e.Cancel = True
@@ -72,12 +81,12 @@ Public Class LoginForm
                 Return
             End Try
         Else
-            Settings.RemoveBufferFile("username")
-            Settings.RemoveBufferFile("password")
-            Settings.RemoveBufferFile("customer no.")
-            Settings.RemoveBufferFile("start path")
-            Settings.RemoveBufferFile(ScopevisioDemoSelection.OrganisationField)
-            Settings.RemoveBufferFile(ScopevisioDemoSelection.TenantField)
+            InputBuffer.Remove("username")
+            InputBuffer.Remove("password")
+            InputBuffer.Remove("customer no.")
+            InputBuffer.Remove("start path")
+            InputBuffer.Remove(ScopevisioDemoSelection.OrganisationField)
+            InputBuffer.Remove(ScopevisioDemoSelection.TenantField)
         End If
     End Sub
 

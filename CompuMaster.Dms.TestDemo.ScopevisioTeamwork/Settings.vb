@@ -3,7 +3,7 @@
     Private Const AppTitle As String = "Scopevisio.Teamwork.Test"
     Private Const EnvironmentPrefix As String = "SCOPEVISIOTEAMWORK"
 
-    Private Shared Function Storage() As DemoInputBuffer
+    Friend Shared Function Storage() As DemoInputBuffer
         Return New DemoInputBuffer(System.IO.Path.GetTempPath(), AppTitle, EnvironmentPrefix, AddressOf System.Environment.GetEnvironmentVariable)
     End Function
 

@@ -5,6 +5,10 @@ Imports NUnit.Framework.Legacy
 <TestFixture> Public NotInheritable Class ScopevisioTeamworkSettings
     Inherits SettingsBase
 
+    Friend Function CreateLiveTestProfile() As Dms.Providers.ScopevisioLoginCredentials
+        Return ScopevisioTestSelection.CreateProfile(AddressOf Me.InputLine)
+    End Function
+
     Public Overrides ReadOnly Property AppTitleInBufferFile As String
         Get
             Return "Scopevisio.Teamwork.Test"
