@@ -52,7 +52,8 @@ Public MustInherit Class WebDavProviderTestBase
         End If
         Dim Provider As Dms.Providers.BaseDmsProvider = Me.LoggedInDmsProvider
         'Fail rather than silently skip all sharing tests if discovery regresses.
-        Assert.That(Provider.SupportsSharingSetup, [Is].True, "The cloud test server must expose OCS sharing to verify this feature.")
+        Assert.That(Provider.SupportsSharingSetup, [Is].True, "The cloud test server must expose OCS sharing to verify this feature. " &
+                    DirectCast(Provider, Dms.Providers.WebDavDmsProvider).OcsSharingDiscoveryForTesting.ToSafeSummary())
         Const Path As String = "ZZZ_UnitTests_CM.Dms/OCS_Link_RoundTrip"
         If Provider.FolderExists(Path) Then Provider.DeleteRemoteItem(Path)
         Assert.That(Provider.FolderExists(Path), [Is].False, "Stale sharing test resources could not be removed.")

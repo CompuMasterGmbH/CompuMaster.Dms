@@ -26,6 +26,13 @@ Namespace Providers
         Private WebDavClient As Global.WebDav.IWebDavClient
         Private OcsSharingClient As IOcsSharingClient
         Private OcsRootPath As String = "/"
+        Private OcsSharingDiscovery As OcsSharingDiscoveryDiagnostic = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.NotStarted, OcsSharingDiscoveryPhase.EndpointRecognition)
+
+        Friend ReadOnly Property OcsSharingDiscoveryForTesting As OcsSharingDiscoveryDiagnostic
+            Get
+                Return Me.OcsSharingDiscovery
+            End Get
+        End Property
 
         Friend Property OcsSharingClientForTesting As IOcsSharingClient
             Get
@@ -215,6 +222,7 @@ Namespace Providers
 
                 Dim OcsBaseUrl As String = Nothing
                 Dim RemoteRootPath As String = Nothing
+                Me.OcsSharingDiscovery = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.EndpointUnrecognized, OcsSharingDiscoveryPhase.EndpointRecognition)
                 Dim classicSharingEndpoint = TryGetOcsConnectionInfo(webDavUrl, OcsBaseUrl, RemoteRootPath)
                 If Not classicSharingEndpoint Then
 #If OCS_FILE_VERSIONS Then
@@ -235,11 +243,15 @@ Namespace Providers
                     If classicSharingEndpoint AndAlso Candidate.Capabilities IsNot Nothing AndAlso Candidate.Capabilities.SupportsAnySharing Then
                         Me.OcsSharingClient = Candidate
                         Me.OcsRootPath = RemoteRootPath
+                        Me.OcsSharingDiscovery = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.Available, Candidate.DiscoveryPhase)
+                    Else
+                        Me.OcsSharingDiscovery = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.Disabled, Candidate.DiscoveryPhase)
                     End If
-                Catch
+                Catch ex As Exception
                     'The authenticated endpoint is still a valid generic WebDAV endpoint when OCS is unavailable.
                     Me.OcsSharingClient = Nothing
                     Me.OcsRootPath = "/"
+                    Me.OcsSharingDiscovery = OcsSharingDiscoveryDiagnostic.Create(OcsSharingDiscoveryOutcome.Unavailable, Candidate.DiscoveryPhase, ex)
                 Finally
                     Me.NativeUploadFamily = Candidate.ObservedServerFamily
 #If OCS_FILE_VERSIONS Then
