@@ -11,6 +11,7 @@ Namespace Providers
         Capabilities
         ShareListing
         CapabilityPolicy
+        CapabilityFamily
     End Enum
 
     Friend Enum OcsSharingDiscoveryOutcome
@@ -60,8 +61,22 @@ Namespace Providers
                     Catch
                         'Closed responses can throw when their status is read. Keep any known status.
                     End Try
-                ElseIf failureKind = "None" Then
-                    failureKind = If(TypeOf current Is IO.InvalidDataException OrElse TypeOf current Is InvalidOperationException, "Protocol", "Other")
+                ElseIf failureKind = "None" OrElse failureKind = "Other" Then
+                    If TypeOf current Is Newtonsoft.Json.JsonException Then
+                        failureKind = "JsonPayload"
+                    ElseIf TypeOf current Is InvalidCastException Then
+                        failureKind = "PayloadShape"
+                    ElseIf TypeOf current Is OperationCanceledException Then
+                        failureKind = "Cancellation"
+                    ElseIf TypeOf current Is FormatException Then
+                        failureKind = "Format"
+                    ElseIf TypeOf current Is ArgumentException Then
+                        failureKind = "Argument"
+                    ElseIf TypeOf current Is IO.InvalidDataException OrElse TypeOf current Is InvalidOperationException Then
+                        failureKind = "Protocol"
+                    ElseIf failureKind = "None" Then
+                        failureKind = "Other"
+                    End If
                 End If
                 current = current.InnerException
             Next
