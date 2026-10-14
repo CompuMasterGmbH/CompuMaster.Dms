@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>組織 ID（選填）</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>預期的 Teamwork 租戶 ID（選填）</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>組織 ID 必須為正整數。</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>所選 DMS 執行個體與預期的 Teamwork 租戶不符。</value></data>
 </root>

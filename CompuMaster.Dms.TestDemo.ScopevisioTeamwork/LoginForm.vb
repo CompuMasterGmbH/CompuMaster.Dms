@@ -95,23 +95,23 @@ Public Class LoginForm
             Me.UseWaitCursor = True
             Me.Cursor = Cursors.WaitCursor
             Me.Refresh()
-            Dim LoginProfile = ScopevisioDemoSelection.CreateProfile(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.CustomerNoTextBox.Text,
-                Me.OrganisationIdTextBox.Text, Me.ExpectedTeamworkTenantIdTextBox.Text, DemoStrings.GetText("InvalidOrganisationId"))
-            Dim explicitSelection = TypeOf LoginProfile Is Providers.ScopevisioLoginCredentials
+            Dim expectedTenant = Me.ExpectedTeamworkTenantIdTextBox.Text
+            Dim LoginProfile = ScopevisioDemoSelection.CreateInteractiveProfile(Me.UsernameTextBox.Text, Me.PasswordTextBox.Text, Me.CustomerNoTextBox.Text,
+                Me.OrganisationIdTextBox.Text, expectedTenant, DemoStrings.GetText("InvalidOrganisationId"))
             Dim InstanceSelector As New BrowserUI.RemoteInstanceSelector(
                         BrowserUI.RemoteInstanceSelector.StartupInstance.SelectionDialog,
                         AddressOf BrowserUI.RemoteInstanceSelector.ShowDefaultSelectionDialog)
-            Dim SelectedProvider As Providers.BaseDmsProvider
-            If explicitSelection Then
-                Dim direct As New Providers.ScopevisioTeamworkDmsProvider()
-                direct.Authorize(DirectCast(LoginProfile, Providers.ScopevisioLoginCredentials))
-                SelectedProvider = direct
-            Else
-                SelectedProvider = InstanceSelector.CreateSelectedProvider(LoginProfile, Me)
-            End If
+            Dim SelectedProvider = ScopevisioDemoSelection.SelectInteractiveProvider(LoginProfile, expectedTenant,
+                Function(credentials)
+                    Dim direct As New Providers.ScopevisioTeamworkDmsProvider()
+                    direct.Authorize(credentials)
+                    Return direct
+                End Function,
+                Function(profile) InstanceSelector.CreateSelectedProvider(profile, Me),
+                DemoStrings.GetText("SelectedTeamworkTenantMismatch"))
             If SelectedProvider Is Nothing Then Return
             Dim allowedActions = BrowserUI.DmsBrowser.FileOrFolderActions.AllowCopyRenameMoveFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowCreateFolders Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDeleteFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowDownloadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSharings Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchBrowseMode Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowUploadFiles Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowViewFileVersionHistory Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRestoreFileVersions Or BrowserUI.DmsBrowser.FileOrFolderActions.AllowRemoveFileVersions
-            If explicitSelection Then allowedActions = allowedActions And Not BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance
+            If Not ScopevisioDemoSelection.AllowsInstanceSwitch(LoginProfile, expectedTenant) Then allowedActions = allowedActions And Not BrowserUI.DmsBrowser.FileOrFolderActions.AllowSwitchDmsInstance
             Using Browser As New CompuMaster.Dms.BrowserUI.DmsBrowser(
                         SelectedProvider, InstanceSelector.SelectionDialog,
                         "DMS Browser DEMO for Scopevisio Teamwork", Me.Icon,

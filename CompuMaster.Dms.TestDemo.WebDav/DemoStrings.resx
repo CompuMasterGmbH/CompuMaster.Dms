@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>Organisation ID (optional)</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>Expected Teamwork tenant ID (optional)</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>The organisation ID must be a positive integer.</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>The selected DMS instance does not match the expected Teamwork tenant.</value></data>
 </root>

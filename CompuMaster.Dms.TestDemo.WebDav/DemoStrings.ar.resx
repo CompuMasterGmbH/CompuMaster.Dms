@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>معرّف المؤسسة (اختياري)</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>معرّف مستأجر Teamwork المتوقع (اختياري)</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>يجب أن يكون معرّف المؤسسة عددًا صحيحًا موجبًا.</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>مثيل DMS المحدد لا يطابق مستأجر Teamwork المتوقع.</value></data>
 </root>
