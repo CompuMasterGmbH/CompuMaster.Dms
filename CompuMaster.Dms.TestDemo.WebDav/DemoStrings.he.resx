@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>מזהה ארגון (אופציונלי)</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>מזהה דייר Teamwork צפוי (אופציונלי)</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>מזהה הארגון חייב להיות מספר שלם חיובי.</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>מופע DMS שנבחר אינו תואם לדייר Teamwork הצפוי.</value></data>
 </root>

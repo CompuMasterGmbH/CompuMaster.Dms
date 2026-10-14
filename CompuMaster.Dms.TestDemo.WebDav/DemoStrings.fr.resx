@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>ID de l’organisation (facultatif)</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>ID du locataire Teamwork attendu (facultatif)</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>L’ID de l’organisation doit être un entier positif.</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>L’instance DMS sélectionnée ne correspond pas au tenant Teamwork attendu.</value></data>
 </root>

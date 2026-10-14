@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>संगठन ID (वैकल्पिक)</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>अपेक्षित Teamwork टेनेंट ID (वैकल्पिक)</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>संगठन ID एक धनात्मक पूर्णांक होना चाहिए।</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>चयनित DMS इंस्टेंस अपेक्षित Teamwork टेनेंट से मेल नहीं खाता है।</value></data>
 </root>

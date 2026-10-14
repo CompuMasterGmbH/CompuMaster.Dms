@@ -17,4 +17,5 @@
   <data name="OrganisationId" xml:space="preserve"><value>組織 ID（任意）</value></data>
   <data name="ExpectedTeamworkTenantId" xml:space="preserve"><value>期待される Teamwork テナント ID（任意）</value></data>
   <data name="InvalidOrganisationId" xml:space="preserve"><value>組織 ID には正の整数を指定してください。</value></data>
+  <data name="SelectedTeamworkTenantMismatch" xml:space="preserve"><value>選択した DMS インスタンスは、指定した Teamwork テナントと一致しません。</value></data>
 </root>
