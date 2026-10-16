@@ -1,0 +1,81 @@
+﻿name: Package integration validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-package-tests:
+    name: Published packages (${{ matrix.os }}, ${{ startsWith(matrix.os, 'windows') && 'full net8 and net48 samples' || 'net8 samples' }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    env:
+      BUILD_CONFIGURATION: CI_CD
+    steps:
+      - name: Checkout exact integration source
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Validate existing isolated selections
+        shell: pwsh
+        run: |
+          ./.github/scripts/test-test-level-configuration.ps1
+          ./.github/scripts/test-ci-coverage-configuration.ps1
+      - name: Restore published package dependencies
+        run: dotnet restore /p:configuration=${{ env.BUILD_CONFIGURATION }}
+      - name: Build solution and demos
+        run: dotnet build --configuration=${{ env.BUILD_CONFIGURATION }} --no-restore
+      - name: Run full Windows net8 or named non-Windows samples
+        shell: pwsh
+        env:
+          TEST_COVERAGE: ${{ startsWith(matrix.os, 'windows') && 'Full' || 'Sample' }}
+        run: |
+          $filter = ./.github/scripts/get-isolated-dms-test-filter.ps1 -Coverage $env:TEST_COVERAGE
+          dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net8.0 --results-directory package-results/net8 --logger 'trx;LogFileName=providers.trx' --configuration=$env:BUILD_CONFIGURATION --no-build --no-restore --filter $filter
+          if ($LASTEXITCODE -ne 0) { throw 'Published-package provider tests failed.' }
+          ./.github/scripts/assert-dms-test-results.ps1 -Path package-results/net8/providers.trx
+      - name: Run named Windows net48 samples
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          $filter = ./.github/scripts/get-isolated-dms-test-filter.ps1 -Coverage Sample
+          dotnet test CompuMaster.Dms.Test.Providers/CompuMaster.Dms.Test.Providers.vbproj --framework net48 --results-directory package-results/net48 --logger 'trx;LogFileName=providers.trx' --configuration=$env:BUILD_CONFIGURATION --no-build --no-restore --filter $filter
+          if ($LASTEXITCODE -ne 0) { throw 'Published-package net48 samples failed.' }
+          ./.github/scripts/assert-dms-test-results.ps1 -Path package-results/net48/providers.trx
+      - name: Build all four Windows demo projects
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          foreach ($project in @('ScopevisioTeamwork', 'WebDav', 'OwnCloudClassic', 'Nextcloud')) {
+            dotnet build "CompuMaster.Dms.TestDemo.$project/CompuMaster.Dms.TestDemo.$project.vbproj" --configuration=$env:BUILD_CONFIGURATION
+            if ($LASTEXITCODE -ne 0) { throw "Demo build failed: $project" }
+          }
+      - name: Build BrowserUI tests
+        if: startsWith(matrix.os, 'windows')
+        run: dotnet build CompuMaster.Dms.Test.BrowserUI/CompuMaster.Dms.Test.BrowserUI.vbproj --configuration=${{ env.BUILD_CONFIGURATION }}
+      - name: Run full Windows net8 BrowserUI tests
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          dotnet vstest CompuMaster.Dms.Test.BrowserUI/bin/$env:BUILD_CONFIGURATION/net8.0-windows/CompuMaster.Dms.Test.BrowserUI.dll --TestCaseFilter:'TestCategory!=RemoteDms' --logger:'trx;LogFileName=browserui.trx' --ResultsDirectory:package-results/browserui
+          if ($LASTEXITCODE -ne 0) { throw 'Published-package BrowserUI tests failed.' }
+          ./.github/scripts/assert-dms-test-results.ps1 -Path package-results/browserui/browserui.trx
+      - name: Retain exact package resolution and isolated evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: package-integration-${{ matrix.os }}
+          path: |
+            package-results/
+            CompuMaster.Dms.Providers/obj/project.assets.json
+            CompuMaster.Dms.BrowserUI/obj/project.assets.json
+          if-no-files-found: error
