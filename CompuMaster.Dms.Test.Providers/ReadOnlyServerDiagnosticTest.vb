@@ -5,6 +5,13 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public NotInheritable Class ReadOnlyServerDiagnosticTest
+    <TestCase("Unknown or expired token", "UnknownOrExpiredToken"), TestCase("Tenant has expired", "TenantExpired"),
+     TestCase("<html>secret</html>", "Html"), TestCase("{""error"":""invalid_token"",""secret"":""hidden""}", "invalid_token"),
+     TestCase("{""error"":""private diagnostic""}", "OtherJson"), TestCase("secret response", "Other"), TestCase(Nothing, "Other")>
+    Public Sub ResponseCategoryNeverReturnsServerContent(body As String, expected As String)
+        Assert.That(ReadOnlyDiagnosticSupport.ResponseCategory(body), [Is].EqualTo(expected))
+    End Sub
+
     <Test>
     Public Sub CandidateInventoryNeverIncludesPermanentOrUnrelatedNames()
         Dim candidate = "ZZZ_UnitTests_CM.Dms_CollectionMove_" & New String("a"c, 32) & "_Source"

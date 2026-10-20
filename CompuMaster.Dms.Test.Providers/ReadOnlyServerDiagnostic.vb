@@ -35,6 +35,59 @@ End Class
 <TestFixture, Explicit("Run only through the coordinated CI read-only diagnostic mode."), Category("RemoteDms"), Category("ScopevisioTeamwork"), Category("ReadOnlyDiagnostic"), Category("TestLevel1")>
 Public NotInheritable Class ScopevisioReadOnlyDiagnostic
     <Test>
+    Public Async Function CompareDirectBearerAndSdkCollectionRead() As System.Threading.Tasks.Task
+        Dim phase = "CiAdmission"
+        Try
+            ReadOnlyDiagnosticSupport.RequireCiWindow({"TEST_SCOPEVISIOTEAMWORK_USERNAME", "TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO", "TEST_SCOPEVISIOTEAMWORK_PASSWORD", "TEST_SCOPEVISIOTEAMWORK_ORGANISATIONID", "TEST_SCOPEVISIOTEAMWORK_EXPECTEDTEAMWORKTENANTID"})
+            Dim profile = New ScopevisioTeamworkSettings().CreateLiveTestProfile()
+            profile.Validate()
+            Dim configuration = New AuthorizationProbeProvider().CreateConfiguration(profile)
+            Dim client As New Global.CompuMaster.Scopevisio.OpenApi.OpenScopeApiClient(configuration)
+            phase = "DirectToken"
+            Dim issued = Await client.AuthorizationApi.TokenAsyncWithHttpInfo("password", configuration.ClientNumber,
+                username:=configuration.Username, password:=configuration.Password, organisationId:=profile.OrganisationId)
+            Dim identity = ScopevisioExplicitIdentity.FromToken(issued.Data, issued.RawJsonContent, profile.OrganisationId.Value, profile.ExpectedTeamworkTenantId)
+            client.Token = issued.Data
+            phase = "DirectAccount"
+            Dim account = Await client.AdditionalApi.GetApplicationContextAsyncWithHttpInfo()
+            identity.ValidateAccount(account.Data, account.RawJsonContent)
+            phase = "DirectCollections"
+            Using http = CenterDevice.Rest.Clients.CenterDeviceHttpTransport.CreateHttpClient(New System.Net.Http.HttpClientHandler With {.AllowAutoRedirect = False})
+                Using request As New System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, "https://appload.scopevisio.com/rest/teamworkbridge/collections")
+                    request.Headers.Authorization = New System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", issued.Data.AccessToken)
+                    request.Headers.Accept.Add(New System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"))
+                    Using response = Await http.SendAsync(request)
+                        Dim body = Await response.Content.ReadAsStringAsync()
+                        Console.WriteLine("Teamwork direct probe: HTTP=" & CInt(response.StatusCode).ToString(Globalization.CultureInfo.InvariantCulture) &
+                            "; selectedIdentityVerified=True; bearerPresent=True; redirect=" & (response.Headers.Location IsNot Nothing).ToString() &
+                            "; responseCategory=" & ReadOnlyDiagnosticSupport.ResponseCategory(body) & ".")
+                        phase = "SdkCollections"
+                        Try
+                            Dim sdk As New Global.CompuMaster.Scopevisio.CenterDeviceApi.TeamworkRestClient(client)
+                            Dim collections = Await sdk.Collections.GetCollectionsAsync(issued.Data.Uid)
+                            Console.WriteLine("Teamwork SDK probe: collectionsRead=" & (collections IsNot Nothing).ToString() & ".")
+                        Catch failure As Exception
+                            Console.WriteLine(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", phase, failure))
+                        End Try
+                        phase = "DirectCollectionsResult"
+                        Assert.That(response.StatusCode, [Is].EqualTo(System.Net.HttpStatusCode.OK), "Direct collection read failed; only the safe status/category is logged.")
+                    End Using
+                End Using
+            End Using
+        Catch failure As Exception
+            Assert.Fail(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", phase, failure))
+        End Try
+    End Function
+
+    Private NotInheritable Class AuthorizationProbeProvider
+        Inherits ScopevisioTeamworkDmsProvider
+
+        Friend Function CreateConfiguration(profile As ScopevisioLoginCredentials) As Global.CompuMaster.Scopevisio.OpenApi.Client.Configuration
+            Return MyBase.CreateAuthorizationConfiguration(profile, False)
+        End Function
+    End Class
+
+    <Test>
     Public Sub InspectCollectionsAndExistingScopeWithoutMutatingResources()
         Dim phase = "CiAdmission"
         Try
@@ -80,6 +133,28 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
 End Class
 
 Friend NotInheritable Class ReadOnlyDiagnosticSupport
+    Friend Shared Function ResponseCategory(body As String) As String
+        Dim text = If(body, "").Trim()
+        If text = "Unknown or expired token" Then Return "UnknownOrExpiredToken"
+        If text = "Tenant has expired" Then Return "TenantExpired"
+        If text.StartsWith("<", StringComparison.Ordinal) Then Return "Html"
+        Try
+            Dim errorValue = Newtonsoft.Json.Linq.JObject.Parse(text)("error")
+            If errorValue Is Nothing OrElse errorValue.Type <> Newtonsoft.Json.Linq.JTokenType.String Then Return "OtherJson"
+            Dim errorCode = CStr(errorValue)
+            Select Case errorCode
+                Case "invalid_token", "invalid_grant", "access_denied", "unauthorized"
+                    Return errorCode
+                Case Else
+                    Return "OtherJson"
+            End Select
+        Catch failure As Newtonsoft.Json.JsonException
+            Return "Other"
+        Catch failure As ArgumentException
+            Return "Other"
+        End Try
+    End Function
+
     Private Shared ReadOnly CandidatePattern As New Regex("\AZZZ_UnitTests_CM\.Dms_CollectionMove_[0-9a-fA-F]{32}_(?:Source|Target)\z", RegexOptions.CultureInvariant)
 
     Friend Shared Sub RequireCiWindow(requiredVariables As String())
