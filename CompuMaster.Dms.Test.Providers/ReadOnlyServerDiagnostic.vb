@@ -60,7 +60,38 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
                         Dim body = Await response.Content.ReadAsStringAsync()
                         Console.WriteLine("Teamwork direct probe: HTTP=" & CInt(response.StatusCode).ToString(Globalization.CultureInfo.InvariantCulture) &
                             "; selectedIdentityVerified=True; bearerPresent=True; redirect=" & (response.Headers.Location IsNot Nothing).ToString() &
-                            "; responseCategory=" & ReadOnlyDiagnosticSupport.ResponseCategory(body) & ".")
+                            "; responseCategory=" & ReadOnlyDiagnosticSupport.ResponseCategory(body) &
+                            "; responseSignals=" & ReadOnlyDiagnosticSupport.ResponseSignals(body) & ".")
+                        Dim admittedStatus = response.StatusCode
+                        If admittedStatus = System.Net.HttpStatusCode.Unauthorized Then
+                            For Each force In {False, True}
+                                phase = "InternalTeamworkToken"
+                                Using tokenRequest As New System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get,
+                                    "https://appload.scopevisio.com/rest/teamworktoken?force=" & force.ToString().ToLowerInvariant())
+                                    tokenRequest.Headers.Authorization = New System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", issued.Data.AccessToken)
+                                    Using internalToken = Await http.SendAsync(tokenRequest)
+                                        Dim tokenBody = Await internalToken.Content.ReadAsStringAsync()
+                                        Console.WriteLine("Teamwork internal token probe: force=" & force.ToString() & "; HTTP=" &
+                                            CInt(internalToken.StatusCode).ToString(Globalization.CultureInfo.InvariantCulture) & "; responseCategory=" &
+                                            If(internalToken.IsSuccessStatusCode, "TokenRetrieved", ReadOnlyDiagnosticSupport.ResponseCategory(tokenBody)) &
+                                            "; responseSignals=" & If(internalToken.IsSuccessStatusCode, "omitted", ReadOnlyDiagnosticSupport.ResponseSignals(tokenBody)) & ".")
+                                    End Using
+                                End Using
+                                phase = "CollectionsAfterInternalToken"
+                                Using retry As New System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, request.RequestUri)
+                                    retry.Headers.Authorization = New System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", issued.Data.AccessToken)
+                                    retry.Headers.Accept.Add(New System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"))
+                                    Using retried = Await http.SendAsync(retry)
+                                        Dim retryBody = Await retried.Content.ReadAsStringAsync()
+                                        admittedStatus = retried.StatusCode
+                                        Console.WriteLine("Teamwork after internal token probe: force=" & force.ToString() & "; HTTP=" &
+                                            CInt(admittedStatus).ToString(Globalization.CultureInfo.InvariantCulture) & "; responseCategory=" &
+                                            If(retried.IsSuccessStatusCode, "CollectionsRetrieved", ReadOnlyDiagnosticSupport.ResponseCategory(retryBody)) & ".")
+                                    End Using
+                                End Using
+                                If admittedStatus <> System.Net.HttpStatusCode.Unauthorized Then Exit For
+                            Next
+                        End If
                         phase = "SdkCollections"
                         Try
                             Dim sdk As New Global.CompuMaster.Scopevisio.CenterDeviceApi.TeamworkRestClient(client)
@@ -70,7 +101,7 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
                             Console.WriteLine(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", phase, failure))
                         End Try
                         phase = "DirectCollectionsResult"
-                        Assert.That(response.StatusCode, [Is].EqualTo(System.Net.HttpStatusCode.OK), "Direct collection read failed; only the safe status/category is logged.")
+                        Assert.That(admittedStatus, [Is].EqualTo(System.Net.HttpStatusCode.OK), "Direct collection read failed; only the safe status/category is logged.")
                     End Using
                 End Using
             End Using
@@ -133,6 +164,13 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
 End Class
 
 Friend NotInheritable Class ReadOnlyDiagnosticSupport
+    Friend Shared Function ResponseSignals(body As String) As String
+        'Emit only these fixed labels, never matched server values or arbitrary error descriptions.
+        Dim labels = {"expired", "refresh", "tenant", "permission", "license", "organisation", "client", "token", "teamwork", "credentials", "denied"}
+        Dim selected = labels.Where(Function(label) Regex.IsMatch(If(body, ""), "\b" & label & "\b", RegexOptions.IgnoreCase Or RegexOptions.CultureInvariant)).ToArray()
+        Return If(selected.Length = 0, "none", String.Join(",", selected))
+    End Function
+
     Friend Shared Function ResponseCategory(body As String) As String
         Dim text = If(body, "").Trim()
         If text = "Unknown or expired token" Then Return "UnknownOrExpiredToken"

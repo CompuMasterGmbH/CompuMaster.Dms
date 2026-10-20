@@ -5,6 +5,13 @@ Imports NUnit.Framework
 
 <TestFixture>
 Public NotInheritable Class ReadOnlyServerDiagnosticTest
+    <Test>
+    Public Sub ResponseSignalsEmitOnlyFixedLabelsAndNeverCredentials()
+        Assert.That(ReadOnlyDiagnosticSupport.ResponseSignals("private-email@example.invalid opaque-private-value"), [Is].EqualTo("none"))
+        Assert.That(ReadOnlyDiagnosticSupport.ResponseSignals("private-email@example.invalid REFRESH token expired opaque-private-value"), [Is].EqualTo("expired,refresh,token"))
+        Assert.That(ReadOnlyDiagnosticSupport.ResponseSignals(Nothing), [Is].EqualTo("none"))
+    End Sub
+
     <TestCase("Unknown or expired token", "UnknownOrExpiredToken"), TestCase("Tenant has expired", "TenantExpired"),
      TestCase("<html>secret</html>", "Html"), TestCase("{""error"":""invalid_token"",""secret"":""hidden""}", "invalid_token"),
      TestCase("{""error"":""private diagnostic""}", "OtherJson"), TestCase("secret response", "Other"), TestCase(Nothing, "Other")>
