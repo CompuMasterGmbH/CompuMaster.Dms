@@ -22,12 +22,12 @@ Namespace Providers
         Private ReadOnly RequestTimeout As TimeSpan?
 
         Friend Sub New(serviceUri As Uri, inner As HttpMessageHandler, Optional clock As IRequestClock = Nothing,
-                       Optional maxConcurrent As Integer = 2, Optional maxRequestsPerMinute As Integer = 30,
+                       Optional maxConcurrent As Integer = 2, Optional maxRequestsPerMinute As Integer = 0,
                        Optional maxAttempts As Integer = 3, Optional maxElapsed As TimeSpan = Nothing, Optional requestTimeout As TimeSpan? = Nothing)
             MyBase.New(inner)
             If serviceUri Is Nothing Then Throw New ArgumentNullException(NameOf(serviceUri))
             If maxConcurrent < 1 Then Throw New ArgumentOutOfRangeException(NameOf(maxConcurrent))
-            If maxRequestsPerMinute < 1 Then Throw New ArgumentOutOfRangeException(NameOf(maxRequestsPerMinute))
+            If maxRequestsPerMinute < 0 Then Throw New ArgumentOutOfRangeException(NameOf(maxRequestsPerMinute))
             If maxAttempts < 1 Then Throw New ArgumentOutOfRangeException(NameOf(maxAttempts))
             Me.Clock = If(clock, New SystemRequestClock())
             Me.MaxAttempts = maxAttempts
@@ -35,8 +35,20 @@ Namespace Providers
             Me.RequestTimeout = requestTimeout
             Me.MaxElapsed = If(maxElapsed = Nothing, TimeSpan.FromSeconds(30), maxElapsed)
             If Me.MaxElapsed <= TimeSpan.Zero Then Throw New ArgumentOutOfRangeException(NameOf(maxElapsed))
-            Dim key As String = serviceUri.Scheme & "://" & serviceUri.IdnHost & ":" & serviceUri.Port.ToString(Globalization.CultureInfo.InvariantCulture) & ":" & maxConcurrent.ToString(Globalization.CultureInfo.InvariantCulture) & ":" & maxRequestsPerMinute.ToString(Globalization.CultureInfo.InvariantCulture)
+            Dim key = OriginKey(serviceUri)
             Me.Gate = Gates.GetOrAdd(key, Function(ignored) New ServiceGate(maxConcurrent, maxRequestsPerMinute))
+        End Sub
+
+        Private Shared Function OriginKey(serviceUri As Uri) As String
+            If serviceUri Is Nothing Then Throw New ArgumentNullException(NameOf(serviceUri))
+            If Not serviceUri.IsAbsoluteUri OrElse (serviceUri.Scheme <> Uri.UriSchemeHttp AndAlso serviceUri.Scheme <> Uri.UriSchemeHttps) Then Throw New ArgumentException("An absolute HTTP or HTTPS service URI is required.", NameOf(serviceUri))
+            Return serviceUri.Scheme & Uri.SchemeDelimiter & serviceUri.IdnHost & ":" & serviceUri.Port.ToString(Globalization.CultureInfo.InvariantCulture)
+        End Function
+
+        Friend Shared Sub ConfigureRequestRateLimit(serviceUri As Uri, maxRequestsPerMinute As Integer?)
+            If maxRequestsPerMinute.HasValue AndAlso maxRequestsPerMinute.Value < 1 Then Throw New ArgumentOutOfRangeException(NameOf(maxRequestsPerMinute))
+            Dim gate = Gates.GetOrAdd(OriginKey(serviceUri), Function(ignored) New ServiceGate(2, 0))
+            gate.ConfigureRateLimit(maxRequestsPerMinute.GetValueOrDefault())
         End Sub
 
         Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
@@ -54,10 +66,16 @@ Namespace Providers
                 For attempt As Integer = 1 To If(retryable, MaxAttempts, 1)
                     activeToken.ThrowIfCancellationRequested()
                     Using measurement As New PerformanceMeasurement(PerformanceMeasurement.Phase.HttpQueue)
-                        Await Gate.ReserveAsync(Clock, activeToken).ConfigureAwait(False)
                         Await Gate.Concurrent.WaitAsync(activeToken).ConfigureAwait(False)
+                        Try
+                            Await Gate.ReserveAsync(Clock, activeToken).ConfigureAwait(False)
+                        Catch
+                            Gate.Concurrent.Release()
+                            Throw
+                        End Try
                     End Using
                     Dim response As HttpResponseMessage = Nothing
+                    Dim overloadDelay As TimeSpan? = Nothing
                     Dim transportFailure As HttpRequestException = Nothing
                     Dim capacityTransferred As Boolean = False
                     Try
@@ -71,6 +89,10 @@ Namespace Providers
                             End If
                         End Using
                         If response IsNot Nothing Then
+                            If CInt(response.StatusCode) = 429 OrElse response.StatusCode = HttpStatusCode.ServiceUnavailable Then
+                                overloadDelay = RetryDelay(response, attempt)
+                                Gate.DeferUntil(Clock.UtcNow + overloadDelay.Value)
+                            End If
                             response.Content = New CapacityContent(response.Content, AddressOf Gate.Concurrent.Release)
                             capacityTransferred = True
                         End If
@@ -92,7 +114,7 @@ Namespace Providers
                         responseOwnsDeadline = True
                         Return response
                     End If
-                    Dim delay As TimeSpan = RetryDelay(response, attempt)
+                    Dim delay As TimeSpan = If(overloadDelay.HasValue, overloadDelay.Value, RetryDelay(response, attempt))
                     Dim remaining As TimeSpan = MaxElapsed - (Clock.UtcNow - started)
                     If delay >= remaining Then
                         TransferDeadline(response, request.Method, deadline)
@@ -155,12 +177,27 @@ Namespace Providers
 
         Private NotInheritable Class ServiceGate
             Friend ReadOnly Concurrent As SemaphoreSlim
-            Private ReadOnly MaxPerMinute As Integer
+            Private MaxPerMinute As Integer
             Private ReadOnly Recent As New Queue(Of DateTimeOffset)
+            Private Started As Boolean
+            Private ResumeAt As DateTimeOffset
 
             Friend Sub New(maxConcurrent As Integer, maxPerMinute As Integer)
                 Concurrent = New SemaphoreSlim(maxConcurrent, maxConcurrent)
                 Me.MaxPerMinute = maxPerMinute
+            End Sub
+
+            Friend Sub ConfigureRateLimit(value As Integer)
+                SyncLock Recent
+                    If Started Then Throw New InvalidOperationException("Configure the rate limit before the first request to this origin.")
+                    MaxPerMinute = value
+                End SyncLock
+            End Sub
+
+            Friend Sub DeferUntil(value As DateTimeOffset)
+                SyncLock Recent
+                    If value > ResumeAt Then ResumeAt = value
+                End SyncLock
             End Sub
 
             Friend Async Function ReserveAsync(clock As IRequestClock, token As CancellationToken) As Task
@@ -168,15 +205,20 @@ Namespace Providers
                     token.ThrowIfCancellationRequested()
                     Dim wait As TimeSpan
                     SyncLock Recent
+                        Started = True
                         Dim now As DateTimeOffset = clock.UtcNow
-                        While Recent.Count > 0 AndAlso now - Recent.Peek() >= TimeSpan.FromMinutes(1)
-                            Recent.Dequeue()
-                        End While
-                        If Recent.Count < MaxPerMinute Then
-                            Recent.Enqueue(now)
-                            Return
+                        wait = ResumeAt - now
+                        If wait <= TimeSpan.Zero Then
+                            If MaxPerMinute = 0 Then Return
+                            While Recent.Count > 0 AndAlso now - Recent.Peek() >= TimeSpan.FromMinutes(1)
+                                Recent.Dequeue()
+                            End While
+                            If Recent.Count < MaxPerMinute Then
+                                Recent.Enqueue(now)
+                                Return
+                            End If
+                            wait = Recent.Peek().AddMinutes(1) - now
                         End If
-                        wait = Recent.Peek().AddMinutes(1) - now
                     End SyncLock
                     Await clock.DelayAsync(wait, token).ConfigureAwait(False)
                 Loop

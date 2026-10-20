@@ -16,7 +16,7 @@ Release 2026.10.07.0 references CompuMaster.CenterDevice.Rest, CompuMaster.Scope
 
 `SupportsAsynchronousIo` remains `False` for the audited whole-provider/callback boundaries. Per-operation native overrides do not imply that every operation, derived provider or caller callback has native I/O. The common Task-based API keeps its serialized fallback where needed. Waiting fallback calls can be canceled; an active synchronous request cannot. Calls outside the configured shared transports or in another process need separate coordination.
 
-The SDK transport allows one active request per origin and 30 starts per rolling minute. WebDAV allows two active requests per origin and 30 starts per rolling minute. These are conservative client defaults, not measured server quotas. A response holds its slot until consumed or disposed. Do not keep an unread response open while awaiting another request to the same origin. Ambiguous writes are not replayed; inspect preserved reconciliation IDs and cleanup errors.
+The SDK transport allows three active requests per origin. WebDAV allows two active requests per origin. Neither applies a fixed minute quota by default. These are conservative client defaults, not measured server quotas. A response holds its slot until consumed or disposed. Do not keep an unread response open while awaiting another request to the same origin. Ambiguous writes are not replayed; inspect preserved reconciliation IDs and cleanup errors.
 
 For development, all three upstream source paths may still be supplied through `CenterDeviceRestProject`, `OpenScopeApiProject`, and `TeamworkProject`. `EnableNativeAsync=false` remains available for explicit legacy-adapter validation. Default package consumers use the released native dependency chain.
 ## Browser busy state and provider concurrency
@@ -39,7 +39,22 @@ The [CenterDevice product description](https://www.centerdevice.de/leistungsbesc
 
 HTTP [429](https://www.rfc-editor.org/info/rfc6585/) can include `Retry-After`; [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#section-10.2.3) defines its seconds and HTTP-date forms. These are general HTTP rules, not evidence that either DMS backend issues a particular status or applies a particular quota.
 
-The WebDAV transport therefore uses a conservative per-origin, process-wide allowance of **2 concurrent requests** and **30 starts per rolling minute**. These are local safety defaults, not vendor limits. Different processes still require coordination if they share a constrained account. A streaming response holds its concurrency slot until its body is consumed or disposed. Cancellation works while waiting for either allowance. Read requests (`GET`, `HEAD`, `PROPFIND`) may be retried at most three times for 408, 429, 500, 502, 503, and 504, or a transport `HttpRequestException`. Further attempts stop when 30 seconds have elapsed since the initial attempt; the first request and writes are not shortened by this retry budget. `Retry-After` takes precedence over exponential backoff with jitter. A response is returned intact when the next retry delay would exceed the budget. Writes (`PUT`, `POST`, `MKCOL`, `COPY`, `MOVE`, `DELETE`) are not replayed because an ambiguous timeout could duplicate or reorder a change. Authentication and validation errors are not retried.
+The WebDAV transport therefore uses a conservative per-origin, process-wide allowance of **2 concurrent requests** and **no fixed minute quota by default**. These are local safety defaults, not vendor limits. Different processes still require coordination if they share a constrained account. A streaming response holds its concurrency slot until its body is consumed or disposed. Cancellation works while waiting for either allowance. Read requests (`GET`, `HEAD`, `PROPFIND`) may be retried at most three times for 408, 429, 500, 502, 503, and 504, or a transport `HttpRequestException`. Further attempts stop when 30 seconds have elapsed since the initial attempt; the first request and writes are not shortened by this retry budget. HTTP 429/503 establishes a shared cooldown for subsequent and queued requests across client instances, including writes. `Retry-After` takes precedence over exponential backoff with jitter, which also supplies a cooldown when the header is absent. A response is returned intact when the next retry delay would exceed the budget. Writes (`PUT`, `POST`, `MKCOL`, `COPY`, `MOVE`, `DELETE`) are not replayed because an ambiguous timeout could duplicate or reorder a change. Authentication and validation errors are not retried.
+
+## Optional request rate configuration
+
+Configure a known quota before the first request to the service origin (scheme, host and port):
+
+```vb
+'WebDAV, Nextcloud and ownCloud WebDAV transports:
+WebDavDmsProvider.ConfigureRequestRateLimit(New Uri("https://service.example/dav/"), 30)
+'Use Nothing to disable the fixed minute quota (the default).
+
+'Teamwork and CenterDevice SDK transports:
+CenterDevice.Rest.Clients.CenterDeviceHttpTransport.ConfigureRequestRateLimit(New Uri("https://service.example/rest/"), 30)
+```
+
+These advanced process-wide settings apply to existing and future clients at the same origin, regardless of URL path or user. Configuration after requests have started throws `InvalidOperationException`; it cannot create a second independent allowance or reset an active cooldown. Minute limits are independent of the concurrency caps (WebDAV two, SDK three), cancellation and shared server overload cooldowns. OCS sharing requests retain their separate transport. Legacy provider worker fallbacks remain serialized; the three-request SDK allowance does not change callback or cache contracts.
 
 ## Historical development checkpoints and verification
 
