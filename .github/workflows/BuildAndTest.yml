@@ -364,7 +364,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.CenterDevice.IO
-          ref: 6bdf1e526e14c50fc71a153a388315e7954b55f7
+          ref: 7faccd46510b56211e53e36953b0926696771307
           path: .upstream/CenterDevice.IO
           persist-credentials: false
       - name: Checkout pinned released OpenScope source
@@ -375,12 +375,12 @@ jobs:
           ref: c59b44ac4cfa8fab7daac317d67be0f678cb1bfe
           path: .upstream/OpenScope
           persist-credentials: false
-      - name: Checkout pinned released Teamwork source
+      - name: Checkout pinned Teamwork package-adoption source
         if: inputs.native_dependency_mode == 'source'
         uses: actions/checkout@v5
         with:
           repository: CompuMasterGmbH/CompuMaster.Scopevisio.Teamwork
-          ref: c57bbfa28643eab0e48f91af37b7d3031158abd0
+          ref: 52ad15f9d61c51d1698b31905f6e36d50d04ed11
           path: .upstream/Teamwork
           persist-credentials: false
       - uses: actions/setup-dotnet@v5
