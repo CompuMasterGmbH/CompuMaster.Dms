@@ -10,6 +10,122 @@ Imports NUnit.Framework
 <TestFixture>
 Public Class ServiceRequestPolicyTest
 
+    <TestCase(429, False)>
+    <TestCase(503, True)>
+    Public Async Function WriteCooldownIsSharedAcrossClientsAndPaths(status As Integer, useDate As Boolean) As Task
+        Dim clock As New FakeClock
+        Dim origin As New Uri("https://" & Guid.NewGuid().ToString("N") & ".test/")
+        Dim calls As Integer
+        Dim handler As New StubHandler(Function(request)
+                                           calls += 1
+                                           Dim response As New HttpResponseMessage(CType(status, HttpStatusCode))
+                                           response.Headers.RetryAfter = If(useDate, New Headers.RetryConditionHeaderValue(clock.UtcNow.AddSeconds(7)), New Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(7)))
+                                           Return response
+                                       End Function)
+        Using first As New HttpClient(New ServiceRequestPolicy(origin, handler, clock)), second As New HttpClient(New ServiceRequestPolicy(New Uri(origin, "other"), New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK)), clock))
+            Using response = Await first.PostAsync(New Uri(origin, "write"), New StringContent("data"))
+            End Using
+            Using response = Await second.GetAsync(New Uri(origin, "read"))
+            End Using
+        End Using
+        Assert.That(calls, [Is].EqualTo(1), "The mutation must not be replayed.")
+        Assert.That(clock.Delays, [Is].EqualTo({TimeSpan.FromSeconds(7)}))
+    End Function
+
+    <TestCase(429)>
+    <TestCase(503)>
+    Public Async Function OverloadWithoutRetryAfterDefersOtherRequests(status As Integer) As Task
+        Dim clock As New FakeClock
+        Dim origin As New Uri("https://" & Guid.NewGuid().ToString("N") & ".test/")
+        Dim calls As Integer
+        Using client As New HttpClient(New ServiceRequestPolicy(origin, New StubHandler(Function(request)
+                                                                                          calls += 1
+                                                                                          Return New HttpResponseMessage(CType(status, HttpStatusCode))
+                                                                                      End Function), clock))
+            Using response = Await client.PostAsync(origin, New StringContent("data"))
+            End Using
+            Using response = Await client.PostAsync(origin, New StringContent("data"))
+            End Using
+        End Using
+        Assert.That(calls, [Is].EqualTo(2))
+        Assert.That(clock.Delays.Count, [Is].EqualTo(1))
+        Assert.That(clock.Delays(0), [Is].GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(250)))
+    End Function
+
+    <Test>
+    Public Async Function QueuedRequestRechecksCooldownAndCanCancel() As Task
+        Dim clock As New BlockingClock
+        Dim origin As New Uri("https://" & Guid.NewGuid().ToString("N") & ".test/")
+        Dim calls As Integer
+        Using client As New HttpClient(New ServiceRequestPolicy(origin, New StubHandler(Function(request)
+                                                                                          calls += 1
+                                                                                          Dim response As New HttpResponseMessage(CType(429, HttpStatusCode)) With {.Content = New StringContent("diagnostic")}
+                                                                                          response.Headers.RetryAfter = New Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(7))
+                                                                                          Return response
+                                                                                      End Function), clock, maxConcurrent:=1))
+            Using write As New HttpRequestMessage(HttpMethod.Post, origin) With {.Content = New StringContent("data")}, response = Await client.SendAsync(write, HttpCompletionOption.ResponseHeadersRead), cancellation As New CancellationTokenSource
+                Dim queued = client.GetAsync(origin, cancellation.Token)
+                Assert.That(queued.IsCompleted, [Is].False)
+                response.Dispose()
+                Await clock.Waiting.Task
+                Assert.That(calls, [Is].EqualTo(1))
+                cancellation.Cancel()
+                Assert.CatchAsync(Of OperationCanceledException)(CType(Async Function() Await queued, Func(Of Task)))
+            End Using
+        End Using
+    End Function
+
+    <Test>
+    Public Async Function ExplicitlyDisabledRateLimitDoesNotWait() As Task
+        Dim clock As New FakeClock
+        Dim origin As New Uri("https://" & Guid.NewGuid().ToString("N") & ".test/")
+        WebDavDmsProvider.ConfigureRequestRateLimit(origin, 1)
+        WebDavDmsProvider.ConfigureRequestRateLimit(origin, Nothing)
+        Using client As New HttpClient(New ServiceRequestPolicy(origin, New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK)), clock))
+            For index As Integer = 1 To 65
+                Using response = Await client.GetAsync(origin)
+                End Using
+            Next
+        End Using
+        Assert.That(clock.Delays, [Is].Empty)
+    End Function
+
+    <Test>
+    Public Async Function PublicRateConfigurationIsSharedAndCannotChangeAfterRequestsStart() As Task
+        Dim origin As New Uri("https://" & Guid.NewGuid().ToString("N") & ".test/")
+        WebDavDmsProvider.ConfigureRequestRateLimit(New Uri("https://fixture-user@" & origin.Host.ToUpperInvariant() & ":443/configured-path"), 1)
+        Dim clock As New FakeClock
+        Using first As New HttpClient(New ServiceRequestPolicy(origin, New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK)), clock)), second As New HttpClient(New ServiceRequestPolicy(New Uri(origin, "other"), New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK)), clock))
+            Using response = Await first.GetAsync(origin)
+            End Using
+            Assert.Throws(Of InvalidOperationException)(Sub() WebDavDmsProvider.ConfigureRequestRateLimit(origin, Nothing))
+            Using response = Await second.GetAsync(origin)
+            End Using
+        End Using
+        Assert.That(clock.Delays, [Is].EqualTo({TimeSpan.FromMinutes(1)}))
+    End Function
+
+    <Test>
+    Public Sub RejectsInvalidPublicRateConfiguration()
+        Assert.Throws(Of ArgumentNullException)(Sub() WebDavDmsProvider.ConfigureRequestRateLimit(Nothing, 1))
+        Assert.Throws(Of ArgumentException)(Sub() WebDavDmsProvider.ConfigureRequestRateLimit(New Uri("relative", UriKind.Relative), 1))
+        Assert.Throws(Of ArgumentException)(Sub() WebDavDmsProvider.ConfigureRequestRateLimit(New Uri("ftp://invalid.test"), 1))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Sub() WebDavDmsProvider.ConfigureRequestRateLimit(New Uri("https://invalid.test"), 0))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Sub() WebDavDmsProvider.ConfigureRequestRateLimit(New Uri("https://invalid.test"), -1))
+    End Sub
+
+    <Test>
+    Public Async Function DefaultAdmissionDoesNotImposeAMinuteQuota() As Task
+        Dim clock As New FakeClock
+        Using client As New HttpClient(New ServiceRequestPolicy(New Uri("https://unlimited-default.test/"), New StubHandler(Function(request) New HttpResponseMessage(HttpStatusCode.OK)), clock))
+            For index As Integer = 1 To 65
+                Using response = Await client.GetAsync("https://unlimited-default.test/file")
+                End Using
+            Next
+        End Using
+        Assert.That(clock.Delays, [Is].Empty)
+    End Function
+
     <Test>
     Public Sub DefaultWebDavClientDoesNotApplyTheShortMetadataTimeoutToTransfers()
         Using client = WebDavDmsProvider.CreateConfiguredHttpClient(New HttpClientHandler(), New WebDav.WebDavClientParams With {.BaseAddress = New Uri("https://timeout-config.test/")})

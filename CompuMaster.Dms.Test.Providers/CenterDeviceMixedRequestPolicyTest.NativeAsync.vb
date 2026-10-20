@@ -2,6 +2,7 @@
 Option Strict On
 
 Imports System.Net
+Imports System.Linq
 Imports System.Net.Http
 Imports System.Reflection
 Imports System.Threading
@@ -17,33 +18,34 @@ Imports RestSharp
 <TestFixture>
 Public Class CenterDeviceMixedRequestPolicyTest
     <Test>
-    Public Async Function SynchronousSdkRequestOwnsAdmissionAndQueuedNativeRequestCanCancel() As Task
+    Public Async Function SynchronousSdkRequestsShareThreeSlotsAndQueuedNativeRequestCanCancel() As Task
         Dim origin = "https://" & Guid.NewGuid().ToString("N") & ".invalid/"
         Dim transport As New BlockingTransport()
         Using http = CenterDeviceHttpTransport.CreateHttpClient(transport), rest = New RestClient(http, New RestClientOptions(origin)), cancellation As New CancellationTokenSource()
             Dim client = CreateSdkClient(origin, rest)
-            Dim owner = Task.Run(Function() client.GetLoggedInUserData(Authorization()))
+            Dim owners = Enumerable.Range(1, 3).Select(Function(index) Task.Run(Function() client.GetLoggedInUserData(Authorization()))).ToArray()
+            Dim owner = Task.WhenAll(owners)
             Try
-                Await WithinAsync(transport.Entered.Task)
+                Await WithinAsync(transport.ThreeEntered.Task)
                 Dim queued = client.GetLoggedInUserDataAsync(Authorization(), cancellation.Token)
                 cancellation.Cancel()
                 Assert.CatchAsync(Of OperationCanceledException)(CType(Async Function()
                                                                          Await queued
                                                                      End Function, Func(Of Task)))
-                Assert.That(transport.Calls, [Is].EqualTo(1), "Canceled native work must not enter the transport owned by a synchronous call.")
+                Assert.That(transport.Calls, [Is].EqualTo(3), "Canceled native work must not enter the three slots held by synchronous calls.")
             Finally
                 transport.Release.TrySetResult(True)
             End Try
             Await WithinAsync(owner)
-            Assert.That((Await owner).Id, [Is].EqualTo("fixture-user"))
+            Assert.That((Await owner).All(Function(user) user.Id = "fixture-user"), [Is].True)
             Dim later = Await client.GetLoggedInUserDataAsync(Authorization())
             Assert.That(later.Id, [Is].EqualTo("fixture-user"))
-            Assert.That(transport.MaximumActive, [Is].EqualTo(1))
+            Assert.That(transport.MaximumActive, [Is].EqualTo(3))
         End Using
     End Function
 
     <Test>
-    Public Async Function NativeSdkRequestSerializesADirectSynchronousCallFromAnotherClient() As Task
+    Public Async Function ThreeNativeSdkRequestsQueueADirectSynchronousCallFromAnotherClient() As Task
         Dim origin = "https://" & Guid.NewGuid().ToString("N") & ".invalid/"
         Dim firstTransport As New BlockingTransport()
         Dim secondTransport As New BlockingTransport()
@@ -52,11 +54,11 @@ Public Class CenterDeviceMixedRequestPolicyTest
             firstRest = New RestClient(firstHttp, New RestClientOptions(origin)), secondRest = New RestClient(secondHttp, New RestClientOptions(origin))
             Dim first = CreateSdkClient(origin, firstRest)
             Dim second = CreateSdkClient(origin, secondRest)
-            Dim owner = first.GetLoggedInUserDataAsync(Authorization())
+            Dim owner = Task.WhenAll(Enumerable.Range(1, 3).Select(Function(index) first.GetLoggedInUserDataAsync(Authorization())))
             Dim dispatched As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
             Dim queued As Task(Of ExtendedUserData) = Nothing
             Try
-                Await WithinAsync(firstTransport.Entered.Task)
+                Await WithinAsync(firstTransport.ThreeEntered.Task)
                 queued = Task.Run(Function()
                                       dispatched.TrySetResult(True)
                                       Return second.GetLoggedInUserData(Authorization())
@@ -84,18 +86,18 @@ Public Class CenterDeviceMixedRequestPolicyTest
             Dim client = CreateSdkClient(origin, rest)
             Dim queued As Task(Of ExtendedUserData) = Nothing
             Dim dispatched As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
-            Using response = Await http.GetAsync(origin & "external", HttpCompletionOption.ResponseHeadersRead)
+            Using secondResponse = Await http.GetAsync(origin & "external2", HttpCompletionOption.ResponseHeadersRead), thirdResponse = Await http.GetAsync(origin & "external3", HttpCompletionOption.ResponseHeadersRead), response = Await http.GetAsync(origin & "external", HttpCompletionOption.ResponseHeadersRead)
                 queued = Task.Run(Function()
                                       dispatched.TrySetResult(True)
                                       Return client.GetLoggedInUserData(Authorization())
                                   End Function)
                 Await WithinAsync(dispatched.Task)
                 Await Task.Delay(100)
-                Assert.That(transport.Calls, [Is].EqualTo(1), "The external unconsumed response must retain its origin permit.")
+                Assert.That(transport.Calls, [Is].EqualTo(3), "The three external unconsumed responses must retain their origin permits.")
             End Using
             Await WithinAsync(queued)
             Assert.That((Await queued).Id, [Is].EqualTo("fixture-user"))
-            Assert.That(transport.Calls, [Is].EqualTo(2))
+            Assert.That(transport.Calls, [Is].EqualTo(4))
         End Using
     End Function
 
@@ -135,6 +137,7 @@ Public Class CenterDeviceMixedRequestPolicyTest
     Private Class BlockingTransport
         Inherits HttpMessageHandler
         Public ReadOnly Entered As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
+        Public ReadOnly ThreeEntered As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         Public ReadOnly Release As New TaskCompletionSource(Of Boolean)(TaskCreationOptions.RunContinuationsAsynchronously)
         Public Calls As Integer
         Public MaximumActive As Integer
@@ -142,8 +145,13 @@ Public Class CenterDeviceMixedRequestPolicyTest
         Protected Overrides Async Function SendAsync(request As HttpRequestMessage, cancellationToken As CancellationToken) As Task(Of HttpResponseMessage)
             Interlocked.Increment(Calls)
             Dim current = Interlocked.Increment(Active)
-            MaximumActive = Math.Max(MaximumActive, current)
+            Dim previous As Integer
+            Do
+                previous = Volatile.Read(MaximumActive)
+                If previous >= current Then Exit Do
+            Loop While Interlocked.CompareExchange(MaximumActive, current, previous) <> previous
             Entered.TrySetResult(True)
+            If current = 3 Then ThreeEntered.TrySetResult(True)
             Try
                 Await Task.WhenAny(Release.Task, Task.Delay(Timeout.Infinite, cancellationToken))
                 cancellationToken.ThrowIfCancellationRequested()

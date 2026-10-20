@@ -21,6 +21,18 @@ Namespace Providers
     Partial Public Class WebDavDmsProvider
         Inherits BaseDmsProvider
 
+        ''' <summary>Configures the optional request rate limit shared by WebDAV clients targeting the same HTTP origin.</summary>
+        ''' <param name="serviceUri">An absolute HTTP or HTTPS URI. Only its scheme, host and port identify the shared allowance.</param>
+        ''' <param name="maxRequestsPerMinute">The maximum starts per rolling minute, or Nothing to disable the fixed rate limit (the default).</param>
+        ''' <remarks>Configure this process-wide setting before the first request to the origin. Two concurrent requests and server-directed cooldowns remain effective with no fixed rate limit. OCS transports are separate.</remarks>
+        ''' <exception cref="ArgumentNullException">The service URI is Nothing.</exception>
+        ''' <exception cref="ArgumentException">The service URI is not an absolute HTTP or HTTPS URI.</exception>
+        ''' <exception cref="ArgumentOutOfRangeException">The limit is less than one.</exception>
+        ''' <exception cref="InvalidOperationException">Requests to this origin have already started.</exception>
+        Public Shared Sub ConfigureRequestRateLimit(serviceUri As Uri, maxRequestsPerMinute As Integer?)
+            ServiceRequestPolicy.ConfigureRequestRateLimit(serviceUri, maxRequestsPerMinute)
+        End Sub
+
         Private Shared ReadOnly ChildFolderCountProperty As System.Xml.Linq.XName = System.Xml.Linq.XName.Get("contained-folder-count", "http://nextcloud.org/ns")
 
         Private WebDavClient As Global.WebDav.IWebDavClient

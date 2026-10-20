@@ -5,7 +5,7 @@
 $ErrorActionPreference = 'Stop'
 if ($Coverage -eq 'Full') { return 'TestCategory!=RemoteDms' }
 $names = switch ([IO.Path]::GetFileName($TestProject)) {
-    'CenterDevice.Rest.AsyncTests.csproj' { @('CancellationReachesAnActiveHttpRequestAndReleasesItsAllowance', 'MutationsAreNeverReplayedAfterAnAmbiguousServerError') }
+    'CenterDevice.Rest.AsyncTests.csproj' { @('CancellationReachesAnActiveHttpRequestAndReleasesItsAllowance', 'MutationsAreNeverReplayedAfterAnAmbiguousServerError', 'DefaultAdmissionDoesNotImposeAMinuteQuota', 'SeparateClientsShareTheOriginAllowanceUntilTheResponseBodyIsConsumed', 'QueuedRequestsRecheckSharedCooldownAfterAWriteResponse', 'PublicRateConfigurationIsSharedAndCannotChangeAfterRequestsStart') }
     'CompuMaster.Scopevisio.OpenApi.AsyncTests.csproj' { @('CancellationReachesActiveTokenAndAccountRequests') }
     'Scopevisio.Teamwork.AsyncTests.csproj' { @('AuthorizationFactoryUsesTheSharedTransportAndInstallsTheFreshIdentity', 'CancellationReachesTheActiveAccountRequest') }
     'CompuMaster.Dms.Test.Providers.vbproj' { return & (Join-Path $PSScriptRoot 'get-isolated-dms-test-filter.ps1') -Coverage Sample }
