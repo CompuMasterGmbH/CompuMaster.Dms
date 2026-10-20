@@ -93,15 +93,18 @@ Public NotInheritable Class ScopevisioReadOnlyDiagnostic
                             Next
                         End If
                         phase = "SdkCollections"
+                        Dim sdkReadSucceeded As Boolean
                         Try
                             Dim sdk As New Global.CompuMaster.Scopevisio.CenterDeviceApi.TeamworkRestClient(client)
                             Dim collections = Await sdk.Collections.GetCollectionsAsync(issued.Data.Uid)
-                            Console.WriteLine("Teamwork SDK probe: collectionsRead=" & (collections IsNot Nothing).ToString() & ".")
+                            sdkReadSucceeded = collections IsNot Nothing
+                            Console.WriteLine("Teamwork SDK probe: collectionsRead=" & sdkReadSucceeded.ToString() & ".")
                         Catch failure As Exception
                             Console.WriteLine(ReadOnlyDiagnosticSupport.SafeFailure("Scopevisio", phase, failure))
                         End Try
                         phase = "DirectCollectionsResult"
                         Assert.That(admittedStatus, [Is].EqualTo(System.Net.HttpStatusCode.OK), "Direct collection read failed; only the safe status/category is logged.")
+                        Assert.That(sdkReadSucceeded, [Is].True, "The SDK collection read must also succeed; only its safe failure summary is logged.")
                     End Using
                 End Using
             End Using
