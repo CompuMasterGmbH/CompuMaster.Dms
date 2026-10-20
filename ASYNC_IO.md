@@ -6,7 +6,7 @@ Ordinary PR/main CI uses quick Level 1 remote checks plus all isolated regressio
 
 ## Current client support
 
-Release 2026.10.07.0 references CompuMaster.CenterDevice.Rest, CompuMaster.Scopevisio.OpenApi, CompuMaster.Scopevisio.Teamwork, and CompuMaster.Ocs 2026.10.7. The native Teamwork/CenterDevice adapters are included in ordinary package builds; consuming applications do not need upstream source projects or build flags. Existing synchronous APIs remain available.
+Release 2026.10.20.0 references CompuMaster.CenterDevice.Rest 2026.10.20, CompuMaster.Scopevisio.OpenApi 2026.10.16, CompuMaster.Scopevisio.Teamwork 2026.10.20, and CompuMaster.Ocs 2026.10.12. The native Teamwork/CenterDevice adapters are included in ordinary package builds; consuming applications do not need upstream source projects or build flags. Existing synchronous APIs remain available.
 
 | Backend | Native asynchronous operations | Compatibility boundaries |
 | --- | --- | --- |
