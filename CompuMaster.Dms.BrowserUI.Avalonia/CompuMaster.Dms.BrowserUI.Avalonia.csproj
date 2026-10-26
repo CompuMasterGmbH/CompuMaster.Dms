@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Configurations>Debug;Release;CI_CD</Configurations>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <WarningsAsErrors>CS1591</WarningsAsErrors>
+    <PackageId>CompuMaster.Dms.BrowserUI.Avalonia</PackageId>
+    <Authors>CompuMaster GmbH</Authors>
+    <Description>Cross-platform Avalonia DMS browser, file/folder picker and sharing dialogs.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>logo_64x64.png</PackageIcon>
+    <RepositoryUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <ProjectReference Include="../CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj" />
+    <EmbeddedResource Include="../CompuMaster.Dms.BrowserUI/UiStrings.resx" Link="UiStrings.resx" />
+    <EmbeddedResource Include="../CompuMaster.Dms.BrowserUI/UiStrings.de.resx" Link="UiStrings.de.resx" />
+    <AvaloniaResource Include="../CompuMaster.Dms.BrowserUI/Resources/*.png" Link="Assets/%(Filename)%(Extension)" />
+    <AvaloniaResource Include="../CompuMaster.Dms.BrowserUI/favicon.ico" Link="Assets/favicon.ico" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="../CompuMaster.Dms.BrowserUI/logo_64x64.png" Pack="true" PackagePath="/" />
+    <InternalsVisibleTo Include="CompuMaster.Dms.Test.BrowserUI.Avalonia" />
+  </ItemGroup>
+</Project>

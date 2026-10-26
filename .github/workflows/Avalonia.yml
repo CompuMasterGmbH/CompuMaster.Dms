@@ -1,0 +1,39 @@
+﻿name: Avalonia BrowserUI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  avalonia:
+    name: Avalonia build, headless tests and package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    # These tests only use process-local providers. No remote DMS accounts are accessed.
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Build desktop demo
+        run: dotnet build CompuMaster.Dms.TestDemo.Avalonia/CompuMaster.Dms.TestDemo.Avalonia.csproj -c CI_CD --verbosity quiet
+      - name: Run isolated Avalonia tests
+        run: dotnet test CompuMaster.Dms.Test.BrowserUI.Avalonia/CompuMaster.Dms.Test.BrowserUI.Avalonia.csproj -c CI_CD --verbosity quiet --logger trx --results-directory artifacts/avalonia-tests
+      - name: Verify packed NuGet consumer
+        shell: pwsh
+        run: ./.github/scripts/test-avalonia-package.ps1 -Configuration CI_CD
+      - name: Retain local test and package evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: avalonia-${{ matrix.os }}
+          path: artifacts/
