@@ -99,8 +99,7 @@ public sealed partial class DmsBrowserControl : UserControl
 
     private void BuildControls()
     {
-        FlowDirection = System.Globalization.CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ?
-            FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        FlowDirection = UiText.LayoutDirection;
         Styles.Add(new StyleInclude(new Uri("avares://CompuMaster.Dms.BrowserUI.Avalonia/"))
             { Source = new Uri("avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml") });
         var layout = new DockPanel { Margin = new Thickness(10), LastChildFill = true };
@@ -162,7 +161,8 @@ public sealed partial class DmsBrowserControl : UserControl
         };
         files.Columns.Add(nameColumn);
         files.Columns.Add(new DataGridTextColumn { Header = UiText.Get("ColumnSize"), Binding = new Binding("Size"), SortMemberPath = "ContentLength" });
-        files.Columns.Add(new DataGridTextColumn { Header = UiText.Get("ColumnLastModification"), Binding = new Binding("LastModified"), SortMemberPath = "LastModified" });
+        files.Columns.Add(new DataGridTextColumn { Header = UiText.Get("ColumnLastModification"), Binding = new Binding("LastModified"),
+            SortMemberPath = "LastModified", MinWidth = 180, Width = new DataGridLength(190) });
         var folderMenu = new ContextMenu();
         var fileMenu = new ContextMenu();
         tree.ContextMenu = folderMenu; files.ContextMenu = fileMenu;

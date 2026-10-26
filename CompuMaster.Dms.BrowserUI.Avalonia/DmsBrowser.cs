@@ -27,6 +27,7 @@ public sealed class DmsBrowser : Window
     private DmsBrowser(DmsBrowserControl browser)
     {
         Browser = browser;
+        FlowDirection = UiText.LayoutDirection;
         Title = browser.Options.FormTitle ?? UiText.Get("BrowseTitle");
         Width = 1100; Height = 720; MinWidth = 640; MinHeight = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;

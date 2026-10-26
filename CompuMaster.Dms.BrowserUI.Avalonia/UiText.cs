@@ -5,6 +5,9 @@ namespace CompuMaster.Dms.BrowserUI.Avalonia;
 
 internal static class UiText
 {
+    internal static global::Avalonia.Media.FlowDirection LayoutDirection =>
+        CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? global::Avalonia.Media.FlowDirection.RightToLeft :
+        global::Avalonia.Media.FlowDirection.LeftToRight;
     private static readonly ResourceManager Resources = new("CompuMaster.Dms.BrowserUI.Avalonia.UiStrings", typeof(UiText).Assembly);
     internal static string Get(string key) => Resources.GetString(key, CultureInfo.CurrentUICulture) ?? key;
     internal static string Format(string key, params object?[] args) => string.Format(CultureInfo.CurrentCulture, Get(key), args);

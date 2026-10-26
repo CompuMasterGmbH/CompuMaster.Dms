@@ -182,6 +182,12 @@ public sealed class AdvancedWorkflowTests
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("ar");
             var browser = new DmsBrowserControl(new DemoDmsProvider());
             Assert.That(browser.FlowDirection, Is.EqualTo(global::Avalonia.Media.FlowDirection.RightToLeft));
+            var provider = new DemoDmsProvider();
+            var item = provider.Items.First(i => i.Name == "Welcome.txt");
+            Assert.That(new DmsLinkShareSetup(provider, item, null).FlowDirection, Is.EqualTo(browser.FlowDirection));
+            var transfer = new TransferWindow("Test", false);
+            Assert.That(transfer.FlowDirection, Is.EqualTo(browser.FlowDirection));
+            transfer.Finish();
             Assert.That(UiText.Get("ActionUpload"), Is.Not.EqualTo("ActionUpload").And.Not.EqualTo("&Upload"));
         }
         finally { CultureInfo.CurrentUICulture = previous; }
