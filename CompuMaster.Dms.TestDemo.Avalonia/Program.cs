@@ -35,7 +35,7 @@ internal sealed class DemoApp : Application
     }
     private static DmsBrowserOptions Options(string title, string? folder = null) => new()
     {
-        FormTitle = title, SelectedFolder = folder, AllowedActions = (FileOrFolderActions)255,
+        FormTitle = title, SelectedFolder = folder, AllowedActions = (FileOrFolderActions)2047,
         DialogOperationMode = DialogOperationModes.NoResults,
         RemoteInstance = new RemoteInstanceSelector(RemoteInstanceSelector.StartupInstance.DefaultInstance,
             RemoteInstanceSelector.ShowDefaultSelectionDialogAsync)

@@ -58,7 +58,7 @@ internal sealed class FileRow
 
 internal enum ResourceAction { Copy, Rename, Move }
 
-internal sealed class BrowserSession
+internal sealed partial class BrowserSession
 {
     internal BrowserSession(BaseDmsProvider provider, DmsBrowserOptions options)
     {
@@ -77,6 +77,7 @@ internal sealed class BrowserSession
     internal BrowserNode? SelectedNode { get; private set; }
     internal BrowseModes BrowseMode { get; set; }
     internal bool IsBusy { get; private set; }
+    internal DmsBrowserFailurePhase FailurePhase { get; private set; } = DmsBrowserFailurePhase.Startup;
     internal event Action? Changed;
     internal string? CurrentPath => SelectedNode?.Item?.FullName ?? Options.InitialFolder ?? Provider.BrowseInRootFolderName;
     internal string? SelectedFolder => RelativePath(CurrentPath);
@@ -99,8 +100,10 @@ internal sealed class BrowserSession
     private async Task LoadRootAsync(CancellationToken token)
     {
         DmsResourceItem? item = null;
-        if (!string.IsNullOrEmpty(Options.InitialFolder))
+        if (!string.IsNullOrEmpty(Options.InitialFolder) && Options.InitialFolder.Trim(Provider.DirectorySeparator) !=
+            (Provider.BrowseInRootFolderName ?? "").Trim(Provider.DirectorySeparator))
         {
+            FailurePhase = DmsBrowserFailurePhase.ScopedRootLookup;
             item = await Provider.ListRemoteItemAsync(Options.InitialFolder, token)
                 ?? throw new Data.DirectoryNotFoundException(Options.InitialFolder);
             if (item.ItemType == DmsResourceItem.ItemTypes.File) throw new ArgumentException("The browser root must be a directory.");
@@ -114,13 +117,15 @@ internal sealed class BrowserSession
     private Task LoadChildrenCoreAsync(BrowserNode node, CancellationToken token)
     {
         if (node.Loaded) return Task.CompletedTask;
+        if (BrowserNode.HasChildren(node.Item) == false) { ApplyChildren(node, new()); return Task.CompletedTask; }
         return node.Loading ??= LoadChildrenRequestAsync(node, token);
     }
     private async Task LoadChildrenRequestAsync(BrowserNode node, CancellationToken token)
     {
         try
         {
-            var children = await Provider.ListAllDirectoryItemsAsync(node.Item?.FullName ?? Provider.BrowseInRootFolderName, token);
+            FailurePhase = DmsBrowserFailurePhase.ChildListing;
+            var children = await Provider.ListDirectoryEntriesAsync(node.Item?.FullName ?? Provider.BrowseInRootFolderName, token);
             ApplyChildren(node, children);
         }
         finally { node.Loading = null; }
@@ -157,6 +162,7 @@ internal sealed class BrowserSession
         RunAsync(() => SelectPathCoreAsync(relativePath, token));
     private async Task SelectPathCoreAsync(string? relativePath, CancellationToken token)
     {
+        FailurePhase = DmsBrowserFailurePhase.InitialSelection;
         var node = Roots.FirstOrDefault();
         if (node is null) return;
         foreach (var segment in (relativePath ?? "").Split(Provider.DirectorySeparator, StringSplitOptions.RemoveEmptyEntries))
@@ -174,6 +180,8 @@ internal sealed class BrowserSession
     internal string? RelativePath(string? fullPath)
     {
         var separator = Provider.DirectorySeparator;
+        if ((fullPath ?? "").Split(separator).Any(p => p is "." or ".." || p.Contains('\0')))
+            throw new DmsUserInputInvalidException(UiText.Get("DestinationOutsideBrowserRoot"));
         var root = (Options.InitialFolder ?? Provider.BrowseInRootFolderName ?? "").TrimEnd(separator);
         var path = (fullPath ?? "").TrimEnd(separator);
         if (path == root) return null;
@@ -189,15 +197,16 @@ internal sealed class BrowserSession
             SelectedNode.Item is null && !Provider.SupportsFilesInRootFolder) return;
         await Provider.ResetCachesForRemoteItemsAsync(CurrentPath, BaseDmsProvider.SearchItemType.Files, token);
         List<DmsResourceItem> files;
-        try { files = await Provider.ListAllFileItemsAsync(CurrentPath, token); }
+        try { files = await Provider.ListFileEntriesAsync(CurrentPath, token); }
         catch (Data.DirectoryNotFoundException) { RemoveMissing(CurrentPath); throw; }
         var duplicates = files.GroupBy(f => f.Name, StringComparer.Ordinal).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet();
         foreach (var file in files.OrderByDescending(f => f.LastModificationOnLocalTime))
             Files.Add(new FileRow(file, duplicates.Contains(file.Name)));
     }
     internal Task RefreshAsync(CancellationToken token = default) => RunAsync(() => RefreshCoreAsync(token));
-    private async Task RefreshCoreAsync(CancellationToken token)
+    internal async Task RefreshCoreAsync(CancellationToken token)
     {
+        FailurePhase = DmsBrowserFailurePhase.Refresh;
         var oldSelection = SelectedNode;
         if (Roots.Count == 0) { await LoadRootAsync(token); }
         else await RefreshLoadedAsync(Roots[0], token);
@@ -211,7 +220,7 @@ internal sealed class BrowserSession
         var path = node.Item?.FullName ?? Provider.BrowseInRootFolderName;
         await Provider.ResetCachesForRemoteItemsAsync(path, BaseDmsProvider.SearchItemType.AllItems, token);
         List<DmsResourceItem> children;
-        try { children = await Provider.ListAllDirectoryItemsAsync(path, token); }
+        try { children = await Provider.ListDirectoryEntriesAsync(path, token); }
         catch (Data.DirectoryNotFoundException) { RemoveMissing(path); throw; }
         ApplyChildren(node, children);
         foreach (var child in node.Children.ToArray()) await RefreshLoadedAsync(child, token);
@@ -282,13 +291,19 @@ internal sealed class BrowserSession
     }
     private async Task<T> RunWithResultAsync<T>(Func<Task<T>> operation)
     { T result = default!; await RunAsync(async () => result = await operation()); return result; }
-    private void ValidateSource(DmsResourceItem item, bool protectRoot = false)
+    internal void ValidateSource(DmsResourceItem item, bool protectRoot = false)
     {
         RelativePath(item.FullName);
         if (protectRoot && (item.ItemType == DmsResourceItem.ItemTypes.Root || RelativePath(item.FullName) is null))
             throw new DmsUserInputInvalidException(UiText.Get("RootFolderCannotBeChanged"));
+        if (protectRoot && CollectionManagementRestricted(item))
+            throw new DmsUserInputInvalidException(UiText.Get("CollectionManagementUnavailableInScopedBrowser"));
     }
-    private async Task MutateAndRefreshAsync(Func<Task> operation, CancellationToken token)
+    internal bool CollectionManagementRestricted(DmsResourceItem? item) =>
+        Provider is CenterDeviceDmsProviderBase && item?.ItemType == DmsResourceItem.ItemTypes.Collection &&
+        !string.IsNullOrEmpty(Options.InitialFolder) && Options.InitialFolder.Trim(Provider.DirectorySeparator) !=
+        (Provider.BrowseInRootFolderName ?? "").Trim(Provider.DirectorySeparator);
+    internal async Task MutateAndRefreshAsync(Func<Task> operation, CancellationToken token)
     {
         Exception? failure = null;
         try { await operation(); } catch (Exception ex) { failure = ex; }
@@ -367,7 +382,9 @@ internal static class LocalPaths
     internal static string SafeChild(string directory, string name)
     {
         if (string.IsNullOrWhiteSpace(name) || Path.GetFileName(name) != name || name is "." or ".." ||
-            name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains('/') || name.Contains('\\'))
+            name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains('/') || name.Contains('\\') ||
+            name.EndsWith('.') || name.EndsWith(' ') ||
+            System.Text.RegularExpressions.Regex.IsMatch(name, "^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])(?:\\.|$)", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
             throw new DmsUserInputInvalidException(UiText.Get("InvalidDestinationName"));
         var path = Path.Combine(directory, name);
         Validate(path, directory);

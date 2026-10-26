@@ -32,7 +32,13 @@ public enum FileOrFolderActions
     /// <summary>Permits managing supported sharing operations.</summary>
     AllowSharings = 64,
     /// <summary>Permits switching instances when a selection method is supplied.</summary>
-    AllowSwitchDmsInstance = 128
+    AllowSwitchDmsInstance = 128,
+    /// <summary>Permits viewing supported version history without granting download or mutation rights.</summary>
+    AllowViewFileVersionHistory = 256,
+    /// <summary>Permits restoring historical versions independently of upload permission.</summary>
+    AllowRestoreFileVersions = 512,
+    /// <summary>Permits removing historical versions independently of ordinary file deletion.</summary>
+    AllowRemoveFileVersions = 1024
 }
 
 /// <summary>Defines whether the browser returns a selection.</summary>

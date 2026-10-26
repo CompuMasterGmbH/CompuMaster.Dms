@@ -20,7 +20,7 @@ namespace CompuMaster.Dms.BrowserUI.Avalonia;
 /// <summary>Provides an embeddable, provider-independent Avalonia DMS browser.</summary>
 /// <remarks>Call <see cref="InitializeAsync"/> after attaching the control to a window, or let the control initialize on attachment.
 /// Dispose preview files with <see cref="CleanupTemporaryFiles"/> when the host no longer uses the control.</remarks>
-public sealed class DmsBrowserControl : UserControl
+public sealed partial class DmsBrowserControl : UserControl
 {
     private BrowserSession? session;
     private readonly IDmsLoginProfile? profile;
@@ -41,6 +41,7 @@ public sealed class DmsBrowserControl : UserControl
     private bool initializing;
     private Task? initialization;
     private bool initialized;
+    private DmsBrowserFailurePhase startupPhase = DmsBrowserFailurePhase.Startup;
     private bool pendingConfirmation;
     private bool pendingCancellation;
     private Button? instanceButton;
@@ -70,7 +71,7 @@ public sealed class DmsBrowserControl : UserControl
     /// <summary>Gets the authorized provider, or null before profile authorization completes.</summary>
     public BaseDmsProvider? DmsProvider => session?.Provider;
     /// <summary>Gets whether an operation or owned dialog prevents concurrent actions and closing.</summary>
-    public bool IsBusy => initializing || interactionRunning || session?.IsBusy == true;
+    public bool IsBusy => initializing || interactionRunning || dragRunning || session?.IsBusy == true;
     /// <summary>Gets the current folder relative to the browser root.</summary>
     public string? SelectedFolder => session?.SelectedFolder;
     /// <summary>Gets the currently selected resources.</summary>
@@ -98,6 +99,8 @@ public sealed class DmsBrowserControl : UserControl
 
     private void BuildControls()
     {
+        FlowDirection = System.Globalization.CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ?
+            FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         Styles.Add(new StyleInclude(new Uri("avares://CompuMaster.Dms.BrowserUI.Avalonia/"))
             { Source = new Uri("avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml") });
         var layout = new DockPanel { Margin = new Thickness(10), LastChildFill = true };
@@ -164,7 +167,9 @@ public sealed class DmsBrowserControl : UserControl
         var fileMenu = new ContextMenu();
         tree.ContextMenu = folderMenu; files.ContextMenu = fileMenu;
         AddAction("ActionUpload", UploadFilesAsync, FileOrFolderActions.AllowUploadFiles, () => HasFolderForFiles, fileMenu);
+        AddAction("ActionUploadFolder", UploadFolderAsync, FileOrFolderActions.AllowUploadFiles, () => initialized && Session.SelectedNode is not null, fileMenu);
         AddAction("ActionDownload", DownloadFilesAsync, FileOrFolderActions.AllowDownloadFiles, () => HasFiles, fileMenu);
+        AddAction("ActionDownloadFolder", DownloadFolderAsync, FileOrFolderActions.AllowDownloadFiles, () => initialized && Session.SelectedNode is not null, folderMenu);
         AddAction("ActionOpen", OpenFilesAsync, FileOrFolderActions.AllowDownloadFiles, () => HasFiles, fileMenu);
         foreach (var (key, action) in new[] { ("ActionCopy", ResourceAction.Copy), ("ActionRename", ResourceAction.Rename), ("ActionMove", ResourceAction.Move) })
         {
@@ -175,8 +180,10 @@ public sealed class DmsBrowserControl : UserControl
         AddAction("ActionDelete", DeleteFilesAsync, FileOrFolderActions.AllowDeleteFiles, () => HasFiles, fileMenu);
         AddAction("ActionFileSharings", () => SharingAsync(true), FileOrFolderActions.AllowSharings, () => HasFiles, fileMenu, sharing: true);
         AddAction("FileProperties", () => PropertiesAsync(true), null, () => files.SelectedItems.Count == 1, fileMenu);
+        AddAction("FileVersionHistory", ShowVersionsAsync, FileOrFolderActions.AllowViewFileVersionHistory,
+            () => HasFiles && files.SelectedItems.Count == 1 && DmsProvider?.SupportsFileVersionHistory == true, fileMenu);
         AddAction("ActionFolderSharings", () => SharingAsync(false), FileOrFolderActions.AllowSharings, () => Session.SelectedNode?.Item is not null, folderMenu, sharing: true);
-        AddAction("FolderProperties", () => PropertiesAsync(false), null, () => Session.SelectedNode?.Item is not null, folderMenu);
+        AddAction("FolderProperties", () => PropertiesAsync(false), null, () => Session.SelectedNode is not null, folderMenu);
         AddAction("ActionRefreshFiles", () => Session.RefreshAsync(), null, () => initialized, fileMenu);
         AddMenu(folderMenu, "ActionRefreshFiles", () => Session.RefreshAsync(), null, () => initialized);
         AddMenu(folderMenu, "ActionDelete", DeleteFolderAsync, FileOrFolderActions.AllowDeleteFiles, () => MutableFolder);
@@ -204,12 +211,14 @@ public sealed class DmsBrowserControl : UserControl
             { e.Handled = true; await UiAsync(files.IsKeyboardFocusWithin ? DeleteFilesAsync : DeleteFolderAsync); }
         };
         AttachedToVisualTree += async (_, _) => { await UiAsync(InitializeAsync); };
+        InitializeDragAndDrop();
         UpdateControls();
     }
 
     private bool HasFiles => initialized && files.SelectedItems.Count > 0 && Session.BrowseMode == BrowseModes.FoldersAndFiles;
     private bool HasFolderForFiles => initialized && Session.SelectedNode is not null && (Session.SelectedNode.Item is not null || Session.Provider.SupportsFilesInRootFolder);
-    private bool MutableFolder => initialized && Session.SelectedNode?.Parent is not null && Session.SelectedNode.Item is not null;
+    private bool MutableFolder => initialized && Session.SelectedNode?.Parent is not null && Session.SelectedNode.Item is not null &&
+        !Session.CollectionManagementRestricted(Session.SelectedNode.Item);
     private bool Allowed(FileOrFolderActions flag) => (Options.AllowedActions & flag) == flag;
     private bool Visible(FileOrFolderActions? flag, bool sharing = false) =>
         (!flag.HasValue || Allowed(flag.Value)) && (!sharing || DmsProvider?.SupportsSharingSetup == true);
@@ -217,14 +226,16 @@ public sealed class DmsBrowserControl : UserControl
     {
         var button = Dialogs.Button(key, async () => await UiAsync(action));
         fileToolbar.Children.Add(button);
-        actions.Add((button, enabled, () => Visible(flag, sharing)));
+        actions.Add((button, enabled, () => Visible(flag, sharing) && (key != "FileVersionHistory" ||
+            DmsProvider?.SupportsFileVersionHistory == true && session?.BrowseMode == BrowseModes.FoldersAndFiles)));
         AddMenu(menu, key, action, flag, enabled, sharing);
     }
     private void AddMenu(ContextMenu menu, string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, bool sharing = false)
     {
         var item = new MenuItem { Header = Dialogs.Caption(key) };
         item.Click += async (_, _) => await UiAsync(action);
-        menu.Items.Add(item); actions.Add((item, enabled, () => Visible(flag, sharing)));
+        menu.Items.Add(item); actions.Add((item, enabled, () => Visible(flag, sharing) && (key != "FileVersionHistory" ||
+            DmsProvider?.SupportsFileVersionHistory == true && session?.BrowseMode == BrowseModes.FoldersAndFiles)));
     }
     private Button AddBottom(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool>? visible = null)
     {
@@ -249,7 +260,8 @@ public sealed class DmsBrowserControl : UserControl
     private void UpdateControls()
     {
         var busy = IsBusy;
-        tree.IsEnabled = !busy && initialized; files.IsEnabled = !busy && initialized;
+        tree.IsEnabled = (!busy || dragRunning && !SessionBusy) && initialized;
+        files.IsEnabled = (!busy || dragRunning && !SessionBusy) && initialized;
         progress.IsVisible = busy;
         status.Text = busy ? UiText.Extra("Working…", "Wird ausgeführt…") : session?.CurrentPath ?? "";
         columns.ColumnDefinitions[2].Width = session?.BrowseMode == BrowseModes.Folders ? new GridLength(0) : new GridLength(7, GridUnitType.Star);
@@ -275,12 +287,15 @@ public sealed class DmsBrowserControl : UserControl
         {
             if (session is null)
             {
+                startupPhase = DmsBrowserFailurePhase.Authentication;
                 session = new BrowserSession(await DmsFactory.CreateAuthorizedDmsProviderInstanceAsync(profile), Options);
                 AttachSession();
             }
+            startupPhase = DmsBrowserFailurePhase.InstanceSelection;
             if (!await Options.RemoteInstance.SelectAsync(Session.Provider, Owner)) throw new OperationCanceledException();
             if (DmsProvider is IDmsInstanceProvider instances && Options.RemoteInstance.SelectionDialog is not null)
                 availableInstanceCount = (await Task.Run(instances.ListAvailableDmsInstances)).Count;
+            startupPhase = DmsBrowserFailurePhase.Startup;
             await Session.InitializeAsync();
             initialized = true;
             Synchronize();
@@ -314,12 +329,17 @@ public sealed class DmsBrowserControl : UserControl
     }
     private async Task UiAsync(Func<Task> action)
     {
-        if (interactionRunning || SessionBusy) return;
+        if (interactionRunning || SessionBusy || dragRunning) return;
         interactionRunning = true; UpdateControls();
         try { await action(); }
         catch (OperationCanceledException) { if (!initialized) pendingCancellation = true; }
-        catch (Data.RessourceNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await Dialogs.MessageAsync(Owner, ex.Message); }
-        catch (Exception ex) { await Dialogs.MessageAsync(Owner, Debugger.IsAttached ? ex.ToString() : ex.Message); }
+        catch (Data.RessourceNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, DmsBrowserFailurePhase.Action); }
+        catch (Exception ex)
+        {
+            await ReportFailureAsync(ex, initialized ? DmsBrowserFailurePhase.Action :
+                startupPhase == DmsBrowserFailurePhase.Startup ? session?.FailurePhase ?? startupPhase : startupPhase);
+            if (!initialized) pendingCancellation = true;
+        }
         finally
         {
             interactionRunning = false; UpdateControls();
@@ -417,8 +437,7 @@ public sealed class DmsBrowserControl : UserControl
         var paths = selected.Select(f => f.TryGetLocalPath() ?? throw new NotSupportedException("A local filesystem path is required.")).ToArray();
         if (paths.Length > 0)
         {
-            await Session.UploadAsync(paths);
-            await Dialogs.MessageAsync(Owner, UiText.Get("UploadSuccessful"));
+            await UploadPathsAsync(paths, Session.SelectedNode!);
         }
     }
     private async Task DownloadFilesAsync()
@@ -432,7 +451,7 @@ public sealed class DmsBrowserControl : UserControl
         {
             if (!Owner.StorageProvider.CanSave) throw new NotSupportedException("The host does not support saving local files.");
             var file = await Owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-            { Title = UiText.Get("DownloadTitle"), SuggestedFileName = selected[0].Name, SuggestedStartLocation = start, ShowOverwritePrompt = true });
+            { Title = UiText.Get("DownloadTitle"), SuggestedFileName = selected[0].Name, SuggestedStartLocation = start, ShowOverwritePrompt = false });
             if (file is null) return;
             downloads.Add((selected[0], file.TryGetLocalPath() ?? throw new NotSupportedException("A local filesystem path is required.")));
         }
@@ -444,11 +463,8 @@ public sealed class DmsBrowserControl : UserControl
             if (folders.Count == 0) return;
             var directory = folders[0].TryGetLocalPath() ?? throw new NotSupportedException("A local filesystem path is required.");
             foreach (var item in selected) downloads.Add((item, LocalPaths.SafeChild(directory, item.Name)));
-            var existing = downloads.Where(d => File.Exists(d.Path)).ToArray();
-            if (existing.Length > 0 && !await Dialogs.ConfirmAsync(Owner, UiText.Get("FilesAlreadyExist") + "\n" + string.Join("\n", existing.Select(d => d.Item.Name)))) return;
         }
-        await Session.DownloadAsync(downloads);
-        await Dialogs.MessageAsync(Owner, UiText.Get("DownloadSuccessful"));
+        await TransferDownloadsAsync(downloads);
     }
     private async Task OpenFilesAsync()
     {
@@ -487,7 +503,7 @@ public sealed class DmsBrowserControl : UserControl
         }
         if (failures.Count > 0) throw new IOException("Some preview files could not be removed.", new AggregateException(failures));
     }
-    internal void ReportCleanupFailure(Exception ex) { cleanupFailures.Add(ex); Trace.TraceError(ex.ToString()); }
+    internal void ReportCleanupFailure(Exception ex) { cleanupFailures.Add(ex); ReportFailure(ex, DmsBrowserFailurePhase.Action, nameof(CleanupTemporaryFiles)); }
     private async Task SharingAsync(bool selectedFiles)
     {
         Session.Require(FileOrFolderActions.AllowSharings);
@@ -495,7 +511,10 @@ public sealed class DmsBrowserControl : UserControl
         var items = selectedFiles ? SelectedFiles() : new[] { Session.SelectedNode?.Item ?? throw new DmsUserInputInvalidException(UiText.Get("RootSharingUnsupported")) };
         foreach (var item in items)
         {
-            var dialog = new DmsItemSharings(Session.Provider, item);
+            if (Session.CollectionManagementRestricted(item)) throw new DmsUserInputInvalidException(UiText.Get("CollectionManagementUnavailableInScopedBrowser"));
+            DmsResourceItem details = item;
+            await Session.RunAsync(async () => details = await ResourceDetails.LoadAsync(Session.Provider, item));
+            var dialog = new DmsItemSharings(Session.Provider, details);
             await dialog.ShowDialog(Owner);
             await Session.RefreshAsync();
         }
@@ -503,9 +522,16 @@ public sealed class DmsBrowserControl : UserControl
     private async Task PropertiesAsync(bool selectedFile)
     {
         var item = selectedFile ? SelectedFiles().Single() : Session.SelectedNode?.Item;
-        if (item is null) return;
+        if (item is null)
+        {
+            var instance = (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance;
+            await Dialogs.MessageAsync(Owner, UiText.Get("RootValue") + (instance is null ? "" : "\n\n" +
+                UiText.Get("PropertiesInstanceName") + instance.DisplayName + "\n" + UiText.Get("PropertiesInstanceId") + instance.ID));
+            return;
+        }
         string details = "";
-        await Session.RunAsync(async () => details = await ItemProperties.FormatAsync(Session.Provider, item));
+        await Session.RunAsync(async () => details = await ItemProperties.FormatAsync(Session.Provider,
+            await ResourceDetails.LoadAsync(Session.Provider, item)));
         await Dialogs.MessageAsync(Owner, details, UiText.Format("PropertiesTitle", item.Name));
     }
     private async Task ChangeInstanceAsync()
