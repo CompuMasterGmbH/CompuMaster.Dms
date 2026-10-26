@@ -356,6 +356,24 @@ internal sealed partial class BrowserSession
 
 internal static class LocalPaths
 {
+    internal static string NormalizeSystemAliases(string path)
+    {
+        var full = Path.GetFullPath(path);
+        // macOS itself maps /var, /tmp and /etc into /private. These system-owned
+        // aliases are not user-selected linked download directories.
+        if (OperatingSystem.IsMacOS())
+            foreach (var name in new[] { "var", "tmp", "etc" })
+            {
+                var alias = "/" + name;
+                if (full == alias || full.StartsWith(alias + "/", StringComparison.Ordinal))
+                {
+                    var expected = "/private/" + name;
+                    if (new DirectoryInfo(alias).ResolveLinkTarget(true)?.FullName == expected)
+                        return expected + full[alias.Length..];
+                }
+            }
+        return full;
+    }
     internal static void Validate(string path, string? root)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
