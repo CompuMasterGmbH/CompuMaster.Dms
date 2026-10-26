@@ -37,6 +37,8 @@ Also see: https://www.nuget.org/packages/CompuMaster.Dms.Providers and https://w
 
 ## Modules Overview
 
+The new Avalonia desktop implementation is documented in [CompuMaster.Dms.BrowserUI.Avalonia](CompuMaster.Dms.BrowserUI.Avalonia/README.md), including its embeddable control, demo, functional parity and verification status. The new NuGet package is awaiting its first approved release.
+
 There are following main modules for your use:
 * CompuMaster.Dms.Providers – The base library (compatible with .NET Standard/Core/Framework) for your own implementations to access your DMS systems (with build-in support for WebDAV (e.g. NextCloud, OwnCloud) and Scopevisio Teamwork (a flavored CenterDevice implementation)
 * CompuMaster.Dms.BrowserUI – An implementation of all required forms and dialogs with System.Windows.Forms (requires .NET Framework 4.8 or .NET 5.0-Windows). The UI follows `CurrentUICulture`, provides neutral English resources and a German translation, and falls back to English for unsupported languages. Use it to

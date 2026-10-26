@@ -24,6 +24,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.BrowserUI.Avalonia", "CompuMaster.Dms.BrowserUI.Avalonia\CompuMaster.Dms.BrowserUI.Avalonia.csproj", "{D0577ADD-3B69-4620-BA08-00D483973CA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.Avalonia", "CompuMaster.Dms.TestDemo.Avalonia\CompuMaster.Dms.TestDemo.Avalonia.csproj", "{BC854493-CC53-4ED4-87E8-EA3172EA1430}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CI_CD|Any CPU = CI_CD|Any CPU
@@ -31,6 +35,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D0577ADD-3B69-4620-BA08-00D483973CA4}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{D0577ADD-3B69-4620-BA08-00D483973CA4}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{D0577ADD-3B69-4620-BA08-00D483973CA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0577ADD-3B69-4620-BA08-00D483973CA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0577ADD-3B69-4620-BA08-00D483973CA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0577ADD-3B69-4620-BA08-00D483973CA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC854493-CC53-4ED4-87E8-EA3172EA1430}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{BC854493-CC53-4ED4-87E8-EA3172EA1430}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{BC854493-CC53-4ED4-87E8-EA3172EA1430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC854493-CC53-4ED4-87E8-EA3172EA1430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC854493-CC53-4ED4-87E8-EA3172EA1430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC854493-CC53-4ED4-87E8-EA3172EA1430}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3D119625-347A-4505-9219-5DB67F8D8C4E}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
 		{3D119625-347A-4505-9219-5DB67F8D8C4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3D119625-347A-4505-9219-5DB67F8D8C4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
