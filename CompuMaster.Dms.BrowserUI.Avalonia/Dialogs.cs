@@ -93,7 +93,14 @@ internal abstract class OperationWindow : Window
         if (Content is Control control) control.IsEnabled = false;
         try { await action(); return true; }
         catch (OperationCanceledException) { return false; }
-        catch (Exception ex) { await Dialogs.MessageAsync(this, ex.Message); return false; }
+        catch (Exception ex)
+        {
+            var browser = Owner;
+            while (browser is not null && browser is not DmsBrowser) browser = browser.Owner;
+            var failure = (browser as DmsBrowser)?.Browser.ReportFailure(ex, DmsBrowserFailurePhase.Action, GetType().Name);
+            if (failure?.SuppressDialog != true) await Dialogs.MessageAsync(this, UiText.Get("BrowserOperationFailed"));
+            return false;
+        }
         finally { running = false; if (Content is Control c) c.IsEnabled = true; }
     }
     internal static TextBox Field(StackPanel panel, string key, string? value = null, bool readOnly = false)

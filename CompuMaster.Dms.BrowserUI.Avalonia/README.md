@@ -1,6 +1,6 @@
 ﻿# CompuMaster.Dms.BrowserUI.Avalonia
 
-Avalonia desktop browser, embeddable control, file/folder picker and sharing dialogs for the existing provider-independent DMS API. The functional reference is WinForms at commit `bdefcd1`. Implementation and acceptance are tracked in [#148](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/148), under [#115](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/115).
+Avalonia desktop browser, embeddable control, file/folder picker and sharing dialogs for the existing provider-independent DMS API. The functional reference is WinForms at commit `caeb185`. Implementation and acceptance are tracked in [#148](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/148), under [#115](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/115).
 
 ## Installation and host setup
 
@@ -51,22 +51,25 @@ Use `new RemoteInstanceSelector("instance-id")` for explicit startup selection, 
 | --- | --- |
 | Browser and selection result | `DmsBrowser`, `DmsBrowserSelection`, embedded `DmsBrowserControl` |
 | Folders/collections, initial/relative selection | Navigation within the configured root; nearest existing ancestor for a missing initial child |
-| Lazy child metadata | Known zero has no expansion placeholder; unknown/positive metadata load on expansion |
+| Lazy child metadata | Known zero has no expansion placeholder; unknown/positive metadata load on expansion; lightweight listings and selected-resource detail resolution |
 | File listing | Multiple selection; name, numeric size and modification sorting; duplicate names highlighted |
 | Allowed actions | Same flag values, rechecked at mutation/transfer entry points |
 | Create/delete/copy/rename/move | Toolbar/context menus, destination picker, name validation, overwrite/merge confirmation |
 | Partial failures/stale resources | Refresh while preserving the originating exception; nearest surviving folder selection |
-| Upload/download | Native storage pickers; multiple files, local restrictions, overwrite confirmation, resource identity |
+| Upload/download | Native storage pickers; multiple files and recursive folders, empty directories, local restrictions, overwrite/skip/cancel decisions with apply-to-all and resource identity |
+| Transfer progress/recovery | Per-file states and byte progress, aggregate progress, rate/elapsed/ETA, cancellation, upload retry/continue and atomic local downloads |
+| File-version history | Capability/permission-gated listing, historical download, restore and individual removal with independent rights and confirmation |
+| Drag-and-drop | Local files/folders to the selected or pointed-at remote folder; internal remote moves; native outward copies through staged storage items |
 | Open/preview | Read-only temporary download, replaceable shell-open delegate, repeatable cleanup |
 | User/group sharing | Create/edit/delete, owner/current/existing-user exclusion, hidden shares, localized permissions |
 | External links | Create/edit/delete/copy URL; password, expiry date/time, applicable byte/download/upload limits, usage counters |
 | Provider differences | Internal Teamwork/CenterDevice and OCS permission adapters; provider rejection for unsupported operations |
 | Properties | Path/parent/size, owner, version/archive metadata, locks, collisions, sharing/links, hashes, referenced IDs |
 | Instance selection | Default/explicit/dialog startup, cancellation, optional switching and view reset |
-| Async behavior | Provider async APIs, indeterminate busy indicator, exclusive operations and close guard |
-| Localization/interaction | Linked English/German resources, English fallback, accessible controls, F5/F2/Delete/Escape, context menus |
+| Async behavior | Provider async APIs, busy indicator, exclusive operations, close guard and opt-in diagnostics with original exceptions and safe default error messages |
+| Localization/interaction | All linked WinForms language resources, English fallback, RTL layout, accessible controls, F5/F2/Delete/Escape, context menus |
 
-Framework types and native chrome differ. Portable file icons replace Windows shell icon extraction. Storage pickers, clipboard and default-file launching come from the desktop host. No drag-and-drop, recursive local-folder transfer or version-history editor is claimed: current WinForms does not expose those workflows either. Existing version metadata is included.
+Framework types and native chrome differ. Portable file icons replace Windows shell icon extraction. Storage pickers, clipboard and default-file launching come from the desktop host. Outward drag uses downloaded browser-owned copies and native Avalonia storage items instead of Windows OLE virtual streams. Preparing those copies can take time before the native drag begins; they remain tracked until browser cleanup. The dialog-based download workflow is available on every desktop target. Native shell/drag acceptance remains separate from isolated tests.
 
 ## Verification and platform status
 

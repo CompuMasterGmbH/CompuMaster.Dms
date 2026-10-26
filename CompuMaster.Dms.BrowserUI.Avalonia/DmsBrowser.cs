@@ -46,4 +46,11 @@ public sealed class DmsBrowser : Window
     public DmsBrowserControl Browser { get; }
     /// <summary>Gets the selected resources.</summary>
     public DmsBrowserSelection Selection => Browser.Selection;
+    /// <summary>Reports original failures consumed by this browser's UI handlers.</summary>
+    /// <remarks>Subscribers must protect sensitive exception data. No diagnostics are automatically persisted.</remarks>
+    public event EventHandler<DmsBrowserFailureEventArgs> OperationFailed
+    {
+        add => Browser.OperationFailed += value;
+        remove => Browser.OperationFailed -= value;
+    }
 }

@@ -13,6 +13,7 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
     internal bool SharingSupported = true;
     internal bool CollectionsSupported = true;
     internal bool RootFilesSupported = true;
+    internal bool VersionsSupported = true;
     internal bool OmitChildMetadata { get; set; }
     internal BaseDmsProvider.DmsProviders ProviderKind = DmsProviders.WebDAV;
     internal Func<string, Exception?>? Failure { get; set; }
@@ -25,6 +26,10 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
     public override bool SupportsSharingSetup => SharingSupported;
     public override bool SupportsCollections => CollectionsSupported;
     public override bool SupportsFilesInRootFolder => RootFilesSupported;
+    public override bool SupportsFileVersionHistory => VersionsSupported;
+    public override bool SupportsFileVersionDownload => VersionsSupported;
+    public override bool SupportsFileVersionRestore => VersionsSupported;
+    public override bool SupportsFileVersionRemoval => VersionsSupported;
     public override string CurrentContextUserID => "me";
     private void Check(string call)
     {
@@ -194,4 +199,18 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
         if (instanceID is not ("demo" or "second")) throw new ArgumentOutOfRangeException(nameof(instanceID));
         InstanceID = instanceID;
     }
+    public override List<DmsFileVersion> ListFileVersions(DmsResourceItem remoteFile)
+    {
+        Check("Versions:" + remoteFile.ExtendedInfosFileID);
+        return new() { new DmsFileVersion(remoteFile, "version-1", DateTime.UtcNow.AddDays(-1), 18, "alice", "Alice", "Initial version") };
+    }
+    public override void DownloadFileVersion(DmsFileVersion version, Stream destination)
+    { Check("DownloadVersion:" + version.VersionID); destination.Write(Encoding.UTF8.GetBytes("Historical content")); }
+    public override void RestoreFileVersion(DmsFileVersion version)
+    {
+        Check("RestoreVersion:" + version.VersionID);
+        var item = Items.Single(i => i.ExtendedInfosFileID == version.FileID);
+        content[item.ExtendedInfosFileID] = Encoding.UTF8.GetBytes("Historical content"); item.ContentLength = 18;
+    }
+    public override void RemoveFileVersion(DmsFileVersion version) { Check("RemoveVersion:" + version.VersionID); }
 }

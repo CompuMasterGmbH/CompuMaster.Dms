@@ -245,7 +245,7 @@ public sealed class BrowserWorkflowTests
 
 internal sealed class OwnedDirectory : IDisposable
 {
-    internal string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DmsAvaloniaTests", Guid.NewGuid().ToString("N"));
+    internal string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DmsAvaloniaTests", "unittests_owned_" + Guid.NewGuid().ToString("N"));
     internal OwnedDirectory()
     {
         if (Directory.Exists(Path)) throw new IOException("The test-owned directory already exists.");

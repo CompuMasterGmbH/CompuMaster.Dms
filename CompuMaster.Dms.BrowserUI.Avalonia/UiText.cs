@@ -9,6 +9,13 @@ internal static class UiText
     internal static string Get(string key) => Resources.GetString(key, CultureInfo.CurrentUICulture) ?? key;
     internal static string Format(string key, params object?[] args) => string.Format(CultureInfo.CurrentCulture, Get(key), args);
     internal static string Extra(string en, string de) => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "de" ? de : en;
+    internal static string FailureMessage(Exception exception)
+    {
+        if (exception is Data.DmsUserInputInvalidException or Data.DmsUserErrorMessageException)
+            foreach (System.Collections.DictionaryEntry entry in Resources.GetResourceSet(CultureInfo.CurrentUICulture, true, true)!)
+                if (entry.Value is string message && !message.Contains('{') && message == exception.Message) return message;
+        return Get("BrowserOperationFailed");
+    }
     internal static string ByteSize(long value)
     {
         if (value < 0) throw new ArgumentOutOfRangeException(nameof(value));
