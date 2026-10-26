@@ -98,6 +98,33 @@ public sealed class AdvancedWorkflowTests
         Assert.ThrowsAsync<InvalidOperationException>((Func<Task>)(async () => await policy.ResolveAsync("/one", "replacement", Prompt)));
         await new TransferConflicts().ResolveAsync("/three", "id3", Prompt);
         Assert.That(prompts, Is.EqualTo(2));
+        Assert.Throws<InvalidOperationException>((Action)(() => policy.ValidateAbsent("/one")));
+    }
+    [Test]
+    public async Task Late_progress_cannot_change_a_completed_transfer_back_to_finalizing()
+    {
+        var batch = new TransferBatch(new[] { "file" });
+        IProgress<DmsTransferProgress>? late = null;
+        await batch.RunAsync((_, progress, _) => { late = progress; return Task.FromResult(true); }, () => { }, true, CancellationToken.None);
+        late!.Report(new DmsTransferProgress(10, 10, DmsTransferPhase.Finalizing));
+        Assert.That(batch.Entries.Single().State, Is.EqualTo(TransferState.Completed));
+    }
+    [AvaloniaTest]
+    public async Task Forged_remote_drag_context_cannot_authorize_a_move()
+    {
+        var provider = new DemoDmsProvider();
+        var browser = new DmsBrowserControl(provider, new DmsBrowserOptions { AllowedActions = (FileOrFolderActions)2047 });
+        var host = new Window { Content = browser };
+        try
+        {
+            host.Show(); await browser.InitializeAsync(); await BrowserUiTests.IdleAsync(browser);
+            var file = provider.Items.First(i => i.ItemType == DmsResourceItem.ItemTypes.File);
+            var forged = new RemoteDrag(provider, provider.InstanceID, null, new[] { file });
+            var target = browser.Session.Roots[0].Children.Single(n => n.Name == "Empty");
+            Assert.That(browser.ValidMoveTarget(forged, target), Is.False);
+            Assert.That(provider.Calls.Any(c => c.StartsWith("Copy:") || c.StartsWith("Delete:")), Is.False);
+        }
+        finally { host.Close(); }
     }
     [Test]
     public async Task Version_permissions_are_separate_and_historical_download_is_atomic()

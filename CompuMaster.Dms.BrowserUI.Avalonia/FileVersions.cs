@@ -28,9 +28,9 @@ internal sealed class VersionSession
     }
     internal static void Require(bool allowed) { if (!allowed) throw new InvalidOperationException(UiText.Get("VersionActionUnavailable")); }
     internal async Task RestoreAsync(DmsFileVersion version)
-    { Require(CanRestore); Validate(version); await Task.Run(() => Provider.RestoreFileVersion(version)); }
+    { Require(CanRestore); Validate(version); await Task.Run(() => { Require(CanRestore); Validate(version); Provider.RestoreFileVersion(version); }); }
     internal async Task RemoveAsync(DmsFileVersion version)
-    { Require(CanRemove); Validate(version); await Task.Run(() => Provider.RemoveFileVersion(version)); }
+    { Require(CanRemove); Validate(version); await Task.Run(() => { Require(CanRemove); Validate(version); Provider.RemoveFileVersion(version); }); }
     private void Validate(DmsFileVersion version)
     {
         if (string.IsNullOrEmpty(File.ExtendedInfosFileID) ? version.FileFullName != File.FullName : version.FileID != File.ExtendedInfosFileID)
@@ -43,6 +43,7 @@ internal sealed class VersionSession
         {
             await Task.Run(() =>
             {
+                Require(CanDownload); Validate(version);
                 using var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None);
                 Provider.DownloadFileVersion(version, stream);
             });
