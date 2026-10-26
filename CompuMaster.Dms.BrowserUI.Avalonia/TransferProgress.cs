@@ -39,10 +39,10 @@ internal sealed class TransferBatch
             if (entry.State is TransferState.Completed or TransferState.Skipped || !retryFailed && entry.State != TransferState.Waiting) continue;
             token.ThrowIfCancellationRequested();
             entry.State = TransferState.Transferring; entry.Failure = null; update();
-            var active = true;
+            var active = 1;
             var reporter = new CallbackProgress(value =>
             {
-                if (!active) return;
+                if (Volatile.Read(ref active) == 0) return;
                 entry.Progress = value;
                 // Payload completion does not establish provider success.
                 entry.State = value.Phase == DmsTransferPhase.Transferring ? TransferState.Transferring : TransferState.Finalizing;
@@ -51,11 +51,11 @@ internal sealed class TransferBatch
             try
             {
                 var completed = await transfer(index, reporter, token);
-                active = false; entry.State = completed ? TransferState.Completed : TransferState.Skipped;
+                Volatile.Write(ref active, 0); entry.State = completed ? TransferState.Completed : TransferState.Skipped;
             }
             catch (Exception ex)
             {
-                active = false; entry.State = ex is OperationCanceledException ? TransferState.Cancelled : TransferState.Failed;
+                Volatile.Write(ref active, 0); entry.State = ex is OperationCanceledException ? TransferState.Cancelled : TransferState.Failed;
                 entry.Failure = ex; update(); throw;
             }
             update();
