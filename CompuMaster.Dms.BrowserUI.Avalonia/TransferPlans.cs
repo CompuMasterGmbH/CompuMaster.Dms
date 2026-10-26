@@ -94,7 +94,7 @@ internal static class AtomicDownload
 {
     internal static void Validate(string path, bool directory)
     {
-        var current = Path.GetFullPath(path);
+        var current = LocalPaths.NormalizeSystemAliases(path);
         var leaf = true;
         while (current is not null)
         {
@@ -107,6 +107,7 @@ internal static class AtomicDownload
     }
     internal static async Task SaveAsync(string path, bool replace, Func<string, Task> download)
     {
+        path = LocalPaths.NormalizeSystemAliases(path);
         Validate(path, false);
         var temporary = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path))!, ".cm-dms-download-" + Guid.NewGuid().ToString("N") + ".tmp");
         Exception? failure = null;
