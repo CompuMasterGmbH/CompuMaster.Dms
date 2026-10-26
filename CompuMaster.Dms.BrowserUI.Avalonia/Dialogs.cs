@@ -26,7 +26,7 @@ internal static class Dialogs
         return panel;
     }
     internal static Window Window(string title, Control content, double width = 560, double height = 320) =>
-        new() { Title = title, Content = content, Width = width, Height = height, MinWidth = 360, MinHeight = 220,
+        new() { Title = title, Content = content, Width = width, Height = height, MinWidth = 360, MinHeight = 220, FlowDirection = UiText.LayoutDirection,
             WindowStartupLocation = WindowStartupLocation.CenterOwner };
     internal static DockPanel Layout(Control content, Control buttons)
     {
@@ -80,6 +80,7 @@ internal abstract class OperationWindow : Window
     internal bool IsRunning => running;
     internal OperationWindow()
     {
+        FlowDirection = UiText.LayoutDirection;
         MinWidth = 440; MinHeight = 300;
         Width = 720; Height = 640;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;

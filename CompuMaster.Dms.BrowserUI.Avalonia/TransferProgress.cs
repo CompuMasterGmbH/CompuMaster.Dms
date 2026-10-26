@@ -87,6 +87,7 @@ internal sealed class TransferWindow : Window
     internal CancellationTokenSource Cancellation { get; private set; } = new();
     internal TransferWindow(string title, bool allowRetry)
     {
+        FlowDirection = UiText.LayoutDirection;
         Title = title; Width = 820; Height = 480; MinWidth = 480; MinHeight = 300;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         cancel = Dialogs.Button("ActionCancel", () => { if (running) Cancellation.Cancel(); else { recovery?.TrySetResult(TransferRecovery.Close); Close(); } });
