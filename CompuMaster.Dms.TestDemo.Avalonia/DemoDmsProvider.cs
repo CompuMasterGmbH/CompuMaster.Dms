@@ -191,8 +191,8 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
     public override void UpdateSharing(DmsShareForGroup share) { Check("UpdateGroup:" + share.Group.ID); }
     public override void DeleteSharing(DmsShareForUser share) { Check("DeleteUser:" + share.User.ID); }
     public override void DeleteSharing(DmsShareForGroup share) { Check("DeleteGroup:" + share.Group.ID); }
-    public DmsInstanceInfo CurrentDmsInstance => new(InstanceID, InstanceID == "demo" ? "Demonstration" : "Second instance", true);
-    public IReadOnlyList<DmsInstanceInfo> ListAvailableDmsInstances() => new[] { new DmsInstanceInfo("demo", "Demonstration", InstanceID == "demo"), new DmsInstanceInfo("second", "Second instance", InstanceID == "second") };
+    public DmsInstanceInfo CurrentDmsInstance => new(InstanceID, InstanceID == "demo" ? "Offline: Demonstration" : "Offline: Second instance", true);
+    public IReadOnlyList<DmsInstanceInfo> ListAvailableDmsInstances() => new[] { new DmsInstanceInfo("demo", "Offline: Demonstration", InstanceID == "demo"), new DmsInstanceInfo("second", "Offline: Second instance", InstanceID == "second") };
     public void SelectDmsInstance(string instanceID)
     {
         Check("Instance:" + instanceID);
