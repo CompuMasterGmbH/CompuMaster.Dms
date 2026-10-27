@@ -32,7 +32,8 @@
     <PackageReference Include="Avalonia" Version="12.1.2" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <ProjectReference Include="../CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj" />
+    <ProjectReference Include="../CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj" Condition="'$(DmsProvidersPackageVersion)' == ''" />
+    <PackageReference Include="CompuMaster.Dms.Providers" Version="$(DmsProvidersPackageVersion)" Condition="'$(DmsProvidersPackageVersion)' != ''" />
     <EmbeddedResource Include="../CompuMaster.Dms.BrowserUI/UiStrings*.resx" Link="%(Filename)%(Extension)" />
     <AvaloniaResource Include="../CompuMaster.Dms.BrowserUI/Resources/*.png" Link="Assets/%(Filename)%(Extension)" />
     <AvaloniaResource Include="../CompuMaster.Dms.BrowserUI/favicon.ico" Link="Assets/favicon.ico" />
