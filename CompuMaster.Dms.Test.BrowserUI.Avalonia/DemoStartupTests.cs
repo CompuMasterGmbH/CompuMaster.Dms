@@ -91,7 +91,9 @@ public sealed class DemoStartupTests
                 browser.Show(); await browser.Browser.InitializeAsync(); await BrowserUiTests.IdleAsync(browser.Browser);
                 Assert.That(browser.Browser.DmsProvider, Is.TypeOf<DemoDmsProvider>());
                 Assert.That(browser.Browser.SelectedFolder, Is.EqualTo("Documents"));
-                if (target != DemoTarget.Offline) Assert.That(browser.Title, Does.Contain("offline"));
+                Assert.That(browser.Title, Does.Contain("offline"));
+                Assert.That(((IDmsInstanceProvider)browser.Browser.DmsProvider!).ListAvailableDmsInstances()
+                    .All(instance => instance.DisplayName.StartsWith("Offline: ", StringComparison.Ordinal)), Is.True);
             }
             finally { browser.Close(); }
         }
