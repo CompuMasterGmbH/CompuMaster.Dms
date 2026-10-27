@@ -24,8 +24,9 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
-      - name: Build desktop demo
-        run: dotnet build CompuMaster.Dms.TestDemo.Avalonia/CompuMaster.Dms.TestDemo.Avalonia.csproj -c CI_CD --verbosity quiet
+      - name: Build all Avalonia desktop demos
+        shell: pwsh
+        run: ./.github/scripts/build-avalonia-demos.ps1 -Configuration CI_CD
       - name: Run isolated Avalonia tests
         run: dotnet test CompuMaster.Dms.Test.BrowserUI.Avalonia/CompuMaster.Dms.Test.BrowserUI.Avalonia.csproj -c CI_CD --verbosity quiet --logger trx --results-directory artifacts/avalonia-tests
       - name: Verify packed NuGet consumer
