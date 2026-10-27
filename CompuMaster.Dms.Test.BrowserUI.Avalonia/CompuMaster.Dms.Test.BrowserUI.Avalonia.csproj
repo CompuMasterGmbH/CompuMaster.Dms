@@ -16,6 +16,8 @@
     <ProjectReference Include="../CompuMaster.Dms.BrowserUI.Avalonia/CompuMaster.Dms.BrowserUI.Avalonia.csproj" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoDmsProvider.cs" Link="DemoDmsProvider.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoDefinition.cs" Link="DemoDefinition.cs" />
+    <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoInputBuffer.cs" Link="DemoInputBuffer.cs" />
+    <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoScopevisioSelection.cs" Link="DemoScopevisioSelection.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoLoginWindow.cs" Link="DemoLoginWindow.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoText.cs" Link="DemoText.cs" />
     <EmbeddedResource Include="../CompuMaster.Dms.TestDemo.WebDav/DemoStrings*.resx" Link="DemoStrings/%(Filename)%(Extension)">

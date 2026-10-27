@@ -11,6 +11,8 @@ The demo applications can persist login data in provider-specific files below th
 
 The namespaces are intentionally independent. Generic `TEST_WEBDAV_*` values are not used as a fallback for ownCloud or Nextcloud. WebDAV and ownCloud Classic use separate CI resource locks. If any `TEST_WEBDAV_*` repository secret is missing, CI omits the WebDAV jobs and continues with the other configured test servers.
 
+The corresponding [Avalonia demo applications](CompuMaster.Dms.TestDemo.Avalonia/README.md) use these same provider-specific buffers and environment variables, including the optional Scopevisio `TEST_SCOPEVISIOTEAMWORK_ORGANISATIONID` and `TEST_SCOPEVISIOTEAMWORK_EXPECTEDTEAMWORKTENANTID` selectors. Values saved by either UI are available to the other UI for that provider. Scopevisio organisation selection and the expected Teamwork tenant guard remain distinct.
+
 To persist credentials, start the matching demo, enter the connection details, select the option to persist login credentials, and close the login window. Passwords are masked in the UI but the existing local buffer mechanism stores values as plain text in the user's temporary directory. Clear the persistence option and close the demo to remove that demo's buffered values.
 
 Ordinary builds and isolated tests do not require these credentials. Before running a remote integration-test partition locally, establish an exclusive window with CI and every other user of that physical server. Select only the intended provider fixture or category; do not run all remote test fixtures as general local verification.

@@ -12,6 +12,17 @@ namespace CompuMaster.Dms.Test.BrowserUI.Avalonia;
 [TestFixture]
 public sealed class DemoStartupTests
 {
+    private string bufferDirectory = null!;
+    [SetUp]
+    public void Create_private_demo_buffer()
+    {
+        bufferDirectory = Path.Combine(Path.GetTempPath(), "unittests_avalonia_login_" + Guid.NewGuid().ToString("N"));
+        Assert.That(Directory.Exists(bufferDirectory), Is.False);
+        Directory.CreateDirectory(bufferDirectory);
+    }
+    [TearDown]
+    public void Remove_private_demo_buffer() => Directory.Delete(bufferDirectory, true);
+    private DemoInputBuffer Buffer(DemoTarget target) => new(target, bufferDirectory, _ => null);
     [TestCase("--webdav", (int)DemoTarget.WebDav)]
     [TestCase("--nextcloud", (int)DemoTarget.Nextcloud)]
     [TestCase("--owncloud", (int)DemoTarget.OwnCloudClassic)]
@@ -60,7 +71,7 @@ public sealed class DemoStartupTests
         foreach (var target in new[] { DemoTarget.WebDav, DemoTarget.Nextcloud, DemoTarget.OwnCloudClassic, DemoTarget.ScopevisioTeamwork })
         {
             var definition = new DemoDefinition(target);
-            var login = DemoWindows.Create(target, false) as DemoLoginWindow;
+            var login = DemoWindows.Create(target, false, Buffer(target)) as DemoLoginWindow;
             Assert.That(login, Is.Not.Null);
             Assert.That(login!.Title, Does.Contain(definition.Name).And.Contain("Avalonia"));
             Assert.That(login.Server.IsVisible, Is.EqualTo(definition.RequiresServer));
@@ -93,14 +104,14 @@ public sealed class DemoStartupTests
         var provider = new DemoDmsProvider();
         var login = new DemoLoginWindow(new DemoDefinition(DemoTarget.Nextcloud),
             profile => { supplied = profile; return Task.FromResult<BaseDmsProvider>(provider); },
-            (_, actual, configured) => { Assert.That(actual, Is.SameAs(provider)); options = configured; return Task.CompletedTask; });
+            (_, actual, configured) => { Assert.That(actual, Is.SameAs(provider)); options = configured; return Task.CompletedTask; }, Buffer(DemoTarget.Nextcloud));
         login.Server.Text = "https://example.invalid/cloud";
         login.Username.Text = "fixture-user"; login.Password.Text = "fixture-only"; login.Root.Text = "/Documents";
         await login.ConnectAsync();
         Assert.That(supplied!.ServerAddress, Is.EqualTo("https://example.invalid/cloud/remote.php/dav/files/fixture-user/"));
         Assert.That(options!.InitialFolder, Is.EqualTo("/Documents"));
         Assert.That(options.FormTitle, Does.Contain("Nextcloud").And.Contain("Avalonia"));
-        Assert.That(login.Password.Text, Is.Empty);
+        Assert.That(login.Password.Text, Is.EqualTo("fixture-only"), "The WinForms login retains the input for retries and persistence on close.");
         Assert.That(login.Error.Text, Is.Empty);
         login.Close();
     }
@@ -108,7 +119,7 @@ public sealed class DemoStartupTests
     public async Task Failed_sign_in_preserves_the_window_and_hides_provider_exception_details()
     {
         var login = new DemoLoginWindow(new DemoDefinition(DemoTarget.WebDav),
-            _ => Task.FromException<BaseDmsProvider>(new IOException("sensitive provider diagnostics")));
+            _ => Task.FromException<BaseDmsProvider>(new IOException("sensitive provider diagnostics")), buffer: Buffer(DemoTarget.WebDav));
         login.Server.Text = "https://example.invalid/dav/";
         login.Username.Text = "fixture-user"; login.Password.Text = "fixture-only";
         await login.ConnectAsync();
@@ -126,7 +137,7 @@ public sealed class DemoStartupTests
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
             Assert.That(DemoText.Get("SignIn"), Is.EqualTo("Anmelden"));
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("ar");
-            var login = new DemoLoginWindow(new DemoDefinition(DemoTarget.WebDav));
+            var login = new DemoLoginWindow(new DemoDefinition(DemoTarget.WebDav), buffer: Buffer(DemoTarget.WebDav));
             Assert.That(login.FlowDirection, Is.EqualTo(global::Avalonia.Media.FlowDirection.RightToLeft));
             Assert.That(DemoText.Get("SignIn"), Is.Not.EqualTo("SignIn"));
             login.Close();

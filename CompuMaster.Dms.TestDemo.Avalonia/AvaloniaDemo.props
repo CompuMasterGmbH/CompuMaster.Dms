@@ -17,6 +17,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemoApplication.cs" Link="Shared/DemoApplication.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemoDefinition.cs" Link="Shared/DemoDefinition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DemoInputBuffer.cs" Link="Shared/DemoInputBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DemoScopevisioSelection.cs" Link="Shared/DemoScopevisioSelection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemoLoginWindow.cs" Link="Shared/DemoLoginWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemoText.cs" Link="Shared/DemoText.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemoDmsProvider.cs" Link="Shared/DemoDmsProvider.cs" />
