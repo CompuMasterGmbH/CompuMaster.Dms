@@ -1,20 +1,33 @@
-﻿using CompuMaster.Dms.BrowserUI.Avalonia;
+﻿#if DMS_WINUI
+using CompuMaster.Dms.BrowserUI.WinUI;
+#else
+using CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.TestDemo.WinUI;
+#else
 namespace CompuMaster.Dms.TestDemo.Avalonia;
+#endif
 
 internal enum DemoTarget { Offline, WebDav, Nextcloud, OwnCloudClassic, ScopevisioTeamwork }
 
 internal sealed record DemoDefinition(DemoTarget Target)
 {
+#if DMS_WINUI
+    private const string FrameworkName = "WinUI";
+#else
+    private const string FrameworkName = "Avalonia";
+#endif
     internal string Name => Target switch
     {
         DemoTarget.WebDav => "WebDAV", DemoTarget.Nextcloud => "Nextcloud", DemoTarget.OwnCloudClassic => "ownCloud Classic",
-        DemoTarget.ScopevisioTeamwork => "Scopevisio Teamwork", _ => "Avalonia"
+        DemoTarget.ScopevisioTeamwork => "Scopevisio Teamwork", _ => FrameworkName
     };
-    internal string BrowserTitle => Target == DemoTarget.Offline ? "DMS Browser DEMO for Avalonia" : "DMS Browser DEMO for " + Name + " (Avalonia)";
-    internal string LoginTitle => Name + " — " + DemoText.Extra("Avalonia DMS sign-in", "Avalonia-DMS-Anmeldung");
+    internal string BrowserTitle => Target == DemoTarget.Offline ? "DMS Browser DEMO for " + FrameworkName : "DMS Browser DEMO for " + Name + " (" + FrameworkName + ")";
+    internal string LoginTitle => Name + " — " + DemoText.Extra(FrameworkName + " DMS sign-in", FrameworkName + "-DMS-Anmeldung");
     internal bool RequiresCustomer => Target == DemoTarget.ScopevisioTeamwork;
     internal bool RequiresServer => Target is not (DemoTarget.Offline or DemoTarget.ScopevisioTeamwork);
     internal BaseDmsProvider.DmsProviders Provider => RequiresCustomer ? BaseDmsProvider.DmsProviders.Scopevisio : BaseDmsProvider.DmsProviders.WebDAV;

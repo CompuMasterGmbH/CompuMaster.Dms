@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <Configurations>Debug;Release;CI_CD</Configurations>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <Platforms>AnyCPU;x64;ARM64</Platforms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);DMS_WINUI</DefineConstants>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <WarningsAsErrors>CS1591</WarningsAsErrors>
+    <PackageId>CompuMaster.Dms.BrowserUI.WinUI</PackageId>
+    <RootNamespace>CompuMaster.Dms.BrowserUI.WinUI</RootNamespace>
+    <AssemblyName>CompuMaster.Dms.BrowserUI.WinUI</AssemblyName>
+    <Authors>Jochen Wezel</Authors>
+    <Company>CompuMaster GmbH</Company>
+    <Product>CompuMaster.Dms</Product>
+    <Copyright>2019-2026 CompuMaster GmbH</Copyright>
+    <Description>Native WinUI 3 DMS browser controls and dialogs for Windows, including selection, transfers, sharing, versions and instance selection.</Description>
+    <PackageTags>DmsBrowser WinUI WindowsAppSDK NextCloud OwnCloud Scopevisio Teamwork WebDAV</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>logo_64x64.png</PackageIcon>
+    <RepositoryUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms/tree/main/CompuMaster.Dms.BrowserUI.WinUI</PackageProjectUrl>
+    <PackageReleaseNotes>Initial native WinUI 3 BrowserUI: provider-independent navigation, file/folder selection, recursive transfers, sharing, version history, localized dialogs, Windows file icons and dedicated provider demos. Implementation and acceptance: https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/151.</PackageReleaseNotes>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <ProjectReference Include="../CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj" Condition="'$(DmsProvidersPackageVersion)' == ''" />
+    <PackageReference Include="CompuMaster.Dms.Providers" Version="$(DmsProvidersPackageVersion)" Condition="'$(DmsProvidersPackageVersion)' != ''" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserOptions.cs" Link="Shared/BrowserOptions.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserSession.cs" Link="Shared/BrowserSession.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/SharingPolicy.cs" Link="Shared/SharingPolicy.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/TransferPlans.cs" Link="Shared/TransferPlans.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/TransferProgress.cs" Link="Shared/TransferProgress.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/FileVersions.cs" Link="Shared/FileVersions.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/ItemProperties.cs" Link="Shared/ItemProperties.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserDiagnostics.cs" Link="Shared/BrowserDiagnostics.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/WindowsFileIcons.cs" Link="Shared/WindowsFileIcons.cs" />
+    <EmbeddedResource Include="../CompuMaster.Dms.BrowserUI/UiStrings*.resx" Link="%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../CompuMaster.Dms.BrowserUI/Resources/*.png" Link="Assets/%(Filename)%(Extension)" LogicalName="Assets.%(Filename)%(Extension)" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="PUBLISHING.md" Pack="true" PackagePath="/" />
+    <None Include="PARITY.md" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="WINDOWS-APP-SDK-LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../CompuMaster.Dms.Providers/logo_64x64.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

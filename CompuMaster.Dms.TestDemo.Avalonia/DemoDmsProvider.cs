@@ -2,11 +2,20 @@
 using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.TestDemo.WinUI;
+#else
 namespace CompuMaster.Dms.TestDemo.Avalonia;
+#endif
 
 // A deterministic, process-local demonstration backend. It never accesses remote DMS servers.
 internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
 {
+#if DMS_WINUI
+    private const string FrameworkName = "WinUI";
+#else
+    private const string FrameworkName = "Avalonia";
+#endif
     internal readonly List<DmsResourceItem> Items = new();
     private readonly Dictionary<string, byte[]> content = new();
     internal readonly List<string> Calls = new();
@@ -43,7 +52,7 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
         AddDirectory("/Documents/Projects");
         AddDirectory("/Empty");
         AddDirectory("/Collection", DmsResourceItem.ItemTypes.Collection);
-        AddFile("/Documents/Welcome.txt", "Avalonia DMS browser demonstration.\nUploads and changes stay in this process.");
+        AddFile("/Documents/Welcome.txt", FrameworkName + " DMS browser demonstration.\nUploads and changes stay in this process.");
         AddFile("/Documents/Projects/Notes.txt", "This nested folder is loaded on demand.");
         AddFile("/Readme.txt", "Select Documents to explore files, properties and sharing dialogs.");
         var shared = AddFile("/Documents/Shared.txt", "Example shared file.");

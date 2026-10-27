@@ -1,9 +1,15 @@
 ﻿using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
+#if !DMS_WINUI
 using global::Avalonia.Controls;
 using global::Avalonia.Data;
+#endif
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 internal sealed class VersionSession
 {
@@ -64,6 +70,7 @@ internal sealed record VersionRow(DmsFileVersion Version)
         Version.ContentLength.HasValue ? UiText.ByteSize(Version.ContentLength.Value) : UiText.Get("VersionUnknown"),
         Version.AuthorDisplayName ?? Version.AuthorID ?? UiText.Get("VersionUnknown"), Version.Label ?? "");
 }
+#if !DMS_WINUI
 internal sealed class FileVersionHistoryDialog : OperationWindow
 {
     private readonly VersionSession session;
@@ -139,3 +146,5 @@ public sealed partial class DmsBrowserControl
         if (dialog.CurrentFileChanged) await Session.RefreshAsync();
     }
 }
+
+#endif

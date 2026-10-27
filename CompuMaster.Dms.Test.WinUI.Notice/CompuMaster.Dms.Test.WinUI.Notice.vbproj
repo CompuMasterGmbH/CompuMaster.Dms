@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>CompuMaster.Dms.Test.BrowserUI</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Configurations>Debug;Release;CI_CD</Configurations>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="4.6.1" />
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI/DevelopmentGuiTestSession.vb" Link="DevelopmentGuiTestSession.vb" />
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI/UiTestDispatcher.vb" Link="UiTestDispatcher.vb" />
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>CompuMaster.Dms.Test.BrowserUI.WinUI</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

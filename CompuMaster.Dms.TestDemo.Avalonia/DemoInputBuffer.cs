@@ -1,7 +1,11 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.TestDemo.WinUI;
+#else
 namespace CompuMaster.Dms.TestDemo.Avalonia;
+#endif
 
 // Uses the exact WinForms demo cache keys and environment-variable precedence.
 internal sealed class DemoInputBuffer

@@ -2,7 +2,11 @@
 using System.Collections.Concurrent;
 using System.Runtime.Versioning;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 [SupportedOSPlatform("windows")]
 internal static class WindowsFileIcons

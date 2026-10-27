@@ -1,0 +1,41 @@
+﻿<Project>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>CompuMaster.Dms.TestDemo.WinUI</RootNamespace>
+    <Configurations>Debug;Release;CI_CD</Configurations>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN;DMS_WINUI</DefineConstants>
+    <ApplicationIcon>$(MSBuildThisFileDirectory)../CompuMaster.Dms.BrowserUI/favicon.ico</ApplicationIcon>
+    <ApplicationManifest>$(MSBuildThisFileDirectory)app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.BrowserUI.WinUI/CompuMaster.Dms.BrowserUI.WinUI.csproj" />
+    <Compile Include="Program.cs" />
+    <ApplicationDefinition Remove="App.xaml;$(MSBuildProjectDirectory)/App.xaml" />
+    <Page Remove="App.xaml;$(MSBuildProjectDirectory)/App.xaml" />
+    <ApplicationDefinition Include="$(MSBuildThisFileDirectory)App.xaml" Link="App.xaml" />
+    <Compile Include="$(MSBuildThisFileDirectory)DemoApplication.cs" Link="Shared/DemoApplication.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.TestDemo.Avalonia/DemoDefinition.cs" Link="Shared/DemoDefinition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.TestDemo.Avalonia/DemoInputBuffer.cs" Link="Shared/DemoInputBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.TestDemo.Avalonia/DemoScopevisioSelection.cs" Link="Shared/DemoScopevisioSelection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DemoLoginWindow.cs" Link="Shared/DemoLoginWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.TestDemo.Avalonia/DemoText.cs" Link="Shared/DemoText.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.TestDemo.Avalonia/DemoDmsProvider.cs" Link="Shared/DemoDmsProvider.cs" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)../CompuMaster.Dms.TestDemo.WebDav/DemoStrings*.resx" Link="%(Filename)%(Extension)">
+      <ManifestResourceName>CompuMaster.Dms.TestDemo.WinUI.%(Filename)</ManifestResourceName>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

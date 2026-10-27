@@ -1,0 +1,42 @@
+﻿name: WinUI BrowserUI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  winui:
+    name: Native WinUI build, offline tests and NuGet consumer
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Build all native WinUI demos
+        shell: pwsh
+        run: ./.github/scripts/build-winui-demos.ps1 -Configuration CI_CD
+      - name: Run native offline and WinForms comparison tests
+        shell: pwsh
+        run: ./.github/scripts/test-winui.ps1 -Configuration CI_CD
+      - name: Verify packed component in an independent WinUI application
+        shell: pwsh
+        run: ./.github/scripts/test-winui-package.ps1 -Configuration CI_CD
+      - name: Retain native and package evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: winui-windows
+          path: |
+            artifacts/winui-tests/
+            artifacts/winui-package-*/preparation.json
+            artifacts/winui-package-*/feed/*.nupkg
+            artifacts/winui-package-*/feed/*.snupkg
+            artifacts/winui-package-*/consumer/bin/**/consumer-success.json

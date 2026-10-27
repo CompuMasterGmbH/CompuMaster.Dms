@@ -1,11 +1,17 @@
 ﻿using System.Diagnostics;
 using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
+#if !DMS_WINUI
 using global::Avalonia;
 using global::Avalonia.Controls;
 using global::Avalonia.Threading;
+#endif
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 internal enum TransferState { Waiting, Transferring, Finalizing, Completed, Failed, Cancelled, Skipped }
 internal sealed class TransferEntry
@@ -69,6 +75,7 @@ internal sealed class CallbackProgress : IProgress<DmsTransferProgress>
     public void Report(DmsTransferProgress value) => callback(value);
 }
 internal enum TransferRecovery { Close, RetryFailed, Continue }
+#if !DMS_WINUI
 internal sealed class TransferWindow : Window
 {
     private readonly ListBox rows = new();
@@ -141,3 +148,5 @@ internal sealed class TransferWindow : Window
     }
     internal void Finish() { running = false; finished = true; Close(); }
 }
+
+#endif
