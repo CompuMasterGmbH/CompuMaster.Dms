@@ -68,12 +68,14 @@ internal static class ResourceDetails
     internal static async Task<DmsResourceItem> LoadAsync(BaseDmsProvider provider, DmsResourceItem entry)
     {
         DmsResourceItem? details;
+        // WebDAV identifiers describe identity; they do not imply an ID-search API.
         var webdavFolder = provider.DmsProviderID == BaseDmsProvider.DmsProviders.WebDAV && entry.ItemType == DmsResourceItem.ItemTypes.Folder;
+        var webdavFile = provider.DmsProviderID == BaseDmsProvider.DmsProviders.WebDAV && entry.ItemType == DmsResourceItem.ItemTypes.File;
         if (entry.ItemType == DmsResourceItem.ItemTypes.Collection && !string.IsNullOrEmpty(entry.ExtendedInfosCollectionID))
             details = await provider.FindCollectionByIdAsync(entry.ExtendedInfosCollectionID);
         else if (entry.ItemType == DmsResourceItem.ItemTypes.Folder && !string.IsNullOrEmpty(entry.ExtendedInfosFolderID) && !webdavFolder)
             details = await provider.FindFolderByIdAsync(entry.ExtendedInfosFolderID);
-        else if (entry.ItemType == DmsResourceItem.ItemTypes.File && !string.IsNullOrEmpty(entry.ExtendedInfosFileID))
+        else if (entry.ItemType == DmsResourceItem.ItemTypes.File && !string.IsNullOrEmpty(entry.ExtendedInfosFileID) && !webdavFile)
             details = await provider.FindFileByIdAsync(entry.ExtendedInfosFileID);
         else details = await provider.ListRemoteItemAsync(entry.FullName);
         if (details is null)
@@ -84,6 +86,9 @@ internal static class ResourceDetails
         if (webdavFolder && !string.IsNullOrEmpty(entry.ExtendedInfosFolderID) &&
             (details.ItemType != entry.ItemType || details.ExtendedInfosFolderID != entry.ExtendedInfosFolderID))
             throw new InvalidOperationException(UiText.Get("VersionActionUnavailable"));
+        if (webdavFile && !string.IsNullOrEmpty(entry.ExtendedInfosFileID) &&
+            (details.ItemType != entry.ItemType || details.ExtendedInfosFileID != entry.ExtendedInfosFileID))
+            throw new InvalidOperationException("The selected file identity changed or is no longer available.");
         details.FullName = entry.FullName; details.Folder = entry.Folder; details.Collection = entry.Collection;
         details.ExtendedInfosAssignedCollectionID = entry.ExtendedInfosAssignedCollectionID;
         details.ExtendedInfosAssignedFolderID = entry.ExtendedInfosAssignedFolderID;
