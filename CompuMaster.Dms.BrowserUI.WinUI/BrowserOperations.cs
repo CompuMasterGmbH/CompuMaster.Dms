@@ -56,17 +56,19 @@ public sealed partial class DmsBrowserControl
         if (!IsBusy && initialized && Session.SelectedNode is not null)
             SelectionConfirmed?.Invoke(this, EventArgs.Empty);
     }
-    private async Task UiAsync(Func<Task> action)
+    private async Task UiAsync(Func<Task> action, DmsBrowserFailurePhase? phase = null, [System.Runtime.CompilerServices.CallerMemberName] string operation = "")
     {
         if (interactionRunning || SessionBusy || dragRunning) return;
         interactionRunning = true; UpdateControls();
         try { await action(); }
         catch (OperationCanceledException) { if (!initialized) pendingCancellation = true; }
-        catch (Data.RessourceNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, DmsBrowserFailurePhase.Action); }
+        catch (Data.DirectoryNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, phase ?? DmsBrowserFailurePhase.Action, operation); if (!initialized) pendingCancellation = true; }
+        catch (Data.FileNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, phase ?? DmsBrowserFailurePhase.Action, operation); if (!initialized) pendingCancellation = true; }
+        catch (Data.RessourceNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, phase ?? DmsBrowserFailurePhase.Action, operation); }
         catch (Exception ex)
         {
-            await ReportFailureAsync(ex, initialized ? DmsBrowserFailurePhase.Action :
-                startupPhase == DmsBrowserFailurePhase.Startup ? session?.FailurePhase ?? startupPhase : startupPhase);
+            await ReportFailureAsync(ex, phase ?? (initialized ? DmsBrowserFailurePhase.Action :
+                startupPhase == DmsBrowserFailurePhase.Startup ? session?.FailurePhase ?? startupPhase : startupPhase), operation);
             if (!initialized) pendingCancellation = true;
         }
         finally

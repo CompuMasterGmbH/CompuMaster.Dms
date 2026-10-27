@@ -204,9 +204,27 @@ Namespace Data
         ''' <summary>Gets or sets the version timestamp in local time, or Nothing when unavailable.</summary>
         Public Property ExtendedInfosVersionDateLocalTime As Date?
         ''' <summary>
-        ''' The remote item is shared by links or shared for users/groups
+        ''' Gets or sets the compatibility aggregate indicating known sharing in either direction.
         ''' </summary>
         Public Property ExtendedInfosIsShared As Boolean
+            Get
+                Return SharedCompatibility OrElse ExtendedInfosIsReceivedShare.GetValueOrDefault() OrElse ExtendedInfosHasOutgoingSharings.GetValueOrDefault()
+            End Get
+            Set(value As Boolean)
+                SharedCompatibility = value
+            End Set
+        End Property
+        Private SharedCompatibility As Boolean
+        ''' <summary>Gets or sets whether the authenticated account receives this resource through sharing.</summary>
+        ''' <value>Nothing means unsupported, unavailable or not yet determined. Ownership alone does not establish a received share.</value>
+        Public Property ExtendedInfosIsReceivedShare As Boolean?
+        ''' <summary>Gets or sets whether outgoing grants are known to be visible to the authenticated account for this resource.</summary>
+        ''' <value>Nothing means unavailable or not established; False means the provider query supplied no visible outgoing grants. This value does not authorize editing.</value>
+        Public Property ExtendedInfosHasOutgoingSharings As Boolean?
+        ''' <summary>Gets or sets the received grants established for this resource and authenticated instance.</summary>
+        ''' <remarks>An empty collection alone does not prove an absence of received sharing; inspect ExtendedInfosIsReceivedShare.</remarks>
+        Public Property ExtendedInfosReceivedSharings As New List(Of DmsReceivedShare)
+
         ''' <summary>Gets or sets whether the provider identifies this collection as public.</summary>
         Public Property ExtendedInfosIsPublicCollection As Boolean
         ''' <summary>Gets or sets whether the provider identifies auditing as enabled.</summary>

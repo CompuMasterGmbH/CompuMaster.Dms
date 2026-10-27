@@ -64,7 +64,54 @@ public sealed partial class DmsBrowserControl
         [System.Runtime.CompilerServices.CallerMemberName] string operation = "")
     {
         var failure = ReportFailure(ex, phase, operation);
-        if (!failure.SuppressDialog) await Dialogs.MessageAsync(Owner, UiText.FailureMessage(ex));
+        if (!failure.SuppressDialog) await Dialogs.MessageAsync(Owner, BrowserErrorDetails.Format(ex, phase, operation));
+    }
+}
+internal static class BrowserErrorDetails
+{
+    internal static string Format(Exception exception, DmsBrowserFailurePhase phase, string operation)
+    {
+        var text = new System.Text.StringBuilder(exception is Data.DirectoryNotFoundException ? UiText.Get("BrowserDirectoryUnavailable") :
+            exception is Data.FileNotFoundException ? UiText.Get("BrowserFileUnavailable") : UiText.FailureMessage(exception));
+        text.AppendLine().AppendLine().AppendLine(UiText.Extra("Technical details", "Technische Details"));
+        text.AppendLine(phase + " / " + operation);
+        var visited = new HashSet<Exception>();
+        void Append(Exception error, int depth)
+        {
+            if (depth > 16 || !visited.Add(error)) return;
+            text.AppendLine().AppendLine(error.GetType().FullName).AppendLine(error.Message);
+            if (error is Data.ResponseStatusCodeException response) text.AppendLine("HTTP: " + response.StatusCode);
+            if (error is System.Net.Http.HttpRequestException request && request.StatusCode.HasValue)
+                text.AppendLine("HTTP: " + (int)request.StatusCode.Value + " " + request.StatusCode.Value);
+            if (error is System.Net.WebException web) text.AppendLine("Web: " + web.Status);
+            if (!string.IsNullOrEmpty(error.StackTrace)) text.AppendLine(error.StackTrace);
+            if (error is AggregateException aggregate) foreach (var inner in aggregate.InnerExceptions) Append(inner, depth + 1);
+            else if (error.InnerException is { } inner) Append(inner, depth + 1);
+        }
+        Append(exception, 0);
+        return Redact(text.ToString());
+    }
+    internal static string Redact(string value)
+    {
+        var options = System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+        string Replace(string pattern, System.Text.RegularExpressions.MatchEvaluator replacement) =>
+            System.Text.RegularExpressions.Regex.Replace(value, pattern, replacement, options, TimeSpan.FromMilliseconds(100));
+        try
+        {
+            value = value.Length > 65536 ? value[..65536] : value;
+            value = Replace("""https?://[^\s<>"']+""", match =>
+            {
+                if (!Uri.TryCreate(match.Value, UriKind.Absolute, out var uri)) return "[URL]";
+                return new UriBuilder(uri) { UserName = "", Password = "", Query = "", Fragment = "" }.Uri.AbsoluteUri;
+            });
+            value = Replace("""\b(Bearer|Basic)\s+[^\s<>"']+""", match => match.Groups[1].Value + " [redacted]");
+            value = Replace("""\b(password|passwd|pwd|client_secret|access_token|refresh_token|id_token|api[_-]?key|authorization|set-cookie|cookie|session[_-]?(?:id|token)|secret|token)["']?\s*[:=][^\r\n]*""",
+                match => match.Groups[1].Value + ": [redacted]");
+            value = Replace("""<(password|token|secret|authorization)>[\s\S]*?</\1>""", _ => "[redacted]");
+            return value;
+        }
+        catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
+        { return UiText.Extra("Technical details could not be safely displayed.", "Technische Details konnten nicht sicher angezeigt werden."); }
     }
 }
 internal static class ResourceDetails
@@ -89,10 +136,12 @@ internal static class ResourceDetails
         }
         if (webdavFolder && !string.IsNullOrEmpty(entry.ExtendedInfosFolderID) &&
             (details.ItemType != entry.ItemType || details.ExtendedInfosFolderID != entry.ExtendedInfosFolderID))
-            throw new InvalidOperationException(UiText.Get("VersionActionUnavailable"));
+            throw new InvalidOperationException("The selected folder identity changed or is no longer available.");
         if (webdavFile && !string.IsNullOrEmpty(entry.ExtendedInfosFileID) &&
             (details.ItemType != entry.ItemType || details.ExtendedInfosFileID != entry.ExtendedInfosFileID))
             throw new InvalidOperationException("The selected file identity changed or is no longer available.");
+        if (entry.ExtendedInfosIsShared && (!details.ExtendedInfosIsReceivedShare.HasValue || !details.ExtendedInfosHasOutgoingSharings.HasValue))
+            details.ExtendedInfosIsShared = true;
         details.FullName = entry.FullName; details.Folder = entry.Folder; details.Collection = entry.Collection;
         details.ExtendedInfosAssignedCollectionID = entry.ExtendedInfosAssignedCollectionID;
         details.ExtendedInfosAssignedFolderID = entry.ExtendedInfosAssignedFolderID;

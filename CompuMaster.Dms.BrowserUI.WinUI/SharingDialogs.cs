@@ -35,6 +35,7 @@ internal sealed class DmsItemSharings : OperationWindow
 {
     private readonly BaseDmsProvider provider;
     private readonly DmsResourceItem item;
+    private readonly TextBlock receivedSummary = new() { Name = "ReceivedSharingSummary" };
     private readonly DataGrid internalShares = Grid("InternalSharings", ("ColumnType", "Type"), ("ColumnName", "Name"), ("ColumnAuthorizations", "Permissions"));
     private readonly DataGrid links = Grid("ExternalSharings", ("ColumnName", "Name"), ("ColumnAuthorizations", "Permissions"), ("ColumnLimitations", "Limitations"));
     private static DataGrid Grid(string name, params (string Key, string Binding)[] columns)
@@ -51,8 +52,12 @@ internal sealed class DmsItemSharings : OperationWindow
         if (item.ItemType == DmsResourceItem.ItemTypes.Root) throw new NotSupportedException(UiText.Get("RootSharingUnsupported"));
         this.provider = provider; this.item = item;
         Title = UiText.Get("SharingsTitle") + " – " + item.FullName;
+        Height = item.ExtendedInfosIsReceivedShare == true ? 860 : 720;
         var content = new StackPanel { Spacing = 8 };
-        content.Children.Add(new TextBlock { Text = UiText.Format("CurrentOwner", item.ExtendedInfosOwner.DisplayName) });
+        content.Children.Add(new Border { Padding = new Thickness(10), CornerRadius = new CornerRadius(4), Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.LightBlue),
+            Child = receivedSummary });
+        receivedSummary.TextWrapping = TextWrapping.Wrap; receivedSummary.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black); receivedSummary.Text = SharingSummary.Format(item);
+        content.Children.Add(new TextBlock { Text = UiText.Format("CurrentOwner", item.ExtendedInfosOwner.DisplayName ?? UiText.Get("UnknownValue")) });
         content.Children.Add(SharingGroup("InternalSharings", internalShares, Toolbar(
             ("ActionAddUser", () => EditStandardAsync(false, null)), ("ActionAddGroup", () => EditStandardAsync(true, null)),
             ("ActionEdit", EditInternalAsync), ("ActionDelete", () => DeleteAsync(internalShares)))));
@@ -65,7 +70,7 @@ internal sealed class DmsItemSharings : OperationWindow
             foreach (var link in item.ExtendedInfosLinks?.ToArray() ?? Array.Empty<DmsLink>()) await link.RefreshAsync();
             // ToString can resolve provider metadata; prepare rows off the UI thread.
             var rows = await Task.Run(BuildRows);
-            internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links;
+            internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links; receivedSummary.Text = SharingSummary.Format(item);
         });
         internalShares.DoubleTapped += async (_, _) => await RunAsync(EditInternalAsync);
         links.DoubleTapped += async (_, _) => await RunAsync(EditSelectedLinkAsync);
@@ -103,7 +108,7 @@ internal sealed class DmsItemSharings : OperationWindow
     private async Task RefreshRowsAsync()
     {
         var rows = await Task.Run(BuildRows);
-        internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links;
+        internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links; receivedSummary.Text = SharingSummary.Format(item);
     }
     private Task EditInternalAsync()
     {

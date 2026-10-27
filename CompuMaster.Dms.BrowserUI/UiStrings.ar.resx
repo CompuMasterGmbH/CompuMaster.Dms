@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>لا يسمح هذا المزود بملفات مباشرة في جذر الخادم.</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>المستأجر / المثيل: </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>معرّف المستأجر / المثيل: </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>تمت مشاركته معك</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>المشاركة المستلمة: {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>المشاركات الصادرة: {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>غير معروف / غير متاح</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>تمت المشاركة بواسطة: {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>مالك المورد: {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>المستلم: {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>موروث من: {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>مشاركة مباشرة</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>الوراثة: غير معروفة</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>أذونات هذه المشاركة: {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>تعرض القوائم أدناه المشاركات الصادرة. المشاركات المستلمة أعلاه للقراءة فقط.</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>نعم</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>لا</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>لا شيء</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>المجلد المطلوب لم يعد متاحًا على الخادم. حدّث عرض المجلد الأعلى عند الحاجة.</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>الملف المطلوب لم يعد متاحًا على الخادم. حدّث العرض عند الحاجة.</value></data>
 </root>

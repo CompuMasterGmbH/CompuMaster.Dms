@@ -14,6 +14,57 @@ namespace CompuMaster.Dms.Test.BrowserUI.WinUI;
 [TestFixture]
 public sealed class NativeUiTests
 {
+    private sealed class DisappearingFolderProvider : DemoDmsProvider
+    {
+        public override Task<List<DmsResourceItem>> ListDirectoryEntriesAsync(string remoteFolderPath, CancellationToken cancellationToken = default)
+        {
+            if (remoteFolderPath.Trim('/') == "Documents") throw new CompuMaster.Dms.Data.DirectoryNotFoundException(remoteFolderPath,
+                new CompuMaster.Dms.Data.ResponseStatusCodeException(404, "Not Found"));
+            return base.ListDirectoryEntriesAsync(remoteFolderPath, cancellationToken);
+        }
+    }
+    [Test]
+    public Task Expanding_a_disappeared_folder_removes_the_stale_node_and_retains_http_diagnostics() => UiThread.Run(async () =>
+    {
+        var browser = new DmsBrowser(new DisappearingFolderProvider());
+        DmsBrowserFailureEventArgs? failure = null;
+        browser.OperationFailed += (_, args) => { args.SuppressDialog = true; failure = args; };
+        try
+        {
+            _ = browser.ShowAsync(); await browser.Browser.InitializeAsync(); await Task.Delay(100);
+            var node = browser.Browser.FolderTree.RootNodes.Single().Children.Single(child => ((StackPanel)child.Content).Children.OfType<TextBlock>().Any(text => text.Text == "Documents"));
+            node.IsExpanded = true;
+            var deadline = DateTime.UtcNow.AddSeconds(3);
+            while (failure is null && DateTime.UtcNow < deadline) await Task.Delay(20);
+            Assert.That(failure, Is.Not.Null);
+            Assert.That(failure!.Phase, Is.EqualTo(DmsBrowserFailurePhase.ChildListing));
+            Assert.That(BrowserErrorDetails.Format(failure.Exception, failure.Phase, failure.Operation), Does.Contain("HTTP: 404").And.Contain("ExpandFolder"));
+            Assert.That(browser.Browser.Session.AllNodes().Any(model => model.Name == "Documents"), Is.False);
+        }
+        finally { browser.Close(); }
+    });
+
+    [TestCase("en"), TestCase("de")]
+    public Task Received_summary_is_visible_read_only_and_matches_WinForms(string language) => UiThread.Run(async () =>
+    {
+        var previous = CultureInfo.CurrentUICulture; CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(language);
+        var owner = new Window { Content = new Grid() };
+        var item = ReceivedSharingTests.ReceivedItem();
+        var dialog = new DmsItemSharings(new DemoDmsProvider(), item);
+        Task? pending = null;
+        try
+        {
+            owner.Activate(); pending = dialog.ShowDialog(owner); await Task.Delay(100);
+            var summary = Descendants(dialog.Content).OfType<TextBlock>().Single(text => text.Name == "ReceivedSharingSummary");
+            Assert.That(summary.Text, Does.Contain(UiText.Get("ReceivedSharingTitle")).And.Contain("Sharing person").And.Contain("Original owner"));
+            var reference = typeof(Wf.DmsItemSharings).Assembly.GetType("CompuMaster.Dms.BrowserUI.SharingSummary")!.GetMethod("Format", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+            Assert.That(summary.Text, Is.EqualTo(reference.Invoke(null, new object[] { item })));
+            var grids = Descendants(dialog.Content).OfType<CommunityToolkit.WinUI.UI.Controls.DataGrid>().ToArray();
+            Assert.That(grids.All(grid => grid.ItemsSource.Cast<object>().Count() == 0), Is.True, "Incoming grants never enter the editable outgoing lists.");
+        }
+        finally { dialog.Close(); if (pending is not null) await pending; owner.Close(); CultureInfo.CurrentUICulture = previous; }
+    });
+
     [Test]
     public Task File_order_starts_with_newest_modification_and_header_actions_sort_names() => UiThread.Run(async () =>
     {
@@ -45,8 +96,16 @@ public sealed class NativeUiTests
             _ = browser.ShowAsync(); await browser.Browser.InitializeAsync(); await Task.Delay(100);
             Assert.That(browser.Browser.SelectedFolder, Is.EqualTo("Documents"));
             Assert.That(browser.Browser.FolderTree.RootNodes.Single().Children.Count, Is.GreaterThan(1));
-            var item = (TreeViewItem)browser.Browser.FolderTree.ContainerFromNode(browser.Browser.FolderTree.RootNodes.Single());
-            Assert.That(Microsoft.UI.Xaml.Automation.AutomationProperties.GetName(item), Is.EqualTo("/"), "The rendered root must expose its directory name, not TreeViewNode.ToString().");
+            TreeViewItem? item = null;
+            var deadline = DateTime.UtcNow.AddSeconds(3);
+            while (item is null && DateTime.UtcNow < deadline)
+            {
+                browser.Browser.UpdateLayout();
+                item = browser.Browser.FolderTree.ContainerFromNode(browser.Browser.FolderTree.RootNodes.Single()) as TreeViewItem;
+                if (item is null) await Task.Delay(20);
+            }
+            Assert.That(item, Is.Not.Null, "The native TreeView must realize its root container before reading its automation properties.");
+            Assert.That(Microsoft.UI.Xaml.Automation.AutomationProperties.GetName(item!), Is.EqualTo("/"), "The rendered root must expose its directory name, not TreeViewNode.ToString().");
         }
         finally { browser.Close(); }
     });

@@ -43,6 +43,7 @@
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserOptions.cs" Link="Shared/BrowserOptions.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserSession.cs" Link="Shared/BrowserSession.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/SharingPolicy.cs" Link="Shared/SharingPolicy.cs" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/SharingSummary.cs" Link="Shared/SharingSummary.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/TransferPlans.cs" Link="Shared/TransferPlans.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/TransferProgress.cs" Link="Shared/TransferProgress.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/FileVersions.cs" Link="Shared/FileVersions.cs" />

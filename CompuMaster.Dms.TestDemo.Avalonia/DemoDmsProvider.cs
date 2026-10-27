@@ -58,6 +58,7 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
         var shared = AddFile("/Documents/Shared.txt", "Example shared file.");
         shared.ExtendedInfosUserSharings.Add(new DmsShareForUser(shared, new DmsUser { ID = "alice", DisplayName = "Alice" }, true, true, false, false, false, false));
         shared.ExtendedInfosHasUserSharings = shared.ExtendedInfosIsShared = true;
+        shared.ExtendedInfosHasOutgoingSharings = true;
         var link = new DmsLink(shared, this) { ID = "demo-link", Name = "Example link", AllowView = true, AllowDownload = true, WebUrl = "https://example.invalid/demo-link" };
         shared.ExtendedInfosLinks.Add(link);
     }
@@ -73,6 +74,7 @@ internal class DemoDmsProvider : NoDmsProvider, IDmsInstanceProvider
     private DmsResourceItem NewItem(string path, DmsResourceItem.ItemTypes type) => new()
     {
         Name = ItemName(path), FullName = path, Folder = ParentDirectoryPath(path), ItemType = type,
+        ExtendedInfosIsReceivedShare = false, ExtendedInfosHasOutgoingSharings = false,
         LastModificationOnLocalTime = DateTime.Now, CreatedOnLocalTime = DateTime.Now,
         ExtendedInfosOwner = new DmsUser { ID = "owner", DisplayName = "Document owner" },
         ExtendedInfosFileID = type == DmsResourceItem.ItemTypes.File ? Guid.NewGuid().ToString("N") : null,

@@ -31,11 +31,11 @@ var selected = await browser.ShowDialogAsync(ownerWindow);
 
 ## Workflows and Windows integration
 
-The browser provides scoped folder/collection navigation, relative selection, lazy expansion without visible placeholder nodes, folder/file modes, sortable columns, multi-file selection, contextual actions, inline folder rename, properties, user/group/link sharing and version history. It retains all eight grouped sharing sections from WinForms. Transfers include recursive directories, empty folders, overwrite/merge decisions, atomic local replacement, progress/cancellation and failed-upload recovery.
+The browser provides scoped folder/collection navigation, relative selection, lazy expansion without visible placeholder nodes, folder/file modes, sortable columns, multi-file selection, contextual actions, inline folder rename, properties, user/group/link sharing and version history. It retains all eight grouped sharing sections from WinForms and shows received grants separately from editable outgoing shares. Transfers include recursive directories, empty folders, overwrite/merge decisions, atomic local replacement, progress/cancellation and failed-upload recovery.
 
 Native Shell dialogs preserve initial directories, multiple file/folder selection and window ownership. Clipboard operations use the Windows clipboard. Explorer drops upload through the same local-path and destination guards. Remote moves require the active in-process grant, matching provider/instance/root and revalidated destination identities. Outward drags provide staged copies; external drop effects never authorize deleting a remote DMS resource. Previews and drag staging remain tracked for cleanup; unresolved cleanup failures are exposed to hosts.
 
-File-type icons use Windows Shell associations without downloading a DMS resource or creating a placeholder file. Shared files retain their document/type icon with a small sharing overlay. Toolbar/context-menu artwork and linked localized resources come from the existing BrowserUI. The component has no WinForms or Avalonia runtime dependency.
+File-type icons use Windows Shell associations without downloading a DMS resource or creating a placeholder file. Shared files retain their document/type icon with a small sharing overlay. Toolbar/context-menu artwork and linked localized resources come from the existing BrowserUI. The component has no WinForms or Avalonia runtime dependency. Errors include redacted technical details and available HTTP status codes; stale missing files/folders are removed from the local view.
 
 ## Demos and verification
 

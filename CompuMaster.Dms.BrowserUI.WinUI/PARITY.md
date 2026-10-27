@@ -17,7 +17,7 @@ Tracking: [#151](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/151),
 
 ## Evidence and limits
 
-The native suite currently contains 62 passing offline tests with zero failures or skips, using Microsoft.WindowsAppSDK 1.8.260921001 and CommunityToolkit.WinUI.UI.Controls.DataGrid 7.1.2. Exact revisions and publication evidence belong in #151 and the implementing PR rather than changing this file after every run.
+The native suite covers the workflows above, including received-sharing provenance and missing-resource recovery, using Microsoft.WindowsAppSDK 1.8.260921001 and CommunityToolkit.WinUI.UI.Controls.DataGrid 7.1.2. Exact revisions, executed/ignored counts and publication evidence belong in #151, #150 and #154 and the implementing PR rather than changing this file after every run.
 
 Live review is read-only. It does not establish remote mutation, every provider/permission combination, exhaustive native drag/drop, ARM64 runtime acceptance, or compatibility with every supported Windows release. Native runtime acceptance was performed on x64 WKS08; the component uses the Windows minimum declared by its SDK/TFM. Existing GUI regression suites and publish verification are separate gates.
 

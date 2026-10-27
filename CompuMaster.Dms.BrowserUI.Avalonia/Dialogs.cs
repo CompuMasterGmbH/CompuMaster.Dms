@@ -114,7 +114,7 @@ internal abstract class OperationWindow : Window
             var browser = Owner;
             while (browser is not null && browser is not DmsBrowser) browser = browser.Owner;
             var failure = (browser as DmsBrowser)?.Browser.ReportFailure(ex, DmsBrowserFailurePhase.Action, GetType().Name);
-            if (failure?.SuppressDialog != true) await Dialogs.MessageAsync(this, UiText.Get("BrowserOperationFailed"));
+            if (failure?.SuppressDialog != true) await Dialogs.MessageAsync(this, BrowserErrorDetails.Format(ex, DmsBrowserFailurePhase.Action, GetType().Name));
             return false;
         }
         finally { running = false; if (Content is Control c) c.IsEnabled = true; }

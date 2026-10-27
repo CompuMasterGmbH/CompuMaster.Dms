@@ -7,10 +7,14 @@ Imports CompuMaster.Dms.Providers
 Public Class DmsItemSharings
 
     Private ReadOnly PendingOperation As New UiAsyncOperation(Me)
+    Private ReadOnly ReceivedSummaryPanel As New Panel With {.Name = "ReceivedSharingSummaryPanel", .AutoScroll = True, .BackColor = Drawing.Color.LightBlue, .Visible = False}
+    Private ReadOnly ReceivedSummaryLabel As New Label With {.Name = "ReceivedSharingSummary", .AutoSize = True, .ForeColor = Drawing.Color.Black, .Padding = New Padding(8)}
 
     ''' <summary>Initializes the resource sharing dialog.</summary>
     Public Sub New()
         InitializeComponent()
+        ReceivedSummaryPanel.Controls.Add(ReceivedSummaryLabel)
+        Me.Controls.Add(ReceivedSummaryPanel)
         ApplyLocalizedText()
     End Sub
 
@@ -50,7 +54,13 @@ Public Class DmsItemSharings
             group.Anchor = AnchorStyles.Top Or AnchorStyles.Left
         Next
         Me.ClientSize = New Drawing.Size(Math.Max(Me.ClientSize.Width, minimumWidth), Me.ClientSize.Height)
-        Me.GroupBoxInternalSharings.SetBounds(14, 14, Me.ClientSize.Width - 28, Me.GroupBoxInternalSharings.Height)
+        Dim contentTop = 14
+        If ReceivedSummaryPanel.Visible Then
+            ReceivedSummaryLabel.MaximumSize = New Drawing.Size(Me.ClientSize.Width - 48, 0)
+            ReceivedSummaryPanel.SetBounds(14, 14, Me.ClientSize.Width - 28, Math.Min(220, ReceivedSummaryLabel.GetPreferredSize(Drawing.Size.Empty).Height + 8))
+            contentTop = ReceivedSummaryPanel.Bottom + 8
+        End If
+        Me.GroupBoxInternalSharings.SetBounds(14, contentTop, Me.ClientSize.Width - 28, Me.GroupBoxInternalSharings.Height)
         Me.GroupBoxExternalSharings.SetBounds(14, Me.GroupBoxInternalSharings.Bottom + 8, Me.ClientSize.Width - 28, Me.GroupBoxExternalSharings.Height)
         Dim rowTop = Me.GroupBoxExternalSharings.Bottom + 8
         Dim rowHeight = Math.Max(Me.LabelCurrentOwner.GetPreferredSize(Drawing.Size.Empty).Height, Me.ButtonCancel.Height)
@@ -133,7 +143,10 @@ Public Class DmsItemSharings
 
     Private Sub RefreshControls()
         Me.Text = Me.DmsProvider.Name & " - " & Me.DmsItem.FullName
-        Me.LabelCurrentOwner.Text = String.Format(Me.LabelCurrentOwner.Text, Me.DmsItem.ExtendedInfosOwner.DisplayName)
+        Me.LabelCurrentOwner.Text = UiStrings.Format("CurrentOwner", If(Me.DmsItem.ExtendedInfosOwner.DisplayName, UiStrings.GetText("UnknownValue")))
+        ReceivedSummaryLabel.Text = SharingSummary.Format(Me.DmsItem)
+        ReceivedSummaryPanel.Visible = True
+        ArrangeLocalizedControls()
         Me.ListViewInternalSharings.Items.Clear()
         'Add group sharings
         If Me.DmsItem.ExtendedInfosHasGroupSharings Then
@@ -220,6 +233,7 @@ Public Class DmsItemSharings
                 Dim CreatedSharing As DmsShareForGroup = CType(StandardSharingSetupForm.DmsUpdatedSharingDetails, DmsShareForGroup)
                 Me.DmsItem.ExtendedInfosHasGroupSharings = True
                 Me.DmsItem.ExtendedInfosGroupSharings.Add(CreatedSharing)
+                SharingSummary.SynchronizeOutgoing(Me.DmsItem)
                 RefreshControls()
                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
@@ -251,6 +265,7 @@ Public Class DmsItemSharings
                 Dim CreatedSharing As DmsShareForUser = CType(StandardSharingSetupForm.DmsUpdatedSharingDetails, DmsShareForUser)
                 Me.DmsItem.ExtendedInfosHasUserSharings = True
                 Me.DmsItem.ExtendedInfosUserSharings.Add(CreatedSharing)
+                SharingSummary.SynchronizeOutgoing(Me.DmsItem)
                 RefreshControls()
                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
             End If
@@ -317,6 +332,7 @@ Public Class DmsItemSharings
                 Case Else
                     Throw New NotImplementedException(UiStrings.GetText("UnknownDerivedClassFromDmsShareBase"))
             End Select
+            SharingSummary.SynchronizeOutgoing(Me.DmsItem)
             RefreshControls()
             RaiseEvent SharingsChanged(Me, EventArgs.Empty)
     End Function
@@ -332,6 +348,7 @@ Public Class DmsItemSharings
             If LinkShareForm.ShowDialog(Me) = DialogResult.OK Then
                 Await PendingOperation.RunAsync(Async Function()
                                                     Await LinkShareForm.DmsUpdatedLinkDetails.RefreshAsync()
+                                                    SharingSummary.SynchronizeOutgoing(Me.DmsItem)
                                                     RefreshControls()
                                                     RaiseEvent SharingsChanged(Me, EventArgs.Empty)
                                                 End Function)
@@ -363,6 +380,7 @@ Public Class DmsItemSharings
                 Await PendingOperation.RunAsync(Async Function()
                                                     Await LinkShareForm.DmsUpdatedLinkDetails.RefreshAsync()
                                                     Me.ReplaceUpdatedLinkInDmsItem(LinkShareForm.DmsUpdatedLinkDetails.ID, LinkShareForm.DmsUpdatedLinkDetails)
+                                                    SharingSummary.SynchronizeOutgoing(Me.DmsItem)
                                                     RefreshControls()
                                                     RaiseEvent SharingsChanged(Me, EventArgs.Empty)
                                                 End Function)
@@ -428,6 +446,7 @@ Public Class DmsItemSharings
             Await PendingOperation.RunAsync(Async Function()
                                                 If Not RemoveLink.ID = Nothing Then Await Me.DmsProvider.DeleteLinkAsync(RemoveLink)
                                                 Me.ReplaceUpdatedLinkInDmsItem(RemoveLink.ID, Nothing)
+                                                SharingSummary.SynchronizeOutgoing(Me.DmsItem)
                                                 RefreshControls()
                                                 RaiseEvent SharingsChanged(Me, EventArgs.Empty)
                                             End Function)

@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>ספק זה אינו מאפשר קבצים ישירות בשורש השרת.</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>דייר / מופע: </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>מזהה דייר / מופע: </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>שותף איתך</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>שיתוף שהתקבל: {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>שיתופים יוצאים: {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>לא ידוע / לא זמין</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>שותף על ידי: {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>בעל המשאב: {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>נמען: {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>עבר בירושה מ: {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>שיתוף ישיר</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>ירושה: לא ידועה</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>הרשאות שיתוף זה: {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>הרשימות להלן מציגות שיתופים יוצאים. השיתופים שהתקבלו למעלה הם לקריאה בלבד.</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>כן</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>לא</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>ללא</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>התיקייה המבוקשת אינה זמינה עוד בשרת. יש לרענן את תצוגת האב במידת הצורך.</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>הקובץ המבוקש אינו זמין עוד בשרת. יש לרענן את התצוגה במידת הצורך.</value></data>
 </root>

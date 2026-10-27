@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>This provider does not accept files directly in its server root.</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>Tenant / instance: </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>Tenant / instance ID: </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>Shared with you</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>Received sharing: {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>Outgoing sharing: {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>Unknown / unavailable</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>Shared by: {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>Resource owner: {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>Recipient: {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>Inherited from: {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>Direct grant</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>Inheritance: unknown</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>Permissions of this grant: {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>The lists below show outgoing grants. Received grants above are read-only.</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>Yes</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>No</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>None</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>The requested folder is no longer available on the server. Refresh the parent view if needed.</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>The requested file is no longer available on the server. Refresh the view if needed.</value></data>
 </root>

@@ -35,4 +35,8 @@
       <ManifestResourceName>CompuMaster.Dms.TestDemo.WinUI.%(Filename)</ManifestResourceName>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/DiagnosticsDetailsTests.cs" Link="DiagnosticsDetailsTests.cs" />
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/ReceivedSharingTests.cs" Link="ReceivedSharingTests.cs" />
+  </ItemGroup>
 </Project>

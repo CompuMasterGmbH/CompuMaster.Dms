@@ -159,3 +159,11 @@ See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between 
 
 ### Sharing setup
 Dialogs for sharing setup for internal users (user accounts) or external users (web links) depend on DMS provider
+
+## Received-sharing metadata
+
+`DmsResourceItem.ExtendedInfosIsReceivedShare` and `ExtendedInfosHasOutgoingSharings` distinguish received and outgoing sharing. Nullable values preserve unknown, unavailable or unsupported states; ownership alone never establishes a received grant. `ExtendedInfosReceivedSharings` retains each grant's actual sharing user, original owner, recipient kind/ID/display name, recipient-visible shared path, inheritance and permission knowledge. Grant permissions are not necessarily the combined effective access and do not authorize editing the incoming source grant.
+
+The compatibility `ExtendedInfosIsShared` aggregate remains available and includes established received sharing. WebDAV/OCS enriches selected resources through `ListRemoteItem`/`ListRemoteItemAsync`, without incoming per-file requests while listing. Matching uses stable resource identities; inherited folder grants require verified recipient-visible ancestor identity. Unverifiable metadata stays unknown. Enrichment is tied to the current authenticated client/root without a cross-account cache. The SDK prerequisite is `CompuMaster.Ocs` 2026.10.27.0 (merged source `12614df25d4ad28ca7f79cb208d52ff7995dac56`).
+
+WinForms, Avalonia and WinUI show a read-only received-sharing summary above the editable outgoing lists and in properties. Browser diagnostics in Avalonia/WinUI retain the friendly message plus redacted exception chains, operation/phase and available HTTP status details. Missing files/folders are removed from the local view; diagnostic events continue exposing the original exception to explicitly attached hosts. See issues #150 and #154 for exact verification and limits.

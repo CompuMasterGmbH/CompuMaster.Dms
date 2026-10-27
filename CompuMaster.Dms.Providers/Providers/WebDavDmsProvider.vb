@@ -359,6 +359,7 @@ Namespace Providers
                 Dim Res As Global.WebDav.WebDavResource = PropfindTask.Result.Resources(0)
                 Dim Result As DmsResourceItem = Me.CreateDmsResourceItem(Res)
                 Me.ApplyOcsSharingMetadata(Result, Me.TryLoadOcsShares(Result.FullName, includeSubFiles:=False))
+                Me.TryLoadReceivedSharingMetadata(Result)
                 Return Result
             Else
                 If PropfindTask.Exception IsNot Nothing Then
@@ -380,6 +381,7 @@ Namespace Providers
                 Dim result = Me.CreateDmsResourceItem(response.Resources(0))
                 Dim shares = Await Me.TryLoadOcsSharesAsync(result.FullName, False, cancellationToken).ConfigureAwait(False)
                 Me.ApplyOcsSharingMetadata(result, shares)
+                Await Me.LoadReceivedSharingMetadataAsync(result, cancellationToken).ConfigureAwait(False)
                 Return result
             End If
             If response.StatusCode = 404 Then Return Nothing
@@ -590,30 +592,32 @@ Namespace Providers
         End Function
 
         Friend Sub ApplyOcsSharingMetadata(dmsResource As DmsResourceItem, shares As IEnumerable(Of OcsShareRecord))
+            If shares Is Nothing Then
+                dmsResource.ExtendedInfosHasOutgoingSharings = Nothing
+                If dmsResource.ExtendedInfosLinks Is Nothing Then dmsResource.ExtendedInfosLinks = New List(Of DmsLink)
+                If dmsResource.ExtendedInfosGroupSharings Is Nothing Then dmsResource.ExtendedInfosGroupSharings = New List(Of DmsShareForGroup)
+                If dmsResource.ExtendedInfosUserSharings Is Nothing Then dmsResource.ExtendedInfosUserSharings = New List(Of DmsShareForUser)
+                Return
+            End If
             dmsResource.ExtendedInfosLinks = New List(Of DmsLink)
             dmsResource.ExtendedInfosGroupSharings = New List(Of DmsShareForGroup)
             dmsResource.ExtendedInfosUserSharings = New List(Of DmsShareForUser)
             dmsResource.ExtendedInfosHasGroupSharings = False
-            dmsResource.ExtendedInfosHasHiddenGroupSharings = False
             dmsResource.ExtendedInfosHasUserSharings = False
-            dmsResource.ExtendedInfosHasHiddenUserSharings = False
-            dmsResource.ExtendedInfosIsShared = False
-
-            If shares Is Nothing Then
-                Return
-            End If
 
             Dim ExpectedPath As String = NormalizeOcsPath(Me.ToOcsPath(dmsResource.FullName))
+            Dim hasOutgoing = False
             For Each ShareInfo As OcsShareRecord In shares
                 If ShareInfo Is Nothing OrElse Not String.Equals(NormalizeOcsPath(ShareInfo.TargetPath), ExpectedPath, StringComparison.Ordinal) Then
                     Continue For
                 End If
 
+                hasOutgoing = True
                 dmsResource.ExtendedInfosIsShared = True
-                If dmsResource.ExtendedInfosOwner.ID = Nothing AndAlso ShareInfo.AdvancedProperties IsNot Nothing AndAlso ShareInfo.AdvancedProperties.Owner <> Nothing Then
+                If dmsResource.ExtendedInfosOwner.ID = Nothing AndAlso ShareInfo.AdvancedProperties IsNot Nothing AndAlso ShareInfo.AdvancedProperties.FileOwner <> Nothing Then
                     dmsResource.ExtendedInfosOwner = New DmsUser With {
-                        .ID = ShareInfo.AdvancedProperties.Owner,
-                        .DisplayName = ShareInfo.AdvancedProperties.DisplaynameOwner
+                        .ID = ShareInfo.AdvancedProperties.FileOwner,
+                        .DisplayName = ShareInfo.AdvancedProperties.FileOwnerDisplayname
                     }
                 End If
 
@@ -629,6 +633,8 @@ Namespace Providers
 
             dmsResource.ExtendedInfosHasUserSharings = dmsResource.ExtendedInfosUserSharings.Count > 0
             dmsResource.ExtendedInfosHasGroupSharings = dmsResource.ExtendedInfosGroupSharings.Count > 0
+            dmsResource.ExtendedInfosHasOutgoingSharings = hasOutgoing OrElse dmsResource.ExtendedInfosHasHiddenGroupSharings OrElse dmsResource.ExtendedInfosHasHiddenUserSharings
+            ReconcileSharingAggregate(dmsResource)
         End Sub
 
         Private Shared Function NormalizeOcsPath(path As String) As String

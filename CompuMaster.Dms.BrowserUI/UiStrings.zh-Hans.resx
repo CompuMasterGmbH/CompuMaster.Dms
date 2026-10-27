@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>此提供程序不允许在服务器根目录直接放置文件。</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>租户 / 实例：</value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>租户 / 实例 ID：</value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>与你共享</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>接收的共享：{0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>传出的共享：{0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>未知 / 不可用</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>共享者：{0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>资源所有者：{0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>接收者：{0}（{1}）</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>继承自：{0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>直接共享</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>继承：未知</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>此共享的权限：{0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>以下列表显示传出的共享。上方接收的共享为只读。</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>是</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>否</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>无</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>服务器上已无法访问请求的文件夹。请按需刷新上级视图。</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>服务器上已无法访问请求的文件。请按需刷新视图。</value></data>
 </root>

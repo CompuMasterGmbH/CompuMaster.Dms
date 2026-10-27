@@ -1902,6 +1902,7 @@ Public Class DmsBrowser
         Message &= System.Environment.NewLine &
                 UiStrings.GetText("PropertiesSharings") & System.Environment.NewLine &
                 "- " & UiStrings.GetText("PropertiesIsShared") & UiStrings.BooleanText(dmsItem.ExtendedInfosIsShared) & System.Environment.NewLine
+        Message &= SharingSummary.Format(dmsItem) & System.Environment.NewLine & System.Environment.NewLine
         If dmsItem.ItemType = DmsResourceItem.ItemTypes.Collection Then
             Message &= "- " & UiStrings.GetText("PropertiesIsPublicCollection") & UiStrings.BooleanText(dmsItem.ExtendedInfosIsPublicCollection) & System.Environment.NewLine
         End If

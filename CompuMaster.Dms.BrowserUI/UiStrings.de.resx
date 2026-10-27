@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>Dieser Provider erlaubt keine Dateien direkt im Server-Stammverzeichnis.</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>Mandant / Instanz: </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>Mandanten- / Instanz-ID: </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>Mit Ihnen geteilt</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>Empfangene Freigabe: {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>Ausgehende Freigaben: {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>Unbekannt / nicht verfügbar</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>Freigegeben durch: {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>Eigentümer des Objekts: {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>Empfänger: {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>Geerbt von: {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>Direkte Freigabe</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>Vererbung: unbekannt</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>Berechtigungen dieser Freigabe: {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>Die folgenden Listen zeigen ausgehende Freigaben. Empfangene Freigaben oben sind schreibgeschützt.</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>Ja</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>Nein</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>Keine</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>Der angefragte Ordner ist auf dem Server nicht mehr verfügbar. Aktualisieren Sie bei Bedarf die übergeordnete Ansicht.</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>Die angefragte Datei ist auf dem Server nicht mehr verfügbar. Aktualisieren Sie bei Bedarf die Ansicht.</value></data>
 </root>
