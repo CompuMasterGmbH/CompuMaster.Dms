@@ -67,6 +67,10 @@ jobs:
               run: |
                 Compress-Archive -DestinationPath bin-browserui-avalonia.zip CompuMaster.Dms.BrowserUI.Avalonia/bin/${{env.BUILD_CONFIGURATION}}
                 Compress-Archive -DestinationPath bin-avalonia-demo.zip CompuMaster.Dms.TestDemo.Avalonia/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-avalonia-demo-webdav.zip CompuMaster.Dms.TestDemo.WebDav.Avalonia/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-avalonia-demo-nextcloud.zip CompuMaster.Dms.TestDemo.Nextcloud.Avalonia/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-avalonia-demo-owncloud-classic.zip CompuMaster.Dms.TestDemo.OwnCloudClassic.Avalonia/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-avalonia-demo-scopevisio-teamwork.zip CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia/bin/${{env.BUILD_CONFIGURATION}}
 
             - name: Publish Avalonia browser and demo binaries
               uses: softprops/action-gh-release@v3
@@ -74,6 +78,10 @@ jobs:
                 files: |
                   bin-browserui-avalonia.zip
                   bin-avalonia-demo.zip
+                  bin-avalonia-demo-webdav.zip
+                  bin-avalonia-demo-nextcloud.zip
+                  bin-avalonia-demo-owncloud-classic.zip
+                  bin-avalonia-demo-scopevisio-teamwork.zip
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

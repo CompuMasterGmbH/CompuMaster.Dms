@@ -79,7 +79,7 @@ dotnet run --project CompuMaster.Dms.TestDemo.Avalonia -c CI_CD
 pwsh .github/scripts/test-avalonia-package.ps1 -Configuration CI_CD
 ```
 
-The default demo is a process-local in-memory DMS requiring no credentials. `--webdav`/`--scopevisio` open an optional manual connection form. Server-mutating demo actions require coordinated exclusive test-server access.
+There are also dedicated Avalonia applications for WebDAV, Nextcloud, ownCloud Classic and Scopevisio Teamwork, each opening its own sign-in window without provider arguments. The general demo remains offline by default. See [demo applications and launch commands](../CompuMaster.Dms.TestDemo.Avalonia/README.md). Server-mutating demo actions require coordinated exclusive test-server access.
 
 The dedicated CI matrix builds, runs isolated headless tests and installs a freshly packed package into a separate consumer on Windows/Linux/macOS without shared remote accounts. Native Windows review is separate from headless tests. Native Linux/macOS file-picker/clipboard/shell acceptance and real-server BrowserUI acceptance remain explicit gates in #148; passing a build or headless test does not complete them.
 

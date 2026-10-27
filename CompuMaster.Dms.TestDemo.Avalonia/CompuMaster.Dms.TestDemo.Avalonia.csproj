@@ -1,15 +1,3 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <Configurations>Debug;Release;CI_CD</Configurations>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
-    <ProjectReference Include="../CompuMaster.Dms.BrowserUI.Avalonia/CompuMaster.Dms.BrowserUI.Avalonia.csproj" />
-  </ItemGroup>
+  <Import Project="AvaloniaDemo.props" />
 </Project>

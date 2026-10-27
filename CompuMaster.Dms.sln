@@ -28,6 +28,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.BrowserUI.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.Avalonia", "CompuMaster.Dms.TestDemo.Avalonia\CompuMaster.Dms.TestDemo.Avalonia.csproj", "{BC854493-CC53-4ED4-87E8-EA3172EA1430}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.WebDav.Avalonia", "CompuMaster.Dms.TestDemo.WebDav.Avalonia\CompuMaster.Dms.TestDemo.WebDav.Avalonia.csproj", "{3E268D2E-71DD-421F-9947-4926DC4FCCB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.Nextcloud.Avalonia", "CompuMaster.Dms.TestDemo.Nextcloud.Avalonia\CompuMaster.Dms.TestDemo.Nextcloud.Avalonia.csproj", "{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.OwnCloudClassic.Avalonia", "CompuMaster.Dms.TestDemo.OwnCloudClassic.Avalonia\CompuMaster.Dms.TestDemo.OwnCloudClassic.Avalonia.csproj", "{EEC0A60F-8976-4A27-AF11-FB928581E63C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia", "CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia\CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia.csproj", "{7539125D-544F-4817-9F2A-064586A03420}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CI_CD|Any CPU = CI_CD|Any CPU
@@ -35,6 +43,30 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B07C7F-1DE9-42A8-816F-71D31E0D8756}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEC0A60F-8976-4A27-AF11-FB928581E63C}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{EEC0A60F-8976-4A27-AF11-FB928581E63C}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{EEC0A60F-8976-4A27-AF11-FB928581E63C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEC0A60F-8976-4A27-AF11-FB928581E63C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEC0A60F-8976-4A27-AF11-FB928581E63C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEC0A60F-8976-4A27-AF11-FB928581E63C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7539125D-544F-4817-9F2A-064586A03420}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{7539125D-544F-4817-9F2A-064586A03420}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{7539125D-544F-4817-9F2A-064586A03420}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7539125D-544F-4817-9F2A-064586A03420}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7539125D-544F-4817-9F2A-064586A03420}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7539125D-544F-4817-9F2A-064586A03420}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0577ADD-3B69-4620-BA08-00D483973CA4}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
 		{D0577ADD-3B69-4620-BA08-00D483973CA4}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
 		{D0577ADD-3B69-4620-BA08-00D483973CA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
