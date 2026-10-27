@@ -41,7 +41,8 @@ try {
     $versionParts = $Version.Split('-', 2)
     $versionSuffix = if ($versionParts.Count -gt 1) { $versionParts[1] } else { '' }
     $runId = [Guid]::NewGuid().ToString('N').Substring(0, 8)
-    $workRoot = Join-Path $repoRoot "artifacts/avalonia-nuget-$Version-$($revision.Substring(0, 7))-$runId"
+    # Keep isolated package paths below Windows MAX_PATH even for prerelease versions.
+    $workRoot = Join-Path $repoRoot "artifacts/nuget-$($revision.Substring(0, 7))-$runId"
     $feed = Join-Path $workRoot 'feed'
     $consumer = Join-Path $workRoot 'consumer'
     if (Test-Path -LiteralPath $workRoot) { throw 'Preparation directory already exists.' }
