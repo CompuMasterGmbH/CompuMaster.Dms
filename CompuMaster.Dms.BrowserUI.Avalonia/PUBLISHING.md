@@ -33,7 +33,7 @@ NuGet normalizes a trailing zero version component: 2026.10.27.0 is normally rep
 ## Publication prerequisites and order
 
 - Recheck that the chosen version is unused in NuGet, Git tags and GitHub releases; preparation does not reserve it.
-- Merge the reviewed implementation PR into main and wait for its complete successful post-merge build-and-test workflow, including the required serialized provider/server coverage. Record any reduced coverage explicitly.
+- Merge the reviewed implementation PR into main and complete the required verification under AGENTS.md. GUI-only changes with unchanged provider/SDK implementation may use the relevant successful local GUI suites instead of CI build/test; other changes require the successful post-merge workflow and applicable serialized provider/server coverage. Record exact local results and reduced coverage explicitly.
 - Verify the publishing account/API-key scope permits the new CompuMaster.Dms.BrowserUI.Avalonia ID as well as CompuMaster.Dms.Providers. Permission to update the existing WinForms package does not establish permission to create this new ID. Never paste a key into source, a report or a command transcript.
 - Obtain immediate explicit user approval before creating a release.
 - Create the GitHub release with the approved numeric version tag. PublishRelease.yml packs/pushes providers, WinForms and Avalonia and attaches their binaries and the dedicated demos. Do not dispatch a production publish from a feature branch.
