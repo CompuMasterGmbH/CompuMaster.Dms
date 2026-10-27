@@ -54,15 +54,11 @@ internal sealed class DmsItemSharings : OperationWindow
         Title = UiText.Get("SharingsTitle") + " – " + item.FullName;
         var content = new StackPanel { Spacing = 8 };
         content.Children.Add(new TextBlock { Text = UiText.Format("CurrentOwner", item.ExtendedInfosOwner.DisplayName) });
-        content.Children.Add(new TextBlock { Text = UiText.Get("InternalSharings"), FontWeight = FontWeight.Bold });
-        content.Children.Add(internalShares);
-        content.Children.Add(Toolbar(
+        content.Children.Add(SharingGroup("InternalSharings", internalShares, Toolbar(
             ("ActionAddUser", () => EditStandardAsync(false, null)), ("ActionAddGroup", () => EditStandardAsync(true, null)),
-            ("ActionEdit", EditInternalAsync), ("ActionDelete", () => DeleteAsync(internalShares))));
-        content.Children.Add(new TextBlock { Text = UiText.Get("ExternalSharings"), FontWeight = FontWeight.Bold });
-        content.Children.Add(links);
-        content.Children.Add(Toolbar(("ActionAdd", () => EditLinkAsync(null)), ("ActionEdit", EditSelectedLinkAsync),
-            ("ActionDelete", () => DeleteAsync(links)), ("ActionCopyWebLink", CopyLinkAsync)));
+            ("ActionEdit", EditInternalAsync), ("ActionDelete", () => DeleteAsync(internalShares)))));
+        content.Children.Add(SharingGroup("ExternalSharings", links, Toolbar(("ActionAdd", () => EditLinkAsync(null)), ("ActionEdit", EditSelectedLinkAsync),
+            ("ActionDelete", () => DeleteAsync(links)), ("ActionCopyWebLink", CopyLinkAsync))));
         Content = Dialogs.Layout(new ScrollViewer { Content = content },
             Dialogs.Buttons(Dialogs.Button("ActionClose", Close)));
         Opened += async (_, _) => await RunAsync(async () =>
@@ -75,6 +71,11 @@ internal sealed class DmsItemSharings : OperationWindow
         internalShares.DoubleTapped += async (_, _) => await RunAsync(EditInternalAsync);
         links.DoubleTapped += async (_, _) => await RunAsync(EditSelectedLinkAsync);
     }
+    private static GroupBox SharingGroup(string key, DataGrid list, Control actions) => new()
+    {
+        Name = key + "Group", Header = UiText.Get(key), Padding = new Thickness(10),
+        Content = new StackPanel { Spacing = 6, Children = { list, actions } }
+    };
     private WrapPanel Toolbar(params (string Key, Func<Task> Action)[] entries)
     {
         var panel = new WrapPanel();
