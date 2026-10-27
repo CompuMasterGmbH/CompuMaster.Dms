@@ -23,11 +23,41 @@ public sealed class BrowserUiTests
         }
     }
     internal static Button FindButton(Control control, string key) => control.GetVisualDescendants().OfType<Button>()
-        .Single(b => b.Content?.ToString() == Dialogs.Caption(key));
+        .Single(b => b.Name == key || b.Content?.ToString() == Dialogs.Caption(key));
     internal static void Click(Button button)
     {
         Assert.That(button.IsEnabled, Is.True, "The button should be enabled.");
         button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    }
+    [AvaloniaTest]
+    [TestCase("de")]
+    [TestCase("en")]
+    [TestCase("ar")]
+    public async Task Toolbar_icons_keep_localized_captions_accessible_names_and_disabled_state(string culture)
+    {
+        var previous = System.Globalization.CultureInfo.CurrentUICulture;
+        System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(culture);
+        DmsBrowser? window = null;
+        try
+        {
+            window = new DmsBrowser(new DemoDmsProvider(), new DmsBrowserOptions
+                { SelectedFolder = "Documents", AllowedActions = FileOrFolderActions.AllowUploadFiles });
+            window.Show(); await window.Browser.InitializeAsync(); await IdleAsync(window.Browser);
+            var upload = FindButton(window.Browser, "ActionUpload");
+            Assert.That(global::Avalonia.Automation.AutomationProperties.GetName(upload), Is.EqualTo(Dialogs.Caption("ActionUpload")));
+            var content = (StackPanel)upload.Content!;
+            Assert.That(content.Children.OfType<TextBlock>().Single().Text, Is.EqualTo(Dialogs.Caption("ActionUpload")));
+            var icon = content.Children.OfType<Image>().Single();
+            Assert.That(icon.Source, Is.Not.Null);
+            Assert.That(icon.Bounds.Width, Is.GreaterThan(0));
+            Assert.That(icon.Bounds.Height, Is.GreaterThan(0));
+            Assert.That(icon.Opacity, Is.EqualTo(1));
+            upload.IsEnabled = false;
+            Assert.That(icon.Opacity, Is.LessThan(1));
+            upload.IsEnabled = true;
+            Assert.That(icon.Opacity, Is.EqualTo(1));
+        }
+        finally { window?.Close(); System.Globalization.CultureInfo.CurrentUICulture = previous; }
     }
     [AvaloniaTest]
     public async Task Browser_loads_images_localization_theme_columns_and_returns_selected_files()

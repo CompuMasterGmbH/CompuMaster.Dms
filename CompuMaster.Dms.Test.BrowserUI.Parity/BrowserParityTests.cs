@@ -25,7 +25,8 @@ namespace CompuMaster.Dms.Test.BrowserUI.Parity;
 public sealed class ParityApplication : global::Avalonia.Application
 {
     public override void Initialize() => Styles.Add(new FluentTheme());
-    public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<ParityApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
+    public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<ParityApplication>().UseSkia()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
 }
 
 [SetUpFixture]
@@ -41,7 +42,8 @@ public sealed class WorkstationNotice
 [TestFixture]
 public sealed class BrowserParityTests
 {
-    private sealed record State(bool Visible, bool Enabled, bool? Checked = null);
+    private sealed record IconData(int Width, int Height, byte[] Pixels);
+    private sealed record State(bool Visible, bool Enabled, bool? Checked = null, IconData? Icon = null);
     private sealed record Snapshot(Dictionary<string, State> Controls, string[] Files, int Selection);
     private static readonly (string Name, string Native)[] Toolbar =
     {
@@ -79,6 +81,40 @@ public sealed class BrowserParityTests
             if (field is not null) return (T)field.GetValue(target)!;
         }
         throw new MissingFieldException(name);
+    }
+    private static IconData? IconPixels(System.Drawing.Image? image)
+    {
+        if (image is null) return null;
+        using var bitmap = new System.Drawing.Bitmap(image);
+        var pixels = new byte[bitmap.Width * bitmap.Height * 4];
+        for (var y = 0; y < bitmap.Height; y++)
+            for (var x = 0; x < bitmap.Width; x++)
+            {
+                var pixel = bitmap.GetPixel(x, y);
+                var offset = (y * bitmap.Width + x) * 4;
+                // Transparent RGB values are not visible and may differ after decoding.
+                if (pixel.A == 0) continue;
+                pixels[offset] = (byte)(pixel.R * pixel.A / 255); pixels[offset + 1] = (byte)(pixel.G * pixel.A / 255);
+                pixels[offset + 2] = (byte)(pixel.B * pixel.A / 255); pixels[offset + 3] = pixel.A;
+            }
+        return new(bitmap.Width, bitmap.Height, pixels);
+    }
+    private static IconData? IconPixels(global::Avalonia.Controls.Image? image)
+    {
+        if (image?.Source is not global::Avalonia.Media.Imaging.Bitmap source) return null;
+        using var encoded = new MemoryStream(); source.Save(encoded, global::Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default); encoded.Position = 0;
+        using var bitmap = new System.Drawing.Bitmap(encoded);
+        return IconPixels(bitmap);
+    }
+    private static void AssertState(State actual, State expected, string key)
+    {
+        Assert.That(actual with { Icon = null }, Is.EqualTo(expected with { Icon = null }), key);
+        Assert.That(actual.Icon is null, Is.EqualTo(expected.Icon is null), key + " icon presence");
+        if (actual.Icon is not { } icon || expected.Icon is not { } reference) return;
+        Assert.That((icon.Width, icon.Height), Is.EqualTo((reference.Width, reference.Height)), key + " icon dimensions");
+        // Skia/GDI differ slightly when premultiplying translucent edge pixels.
+        Assert.That(icon.Pixels.Zip(reference.Pixels).Max(pair => Math.Abs(pair.First - pair.Second)),
+            Is.LessThanOrEqualTo(2), key + " must use the same icon artwork as WinForms");
     }
     private static T Native<T>(Func<T> action)
     {
@@ -126,17 +162,17 @@ public sealed class BrowserParityTests
             // ToolStrip items may be in the native overflow menu; Available is their
             // semantic presence, independently of that platform's packing/layout.
             var present = item.Available && item.Owner!.Visible;
-            states["toolbar:" + key] = new(present, present && item.Enabled);
+            states["toolbar:" + key] = new(present, present && item.Enabled, Icon: IconPixels(item.Image));
         }
         foreach (var (key, native) in FolderMenu)
         {
             var item = Member<Forms.ToolStripItem>(browser, native);
-            states["folder:" + key] = new(item.Available, item.Available && item.Enabled);
+            states["folder:" + key] = new(item.Available, item.Available && item.Enabled, Icon: IconPixels(item.Image));
         }
         foreach (var (key, native) in FileMenu)
         {
             var item = Member<Forms.ToolStripItem>(browser, native);
-            states["file:" + key] = new(item.Available, item.Available && item.Enabled);
+            states["file:" + key] = new(item.Available, item.Available && item.Enabled, Icon: IconPixels(item.Image));
         }
         foreach (var (key, native) in new[] { ("ActionCreateFolder", "ButtonCreateNewFolder"), ("ActionOkay", "ButtonOkay"),
             ("ActionCancel", "ButtonCancel"), ("ActionClose", "ButtonClose"), ("ActionShowFiles", "ButtonShowFiles") })
@@ -171,17 +207,18 @@ public sealed class BrowserParityTests
             foreach (var (key, _) in Toolbar)
             {
                 var control = browser.Browser.GetVisualDescendants().OfType<Button>().Single(b => b.Name == key);
-                states["toolbar:" + key] = new(control.IsEffectivelyVisible, control.IsEffectivelyVisible && control.IsEnabled);
+                states["toolbar:" + key] = new(control.IsEffectivelyVisible, control.IsEffectivelyVisible && control.IsEnabled,
+                    Icon: IconPixels((control.Content as StackPanel)?.Children.OfType<global::Avalonia.Controls.Image>().SingleOrDefault()));
             }
             foreach (var (key, _) in FolderMenu)
             {
                 var item = browser.Browser.FolderTree.ContextMenu!.Items.OfType<MenuItem>().Single(i => i.Name == key);
-                states["folder:" + key] = new(item.IsVisible, item.IsVisible && item.IsEnabled);
+                states["folder:" + key] = new(item.IsVisible, item.IsVisible && item.IsEnabled, Icon: IconPixels(item.Icon as global::Avalonia.Controls.Image));
             }
             foreach (var (key, _) in FileMenu)
             {
                 var item = browser.Browser.FileGrid.ContextMenu!.Items.OfType<MenuItem>().Single(i => i.Name == key);
-                states["file:" + key] = new(item.IsVisible, item.IsVisible && item.IsEnabled);
+                states["file:" + key] = new(item.IsVisible, item.IsVisible && item.IsEnabled, Icon: IconPixels(item.Icon as global::Avalonia.Controls.Image));
             }
             foreach (var key in new[] { "ActionCreateFolder", "ActionOkay", "ActionCancel", "ActionClose", "ActionShowFiles" })
             {
@@ -191,7 +228,7 @@ public sealed class BrowserParityTests
             }
             using (Assert.EnterMultipleScope())
             {
-                foreach (var key in expected.Controls.Keys) Assert.That(states[key], Is.EqualTo(expected.Controls[key]), key);
+                foreach (var key in expected.Controls.Keys) AssertState(states[key], expected.Controls[key], key);
                 Assert.That(browser.Browser.Session.Files.Select(row => row.Name).Order(), Is.EqualTo(expected.Files));
                 Assert.That(browser.Browser.FileGrid.SelectedItems.Count, Is.EqualTo(expected.Selection));
             }
@@ -241,7 +278,8 @@ public sealed class BrowserParityTests
             foreach (var (key, _) in FolderMenu)
             {
                 var item = browser.Browser.FolderTree.ContextMenu!.Items.OfType<MenuItem>().Single(i => i.Name == key);
-                Assert.That(new State(item.IsVisible, item.IsVisible && item.IsEnabled), Is.EqualTo(expected.Controls["folder:" + key]), key);
+                AssertState(new State(item.IsVisible, item.IsVisible && item.IsEnabled, Icon: IconPixels(item.Icon as global::Avalonia.Controls.Image)),
+                    expected.Controls["folder:" + key], key);
             }
             var share = browser.Browser.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "ActionFolderSharings");
             Assert.That(share.IsVisible, Is.EqualTo(!restricted));
