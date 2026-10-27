@@ -130,8 +130,8 @@ Public Class DmsBrowserSmokeTest
             Next
 
             ClassicAssert.IsNotNull(list)
-            ClassicAssert.AreEqual("First tenant", list.GetItemText(list.Items(0)))
-            ClassicAssert.AreEqual("Second tenant", list.GetItemText(list.Items(1)))
+            ClassicAssert.AreEqual("Second tenant", list.GetItemText(list.Items(0)))
+            ClassicAssert.AreEqual("First tenant", list.GetItemText(list.Items(1)))
             ClassicAssert.AreEqual("tenant-two", picker.SelectedInstance.ID)
         End Using
     End Sub
