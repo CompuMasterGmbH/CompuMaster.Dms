@@ -204,7 +204,8 @@ public sealed class AdvancedWorkflowTests
             dialog.Show(owner);
             var timeout = DateTime.UtcNow.AddSeconds(5);
             while (dialog.IsRunning && DateTime.UtcNow < timeout) await Task.Delay(5);
-            Assert.That(dialog.List.ItemCount, Is.EqualTo(1));
+            Assert.That(dialog.List.ItemsSource.Cast<VersionRow>().Count(), Is.EqualTo(1));
+            Assert.That(dialog.List.Columns.Count, Is.EqualTo(5));
             Assert.That(dialog.List.ItemsSource!.Cast<VersionRow>().Single().ToString(), Does.Contain("version-1").And.Contain("Alice"));
         }
         finally { dialog.Close(); owner.Close(); }

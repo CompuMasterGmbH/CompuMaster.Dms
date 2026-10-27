@@ -12,6 +12,39 @@ namespace CompuMaster.Dms.Test.BrowserUI.Avalonia;
 [TestFixture]
 public sealed class SharingTests
 {
+    [AvaloniaTest]
+    public void Link_permission_toggles_preserve_WinForms_validation_and_download_dependency()
+    {
+        var provider = new DemoDmsProvider { ProviderKind = BaseDmsProvider.DmsProviders.Scopevisio };
+        var item = provider.Items.First(i => i.Name == "Welcome.txt");
+        var link = new DmsLink(item, provider) { AllowView = true };
+        var policy = new SharingPolicy(provider);
+        var editor = new PermissionEditor(policy, link, item, true, true);
+        CheckBox Permission(string name) => editor.Control.Children.OfType<CheckBox>().Single(c => c.Name == "Permission" + name);
+        Permission("Upload").IsChecked = true;
+        Assert.That(editor.Value("View"), Is.True, "WinForms validates conflicting view/upload choices on Save.");
+        editor.Apply(link);
+        Assert.Throws<DmsUserInputInvalidException>((Action)(() => policy.Validate(link)));
+        Permission("View").IsChecked = false;
+        Permission("Download").IsChecked = true;
+        Assert.That(editor.Value("View"), Is.True);
+        Assert.That(editor.Value("Upload"), Is.True);
+        Permission("View").IsChecked = false;
+        Assert.That(editor.Value("Download"), Is.False);
+    }
+
+    [AvaloniaTest]
+    public void Standard_share_hiding_view_clears_dependent_permissions_but_retains_upload()
+    {
+        var provider = new DemoDmsProvider();
+        var item = provider.Items.First(i => i.Name == "Welcome.txt");
+        var share = new DmsShareForUser(item, new DmsUser { ID = "fixture" }, true, true, true, true, true, true);
+        var editor = new PermissionEditor(new SharingPolicy(provider), share, item, false, false);
+        editor.Control.Children.OfType<CheckBox>().Single(c => c.Name == "PermissionView").IsChecked = false;
+        Assert.That(new[] { "Download", "Edit", "Delete", "Share" }.Select(editor.Value), Is.All.False);
+        Assert.That(editor.Value("Upload"), Is.True);
+    }
+
     [Test]
     public async Task Link_creation_reconciles_provider_updates_and_deletion_updates_shared_flags()
     {
@@ -143,7 +176,8 @@ public sealed class SharingTests
         try
         {
             dialog.Show(owner); await WaitAsync(dialog);
-            var lists = dialog.GetVisualDescendants().OfType<ListBox>().ToArray();
+            var lists = dialog.GetVisualDescendants().OfType<DataGrid>().ToArray();
+            Assert.That(lists.Select(grid => grid.Columns.Count), Is.EqualTo(new[] { 3, 3 }));
             var rows = lists.SelectMany(l => l.ItemsSource!.Cast<SharingRow>()).ToArray();
             Assert.That(rows.Any(r => r.Share is null && r.Description.Contains(UiText.Get("HiddenValue"))), Is.True);
             Assert.That(rows.Any(r => r.Share is DmsLink), Is.True);

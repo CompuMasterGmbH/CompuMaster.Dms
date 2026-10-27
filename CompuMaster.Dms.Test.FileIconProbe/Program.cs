@@ -9,7 +9,13 @@ internal static class Program
     {
         foreach (var extension in new[] { ".pdf", ".csv", ".txt", ".zip", ".dms-unknown-extension" })
         {
-            var icon = PlatformFileIcons.Read(extension, 48);
+            FileIconData? icon;
+            try { icon = OperatingSystem.IsLinux() ? LinuxFileIcons.Read(extension, 48) : PlatformFileIcons.Read(extension, 48); }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Native icon probe failed: " + ex.GetType().Name);
+                return 1;
+            }
             var pixels = icon is { Width: > 0, Height: > 0 } && icon.Data.Length == icon.Width * icon.Height * 4 &&
                 Enumerable.Range(0, icon.Width * icon.Height).Any(i => icon.Data[i * 4 + 3] != 0);
             var png = icon is { Width: 0 } && icon.Data.Length > 24 &&

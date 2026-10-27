@@ -124,7 +124,16 @@ public sealed partial class DmsBrowserControl : UserControl
             image.Bind(Image.SourceProperty, new Binding("Icon"));
             var text = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
             text.Bind(TextBlock.TextProperty, new Binding("Name"));
-            return new StackPanel { Orientation = Orientation.Horizontal, Children = { image, text } };
+            var editor = new TextBox { Name = "FolderNameEditor", IsVisible = false, MinWidth = 140, DataContext = node };
+            editor.KeyDown += async (_, e) =>
+            {
+                if (e.Key is not (Key.Enter or Key.Escape)) return;
+                e.Handled = true;
+                if (e.Key == Key.Escape) CancelFolderRename();
+                else await CommitFolderRenameAsync();
+            };
+            editor.LostFocus += async (_, _) => { if (ReferenceEquals(editingFolder, editor)) await CommitFolderRenameAsync(); };
+            return new StackPanel { Orientation = Orientation.Horizontal, Children = { image, new Grid { Children = { text, editor } } } };
         }, node => node.Children);
         tree.Styles.Add(new global::Avalonia.Styling.Style(x => x.OfType<TreeViewItem>())
         {
@@ -140,7 +149,7 @@ public sealed partial class DmsBrowserControl : UserControl
             if (suppressSelection || tree.SelectedItem is not BrowserNode node || node.Placeholder) return;
             await UiAsync(() => Session.SelectAsync(node));
         };
-        tree.DoubleTapped += (_, _) => { if (!IsBusy && Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); };
+        tree.DoubleTapped += (_, _) => { if (editingFolder is null && !IsBusy && Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); };
         files.DoubleTapped += async (_, _) =>
         {
             if (files.SelectedItems.Count == 0) return;
@@ -219,7 +228,11 @@ public sealed partial class DmsBrowserControl : UserControl
             if (IsBusy) return;
             if (e.Key == Key.F5) { e.Handled = true; await UiAsync(() => Session.RefreshAsync()); }
             else if (e.Key == Key.F2 && Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles))
-            { e.Handled = true; await UiAsync(() => files.IsKeyboardFocusWithin ? FileActionAsync(ResourceAction.Rename) : FolderActionAsync(ResourceAction.Rename)); }
+            {
+                e.Handled = true;
+                if (files.IsKeyboardFocusWithin) await UiAsync(() => FileActionAsync(ResourceAction.Rename));
+                else BeginFolderRename();
+            }
             else if (e.Key == Key.Delete && Allowed(FileOrFolderActions.AllowDeleteFiles))
             { e.Handled = true; await UiAsync(files.IsKeyboardFocusWithin ? DeleteFilesAsync : DeleteFolderAsync); }
         };

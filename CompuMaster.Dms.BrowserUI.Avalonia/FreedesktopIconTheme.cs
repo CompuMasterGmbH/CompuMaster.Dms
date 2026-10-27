@@ -40,7 +40,8 @@ internal sealed class FreedesktopIconTheme
     internal string? Find(IEnumerable<string> names, int pixels)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var themes = Themes(theme, seen).Concat(Themes("hicolor", seen)).ToArray();
+        var themes = Themes(theme, seen).Concat(Themes("Adwaita", seen)).Concat(Themes("hicolor", seen))
+            .Where(name => name != "hicolor").Append("hicolor").Distinct(StringComparer.Ordinal).ToArray();
         foreach (var name in names.Distinct(StringComparer.Ordinal).Where(SafeName))
         {
             foreach (var current in themes)

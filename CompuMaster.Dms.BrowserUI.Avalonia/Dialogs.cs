@@ -2,6 +2,7 @@
 using global::Avalonia.Controls;
 using global::Avalonia.Layout;
 using global::Avalonia.Input;
+using global::Avalonia.Markup.Xaml.Styling;
 
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
 
@@ -88,6 +89,8 @@ internal abstract class OperationWindow : Window
     internal bool IsRunning => running;
     internal OperationWindow()
     {
+        Styles.Add(new StyleInclude(new Uri("avares://CompuMaster.Dms.BrowserUI.Avalonia/"))
+            { Source = new Uri("avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml") });
         FlowDirection = UiText.LayoutDirection;
         MinWidth = 440; MinHeight = 300;
         Width = 720; Height = 640;
@@ -115,7 +118,7 @@ internal abstract class OperationWindow : Window
     internal static TextBox Field(StackPanel panel, string key, string? value = null, bool readOnly = false)
     {
         panel.Children.Add(new TextBlock { Text = Dialogs.Caption(key), Margin = new Thickness(0, 6, 0, 2) });
-        var field = new TextBox { Text = value, IsReadOnly = readOnly };
+        var field = new TextBox { Name = key, Text = value, IsReadOnly = readOnly };
         panel.Children.Add(field);
         return field;
     }

@@ -284,4 +284,36 @@ public sealed class BrowserParityTests
         }
         finally { CultureInfo.CurrentCulture = previous; }
     }
+
+    [AvaloniaTest]
+    public async Task Inline_folder_rename_updates_the_same_resource_subtree_and_selection_as_WinForms()
+    {
+        const string target = "unittests_inline_renamed";
+        var expected = Native(() =>
+        {
+            var provider = new DemoDmsProvider();
+            using var dispatcher = new UiTestDispatcher();
+            using var browser = new ReferenceBrowser(provider, 2047, false, true);
+            browser.Show(); dispatcher.WaitForEvents();
+            var tree = Member<Forms.TreeView>(browser, "TreeViewDmsFolders");
+            Assert.That(provider.Items.Any(item => item.Name == target), Is.False);
+            typeof(Wf.DmsBrowser).GetMethod("CommitFolderLabelEdit", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(browser, new object[] { tree, new Forms.NodeLabelEditEventArgs(tree.SelectedNode!, target) });
+            dispatcher.WaitForEvents();
+            Assert.That(browser.Failure, Is.Null);
+            return provider.Items.Select(item => item.FullName).Order().ToArray();
+        });
+        var actual = new DemoDmsProvider();
+        var window = new Av.DmsBrowser(actual, new Av.DmsBrowserOptions { SelectedFolder = "Documents", AllowedActions = (Av.FileOrFolderActions)2047 });
+        try
+        {
+            window.Show(); await window.Browser.InitializeAsync();
+            window.Browser.BeginFolderRename();
+            var editor = window.Browser.FolderTree.GetVisualDescendants().OfType<TextBox>().Single(input => input.Name == "FolderNameEditor" && input.IsVisible);
+            editor.Text = target; await window.Browser.CommitFolderRenameAsync();
+            Assert.That(actual.Items.Select(item => item.FullName).Order(), Is.EqualTo(expected));
+            Assert.That(window.Browser.SelectedFolder?.Trim('/'), Is.EqualTo(target));
+        }
+        finally { window.Close(); }
+    }
 }
