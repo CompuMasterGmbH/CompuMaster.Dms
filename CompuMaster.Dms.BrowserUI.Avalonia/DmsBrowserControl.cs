@@ -251,6 +251,7 @@ public sealed partial class DmsBrowserControl : UserControl
     private void AddAction(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, ContextMenu menu, bool sharing = false)
     {
         var button = Dialogs.Button(key, async () => await UiAsync(action)); button.Name = key;
+        BrowserActionIcons.Apply(button, key);
         fileToolbar.Children.Add(button);
         actions.Add((button, () => (!flag.HasValue || Allowed(flag.Value)) &&
             (key == "FileVersionHistory" || key == "ActionDownloadFolder" ? enabled() : true),
@@ -259,7 +260,8 @@ public sealed partial class DmsBrowserControl : UserControl
     }
     private void AddMenu(ContextMenu menu, string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, bool sharing = false)
     {
-        var item = new MenuItem { Name = key, Header = Dialogs.Caption(key) };
+        var item = new MenuItem { Name = key, Header = Dialogs.Caption(key),
+            Icon = BrowserActionIcons.Create(key, folderMenu: menu == tree.ContextMenu, menu: true) };
         item.Click += async (_, _) => await UiAsync(action);
         menu.Items.Add(item); actions.Add((item, () => (!flag.HasValue || Allowed(flag.Value)) &&
             (key is "FileVersionHistory" or "ActionDownloadFolder" ? enabled() : true),
