@@ -3,6 +3,7 @@
 ## Communication and scope
 
 - Write GitHub-facing text, including issues, comments, pull request descriptions, release notes, and commit messages, in English. Communicate with the user in their language.
+- In German user-facing reports, call tests without real DMS servers "Offline-Tests (mit Test-Providern)" rather than using "isolierte Tests" alone. Describe headless execution separately; offline tests can still open native GUI windows. Keep existing technical test names/categories unchanged unless a rename is explicitly requested.
 - Keep changes focused on the requested issue. Avoid unrelated API changes, features, and broad documentation cleanups.
 
 ## Issue tracking
