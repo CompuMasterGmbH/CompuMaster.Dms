@@ -616,6 +616,7 @@ public sealed partial class DmsBrowserControl : UserControl
 internal static class BrowserIcons
 {
     private static readonly Dictionary<string, IImage> Cache = new();
+    private static IImage? sharedFile;
     internal static IImage Load(string name)
     {
         if (!Cache.TryGetValue(name, out var image))
@@ -631,5 +632,9 @@ internal static class BrowserIcons
             node.Item?.ItemType == DmsResourceItem.ItemTypes.Collection ? "iconfinder_bookmark-ui-ux-mobile-web_4960727" : "iconfinder_Folder-ui-ux-mobile-web_4960713";
         return Load(name + (node.Shared ? " - Shared" : ""));
     }
-    internal static IImage File(bool shared) => Load(shared ? "sharing" : "iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706");
+    internal static IImage File(bool shared)
+    {
+        var document = Load("iconfinder_Document-ui-ux-mobile-web-office-microsoftofficeico_4960706");
+        return shared ? sharedFile ??= PlatformFileIcons.Decorate(document, true) : document;
+    }
 }
