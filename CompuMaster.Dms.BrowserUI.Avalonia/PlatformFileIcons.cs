@@ -88,9 +88,7 @@ internal static class PlatformFileIcons
         target.Source = BrowserIcons.File(shared);
         var weak = new WeakReference<Image>(target);
         var extension = Extension(name);
-        var scaling = TopLevel.GetTopLevel(target)?.RenderScaling ?? 1;
-        var size = scaling > 2 ? 96 : scaling > 1 ? 48 : 32;
-        async Task UpdateAsync()
+        async Task UpdateAsync(int size)
         {
             try
             {
@@ -104,7 +102,21 @@ internal static class PlatformFileIcons
             catch (OperationCanceledException) { }
             catch (InvalidOperationException) { /* The host may already be shutting down. */ }
         }
-        _ = UpdateAsync();
+        void Request(Image image)
+        {
+            var scaling = TopLevel.GetTopLevel(image)?.RenderScaling ?? 1;
+            _ = UpdateAsync(scaling > 2 ? 96 : scaling > 1 ? 48 : 32);
+        }
+        if (TopLevel.GetTopLevel(target) is not null) Request(target);
+        else
+        {
+            EventHandler<VisualTreeAttachmentEventArgs>? attached = null;
+            attached = (sender, _) =>
+            {
+                var image = (Image)sender!; image.AttachedToVisualTree -= attached; Request(image);
+            };
+            target.AttachedToVisualTree += attached;
+        }
     }
     internal static IImage Decorate(IImage native, bool shared)
     {

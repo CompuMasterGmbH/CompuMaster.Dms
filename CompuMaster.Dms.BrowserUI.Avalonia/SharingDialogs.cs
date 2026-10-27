@@ -2,6 +2,7 @@
 using CompuMaster.Dms.Providers;
 using global::Avalonia;
 using global::Avalonia.Controls;
+using global::Avalonia.Data;
 using global::Avalonia.Layout;
 using global::Avalonia.Media;
 using global::Avalonia.Input.Platform;
@@ -26,7 +27,7 @@ public static class DmsSharingDialogs
     }
 }
 
-internal sealed record SharingRow(DmsShareBase? Share, string Description)
+internal sealed record SharingRow(DmsShareBase? Share, string Description, string Type = "", string Name = "", string Permissions = "", string Limitations = "")
 {
     public override string ToString() => Description;
 }
@@ -35,8 +36,16 @@ internal sealed class DmsItemSharings : OperationWindow
 {
     private readonly BaseDmsProvider provider;
     private readonly DmsResourceItem item;
-    private readonly ListBox internalShares = new() { MinHeight = 130 };
-    private readonly ListBox links = new() { MinHeight = 130 };
+    private readonly DataGrid internalShares = Grid("InternalSharings", ("ColumnType", "Type"), ("ColumnName", "Name"), ("ColumnAuthorizations", "Permissions"));
+    private readonly DataGrid links = Grid("ExternalSharings", ("ColumnName", "Name"), ("ColumnAuthorizations", "Permissions"), ("ColumnLimitations", "Limitations"));
+    private static DataGrid Grid(string name, params (string Key, string Binding)[] columns)
+    {
+        var grid = new DataGrid { Name = name, MinHeight = 150, MaxHeight = 230, IsReadOnly = true, AutoGenerateColumns = false,
+            SelectionMode = DataGridSelectionMode.Single, CanUserSortColumns = false, GridLinesVisibility = DataGridGridLinesVisibility.Horizontal };
+        foreach (var column in columns) grid.Columns.Add(new DataGridTextColumn
+        { Header = UiText.Get(column.Key), Binding = new Binding(column.Binding), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        return grid;
+    }
     internal DmsItemSharings(BaseDmsProvider provider, DmsResourceItem item)
     {
         _ = new SharingPolicy(provider);
@@ -74,11 +83,11 @@ internal sealed class DmsItemSharings : OperationWindow
     }
     private (SharingRow[] Internal, SharingRow[] Links) BuildRows()
     {
-        var users = (item.ExtendedInfosUserSharings ?? new()).Select(s => new SharingRow(s, UiText.Get("EntityUser") + ": " + s.User.DisplayName + " — " + Permissions(s)));
-        var groups = (item.ExtendedInfosGroupSharings ?? new()).Select(s => new SharingRow(s, UiText.Get("EntityGroup") + ": " + s.Group.DisplayName + " — " + Permissions(s)));
+        var users = (item.ExtendedInfosUserSharings ?? new()).Select(s => new SharingRow(s, UiText.Get("EntityUser") + ": " + s.User.DisplayName + " — " + Permissions(s), UiText.Get("EntityUser"), s.User.DisplayName, Permissions(s)));
+        var groups = (item.ExtendedInfosGroupSharings ?? new()).Select(s => new SharingRow(s, UiText.Get("EntityGroup") + ": " + s.Group.DisplayName + " — " + Permissions(s), UiText.Get("EntityGroup"), s.Group.DisplayName, Permissions(s)));
         var rows = users.Concat(groups).ToList();
-        if (item.ExtendedInfosHasHiddenUserSharings) rows.Add(new(null, UiText.Get("EntityUser") + ": " + UiText.Get("HiddenValue")));
-        if (item.ExtendedInfosHasHiddenGroupSharings) rows.Add(new(null, UiText.Get("EntityGroup") + ": " + UiText.Get("HiddenValue")));
+        if (item.ExtendedInfosHasHiddenUserSharings) rows.Add(new(null, UiText.Get("EntityUser") + ": " + UiText.Get("HiddenValue"), UiText.Get("EntityUser"), UiText.Get("HiddenValue"), UiText.Get("UnknownValue")));
+        if (item.ExtendedInfosHasHiddenGroupSharings) rows.Add(new(null, UiText.Get("EntityGroup") + ": " + UiText.Get("HiddenValue"), UiText.Get("EntityGroup"), UiText.Get("HiddenValue"), UiText.Get("UnknownValue")));
         var external = (item.ExtendedInfosLinks ?? new()).Select(link =>
         {
             var limits = new List<string>();
@@ -87,7 +96,9 @@ internal sealed class DmsItemSharings : OperationWindow
             if (link.MaxDownloads.HasValue) limits.Add(UiText.Format("LimitationDownloads", link.MaxDownloads));
             if (link.MaxUploads.HasValue) limits.Add(UiText.Format("LimitationUploads", link.MaxUploads));
             if (link.MaxBytes.HasValue) limits.Add(UiText.ByteSize(link.MaxBytes.Value));
-            return new SharingRow(link, (string.IsNullOrEmpty(link.Name) ? link.ID : link.Name) + " — " + Permissions(link) + " — " + string.Join(", ", limits));
+            var name = string.IsNullOrEmpty(link.Name) ? link.ID : link.Name;
+            return new SharingRow(link, name + " — " + Permissions(link) + " — " + string.Join(", ", limits), Name: name,
+                Permissions: Permissions(link), Limitations: string.Join(", ", limits));
         }).ToArray();
         return (rows.ToArray(), external);
     }
@@ -115,7 +126,7 @@ internal sealed class DmsItemSharings : OperationWindow
         await new DmsLinkShareSetup(provider, item, link).ShowDialog(this);
         await RefreshRowsAsync();
     }
-    private async Task DeleteAsync(ListBox list)
+    private async Task DeleteAsync(DataGrid list)
     {
         var share = (list.SelectedItem as SharingRow)?.Share ?? throw new DmsUserInputMissingException(UiText.Get("UserSharingRequired"));
         if (!await Dialogs.ConfirmAsync(this, Dialogs.Caption("ActionDelete") + "?")) return;
@@ -138,22 +149,18 @@ internal sealed class PermissionEditor
     {
         foreach (var name in new[] { "View", "Download", "Edit", "Upload", "Delete", "Share" })
         {
-            var check = new CheckBox { Content = UiText.Get("Permission" + name), Margin = new Thickness(6),
+            var check = new CheckBox { Name = "Permission" + name, Content = UiText.Get("Permission" + name), Margin = new Thickness(6),
                 IsChecked = Get(share, name), IsEnabled = policy.EditablePermission(name, link, creating, item, share as DmsLink) };
             permissions.Add(name, check); Control.Children.Add(check);
-        }
-        if (policy.Teamwork && link && creating)
-        {
-            permissions["Upload"].IsCheckedChanged += (_, _) =>
-            {
-                if (Value("Upload")) { permissions["View"].IsChecked = false; permissions["Download"].IsChecked = false; }
-            };
-            permissions["View"].IsCheckedChanged += (_, _) => { if (Value("View")) permissions["Upload"].IsChecked = false; };
         }
         permissions["Download"].IsCheckedChanged += (_, _) =>
         { if (Value("Download")) permissions["View"].IsChecked = true; };
         permissions["View"].IsCheckedChanged += (_, _) =>
-        { if (!Value("View")) permissions["Download"].IsChecked = false; };
+        {
+            if (Value("View")) return;
+            permissions["Download"].IsChecked = false;
+            if (!link) foreach (var name in new[] { "Edit", "Delete", "Share" }) permissions[name].IsChecked = false;
+        };
     }
     internal bool Value(string name) => permissions[name].IsChecked == true;
     private static bool Get(DmsShareBase share, string name) => name switch
@@ -230,48 +237,59 @@ internal sealed class DmsLinkShareSetup : OperationWindow
         var draft = existing is null ? new DmsLink(item, provider) { AllowView = true, AllowDownload = policy.WebDav } : (DmsLink)existing.Clone();
         var body = new StackPanel { Spacing = 4 };
         var id = Field(body, "LabelId", existing?.ID, true);
+        id.IsEnabled = existing is not null;
         var name = Field(body, "LabelName", draft.Name);
         var web = Field(body, "LabelWebLink", draft.WebUrl, true);
+        web.IsEnabled = existing is not null;
         var download = Field(body, "LabelDownloadLink", draft.DownloadUrl, true);
         var permissions = new PermissionEditor(policy, draft, item, true, existing is null);
         body.Children.Add(permissions.Control);
-        var expiryEnabled = new CheckBox { Content = UiText.Get("LabelExpiryDate"), IsChecked = draft.ExpiryDateLocalTime.HasValue };
-        var expiryDate = new CalendarDatePicker { SelectedDate = draft.ExpiryDateLocalTime ?? DateTime.Today.AddDays(7), HorizontalAlignment = HorizontalAlignment.Stretch };
-        var expiryTime = new TimePicker { SelectedTime = draft.ExpiryDateLocalTime?.TimeOfDay ?? TimeSpan.Zero };
+        var expiryEnabled = new CheckBox { Name = "EnableExpiry", Content = UiText.Get("LabelExpiryDate"), IsChecked = draft.ExpiryDateLocalTime.HasValue };
+        var initialExpiry = draft.ExpiryDateLocalTime ?? DateTime.Now;
+        var expiryDate = new CalendarDatePicker { Name = "ExpiryDate", SelectedDate = initialExpiry, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var expiryTime = new TimePicker { Name = "ExpiryTime", SelectedTime = initialExpiry.TimeOfDay };
         body.Children.Add(expiryEnabled); body.Children.Add(expiryDate); body.Children.Add(expiryTime);
-        var passwordEnabled = new CheckBox { Content = UiText.Get("LabelPassword"), IsChecked = !string.IsNullOrEmpty(draft.Password) };
+        var passwordEnabled = new CheckBox { Name = "EnablePassword", Content = UiText.Get("LabelPassword"), IsChecked = !string.IsNullOrEmpty(draft.Password) };
         body.Children.Add(passwordEnabled);
-        var password = new TextBox { Text = draft.Password, PasswordChar = '●' }; body.Children.Add(password);
+        var password = new TextBox { Name = "LinkPassword", Text = draft.Password, PasswordChar = '●' }; body.Children.Add(password);
         var limits = new Dictionary<string, (CheckBox Enabled, TextBox Value)>();
         foreach (var (key, value) in new[] { ("LabelMaxDownloads", draft.MaxDownloads), ("LabelMaxUploads", draft.MaxUploads), ("LabelMaxBytes", draft.MaxBytes) })
         {
-            var enabled = new CheckBox { Content = UiText.Get(key), IsChecked = value.HasValue, IsEnabled = policy.Teamwork };
-            var field = new TextBox { Text = value?.ToString(), IsEnabled = policy.Teamwork };
+            var enabled = new CheckBox { Name = "Enable" + key, Content = UiText.Get(key), IsChecked = value.HasValue, IsEnabled = policy.Teamwork };
+            var field = new TextBox { Name = key, Text = value?.ToString(), IsEnabled = policy.Teamwork };
             body.Children.Add(enabled); body.Children.Add(field); limits.Add(key, (enabled, field));
         }
-        Field(body, "LabelMaxViews", null, true).IsEnabled = false;
-        Field(body, "LabelNumberDownloads", draft.DownloadsCount?.ToString(), true);
-        Field(body, "LabelNumberUploads", existing is null && policy.Teamwork ? "5000" : draft.UploadsCount?.ToString(), true);
-        Field(body, "LabelNumberBytes", draft.UploadedBytes?.ToString(), true);
+        body.Children.Add(new CheckBox { Name = "EnableLabelMaxViews", Content = UiText.Get("LabelMaxViews"), IsEnabled = false });
+        body.Children.Add(new TextBox { Name = "LabelMaxViews", IsEnabled = false });
+        Field(body, "LabelNumberDownloads", draft.DownloadsCount?.ToString(), true).IsEnabled = existing is not null;
+        Field(body, "LabelNumberUploads", existing is null && policy.Teamwork ? "5000" : draft.UploadsCount?.ToString(), true).IsEnabled = existing is not null;
+        Field(body, "LabelNumberBytes", draft.UploadedBytes?.ToString(), true).IsEnabled = existing is not null;
         Field(body, "LabelNumberViews", draft.ViewsCount?.ToString(), true);
         void UpdateFields()
         {
             name.IsEnabled = policy.WebDav || permissions.Value("Upload");
-            password.IsEnabled = passwordEnabled.IsChecked == true;
-            expiryDate.IsEnabled = expiryTime.IsEnabled = expiryEnabled.IsChecked == true;
+            download.IsEnabled = policy.Teamwork && existing is not null && permissions.Value("Download");
             foreach (var entry in limits)
             {
                 var applicable = policy.Teamwork && permissions.Value(entry.Key == "LabelMaxDownloads" ? "Download" : "Upload");
                 entry.Value.Enabled.IsEnabled = applicable;
-                entry.Value.Value.IsEnabled = applicable && entry.Value.Enabled.IsChecked == true;
+                entry.Value.Value.IsEnabled = applicable;
             }
         }
-        passwordEnabled.IsCheckedChanged += (_, _) => UpdateFields();
-        expiryEnabled.IsCheckedChanged += (_, _) => UpdateFields();
-        foreach (var check in permissions.Control.Children.OfType<CheckBox>().Concat(limits.Values.Select(l => l.Enabled)))
+        passwordEnabled.IsCheckedChanged += (_, _) => password.IsEnabled = passwordEnabled.IsChecked == true;
+        expiryEnabled.IsCheckedChanged += (_, _) => expiryDate.IsEnabled = expiryTime.IsEnabled = expiryEnabled.IsChecked == true;
+        password.TextChanged += (_, _) => { if (password.IsEnabled && !string.IsNullOrEmpty(password.Text)) passwordEnabled.IsChecked = true; };
+        expiryDate.SelectedDateChanged += (_, _) => { if (expiryDate.IsEnabled) expiryEnabled.IsChecked = true; };
+        expiryTime.SelectedTimeChanged += (_, _) => { if (expiryTime.IsEnabled) expiryEnabled.IsChecked = true; };
+        foreach (var entry in limits.Values)
+        {
+            entry.Enabled.IsCheckedChanged += (_, _) => entry.Value.IsEnabled = entry.Enabled.IsEnabled && entry.Enabled.IsChecked == true;
+            entry.Value.TextChanged += (_, _) => { if (entry.Value.IsEnabled && !string.IsNullOrEmpty(entry.Value.Text)) entry.Enabled.IsChecked = true; };
+        }
+        foreach (var check in permissions.Control.Children.OfType<CheckBox>())
             check.IsCheckedChanged += (_, _) => UpdateFields();
         UpdateFields();
-        long? Limit(string key) => limits[key].Enabled.IsChecked == true && limits[key].Enabled.IsEnabled ?
+        long? Limit(string key) => limits[key].Enabled.IsChecked == true ?
             long.Parse(limits[key].Value.Text ?? "", System.Globalization.CultureInfo.CurrentCulture) : null;
         var save = Dialogs.Button("ActionSave", async () =>
         {

@@ -74,6 +74,10 @@ public sealed class FileIconTests
             Assert.That(Path.GetFullPath(lookup.Find(new[] { "not-installed", "text-x-generic" }, 32)!), Is.EqualTo(Path.GetFullPath(Path.Combine(system, "hicolor/32x32/mimetypes/text-x-generic.png"))));
             Assert.That(lookup.Find(new[] { "../../outside" }, 32), Is.Null);
             Assert.That(new FreedesktopIconTheme(new[] { system }, "../outside").Find(new[] { "missing" }, 32), Is.Null);
+            Write(system, "Adwaita/index.theme", "[Icon Theme]\nDirectories=32x32/mimetypes\n[32x32/mimetypes]\nSize=32\nType=Fixed\n");
+            Write(system, "Adwaita/32x32/mimetypes/text-x-generic.png", "fallback");
+            Assert.That(Path.GetFullPath(new FreedesktopIconTheme(new[] { system }, "not-installed")
+                .Find(new[] { "text-x-generic" }, 32)!), Is.EqualTo(Path.GetFullPath(Path.Combine(system, "Adwaita/32x32/mimetypes/text-x-generic.png"))));
         }
         finally
         {

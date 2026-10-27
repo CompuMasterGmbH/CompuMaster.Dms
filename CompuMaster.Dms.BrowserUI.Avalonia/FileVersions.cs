@@ -1,6 +1,7 @@
 ﻿using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 using global::Avalonia.Controls;
+using global::Avalonia.Data;
 
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
 
@@ -53,6 +54,11 @@ internal sealed class VersionSession
 }
 internal sealed record VersionRow(DmsFileVersion Version)
 {
+    public string Identifier => Version.VersionID;
+    public string Timestamp => (Version.VersionDateUtc ?? Version.LastModificationUtc)?.ToLocalTime().ToString() ?? UiText.Get("VersionUnknown");
+    public string Size => Version.ContentLength.HasValue ? UiText.ByteSize(Version.ContentLength.Value) : UiText.Get("VersionUnknown");
+    public string Author => Version.AuthorDisplayName ?? Version.AuthorID ?? UiText.Get("VersionUnknown");
+    public string Label => Version.Label ?? "";
     public override string ToString() => string.Join(" | ", Version.VersionID,
         (Version.VersionDateUtc ?? Version.LastModificationUtc)?.ToLocalTime().ToString() ?? UiText.Get("VersionUnknown"),
         Version.ContentLength.HasValue ? UiText.ByteSize(Version.ContentLength.Value) : UiText.Get("VersionUnknown"),
@@ -62,7 +68,8 @@ internal sealed class FileVersionHistoryDialog : OperationWindow
 {
     private readonly VersionSession session;
     private readonly DmsBrowserOptions options;
-    internal readonly ListBox List = new();
+    internal readonly DataGrid List = new() { Name = "Versions", IsReadOnly = true, AutoGenerateColumns = false,
+        SelectionMode = DataGridSelectionMode.Single, CanUserSortColumns = false, GridLinesVisibility = DataGridGridLinesVisibility.Horizontal };
     private readonly TextBlock status = new();
     internal bool CurrentFileChanged { get; private set; }
     internal FileVersionHistoryDialog(BaseDmsProvider provider, DmsResourceItem file, DmsBrowserOptions options)
@@ -71,6 +78,9 @@ internal sealed class FileVersionHistoryDialog : OperationWindow
         session = new VersionSession(provider, file, () => options.AllowedActions);
         Title = UiText.Get("FileVersionHistory") + " — " + file.Name;
         Width = 900; Height = 500;
+        foreach (var (key, binding) in new[] { ("VersionIdentifier", "Identifier"), ("VersionTimestamp", "Timestamp"),
+            ("VersionSize", "Size"), ("VersionAuthor", "Author"), ("VersionLabel", "Label") })
+            List.Columns.Add(new DataGridTextColumn { Header = UiText.Get(key), Binding = new Binding(binding), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
         var download = Dialogs.Button("ActionDownload", async () => await RunAsync(ChooseDownloadAsync));
         var restore = Dialogs.Button("RestoreFileVersion", async () =>
         {
@@ -92,8 +102,7 @@ internal sealed class FileVersionHistoryDialog : OperationWindow
         }
         List.SelectionChanged += (_, _) => Update();
         var body = new DockPanel();
-        var heading = new StackPanel { Children = { new TextBlock { Text = file.FullName },
-            new TextBlock { Text = string.Join(" | ", new[] { "VersionIdentifier", "VersionTimestamp", "VersionSize", "VersionAuthor", "VersionLabel" }.Select(UiText.Get)) } } };
+        var heading = new TextBlock { Text = file.FullName };
         DockPanel.SetDock(heading, Dock.Top); body.Children.Add(heading);
         DockPanel.SetDock(status, Dock.Bottom); body.Children.Add(status); body.Children.Add(List);
         Content = Dialogs.Layout(body, Dialogs.Buttons(download, restore, remove,
@@ -104,7 +113,8 @@ internal sealed class FileVersionHistoryDialog : OperationWindow
     private async Task RefreshAsync()
     {
         List.ItemsSource = (await session.ListAsync()).Select(v => new VersionRow(v)).ToArray();
-        status.Text = List.ItemCount == 0 ? UiText.Get("FileVersionHistoryEmpty") : UiText.Format("VersionCount", List.ItemCount);
+        var count = List.ItemsSource.Cast<VersionRow>().Count();
+        status.Text = count == 0 ? UiText.Get("FileVersionHistoryEmpty") : UiText.Format("VersionCount", count);
     }
     private async Task ChooseDownloadAsync()
     {
