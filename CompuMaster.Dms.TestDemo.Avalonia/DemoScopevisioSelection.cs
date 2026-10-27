@@ -2,7 +2,11 @@
 using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.TestDemo.WinUI;
+#else
 namespace CompuMaster.Dms.TestDemo.Avalonia;
+#endif
 
 // Mirrors ScopevisioDemoSelection in the WinForms demo, including the distinction
 // between the OAuth organisation selector and the post-selection tenant guard.

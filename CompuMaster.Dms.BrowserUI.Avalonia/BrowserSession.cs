@@ -5,7 +5,11 @@ using System.Runtime.ExceptionServices;
 using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 internal sealed class BrowserNode : INotifyPropertyChanged
 {
@@ -22,7 +26,9 @@ internal sealed class BrowserNode : INotifyPropertyChanged
     internal Task? Loading { get; set; }
     public bool Placeholder { get; init; }
     public string Name => Placeholder ? "" : Item?.Name ?? RootName ?? "/";
+#if !DMS_WINUI
     public global::Avalonia.Media.IImage? Icon => Placeholder ? null : BrowserIcons.Directory(this);
+#endif
     public bool Shared => Item is not null && (Item.ExtendedInfosIsShared || Item.ExtendedInfosHasLinks ||
         Item.ExtendedInfosHasUserSharings || Item.ExtendedInfosHasGroupSharings);
     public ObservableCollection<BrowserNode> Children { get; } = new();

@@ -37,9 +37,17 @@ Also see: https://www.nuget.org/packages/CompuMaster.Dms.Providers and https://w
 
 ## Modules Overview
 
-The new Avalonia desktop implementation is documented in [CompuMaster.Dms.BrowserUI.Avalonia](CompuMaster.Dms.BrowserUI.Avalonia/README.md), including its embeddable control, demo, functional parity and verification status. The new NuGet package is awaiting its first approved release.
+The additional UI implementations are documented in [CompuMaster.Dms.BrowserUI.Avalonia](CompuMaster.Dms.BrowserUI.Avalonia/README.md) and [CompuMaster.Dms.BrowserUI.WinUI](CompuMaster.Dms.BrowserUI.WinUI/README.md). WinForms remains the leading workflow reference. Implementation, native/provider acceptance and publication are tracked separately in [#148](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/148) and [#151](https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/151).
+
+| Framework | NuGet package and namespace | Target |
+|---|---|---|
+| WinForms | `CompuMaster.Dms.BrowserUI` | Windows, .NET Framework 4.8 / .NET 8 |
+| Avalonia | `CompuMaster.Dms.BrowserUI.Avalonia` | .NET 8 desktop on Windows, macOS and Linux |
+| WinUI 3 | `CompuMaster.Dms.BrowserUI.WinUI` | .NET 8 Windows desktop, Windows App SDK |
 
 Separate [Avalonia demo applications](CompuMaster.Dms.TestDemo.Avalonia/README.md) are available for WebDAV, Nextcloud, ownCloud Classic and Scopevisio Teamwork.
+
+The same provider-specific [WinUI demo applications](CompuMaster.Dms.TestDemo.WinUI/README.md) use native WinUI controls, shared login/persistence rules and the existing demo credential cache. A general offline demo is included in both variants.
 
 There are following main modules for your use:
 * CompuMaster.Dms.Providers – The base library (compatible with .NET Standard/Core/Framework) for your own implementations to access your DMS systems (with build-in support for WebDAV (e.g. NextCloud, OwnCloud) and Scopevisio Teamwork (a flavored CenterDevice implementation)

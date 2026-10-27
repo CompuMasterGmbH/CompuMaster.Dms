@@ -1,7 +1,11 @@
 ﻿using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 // Mirrors the WinForms adapters without adding provider-specific switches to the public API.
 internal sealed class SharingPolicy

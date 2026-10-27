@@ -1,6 +1,10 @@
 ﻿using CompuMaster.Dms.Data;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 /// <summary>Identifies the visible browser content.</summary>
 public enum BrowseModes : byte

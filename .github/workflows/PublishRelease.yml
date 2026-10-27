@@ -24,6 +24,7 @@ env:
   BUILD_PROJECT: CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj
   BUILD_PROJECT2: CompuMaster.Dms.BrowserUI/CompuMaster.Dms.BrowserUI.vbproj
   BUILD_PROJECT_AVALONIA: CompuMaster.Dms.BrowserUI.Avalonia/CompuMaster.Dms.BrowserUI.Avalonia.csproj
+  BUILD_PROJECT_WINUI: CompuMaster.Dms.BrowserUI.WinUI/CompuMaster.Dms.BrowserUI.WinUI.csproj
   # Name of directory (e.g. "bin") containing the subdirectory (e.g. "CI_CD") with all output files (*.dll)
   BUILD_OUTPUT_BASEDIR: CompuMaster.Dms.Providers/bin
   BUILD_OUTPUT_BASEDIR2: CompuMaster.Dms.BrowserUI/bin
@@ -82,6 +83,28 @@ jobs:
                   bin-avalonia-demo-nextcloud.zip
                   bin-avalonia-demo-owncloud-classic.zip
                   bin-avalonia-demo-scopevisio-teamwork.zip
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Pack native WinUI browser and demo binaries
+              run: |
+                Compress-Archive -DestinationPath bin-browserui-winui.zip CompuMaster.Dms.BrowserUI.WinUI/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-winui-demo.zip CompuMaster.Dms.TestDemo.WinUI/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-winui-demo-webdav.zip CompuMaster.Dms.TestDemo.WebDav.WinUI/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-winui-demo-nextcloud.zip CompuMaster.Dms.TestDemo.Nextcloud.WinUI/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-winui-demo-owncloud-classic.zip CompuMaster.Dms.TestDemo.OwnCloudClassic.WinUI/bin/${{env.BUILD_CONFIGURATION}}
+                Compress-Archive -DestinationPath bin-winui-demo-scopevisio-teamwork.zip CompuMaster.Dms.TestDemo.ScopevisioTeamwork.WinUI/bin/${{env.BUILD_CONFIGURATION}}
+
+            - name: Publish native WinUI browser and demo binaries
+              uses: softprops/action-gh-release@v3
+              with:
+                files: |
+                  bin-browserui-winui.zip
+                  bin-winui-demo.zip
+                  bin-winui-demo-webdav.zip
+                  bin-winui-demo-nextcloud.zip
+                  bin-winui-demo-owncloud-classic.zip
+                  bin-winui-demo-scopevisio-teamwork.zip
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -148,7 +171,10 @@ jobs:
             - name: Pack CompuMaster.Dms.BrowserUI.Avalonia
               run: dotnet pack --no-build --configuration=${{env.BUILD_CONFIGURATION}} ${{env.BUILD_PROJECT_AVALONIA}} --output .
 
-            - name: PushNuget CompuMaster.Dms.Providers + CompuMaster.Dms.BrowserUI + CompuMaster.Dms.BrowserUI.Avalonia
+            - name: Pack CompuMaster.Dms.BrowserUI.WinUI
+              run: dotnet pack --no-build --configuration=${{env.BUILD_CONFIGURATION}} ${{env.BUILD_PROJECT_WINUI}} --output .
+
+            - name: PushNuget Providers + WinForms + Avalonia + WinUI
               run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate 
 
             - name: Publish Package Artifacts

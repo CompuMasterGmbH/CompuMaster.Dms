@@ -1,7 +1,11 @@
 ﻿using CompuMaster.Dms.Data;
 using CompuMaster.Dms.Providers;
 
+#if DMS_WINUI
+namespace CompuMaster.Dms.BrowserUI.WinUI;
+#else
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
+#endif
 
 /// <summary>Identifies the browser boundary where a failure occurred.</summary>
 public enum DmsBrowserFailurePhase
