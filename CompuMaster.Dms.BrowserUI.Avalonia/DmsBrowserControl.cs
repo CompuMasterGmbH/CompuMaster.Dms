@@ -137,7 +137,13 @@ public sealed partial class DmsBrowserControl : UserControl
         }, node => node.Children);
         tree.Styles.Add(new global::Avalonia.Styling.Style(x => x.OfType<TreeViewItem>())
         {
-            Setters = { new global::Avalonia.Styling.Setter(TreeViewItem.IsExpandedProperty, new Binding("IsExpanded") { Mode = BindingMode.TwoWay }) }
+            Setters =
+            {
+                new global::Avalonia.Styling.Setter(TreeViewItem.IsExpandedProperty, new Binding("IsExpanded") { Mode = BindingMode.TwoWay }),
+                // Keep a child for Avalonia's expander, but never lay out the lazy-load sentinel as a directory.
+                new global::Avalonia.Styling.Setter(TreeViewItem.IsVisibleProperty,
+                    new Binding(nameof(BrowserNode.Placeholder)) { Converter = global::Avalonia.Data.Converters.BoolConverters.Not })
+            }
         });
         tree.AddHandler(TreeViewItem.ExpandedEvent, async (_, e) =>
         {

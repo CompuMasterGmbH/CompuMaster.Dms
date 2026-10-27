@@ -20,9 +20,9 @@ internal sealed class BrowserNode : INotifyPropertyChanged
     internal string? RootName { get; }
     internal bool Loaded { get; set; }
     internal Task? Loading { get; set; }
-    internal bool Placeholder { get; init; }
-    public string Name => Item?.Name ?? RootName ?? "/";
-    public global::Avalonia.Media.IImage Icon => BrowserIcons.Directory(this);
+    public bool Placeholder { get; init; }
+    public string Name => Placeholder ? "" : Item?.Name ?? RootName ?? "/";
+    public global::Avalonia.Media.IImage? Icon => Placeholder ? null : BrowserIcons.Directory(this);
     public bool Shared => Item is not null && (Item.ExtendedInfosIsShared || Item.ExtendedInfosHasLinks ||
         Item.ExtendedInfosHasUserSharings || Item.ExtendedInfosHasGroupSharings);
     public ObservableCollection<BrowserNode> Children { get; } = new();
