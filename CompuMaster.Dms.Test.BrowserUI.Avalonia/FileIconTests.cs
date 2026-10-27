@@ -35,12 +35,28 @@ public sealed class FileIconTests
     }
 
     [AvaloniaTest]
-    public void Generic_icons_remain_available_without_a_native_backend()
+    [TestCase(false)]
+    [TestCase(true)]
+    public void Generic_icons_remain_available_without_a_native_backend(bool shared)
     {
         var icon = new Image();
-        PlatformFileIcons.Attach(icon, "no-extension", false);
+        // An unattached image must immediately show the final fallback, without an OS lookup.
+        PlatformFileIcons.Attach(icon, "no-extension", shared);
         Assert.That(icon.Source, Is.Not.Null, "The UI must have a synchronous fallback while the native icon loads.");
-        Assert.That(BrowserIcons.File(true), Is.Not.Null);
+        var document = BrowserIcons.File(false);
+        if (!shared) Assert.That(icon.Source, Is.SameAs(document));
+        else
+        {
+            Assert.That(icon.Source, Is.TypeOf<DrawingImage>(), "The sharing badge must supplement, not replace, the document fallback.");
+            var layers = ((DrawingGroup)((DrawingImage)icon.Source!).Drawing!).Children;
+            Assert.That(layers.Count, Is.EqualTo(3));
+            var background = (ImageDrawing)layers[0]; var badge = (ImageDrawing)layers[2];
+            Assert.That(background.ImageSource, Is.SameAs(document));
+            Assert.That(badge.ImageSource, Is.SameAs(BrowserIcons.Load("sharing")));
+            Assert.That(badge.Rect.Width, Is.LessThan(background.Rect.Width));
+            Assert.That(badge.Rect.Height, Is.LessThan(background.Rect.Height));
+            Assert.That(BrowserIcons.File(true), Is.SameAs(icon.Source));
+        }
     }
 
     [Test]
