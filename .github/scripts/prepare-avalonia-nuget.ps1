@@ -98,7 +98,7 @@ try {
     [IO.File]::WriteAllText((Join-Path $workRoot 'preparation.json'), ($manifest | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($true))
     $commands = @(
         '# PREVIEW ONLY: preparation never executes these publishing commands.',
-        '# Stable production releases require merged main, successful post-merge checks and immediate release approval.',
+        '# Stable production releases require merged main, verification under AGENTS.md and immediate release approval.',
         '# Normal publishing is triggered by creating the GitHub release; see PUBLISHING.md.',
         '# The key must allow every listed ID and creation of the new Avalonia package ID.',
         '# Matching .snupkg files remain beside their .nupkg files for symbol publishing.'
