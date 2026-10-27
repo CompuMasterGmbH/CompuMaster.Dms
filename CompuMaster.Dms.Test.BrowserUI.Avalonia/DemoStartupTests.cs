@@ -109,7 +109,7 @@ public sealed class DemoStartupTests
         login.Username.Text = "fixture-user"; login.Password.Text = "fixture-only"; login.Root.Text = "/Documents";
         await login.ConnectAsync();
         Assert.That(supplied!.ServerAddress, Is.EqualTo("https://example.invalid/cloud/remote.php/dav/files/fixture-user/"));
-        Assert.That(options!.InitialFolder, Is.EqualTo("/Documents"));
+        Assert.That(options!.InitialFolder, Is.EqualTo("Documents"));
         Assert.That(options.FormTitle, Does.Contain("Nextcloud").And.Contain("Avalonia"));
         Assert.That(login.Password.Text, Is.EqualTo("fixture-only"), "The WinForms login retains the input for retries and persistence on close.");
         Assert.That(login.Error.Text, Is.Empty);

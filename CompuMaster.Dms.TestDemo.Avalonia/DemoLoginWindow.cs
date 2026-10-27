@@ -116,9 +116,10 @@ internal sealed class DemoLoginWindow : Window
             if (definition.RequiresCustomer)
             {
                 if (!await DemoScopevisioSelection.SelectAsync(provider, profile, tenant, chooseInstance)) return;
+                var allowsSwitch = DemoScopevisioSelection.AllowsInstanceSwitch(profile, tenant);
                 options.RemoteInstance = new RemoteInstanceSelector(RemoteInstanceSelector.StartupInstance.DefaultInstance,
-                    RemoteInstanceSelector.ShowDefaultSelectionDialogAsync);
-                if (!DemoScopevisioSelection.AllowsInstanceSwitch(profile, tenant))
+                    allowsSwitch ? RemoteInstanceSelector.ShowDefaultSelectionDialogAsync : null);
+                if (!allowsSwitch)
                     options.AllowedActions &= ~FileOrFolderActions.AllowSwitchDmsInstance;
             }
             await showBrowser(this, provider, options);
