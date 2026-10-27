@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>Ce fournisseur n’accepte pas de fichiers directement à la racine du serveur.</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>Locataire / instance : </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>ID du locataire / de l’instance : </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>Partagé avec vous</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>Partage reçu : {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>Partages sortants : {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>Inconnu / indisponible</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>Partagé par : {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>Propriétaire de la ressource : {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>Destinataire : {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>Hérité de : {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>Partage direct</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>Héritage : inconnu</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>Autorisations de ce partage : {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>Les listes ci-dessous affichent les partages sortants. Les partages reçus ci-dessus sont en lecture seule.</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>Oui</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>Non</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>Aucune</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>Le dossier demandé n’est plus disponible sur le serveur. Actualisez la vue parente si nécessaire.</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>Le fichier demandé n’est plus disponible sur le serveur. Actualisez la vue si nécessaire.</value></data>
 </root>

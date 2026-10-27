@@ -100,7 +100,11 @@ internal sealed class SharingPolicy
         }
         SynchronizeSharedFlag(item);
     }
-    private static void SynchronizeSharedFlag(DmsResourceItem item) =>
-        item.ExtendedInfosIsShared = item.ExtendedInfosHasLinks || item.ExtendedInfosHasGroupSharings || item.ExtendedInfosHasUserSharings ||
+    private static void SynchronizeSharedFlag(DmsResourceItem item)
+    {
+        item.ExtendedInfosHasOutgoingSharings = item.ExtendedInfosHasLinks || item.ExtendedInfosHasGroupSharings || item.ExtendedInfosHasUserSharings ||
             item.ExtendedInfosHasHiddenUserSharings || item.ExtendedInfosHasHiddenGroupSharings || item.ExtendedInfosIsPublicCollection;
+        item.ExtendedInfosIsShared = item.ExtendedInfosHasOutgoingSharings == true || item.ExtendedInfosIsReceivedShare == true ||
+            !item.ExtendedInfosIsReceivedShare.HasValue && item.ExtendedInfosIsShared;
+    }
 }

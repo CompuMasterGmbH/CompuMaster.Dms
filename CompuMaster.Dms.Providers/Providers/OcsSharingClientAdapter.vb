@@ -79,6 +79,8 @@ Namespace Providers
 
         Sub ProbeCapabilities()
 
+        Function GetReceivedShares() As List(Of Share)
+
         Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of OcsShareRecord)
 
         Function CreateLink(path As String, permissions As Integer, publicUpload As Boolean, name As String, expiration As DateTime?, password As String) As Share
@@ -245,6 +247,10 @@ Namespace Providers
             End If
         End Function
 
+        Public Function GetReceivedShares() As List(Of Share) Implements IOcsSharingClient.GetReceivedShares
+            Return Me.Client.GetReceivedShares()
+        End Function
+
         Public Function GetShares(path As String, includeReshares As Boolean, includeSubFiles As Boolean) As List(Of OcsShareRecord) Implements IOcsSharingClient.GetShares
             Dim Endpoint As String = "apps/files_sharing/api/v1/shares?reshares=" & If(includeReshares, "true", "false") & "&subfiles=" & If(includeSubFiles, "true", "false")
             If Not String.IsNullOrEmpty(path) Then Endpoint &= "&path=" & Uri.EscapeDataString(path)
@@ -271,6 +277,7 @@ Namespace Providers
                     .Url = CStr(Entry("url")), .SharedWith = CStr(Entry("share_with")),
                     .AdvancedProperties = New AdvancedShareProperties With {
                         .Owner = CStr(Entry("uid_owner")), .DisplaynameOwner = CStr(Entry("displayname_owner")),
+                        .FileOwner = CStr(Entry("uid_file_owner")), .FileOwnerDisplayname = CStr(Entry("displayname_file_owner")),
                         .SharedWithDisplayname = CStr(Entry("share_with_displayname"))}})
             Next
             Return Result

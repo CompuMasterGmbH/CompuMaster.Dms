@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>このプロバイダーではサーバーのルートにファイルを直接配置できません。</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>テナント / インスタンス: </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>テナント / インスタンス ID: </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>あなたと共有</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>受信した共有: {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>送信した共有: {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>不明 / 利用不可</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>共有者: {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>リソースの所有者: {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>受信者: {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>継承元: {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>直接の共有</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>継承: 不明</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>この共有の権限: {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>以下の一覧には送信した共有を表示します。上の受信した共有は読み取り専用です。</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>はい</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>いいえ</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>なし</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>要求したフォルダーはサーバーで利用できなくなりました。必要に応じて親の表示を更新してください。</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>要求したファイルはサーバーで利用できなくなりました。必要に応じて表示を更新してください。</value></data>
 </root>

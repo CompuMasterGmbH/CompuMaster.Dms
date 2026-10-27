@@ -148,12 +148,12 @@ public sealed partial class DmsBrowserControl : UserControl
         tree.AddHandler(TreeViewItem.ExpandedEvent, async (_, e) =>
         {
             if (suppressSelection || e.Source is not TreeViewItem { DataContext: BrowserNode node } || node.Loaded || node.Placeholder) return;
-            await UiAsync(() => Session.ExpandAsync(node));
+            await UiAsync(() => Session.ExpandAsync(node), DmsBrowserFailurePhase.ChildListing, "ExpandFolder");
         });
         tree.SelectionChanged += async (_, _) =>
         {
             if (suppressSelection || tree.SelectedItem is not BrowserNode node || node.Placeholder) return;
-            await UiAsync(() => Session.SelectAsync(node));
+            await UiAsync(() => Session.SelectAsync(node), DmsBrowserFailurePhase.Action, "SelectFolder");
         };
         tree.DoubleTapped += (_, _) => { if (editingFolder is null && !IsBusy && Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); };
         files.DoubleTapped += async (_, _) =>
@@ -256,7 +256,7 @@ public sealed partial class DmsBrowserControl : UserControl
         (!flag.HasValue || Allowed(flag.Value)) && (!sharing || DmsProvider?.SupportsSharingSetup == true);
     private void AddAction(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, ContextMenu menu, bool sharing = false)
     {
-        var button = Dialogs.Button(key, async () => await UiAsync(action)); button.Name = key;
+        var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); button.Name = key;
         BrowserActionIcons.Apply(button, key);
         fileToolbar.Children.Add(button);
         actions.Add((button, () => (!flag.HasValue || Allowed(flag.Value)) &&
@@ -268,7 +268,7 @@ public sealed partial class DmsBrowserControl : UserControl
     {
         var item = new MenuItem { Name = key, Header = Dialogs.Caption(key),
             Icon = BrowserActionIcons.Create(key, folderMenu: menu == tree.ContextMenu, menu: true) };
-        item.Click += async (_, _) => await UiAsync(action);
+        item.Click += async (_, _) => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key);
         menu.Items.Add(item); actions.Add((item, () => (!flag.HasValue || Allowed(flag.Value)) &&
             (key is "FileVersionHistory" or "ActionDownloadFolder" ? enabled() : true),
             () => Visible(flag, sharing) && (menu != tree.ContextMenu || FolderActionVisible(key)) && (key != "FileVersionHistory" ||
@@ -289,7 +289,7 @@ public sealed partial class DmsBrowserControl : UserControl
     };
     private Button AddBottom(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool>? visible = null)
     {
-        var button = Dialogs.Button(key, async () => await UiAsync(action)); button.Name = key;
+        var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); button.Name = key;
         bottom.Children.Add(button);
         if (key is "ActionCancel" or "ActionClose") terminalButtons.Add(button);
         actions.Add((button, () => (!flag.HasValue || Allowed(flag.Value)) && initialized,
@@ -383,17 +383,19 @@ public sealed partial class DmsBrowserControl : UserControl
         if (!IsBusy && initialized && Session.SelectedNode is not null)
             SelectionConfirmed?.Invoke(this, EventArgs.Empty);
     }
-    private async Task UiAsync(Func<Task> action)
+    private async Task UiAsync(Func<Task> action, DmsBrowserFailurePhase? phase = null, [System.Runtime.CompilerServices.CallerMemberName] string operation = "")
     {
         if (interactionRunning || SessionBusy || dragRunning) return;
         interactionRunning = true; UpdateControls();
         try { await action(); }
         catch (OperationCanceledException) { if (!initialized) pendingCancellation = true; }
-        catch (Data.RessourceNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, DmsBrowserFailurePhase.Action); }
+        catch (Data.DirectoryNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, phase ?? DmsBrowserFailurePhase.Action, operation); if (!initialized) pendingCancellation = true; }
+        catch (Data.FileNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, phase ?? DmsBrowserFailurePhase.Action, operation); if (!initialized) pendingCancellation = true; }
+        catch (Data.RessourceNotFoundException ex) { session?.RemoveMissing(ex.RemotePath); await ReportFailureAsync(ex, phase ?? DmsBrowserFailurePhase.Action, operation); }
         catch (Exception ex)
         {
-            await ReportFailureAsync(ex, initialized ? DmsBrowserFailurePhase.Action :
-                startupPhase == DmsBrowserFailurePhase.Startup ? session?.FailurePhase ?? startupPhase : startupPhase);
+            await ReportFailureAsync(ex, phase ?? (initialized ? DmsBrowserFailurePhase.Action :
+                startupPhase == DmsBrowserFailurePhase.Startup ? session?.FailurePhase ?? startupPhase : startupPhase), operation);
             if (!initialized) pendingCancellation = true;
         }
         finally

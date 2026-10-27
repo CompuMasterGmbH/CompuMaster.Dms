@@ -33,6 +33,9 @@ Namespace Global.CompuMaster.Dms.BrowserUI
                 (details.ItemType <> DmsResourceItem.ItemTypes.File OrElse Not String.Equals(details.ExtendedInfosFileID, entry.ExtendedInfosFileID, StringComparison.Ordinal)) Then
                 Throw New InvalidOperationException("The selected file identity changed or is no longer available.")
             End If
+            If entry.ExtendedInfosIsShared AndAlso (Not details.ExtendedInfosIsReceivedShare.HasValue OrElse Not details.ExtendedInfosHasOutgoingSharings.HasValue) Then
+                details.ExtendedInfosIsShared = True
+            End If
             'Identifier lookups can return detached SDK objects. Keep the selected browsing context.
             details.FullName = entry.FullName
             details.Collection = entry.Collection

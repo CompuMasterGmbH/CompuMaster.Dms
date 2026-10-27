@@ -536,12 +536,165 @@ Public Class WebDavSharingTest
             "<share_type>" & Convert.ToInt32(shareType).ToString(Globalization.CultureInfo.InvariantCulture) & "</share_type>" &
             "<file_target>" & path & "</file_target>" &
             "<permissions>" & permissions.ToString(Globalization.CultureInfo.InvariantCulture) & "</permissions>" &
-            "<uid_owner>owner</uid_owner><displayname_owner>Owner</displayname_owner>" &
+            "<uid_owner>owner</uid_owner><displayname_owner>Owner</displayname_owner><uid_file_owner>owner</uid_file_owner><displayname_file_owner>Owner</displayname_file_owner>" &
             If(shareWith Is Nothing, String.Empty, "<share_with>" & shareWith & "</share_with>") &
             If(displayName Is Nothing, String.Empty, "<share_with_displayname>" & displayName & "</share_with_displayname>") &
             If(publicUrl Is Nothing, String.Empty, "<url>" & publicUrl & "</url>") &
             If(name Is Nothing, String.Empty, "<name>" & name & "</name>") &
             "</element>"
+    End Function
+
+    <TestCase(False), TestCase(True)>
+    Public Async Function ReceivedSnapshotsDoNotCrossChangedAccountOrRootContexts(changeClient As Boolean) As Task
+        Dim client = ListingClient()
+        client.ReceivedShares.Add(IncomingGrant())
+        Dim provider = ListingProvider(client, New ListingHandler(False, 0))
+        client.BeforeReceived = Sub()
+                                    If changeClient Then
+                                        provider.OcsSharingClientForTesting = ListingClient()
+                                    Else
+                                        provider.OcsRootPathForTesting = "different-admitted-root"
+                                    End If
+                                End Sub
+        Dim item = Await provider.ListRemoteItemAsync("Nested/report.txt")
+        Assert.That(item.ExtendedInfosIsReceivedShare.HasValue, [Is].False)
+        Assert.That(item.ExtendedInfosReceivedSharings, [Is].Empty)
+        Assert.That(item.ExtendedInfosOwner.ID, [Is].EqualTo("dav-owner"))
+    End Function
+
+    <Test>
+    Public Sub OutgoingSharerIsNotSubstitutedForAnUnknownFileOwnerAndHiddenGrantsSurviveEnrichment()
+        Dim item = ReceivedResource()
+        item.ExtendedInfosHasHiddenUserSharings = True
+        CreateProvider(Nothing, "").ApplyOcsSharingMetadata(item, New OcsShareRecord() {New OcsShareRecord With {
+            .TargetPath = "/Mount/file.txt", .Type = OcsShareType.User, .SharedWith = "recipient",
+            .AdvancedProperties = New AdvancedShareProperties With {.Owner = "sharing-user"}}})
+        Assert.That(item.ExtendedInfosOwner.ID, [Is].Null)
+        Assert.That(item.ExtendedInfosHasHiddenUserSharings, [Is].True)
+        Assert.That(item.ExtendedInfosHasOutgoingSharings, [Is].True)
+    End Sub
+
+    Private Shared Function IncomingGrant(Optional target As String = "/Mount/file.txt", Optional identity As String = "25980", Optional itemType As String = "file", Optional group As Boolean = False, Optional permissions As String = "1") As Share
+        Dim xml = "<element><id>91</id><share_type>" & If(group, "1", "0") & "</share_type><file_target>" & target & "</file_target><file_source>" & identity & "</file_source><item_type>" & itemType & "</item_type><uid_owner>sharer</uid_owner><displayname_owner>Sharing person</displayname_owner><uid_file_owner>original-owner</uid_file_owner><displayname_file_owner>Original owner</displayname_file_owner><share_with>recipient</share_with><share_with_displayname>Named recipient</share_with_displayname>" & If(permissions Is Nothing, "", "<permissions>" & permissions & "</permissions>") & "</element>"
+        Return ParseShares(xml).Single()
+    End Function
+
+    Private Shared Function ReceivedResource() As DmsResourceItem
+        Return New DmsResourceItem With {.FullName = "Mount/file.txt", .Name = "file.txt", .ItemType = DmsResourceItem.ItemTypes.File, .ExtendedInfosFileID = "25980"}
+    End Function
+
+    <TestCase(False), TestCase(True)>
+    Public Sub ReceivedGrantsKeepActualSharerOwnerRecipientAndPermissionKnowledge(group As Boolean)
+        Dim provider = CreateProvider(New FakeOcsSharingClient(Nothing, New List(Of Share)), "")
+        Dim item = ReceivedResource()
+        provider.ApplyOcsSharingMetadata(item, New List(Of OcsShareRecord))
+        provider.ApplyReceivedSharingMetadata(item, New Share() {IncomingGrant(group:=group)})
+        Assert.That(item.ExtendedInfosIsReceivedShare, [Is].True)
+        Assert.That(item.ExtendedInfosHasOutgoingSharings, [Is].False)
+        Assert.That(item.ExtendedInfosIsShared, [Is].True)
+        Dim grant = item.ExtendedInfosReceivedSharings.Single()
+        Assert.That(grant.SharedBy.ID, [Is].EqualTo("sharer"))
+        Assert.That(grant.ResourceOwner.ID, [Is].EqualTo("original-owner"))
+        Assert.That(item.ExtendedInfosOwner.ID, [Is].EqualTo("original-owner"))
+        Assert.That(grant.RecipientKind, [Is].EqualTo(If(group, DmsReceivedShareKind.Group, DmsReceivedShareKind.User)))
+        Assert.That(grant.RecipientID, [Is].EqualTo("recipient"))
+        Assert.That(grant.RecipientDisplayName, [Is].EqualTo("Named recipient"))
+        Assert.That(grant.IsInherited, [Is].False)
+        Assert.That(grant.PermissionsAvailable, [Is].True)
+        Assert.That(grant.AllowDownload, [Is].True)
+        Assert.That(grant.AllowShare, [Is].False)
+    End Sub
+
+    <Test>
+    Public Sub MissingPermissionsAreUnknownRatherThanAnExplicitDenial()
+        Dim item = ReceivedResource()
+        CreateProvider(Nothing, "").ApplyReceivedSharingMetadata(item, New Share() {IncomingGrant(permissions:=Nothing)})
+        Assert.That(item.ExtendedInfosReceivedSharings.Single().PermissionsAvailable, [Is].False)
+    End Sub
+
+    <Test>
+    Public Sub ReceivedAndOutgoingGrantsCanCoexistAndAnEmptyOutgoingRefreshPreservesIncomingSharing()
+        Dim provider = CreateProvider(Nothing, "")
+        Dim item = ReceivedResource()
+        provider.ApplyOcsSharingMetadata(item, New OcsShareRecord() {New OcsShareRecord With {.TargetPath = "/Mount/file.txt", .Type = OcsShareType.User, .SharedWith = "next-recipient"}})
+        provider.ApplyReceivedSharingMetadata(item, New Share() {IncomingGrant(), IncomingGrant(group:=True)})
+        Assert.That(item.ExtendedInfosHasOutgoingSharings, [Is].True)
+        Assert.That(item.ExtendedInfosReceivedSharings.Count, [Is].EqualTo(2))
+        provider.ApplyOcsSharingMetadata(item, New List(Of OcsShareRecord))
+        Assert.That(item.ExtendedInfosHasOutgoingSharings, [Is].False)
+        Assert.That(item.ExtendedInfosIsShared, [Is].True)
+    End Sub
+
+    <Test>
+    Public Sub CompleteEmptyIncomingAndOutgoingResponsesEstablishKnownFalse()
+        Dim item = ReceivedResource()
+        item.ExtendedInfosIsShared = True
+        Dim provider = CreateProvider(Nothing, "")
+        provider.ApplyOcsSharingMetadata(item, New List(Of OcsShareRecord))
+        Assert.That(item.ExtendedInfosIsShared, [Is].True, "Outgoing absence alone cannot erase aggregate knowledge.")
+        provider.ApplyReceivedSharingMetadata(item, New List(Of Share))
+        Assert.That(item.ExtendedInfosIsReceivedShare, [Is].False)
+        Assert.That(item.ExtendedInfosIsShared, [Is].False)
+    End Sub
+
+    <Test>
+    Public Sub UnavailableMetadataPreservesKnownAggregateAndDoesNotInferFromOwnership()
+        Dim item = ReceivedResource()
+        item.ExtendedInfosIsShared = True
+        item.ExtendedInfosOwner = New DmsUser With {.ID = "someone-else"}
+        Dim provider = CreateProvider(Nothing, "")
+        provider.ApplyOcsSharingMetadata(item, Nothing)
+        provider.ApplyReceivedSharingMetadata(item, Nothing)
+        Assert.That(item.ExtendedInfosIsReceivedShare.HasValue, [Is].False)
+        Assert.That(item.ExtendedInfosHasOutgoingSharings.HasValue, [Is].False)
+        Assert.That(item.ExtendedInfosIsShared, [Is].True)
+    End Sub
+
+    <TestCase("replaced-id"), TestCase("")>
+    Public Sub ReplacedOrUnverifiablePathIdentityDoesNotAttachAnotherObjectsGrant(identity As String)
+        Dim item = ReceivedResource()
+        CreateProvider(Nothing, "").ApplyReceivedSharingMetadata(item, New Share() {IncomingGrant(identity:=identity)})
+        Assert.That(item.ExtendedInfosReceivedSharings, [Is].Empty)
+        Assert.That(item.ExtendedInfosIsReceivedShare.HasValue, [Is].False)
+    End Sub
+
+    <Test>
+    Public Sub MovedRecipientMountMatchesItsStableResourceIdentity()
+        Dim item = ReceivedResource()
+        CreateProvider(Nothing, "").ApplyReceivedSharingMetadata(item, New Share() {IncomingGrant(target:="/PreviousMount/file.txt")})
+        Assert.That(item.ExtendedInfosIsReceivedShare, [Is].True)
+        Assert.That(item.ExtendedInfosReceivedSharings.Single().SharedPath, [Is].EqualTo("/PreviousMount/file.txt"))
+    End Sub
+
+    <TestCase(False), TestCase(True)>
+    Public Sub InheritedFolderGrantsRequireVerifiedRecipientAncestorIdentity(verified As Boolean)
+        Dim item = ReceivedResource()
+        CreateProvider(Nothing, "").ApplyReceivedSharingMetadata(item, New Share() {IncomingGrant(target:="/Mount", identity:="parent-identity", itemType:="folder")},
+            Function(path, id) verified AndAlso path = "/Mount" AndAlso id = "parent-identity")
+        If verified Then
+            Assert.That(item.ExtendedInfosIsReceivedShare, [Is].True)
+        Else
+            Assert.That(item.ExtendedInfosIsReceivedShare.HasValue, [Is].False)
+        End If
+        If verified Then
+            Assert.That(item.ExtendedInfosReceivedSharings.Single().IsInherited, [Is].True)
+            Assert.That(item.ExtendedInfosOwner.ID, [Is].Null, "The shared parent owner does not establish ownership of the selected child.")
+        End If
+    End Sub
+
+    <Test>
+    Public Async Function BulkListingsDoNotQueryIncomingSharesButSelectedDetailsDo() As Task
+        Dim client = ListingClient()
+        Dim provider = ListingProvider(client, New ListingHandler(True, 0))
+        Await provider.ListEntriesAsync("Nested")
+        Assert.That(client.ReceivedSharesCallCount, [Is].Zero)
+        provider = ListingProvider(client, New ListingHandler(False, 0))
+        Await provider.ListRemoteItemAsync("Nested/report.txt")
+        Assert.That(client.ReceivedSharesCallCount, [Is].EqualTo(1))
+        client.ReceivedFailure = New HttpRequestException("Incoming metadata unavailable")
+        Dim details = Await provider.ListRemoteItemAsync("Nested/report.txt")
+        Assert.That(details.ExtendedInfosIsReceivedShare.HasValue, [Is].False)
+        Assert.That(details.ExtendedInfosHasLinks, [Is].True)
     End Function
 
     Private NotInheritable Class FakeOcsSharingClient
@@ -569,6 +722,17 @@ Public Class WebDavSharingTest
         Public Property BeforeGetShares As Action
         Public Property LastIncludeSubFiles As Boolean
         Public Property GetSharesCallCount As Integer
+
+        Public Property ReceivedShares As New List(Of Share)
+        Public Property ReceivedSharesCallCount As Integer
+        Public Property ReceivedFailure As Exception
+        Public Property BeforeReceived As Action
+        Public Function GetReceivedShares() As List(Of Share) Implements IOcsSharingClient.GetReceivedShares
+            ReceivedSharesCallCount += 1
+            If BeforeReceived IsNot Nothing Then BeforeReceived.Invoke()
+            If ReceivedFailure IsNot Nothing Then Throw ReceivedFailure
+            Return ReceivedShares
+        End Function
 
         Public Sub ProbeCapabilities() Implements IOcsSharingClient.ProbeCapabilities
         End Sub

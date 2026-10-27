@@ -280,4 +280,21 @@
   <data name="RootFileDropUnavailable" xml:space="preserve"><value>यह प्रदाता सर्वर के मूल फ़ोल्डर में सीधे फ़ाइलों की अनुमति नहीं देता।</value></data>
   <data name="PropertiesInstanceName" xml:space="preserve"><value>टेनेंट / इंस्टेंस: </value></data>
   <data name="PropertiesInstanceId" xml:space="preserve"><value>टेनेंट / इंस्टेंस आईडी: </value></data>
+  <data name="ReceivedSharingTitle" xml:space="preserve"><value>आपके साथ साझा किया गया</value></data>
+  <data name="ReceivedSharingStatus" xml:space="preserve"><value>प्राप्त साझाकरण: {0}</value></data>
+  <data name="OutgoingSharingStatus" xml:space="preserve"><value>भेजे गए साझाकरण: {0}</value></data>
+  <data name="SharingUnknown" xml:space="preserve"><value>अज्ञात / अनुपलब्ध</value></data>
+  <data name="SharingBy" xml:space="preserve"><value>इनके द्वारा साझा: {0}</value></data>
+  <data name="SharingResourceOwner" xml:space="preserve"><value>संसाधन स्वामी: {0}</value></data>
+  <data name="SharingRecipient" xml:space="preserve"><value>प्राप्तकर्ता: {0} ({1})</value></data>
+  <data name="SharingInherited" xml:space="preserve"><value>यहाँ से विरासत में: {0}</value></data>
+  <data name="SharingDirect" xml:space="preserve"><value>प्रत्यक्ष साझाकरण</value></data>
+  <data name="SharingInheritanceUnknown" xml:space="preserve"><value>विरासत: अज्ञात</value></data>
+  <data name="SharingGrantPermissions" xml:space="preserve"><value>इस साझाकरण की अनुमतियाँ: {0}</value></data>
+  <data name="OutgoingSharingExplanation" xml:space="preserve"><value>नीचे की सूचियाँ भेजे गए साझाकरण दिखाती हैं। ऊपर के प्राप्त साझाकरण केवल पढ़ने के लिए हैं।</value></data>
+  <data name="SharingYes" xml:space="preserve"><value>हाँ</value></data>
+  <data name="SharingNo" xml:space="preserve"><value>नहीं</value></data>
+  <data name="SharingNoPermissions" xml:space="preserve"><value>कोई नहीं</value></data>
+  <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>अनुरोधित फ़ोल्डर अब सर्वर पर उपलब्ध नहीं है। आवश्यकता होने पर मूल दृश्य को ताज़ा करें।</value></data>
+  <data name="BrowserFileUnavailable" xml:space="preserve"><value>अनुरोधित फ़ाइल अब सर्वर पर उपलब्ध नहीं है। आवश्यकता होने पर दृश्य को ताज़ा करें।</value></data>
 </root>

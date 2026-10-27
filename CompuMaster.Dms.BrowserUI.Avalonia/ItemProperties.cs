@@ -42,7 +42,7 @@ internal static class ItemProperties
             Add(UiText.Get("PropertiesLockedBy"), item.ExtendedInfosLockedByUser);
             foreach (var value in item.ExtendedInfosLocks ?? new()) Add(UiText.Get("PropertiesLocks"), value);
             if (item.ExtendedInfosCollisionDetected) text.AppendLine(UiText.Get("PropertiesCollisionWarning"));
-            text.AppendLine().AppendLine(UiText.Get("PropertiesSharings"));
+            text.AppendLine().AppendLine(UiText.Get("PropertiesSharings")).AppendLine(SharingSummary.Format(item)).AppendLine();
             Add("IsShared: ", item.ExtendedInfosIsShared);
             Add("IsPublicCollection: ", item.ExtendedInfosIsPublicCollection);
             Add("HasHiddenGroupSharings: ", item.ExtendedInfosHasHiddenGroupSharings);

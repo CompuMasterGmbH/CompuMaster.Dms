@@ -52,7 +52,16 @@ internal sealed class WindowHost
             var bounds = owner.AppWindow.Position;
             var size = owner.AppWindow.Size;
             var mine = window.AppWindow.Size;
-            window.AppWindow.Move(new PointInt32(bounds.X + Math.Max(0, (size.Width - mine.Width) / 2), bounds.Y + Math.Max(0, (size.Height - mine.Height) / 2)));
+            if (DisplayArea.GetFromWindowId(owner.AppWindow.Id, DisplayAreaFallback.Primary) is { } display)
+            {
+                var area = display.WorkArea;
+                mine = new SizeInt32(Math.Min(mine.Width, Math.Max(1, area.Width - 16)), Math.Min(mine.Height, Math.Max(1, area.Height - 16)));
+                window.AppWindow.Resize(mine);
+                window.AppWindow.Move(new PointInt32(
+                    Math.Clamp(bounds.X + (size.Width - mine.Width) / 2, area.X + 8, area.X + area.Width - mine.Width - 8),
+                    Math.Clamp(bounds.Y + (size.Height - mine.Height) / 2, area.Y + 8, area.Y + area.Height - mine.Height - 8)));
+            }
+            else window.AppWindow.Move(new PointInt32(bounds.X, bounds.Y));
         }
         try { window.Activate(); }
         catch { if (parent != 0) EnableWindow(parent, true); throw; }
@@ -259,7 +268,7 @@ internal abstract class OperationWindow : DialogWindow
             var browser = Owner;
             while (browser is DialogWindow nested) browser = nested.Owner;
             var failure = (browser as DmsBrowser)?.Browser.ReportFailure(ex, DmsBrowserFailurePhase.Action, GetType().Name);
-            if (failure?.SuppressDialog != true) await Dialogs.MessageAsync(this, UiText.FailureMessage(ex));
+            if (failure?.SuppressDialog != true) await Dialogs.MessageAsync(this, BrowserErrorDetails.Format(ex, DmsBrowserFailurePhase.Action, GetType().Name));
             return false;
         }
         finally { running = false; if (content is not null) content.IsEnabled = true; }

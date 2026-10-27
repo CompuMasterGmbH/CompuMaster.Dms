@@ -118,11 +118,11 @@ public sealed partial class DmsBrowserControl : UserControl
         tree.Expanding += async (_, e) =>
         {
             if (suppressSelection || !nodes.TryGetValue(e.Node, out var node) || node.Loaded) return;
-            node.IsExpanded = true; await UiAsync(() => Session.ExpandAsync(node));
+            node.IsExpanded = true; await UiAsync(() => Session.ExpandAsync(node), DmsBrowserFailurePhase.ChildListing, "ExpandFolder");
         };
         tree.Collapsed += (_, e) => { if (!suppressSelection && nodes.TryGetValue(e.Node, out var node)) node.IsExpanded = false; };
         tree.SelectionChanged += async (_, _) =>
-        { if (!suppressSelection && tree.SelectedNode is { } selected && nodes.TryGetValue(selected, out var node)) await UiAsync(() => Session.SelectAsync(node)); };
+        { if (!suppressSelection && tree.SelectedNode is { } selected && nodes.TryGetValue(selected, out var node)) await UiAsync(() => Session.SelectAsync(node), DmsBrowserFailurePhase.Action, "SelectFolder"); };
         tree.DoubleTapped += (_, _) => { if (Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); };
         files.SelectionChanged += (_, _) => { if (!suppressSelection) { UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty); } };
         files.DoubleTapped += async (_, _) =>
@@ -183,7 +183,7 @@ public sealed partial class DmsBrowserControl : UserControl
         };
         void Action(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, MenuFlyout menu, bool sharing = false)
         {
-            var button = Dialogs.Button(key, async () => await UiAsync(action)); BrowserActionIcons.Apply(button, key); fileToolbar.Children.Add(button);
+            var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); BrowserActionIcons.Apply(button, key); fileToolbar.Children.Add(button);
             var mandatory = key is "ActionUpload" or "ActionUploadFolder" or "ActionDownload" or "ActionOpen" or "ActionDelete";
             actions.Add((button, () => (!flag.HasValue || Allowed(flag.Value)) && (key is "FileVersionHistory" or "ActionDownloadFolder" ? enabled() : true),
                 () => mandatory || Visible(flag, sharing) && (key != "ActionFolderSharings" || FolderActionVisible(key)) && (key != "FileVersionHistory" || DmsProvider?.SupportsFileVersionHistory == true)));
@@ -193,7 +193,7 @@ public sealed partial class DmsBrowserControl : UserControl
         {
             var item = new MenuFlyoutItem { Name = key, Text = Dialogs.Caption(key) };
             if (BrowserActionIcons.Create(key, folderMenu: menu == folderMenu, menu: true) is { } icon) item.Icon = new ImageIcon { Source = icon.Source };
-            item.Click += async (_, _) => await UiAsync(action); menu.Items.Add(item);
+            item.Click += async (_, _) => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key); menu.Items.Add(item);
             actions.Add((item, () => (!flag.HasValue || Allowed(flag.Value)) && (key is "FileVersionHistory" or "ActionDownloadFolder" ? enabled() : true),
                 () => Visible(flag, sharing) && (menu != folderMenu || FolderActionVisible(key)) && (key != "FileVersionHistory" || DmsProvider?.SupportsFileVersionHistory == true && session?.BrowseMode == BrowseModes.FoldersAndFiles)));
         }
@@ -225,7 +225,7 @@ public sealed partial class DmsBrowserControl : UserControl
     }
     private Button AddBottom(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool>? visible = null)
     {
-        var button = Dialogs.Button(key, async () => await UiAsync(action)); bottom.Children.Add(button);
+        var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); bottom.Children.Add(button);
         if (key is "ActionCancel" or "ActionClose") terminalButtons.Add(button);
         actions.Add((button, () => !flag.HasValue || Allowed(flag.Value), () => (key == "ActionCreateFolder" || Visible(flag)) && (visible?.Invoke() ?? true))); return button;
     }
