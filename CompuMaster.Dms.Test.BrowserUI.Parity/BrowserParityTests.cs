@@ -42,6 +42,55 @@ public sealed class WorkstationNotice
 [TestFixture]
 public sealed class BrowserParityTests
 {
+    [AvaloniaTest]
+    [TestCase("overview", "de")]
+    [TestCase("overview", "en")]
+    [TestCase("user", "de")]
+    [TestCase("user", "en")]
+    [TestCase("group", "de")]
+    [TestCase("group", "en")]
+    [TestCase("link", "de")]
+    [TestCase("link", "en")]
+    public async Task Sharing_dialog_group_headers_match_all_native_reference_groups(string kind, string culture)
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
+        var expected = Native(() =>
+        {
+            using Forms.Form reference = kind switch
+            {
+                "overview" => new Wf.DmsItemSharings(),
+                "link" => new Wf.DmsLinkShareSetup(),
+                "group" => new Wf.DmsStandardShareSetup((DmsShareForGroup)null!, new DemoDmsProvider(), new List<string>()),
+                _ => new Wf.DmsStandardShareSetup((DmsShareForUser)null!, new DemoDmsProvider(), new List<string>())
+            };
+            static IEnumerable<Forms.Control> Descendants(Forms.Control parent) =>
+                parent.Controls.Cast<Forms.Control>().SelectMany(child => new[] { child }.Concat(Descendants(child)));
+            return Descendants(reference).OfType<Forms.GroupBox>().Select(group => group.Text).Order(StringComparer.Ordinal).ToArray();
+        });
+        var provider = new DemoDmsProvider();
+        var item = provider.Items.Single(entry => entry.Name == "Welcome.txt");
+        Av.OperationWindow dialog = kind switch
+        {
+            "overview" => new Av.DmsItemSharings(provider, item),
+            "link" => new Av.DmsLinkShareSetup(provider, item, null),
+            _ => new Av.DmsStandardShareSetup(provider, item, kind == "group", null)
+        };
+        var owner = new Window();
+        try
+        {
+            owner.Show(); dialog.Show(owner);
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+            while (dialog.IsRunning && DateTime.UtcNow < deadline) await Task.Delay(5);
+            Assert.That(dialog.IsRunning, Is.False);
+            dialog.UpdateLayout();
+            var groups = dialog.GetVisualDescendants().OfType<GroupBox>().ToArray();
+            Assert.That(groups.Select(group => group.Header?.ToString()).Order(StringComparer.Ordinal), Is.EqualTo(expected));
+            Assert.That(groups.All(group => group.IsVisible && group.Content is Control), Is.True);
+        }
+        finally { dialog.Close(); owner.Close(); CultureInfo.CurrentUICulture = previous; }
+    }
+
     private sealed record IconData(int Width, int Height, byte[] Pixels);
     private sealed record State(bool Visible, bool Enabled, bool? Checked = null, IconData? Icon = null);
     private sealed record Snapshot(Dictionary<string, State> Controls, string[] Files, int Selection);

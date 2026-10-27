@@ -71,6 +71,16 @@ Use `new RemoteInstanceSelector("instance-id")` for explicit startup selection, 
 
 Framework types and native chrome differ. Portable file icons replace Windows shell icon extraction. Storage pickers, clipboard and default-file launching come from the desktop host. Outward drag uses downloaded browser-owned copies and native Avalonia storage items instead of Windows OLE virtual streams. Preparing those copies can take time before the native drag begins; they remain tracked until browser cleanup. The dialog-based download workflow is available on every desktop target. Native shell/drag acceptance remains separate from isolated tests.
 
+The WinForms BrowserUI contains eight GroupBoxes, all represented by labeled Avalonia GroupBox controls with the same localized headings and field grouping:
+
+| Dialog | Groups |
+| --- | --- |
+| Sharing overview | Internal user/group shares; external link shares (2) |
+| User/group sharing editor | General settings; permissions (2) |
+| External link editor | General settings; permissions; limits; statistics (4) |
+
+The standard and link editors remain scrollable at smaller window sizes. The main browser, instance selector, version history, transfer/conflict dialogs and dedicated demo login forms have no additional WinForms GroupBoxes to map. Paired Windows tests compare the actual reference group headings for the overview, user, group and link editors in English and German.
+
 ## Verification and platform status
 
 ```powershell
