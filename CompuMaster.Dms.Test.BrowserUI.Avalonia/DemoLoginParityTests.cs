@@ -153,6 +153,7 @@ public sealed class DemoLoginParityTests
         Assert.That(opened, Is.EqualTo(1));
         Assert.That(configured!.AllowedActions.HasFlag(FileOrFolderActions.AllowSwitchDmsInstance), Is.False);
         Assert.That(configured.RemoteInstance.SelectedStartupInstance, Is.EqualTo(RemoteInstanceSelector.StartupInstance.DefaultInstance));
+        Assert.That(configured.RemoteInstance.SelectionDialog, Is.Null, "A guarded context must not enumerate other instances during browser initialization.");
         login.Close();
     }
 
@@ -164,7 +165,8 @@ public sealed class DemoLoginParityTests
         var opened = false;
         var login = new DemoLoginWindow(new DemoDefinition(DemoTarget.ScopevisioTeamwork),
             profile => { supplied = profile; return Task.FromResult<BaseDmsProvider>(provider); },
-            (_, _, options) => { opened = true; Assert.That(options.AllowedActions.HasFlag(FileOrFolderActions.AllowSwitchDmsInstance), Is.False); return Task.CompletedTask; },
+            (_, _, options) => { opened = true; Assert.That(options.AllowedActions.HasFlag(FileOrFolderActions.AllowSwitchDmsInstance), Is.False);
+                Assert.That(options.RemoteInstance.SelectionDialog, Is.Null); return Task.CompletedTask; },
             Buffer(DemoTarget.ScopevisioTeamwork), _ => throw new AssertionException("An explicit organisation must not invoke the instance picker."));
         login.Username.Text = "fixture"; login.Password.Text = "fixture"; login.Customer.Text = "123";
         login.Organisation.Text = "42"; login.ExpectedTenant.Text = "demo";
@@ -174,4 +176,11 @@ public sealed class DemoLoginParityTests
         Assert.That(((ScopevisioLoginCredentials)supplied!).OrganisationId, Is.EqualTo(42));
         login.Close();
     }
+
+    [TestCase("/Documents", "Documents")]
+    [TestCase("Documents", "Documents")]
+    [TestCase(" folder ", " folder ")]
+    [TestCase(" ", " ")]
+    public void Starting_directory_preserves_the_WinForms_mapping_without_trimming_valid_names(string input, string expected) =>
+        Assert.That(new DemoDefinition(DemoTarget.WebDav).BrowserOptions(input).InitialFolder, Is.EqualTo(expected));
 }

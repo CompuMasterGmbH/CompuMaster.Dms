@@ -61,7 +61,7 @@ internal sealed record DemoDefinition(DemoTarget Target)
     internal DmsBrowserOptions BrowserOptions(string? root = null, bool offline = false) => new()
     {
         FormTitle = BrowserTitle + (offline && Target != DemoTarget.Offline ? " — offline" : ""),
-        InitialFolder = string.IsNullOrWhiteSpace(root) || root == "/" ? null : root,
+        InitialFolder = string.IsNullOrEmpty(root) || root == "/" ? null : root.StartsWith('/') ? root[1..] : root,
         SelectedFolder = offline ? "Documents" : null,
         AllowedActions = (FileOrFolderActions)2047,
         DialogOperationMode = DialogOperationModes.NoResults,
