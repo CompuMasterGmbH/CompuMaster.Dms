@@ -21,7 +21,7 @@ Commit the intended inputs, choose a new unused four-component NuGet version and
 
 This builds Release packages for both the providers and Avalonia with the same version prefix. It verifies the package contents/source revision and installs the exact prepared packages into an independent consumer with an isolated NuGet package directory. The consumer checks resources, German localization, DataGrid styles and dependency isolation without GUI or real-server access.
 
-The new artifacts/avalonia-nuget-* directory contains:
+The new artifacts/nuget-* directory contains:
 
 - feed/: both .nupkg files and corresponding .snupkg files;
 - preparation.json: exact metadata, dependencies, source commit, versions, packaged files and SHA-256 hashes;
