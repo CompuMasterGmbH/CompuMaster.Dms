@@ -85,7 +85,10 @@ public sealed class RemoteInstanceSelector
     public static async Task<string?> ShowDefaultSelectionDialogAsync(Window owner, IReadOnlyList<DmsInstanceInfo> instances)
     {
         ArgumentNullException.ThrowIfNull(instances);
-        return (await Dialogs.ChooseAsync(owner, UiText.Get("ChangeDmsInstance"),
-            instances.Select(i => new DialogChoice(i.ID, i.DisplayName)).ToArray()))?.ID;
+        var ordered = instances.OrderByDescending(i => i.IsSelected)
+            .ThenBy(i => i.DisplayName, StringComparer.CurrentCultureIgnoreCase).ThenBy(i => i.ID, StringComparer.Ordinal).ToArray();
+        return (await Dialogs.ChooseAsync(owner, UiText.Get("DmsInstanceSelectionTitle"),
+            ordered.Select(i => new DialogChoice(i.ID, i.DisplayName)).ToArray(),
+            ordered.FirstOrDefault(i => i.IsSelected)?.ID, UiText.Get("DmsInstanceSelectionPrompt")))?.ID;
     }
 }

@@ -30,5 +30,7 @@
     <None Include="../LICENSE" Pack="true" PackagePath="/" />
     <None Include="../CompuMaster.Dms.BrowserUI/logo_64x64.png" Pack="true" PackagePath="/" />
     <InternalsVisibleTo Include="CompuMaster.Dms.Test.BrowserUI.Avalonia" />
+    <InternalsVisibleTo Include="CompuMaster.Dms.Test.BrowserUI.Parity" />
+    <InternalsVisibleTo Include="CompuMaster.Dms.Test.FileIconProbe" />
   </ItemGroup>
 </Project>
