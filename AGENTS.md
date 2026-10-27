@@ -127,6 +127,8 @@
 
 ## Releases and publishing
 
+- Explicit user exception recorded on 2026-10-27: for the Avalonia implementation merge/release (#149) and the subsequent received-sharing change (#150), CI build-and-test workflows may be skipped and publication verified through the publish pipeline instead. Keep this exception scoped to these two changes, document the actual local checks and unexecuted/failed integration coverage, and retain normal release gates for other work. This does not waive publish-result verification or authorize changes to shared-server locks.
+
 - Creating a GitHub release is a public deployment action: `.github/workflows/PublishRelease.yml` publishes `CompuMaster.Dms.Providers` and `CompuMaster.Dms.BrowserUI` to NuGet.org and attaches compiled Provider, BrowserUI, Scopevisio demo, and WebDAV demo archives to the GitHub release.
 - Create a release only after the related pull request has been merged into `main` and the final merged-head serialized GitHub Actions pipeline has completed successfully: complete normally enabled Windows/.NET 8 provider, BrowserUI and configured remote integration tests, plus named representative samples on Linux/macOS and Windows/.NET 4.8. Report the reduced coverage, actual executed/ignored counts and deferred acceptance explicitly; samples are not full cross-platform verification.
 - Require explicit user approval immediately before creating the GitHub release. Do not infer release authorization from approval to commit, push, or merge code.

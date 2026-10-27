@@ -143,7 +143,7 @@ Public Class DmsBrowserInstanceSelectionTest
 
         Using Picker As New DmsInstanceSelectionDialog(Instances, SystemIcons.Information)
             Dim Items As ListBox = Picker.Controls.OfType(Of ListBox)().Single()
-            CollectionAssert.AreEqual(New String() {"a", "b", "z"}, Items.Items.Cast(Of DmsInstanceInfo)().Select(Function(item) item.ID).ToArray())
+            CollectionAssert.AreEqual(New String() {"z", "a", "b"}, Items.Items.Cast(Of DmsInstanceInfo)().Select(Function(item) item.ID).ToArray())
             ClassicAssert.AreEqual("z", Picker.SelectedInstance.ID)
             AssertSameIcon(SystemIcons.Information, Picker.Icon)
         End Using
