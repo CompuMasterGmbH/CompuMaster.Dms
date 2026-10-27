@@ -71,11 +71,8 @@ internal sealed class DmsItemSharings : OperationWindow
         internalShares.DoubleTapped += async (_, _) => await RunAsync(EditInternalAsync);
         links.DoubleTapped += async (_, _) => await RunAsync(EditSelectedLinkAsync);
     }
-    private static GroupBox SharingGroup(string key, DataGrid list, Control actions) => new()
-    {
-        Name = key + "Group", Header = UiText.Get(key), Padding = new Thickness(10),
-        Content = new StackPanel { Spacing = 6, Children = { list, actions } }
-    };
+    private static GroupBox SharingGroup(string key, DataGrid list, Control actions) =>
+        Dialogs.Group(key, new StackPanel { Spacing = 6, Children = { list, actions } });
     private WrapPanel Toolbar(params (string Key, Func<Task> Action)[] entries)
     {
         var panel = new WrapPanel();
@@ -188,8 +185,10 @@ internal sealed class DmsStandardShareSetup : OperationWindow
             _ => group ? new DmsShareForGroup(item, default, true, true, true, true, true, true) : new DmsShareForUser(item, default, true, true, true, true, true, true)
         };
         permissions = new PermissionEditor(policy, draft, item, false, existing is null);
+        var general = new StackPanel { Spacing = 4, Children =
+            { new TextBlock { Text = UiText.Get(group ? "LabelGroupName" : "LabelUserName") }, principals } };
         var body = new StackPanel { Spacing = 12, Children =
-            { new TextBlock { Text = UiText.Get(group ? "LabelGroupName" : "LabelUserName") }, principals, permissions.Control } };
+            { Dialogs.Group("GeneralSettings", general), Dialogs.Group("Permissions", permissions.Control) } };
         var save = Dialogs.Button("ActionSave", async () =>
         {
             var saved = await RunAsync(async () =>
@@ -202,7 +201,7 @@ internal sealed class DmsStandardShareSetup : OperationWindow
             });
             if (saved) Close(true);
         });
-        Content = Dialogs.Layout(body, Dialogs.Buttons(save, Dialogs.Button("ActionCancel", Close)));
+        Content = Dialogs.Layout(new ScrollViewer { Content = body }, Dialogs.Buttons(save, Dialogs.Button("ActionCancel", Close)));
         Opened += async (_, _) => await RunAsync(async () =>
         {
             if (existing is DmsShareForGroup g)
@@ -236,36 +235,42 @@ internal sealed class DmsLinkShareSetup : OperationWindow
         Title = UiText.Get("LinkSetupTitle");
         var policy = new SharingPolicy(provider);
         var draft = existing is null ? new DmsLink(item, provider) { AllowView = true, AllowDownload = policy.WebDav } : (DmsLink)existing.Clone();
-        var body = new StackPanel { Spacing = 4 };
-        var id = Field(body, "LabelId", existing?.ID, true);
+        var general = new StackPanel { Spacing = 4 };
+        var limitFields = new StackPanel { Spacing = 4 };
+        var statistics = new StackPanel { Spacing = 4 };
+        var id = Field(general, "LabelId", existing?.ID, true);
         id.IsEnabled = existing is not null;
-        var name = Field(body, "LabelName", draft.Name);
-        var web = Field(body, "LabelWebLink", draft.WebUrl, true);
+        var name = Field(general, "LabelName", draft.Name);
+        var web = Field(general, "LabelWebLink", draft.WebUrl, true);
         web.IsEnabled = existing is not null;
-        var download = Field(body, "LabelDownloadLink", draft.DownloadUrl, true);
+        var download = Field(general, "LabelDownloadLink", draft.DownloadUrl, true);
         var permissions = new PermissionEditor(policy, draft, item, true, existing is null);
-        body.Children.Add(permissions.Control);
         var expiryEnabled = new CheckBox { Name = "EnableExpiry", Content = UiText.Get("LabelExpiryDate"), IsChecked = draft.ExpiryDateLocalTime.HasValue };
         var initialExpiry = draft.ExpiryDateLocalTime ?? DateTime.Now;
         var expiryDate = new CalendarDatePicker { Name = "ExpiryDate", SelectedDate = initialExpiry, HorizontalAlignment = HorizontalAlignment.Stretch };
         var expiryTime = new TimePicker { Name = "ExpiryTime", SelectedTime = initialExpiry.TimeOfDay };
-        body.Children.Add(expiryEnabled); body.Children.Add(expiryDate); body.Children.Add(expiryTime);
+        general.Children.Add(expiryEnabled); general.Children.Add(expiryDate); general.Children.Add(expiryTime);
         var passwordEnabled = new CheckBox { Name = "EnablePassword", Content = UiText.Get("LabelPassword"), IsChecked = !string.IsNullOrEmpty(draft.Password) };
-        body.Children.Add(passwordEnabled);
-        var password = new TextBox { Name = "LinkPassword", Text = draft.Password, PasswordChar = '●' }; body.Children.Add(password);
+        general.Children.Add(passwordEnabled);
+        var password = new TextBox { Name = "LinkPassword", Text = draft.Password, PasswordChar = '●' }; general.Children.Add(password);
         var limits = new Dictionary<string, (CheckBox Enabled, TextBox Value)>();
         foreach (var (key, value) in new[] { ("LabelMaxDownloads", draft.MaxDownloads), ("LabelMaxUploads", draft.MaxUploads), ("LabelMaxBytes", draft.MaxBytes) })
         {
             var enabled = new CheckBox { Name = "Enable" + key, Content = UiText.Get(key), IsChecked = value.HasValue, IsEnabled = policy.Teamwork };
             var field = new TextBox { Name = key, Text = value?.ToString(), IsEnabled = policy.Teamwork };
-            body.Children.Add(enabled); body.Children.Add(field); limits.Add(key, (enabled, field));
+            limitFields.Children.Add(enabled); limitFields.Children.Add(field); limits.Add(key, (enabled, field));
         }
-        body.Children.Add(new CheckBox { Name = "EnableLabelMaxViews", Content = UiText.Get("LabelMaxViews"), IsEnabled = false });
-        body.Children.Add(new TextBox { Name = "LabelMaxViews", IsEnabled = false });
-        Field(body, "LabelNumberDownloads", draft.DownloadsCount?.ToString(), true).IsEnabled = existing is not null;
-        Field(body, "LabelNumberUploads", existing is null && policy.Teamwork ? "5000" : draft.UploadsCount?.ToString(), true).IsEnabled = existing is not null;
-        Field(body, "LabelNumberBytes", draft.UploadedBytes?.ToString(), true).IsEnabled = existing is not null;
-        Field(body, "LabelNumberViews", draft.ViewsCount?.ToString(), true);
+        limitFields.Children.Add(new CheckBox { Name = "EnableLabelMaxViews", Content = UiText.Get("LabelMaxViews"), IsEnabled = false });
+        limitFields.Children.Add(new TextBox { Name = "LabelMaxViews", IsEnabled = false });
+        Field(statistics, "LabelNumberDownloads", draft.DownloadsCount?.ToString(), true).IsEnabled = existing is not null;
+        Field(statistics, "LabelNumberUploads", existing is null && policy.Teamwork ? "5000" : draft.UploadsCount?.ToString(), true).IsEnabled = existing is not null;
+        Field(statistics, "LabelNumberBytes", draft.UploadedBytes?.ToString(), true).IsEnabled = existing is not null;
+        Field(statistics, "LabelNumberViews", draft.ViewsCount?.ToString(), true);
+        var body = new StackPanel { Spacing = 12, Children =
+        {
+            Dialogs.Group("GeneralSettings", general), Dialogs.Group("Permissions", permissions.Control),
+            Dialogs.Group("Limits", limitFields), Dialogs.Group("Statistics", statistics)
+        } };
         void UpdateFields()
         {
             name.IsEnabled = policy.WebDav || permissions.Value("Upload");

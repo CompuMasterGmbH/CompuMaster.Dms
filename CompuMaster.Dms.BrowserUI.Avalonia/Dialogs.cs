@@ -26,6 +26,10 @@ internal static class Dialogs
         foreach (var c in controls) panel.Children.Add(c);
         return panel;
     }
+    internal static GroupBox Group(string key, Control content) => new()
+    {
+        Name = key + "Group", Header = UiText.Get(key), Padding = new Thickness(10), Content = content
+    };
     internal static Window Window(string title, Control content, double width = 560, double height = 320) =>
         new() { Title = title, Content = content, Width = width, Height = height, MinWidth = 360, MinHeight = 220, FlowDirection = UiText.LayoutDirection,
             WindowStartupLocation = WindowStartupLocation.CenterOwner };
