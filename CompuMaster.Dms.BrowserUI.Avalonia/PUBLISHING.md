@@ -40,6 +40,16 @@ NuGet normalizes a trailing zero version component: 2026.10.27.0 is normally rep
 - Ensure the matching provider version is available before consumers restore the Avalonia package. The local preview deliberately stages the provider dependency too; pushing Avalonia alone would leave that dependency unavailable.
 - Verify all NuGet packages, symbol publication and expected release assets before reporting publication success. The local push template is reference/recovery information, not a replacement for the repository's release process.
 
+## One-time package-ID bootstrap
+
+If the CI key can update existing package IDs but cannot create new ones, the user may explicitly authorize a first prerelease push from WKS08. This exception creates only the Avalonia package ID; it does not create a GitHub release or publish a stable version. Later production releases still follow the normal process above.
+
+```powershell
+./.github/scripts/prepare-avalonia-nuget.ps1 -Version 2026.10.26.0-preview.1 -PublishedProvidersVersion 2026.10.20
+```
+
+This mode compiles against the already published provider package and verifies installation from an isolated consumer. It stages only Avalonia and its symbols, so the bootstrap does not require publishing an unrelated Providers prerelease. The default project reference remains unchanged for normal development/releases. NuGet expresses prerelease status through the version suffix, normalizing this example to 2026.10.26-preview.1. Preparation itself still never pushes.
+
 ## Relevant limitations
 
 User acceptance of the Avalonia implementation is recorded in issue #148 and PR #149. It does not replace pending CI/provider or cross-platform native acceptance. Received-sharing provenance is a separate existing WinForms/provider limitation tracked in issue #150; it is not introduced by this package. No preview changes credentials or clears the real demo disk cache.
