@@ -7,13 +7,24 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarningsAsErrors>CS1591</WarningsAsErrors>
     <PackageId>CompuMaster.Dms.BrowserUI.Avalonia</PackageId>
-    <Authors>CompuMaster GmbH</Authors>
-    <Description>Cross-platform Avalonia DMS browser, file/folder picker and sharing dialogs.</Description>
+    <RootNamespace>CompuMaster.Dms.BrowserUI.Avalonia</RootNamespace>
+    <AssemblyName>CompuMaster.Dms.BrowserUI.Avalonia</AssemblyName>
+    <Authors>Jochen Wezel</Authors>
+    <Company>CompuMaster GmbH</Company>
+    <Product>CompuMaster.Dms</Product>
+    <Copyright>2019-2026 CompuMaster GmbH</Copyright>
+    <Description>Provider-independent DMS browser dialogs and controls for Avalonia on Windows, macOS and Linux. Includes file and folder selection, transfers, sharing, version history and instance selection.</Description>
+    <PackageTags>DmsBrowser Avalonia Desktop CrossPlatform NextCloud OwnCloud CenterDevice Scopevisio Teamwork WebDAV API</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo_64x64.png</PackageIcon>
     <RepositoryUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms</PackageProjectUrl>
+    <PackageReleaseNotes>Initial Avalonia BrowserUI package: reusable browser control and file/folder dialogs, sharing and external links, recursive transfers, version history, instance selection, localized/RTL UI, native file-type icons and dedicated desktop demos. Received-sharing provenance remains a separate follow-up: https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/150.</PackageReleaseNotes>
+    <NeutralLanguage>en</NeutralLanguage>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
