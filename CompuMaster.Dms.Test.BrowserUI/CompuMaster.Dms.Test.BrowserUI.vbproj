@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CompuMaster.Dms.Test.BrowserUI.Parity" />
     <Compile Remove="PhysicalDpi/**/*.vb" />
     <Compile Remove="LocalizationAcceptance/**/*.vb" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />

@@ -85,6 +85,22 @@ The dedicated CI matrix builds, runs isolated headless tests and installs a fres
 
 Linux hosts need Avalonia/.NET native dependencies, including X11 and fontconfig. macOS uses Avalonia's backend without a MAUI workload. See [supported platforms](https://docs.avaloniaui.net/docs/supported-platforms) and [Linux deployment prerequisites](https://docs.avaloniaui.net/docs/deployment/linux).
 
+## Operating-system file icons
+
+The file list initially shows the existing application icon, then replaces it asynchronously with the operating system's file-type icon. Lookup is cached by normalized extension and display size, with bounded cache/concurrency. It never downloads a DMS file or creates a local placeholder. Shared files retain the same sharing overlay artwork/backplate used by WinForms. Folder/collection/root artwork is unchanged. Unsupported platforms and unavailable native backends retain the existing fallback.
+
+- Windows uses [Shell file associations](https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shgetfileinfow) with `SHGFI_USEFILEATTRIBUTES` on a background STA thread. Native icon, bitmap and device-context handles are released after copying pixels.
+- macOS uses [NSWorkspace content-type icons](https://developer.apple.com/documentation/appkit/nsworkspace/icon(for:)) through AppKit/UniformTypeIdentifiers on the native main thread, with the older file-type API as fallback. An autorelease pool bounds temporary Objective-C objects.
+- Linux uses [GIO MIME-type lookup](https://docs.gtk.org/gio/func.content_type_guess.html) and the [freedesktop icon-theme rules](https://specifications.freedesktop.org/icon-theme/latest/), including user overrides, inherited themes, scaled sizes and `hicolor`. KDE/GTK settings and GNOME's configured theme are consulted. PNG icons are decoded directly; installed librsvg/Cairo render SVG icons. Missing optional libraries/theme assets fall back to the application artwork. These system libraries and theme icons are not bundled or redistributed in the package.
+
+`CompuMaster.Dms.Test.FileIconProbe` checks five association types on the process main thread on each CI OS. It is separate from headless UI tests, so macOS actually exercises AppKit instead of silently using the fallback from a test worker thread. A successful probe is icon-backend coverage, not full native file-picker/clipboard/drag acceptance.
+
+## Direct WinForms comparison
+
+`CompuMaster.Dms.Test.BrowserUI.Parity` runs the actual WinForms browser against the same in-memory resources as Avalonia on Windows. It compares action availability, permissions, selection, browse-mode transitions, folder/file context menus, scoped collection restrictions and instance order/preselection. Native ToolStrip overflow packing is treated as layout; items remain available through the overflow menu. Current/selected instances appear first, followed by culture-aware display-name order and ordinal ID tie-breaking in both UIs.
+
+These paired cases complement the workflow tests. They do not establish that every sharing/version/transfer dialog and every native interaction on all platforms has passed a complete side-by-side acceptance run. Those gates remain explicit in #148.
+
 ## Licensing and distribution
 
 The component and Avalonia free framework/DataGrid/Fluent controls use MIT licensing. No Pro/XPF, paid controls, new publisher account or paid publishing service is required. NuGet distribution reuses the release workflow; permission for the new package ID must be checked before release. Publishing still requires explicit release approval after merge and successful required checks.

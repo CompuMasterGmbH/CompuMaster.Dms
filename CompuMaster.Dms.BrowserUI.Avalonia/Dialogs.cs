@@ -62,13 +62,21 @@ internal static class Dialogs
         dialog.Opened += (_, _) => { input.Focus(); input.SelectAll(); };
         return await dialog.ShowDialog<string?>(owner);
     }
-    internal static async Task<DialogChoice?> ChooseAsync(Window owner, string title, IReadOnlyList<DialogChoice> choices)
+    internal static async Task<DialogChoice?> ChooseAsync(Window owner, string title, IReadOnlyList<DialogChoice> choices, string? selectedID = null, string? prompt = null)
     {
         Window? dialog = null;
-        var list = new ListBox { ItemsSource = choices, SelectedIndex = choices.Count > 0 ? 0 : -1 };
+        var list = new ListBox { Name = "Choices", ItemsSource = choices,
+            SelectedItem = choices.FirstOrDefault(choice => choice.ID == selectedID) ?? choices.FirstOrDefault() };
         var ok = Button("ActionOkay", () => { if (list.SelectedItem is DialogChoice selected) dialog!.Close(selected); }); ok.IsDefault = true;
         var cancel = Button("ActionCancel", () => dialog!.Close()); cancel.IsCancel = true;
-        dialog = Window(title, Layout(list, Buttons(ok, cancel)), 560, 420);
+        Control content = list;
+        if (prompt is not null)
+        {
+            var panel = new DockPanel();
+            var label = new TextBlock { Text = prompt, Margin = new Thickness(0, 0, 0, 8), TextWrapping = global::Avalonia.Media.TextWrapping.Wrap };
+            DockPanel.SetDock(label, Dock.Top); panel.Children.Add(label); panel.Children.Add(list); content = panel;
+        }
+        dialog = Window(title, Layout(content, Buttons(ok, cancel)), 560, 420);
         list.DoubleTapped += (_, _) => { if (list.SelectedItem is DialogChoice selected) dialog.Close(selected); };
         return await dialog.ShowDialog<DialogChoice?>(owner);
     }

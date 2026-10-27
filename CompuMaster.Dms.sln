@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.Ow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia", "CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia\CompuMaster.Dms.TestDemo.ScopevisioTeamwork.Avalonia.csproj", "{7539125D-544F-4817-9F2A-064586A03420}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompuMaster.Dms.Test.FileIconProbe", "CompuMaster.Dms.Test.FileIconProbe\CompuMaster.Dms.Test.FileIconProbe.csproj", "{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CI_CD|Any CPU = CI_CD|Any CPU
@@ -43,6 +45,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
+		{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
+		{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E5E97FE-8951-49E4-8811-DF1BEED0F7F0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.CI_CD|Any CPU.ActiveCfg = CI_CD|Any CPU
 		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.CI_CD|Any CPU.Build.0 = CI_CD|Any CPU
 		{3E268D2E-71DD-421F-9947-4926DC4FCCB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

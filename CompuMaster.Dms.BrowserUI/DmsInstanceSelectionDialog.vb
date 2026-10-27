@@ -35,7 +35,7 @@ Friend NotInheritable Class DmsInstanceSelectionDialog
         Me.InstancesList.Location = New Drawing.Point(12, 42)
         Me.InstancesList.Size = New Drawing.Size(396, 210)
         Me.InstancesList.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
-        For Each Instance As DmsInstanceInfo In instances.OrderBy(Function(item) item.DisplayName, StringComparer.CurrentCultureIgnoreCase).ThenBy(Function(item) item.ID, StringComparer.Ordinal)
+        For Each Instance As DmsInstanceInfo In instances.OrderByDescending(Function(item) item.IsSelected).ThenBy(Function(item) item.DisplayName, StringComparer.CurrentCultureIgnoreCase).ThenBy(Function(item) item.ID, StringComparer.Ordinal)
             Me.InstancesList.Items.Add(Instance)
             If Instance.IsSelected Then Me.InstancesList.SelectedItem = Instance
         Next

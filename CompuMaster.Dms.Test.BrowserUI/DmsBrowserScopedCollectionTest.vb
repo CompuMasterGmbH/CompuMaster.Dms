@@ -167,7 +167,7 @@ Public Class DmsBrowserScopedCollectionTest
         End Property
     End Class
 
-    Private Class ScopedProvider
+    Friend Class ScopedProvider
         Inherits ScopevisioTeamworkDmsProvider
         Public ReadOnly Created As New List(Of String)()
         Public CollectionWrites As Integer

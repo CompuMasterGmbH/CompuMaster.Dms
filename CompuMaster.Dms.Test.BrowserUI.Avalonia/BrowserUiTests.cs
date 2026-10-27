@@ -85,7 +85,8 @@ public sealed class BrowserUiTests
             await browser.SetBrowseModeAsync(BrowseModes.FoldersAndFiles);
             Assert.That(browser.FileGrid.IsVisible, Is.True);
             Assert.That(browser.Session.Files.Count, Is.EqualTo(2));
-            Assert.That(FindButton(browser, "ActionUpload").IsVisible, Is.False);
+            Assert.That(FindButton(browser, "ActionUpload").IsVisible, Is.True, "WinForms retains the file upload action with disabled permission.");
+            Assert.That(FindButton(browser, "ActionUpload").IsEnabled, Is.False);
             Assert.That(FindButton(browser, "ActionFileSharings").IsVisible, Is.False);
         }
         finally { host.Close(); browser.CleanupTemporaryFiles(); }

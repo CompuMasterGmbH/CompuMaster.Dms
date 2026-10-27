@@ -32,6 +32,11 @@ jobs:
       - name: Verify packed NuGet consumer
         shell: pwsh
         run: ./.github/scripts/test-avalonia-package.ps1 -Configuration CI_CD
+      - name: Probe native file association icons on the process main thread
+        run: dotnet run --project CompuMaster.Dms.Test.FileIconProbe -c CI_CD
+      - name: Compare native WinForms controls with Avalonia
+        if: runner.os == 'Windows'
+        run: dotnet test CompuMaster.Dms.Test.BrowserUI.Parity -c CI_CD --verbosity quiet --logger trx --results-directory artifacts/browser-parity
       - name: Retain local test and package evidence
         if: always()
         uses: actions/upload-artifact@v6
