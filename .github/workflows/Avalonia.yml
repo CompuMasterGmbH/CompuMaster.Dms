@@ -28,7 +28,7 @@ jobs:
         shell: pwsh
         run: ./.github/scripts/build-avalonia-demos.ps1 -Configuration CI_CD
       - name: Run isolated Avalonia tests
-        run: dotnet test CompuMaster.Dms.Test.BrowserUI.Avalonia/CompuMaster.Dms.Test.BrowserUI.Avalonia.csproj -c CI_CD --verbosity quiet --logger trx --results-directory artifacts/avalonia-tests
+        run: dotnet test CompuMaster.Dms.Test.BrowserUI.Avalonia/CompuMaster.Dms.Test.BrowserUI.Avalonia.csproj -c CI_CD --filter "TestCategory!=RemoteDms" --verbosity quiet --logger trx --results-directory artifacts/avalonia-tests
       - name: Verify packed NuGet consumer
         shell: pwsh
         run: ./.github/scripts/test-avalonia-package.ps1 -Configuration CI_CD
@@ -38,3 +38,57 @@ jobs:
         with:
           name: avalonia-${{ matrix.os }}
           path: artifacts/
+
+  live-login:
+    name: Avalonia live login (${{ matrix.target }})
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 10
+    # Same account locks as BuildAndTest.yml. This smoke check only authorizes
+    # and lists the configured root; no resource-mutating setup/cleanup is run.
+    concurrency:
+      group: ${{ matrix.lock }}
+      queue: max
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - target: Nextcloud
+            lock: dms-test-server-nextcloud-webdav
+          - target: ScopevisioTeamwork
+            lock: dms-test-server-scopevisio-teamwork
+          - target: OwnCloudClassic
+            lock: dms-test-server-owncloud
+          - target: WebDav
+            lock: dms-test-server-webdav
+    env:
+      TEST_SCOPEVISIOTEAMWORK_USERNAME: ${{ matrix.target == 'ScopevisioTeamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_USERNAME || '' }}
+      TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO: ${{ matrix.target == 'ScopevisioTeamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_CUSTOMERNO || '' }}
+      TEST_SCOPEVISIOTEAMWORK_PASSWORD: ${{ matrix.target == 'ScopevisioTeamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_PASSWORD || '' }}
+      TEST_SCOPEVISIOTEAMWORK_ORGANISATIONID: ${{ matrix.target == 'ScopevisioTeamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_ORGANISATIONID || '' }}
+      TEST_SCOPEVISIOTEAMWORK_EXPECTEDTEAMWORKTENANTID: ${{ matrix.target == 'ScopevisioTeamwork' && secrets.TEST_SCOPEVISIOTEAMWORK_EXPECTEDTEAMWORKTENANTID || '' }}
+      TEST_CMOWNCLOUD_SERVERURL: ${{ matrix.target == 'OwnCloudClassic' && secrets.TEST_CMOWNCLOUD_SERVERURL || '' }}
+      TEST_CMOWNCLOUD_USERNAME: ${{ matrix.target == 'OwnCloudClassic' && secrets.TEST_CMOWNCLOUD_USERNAME || '' }}
+      TEST_CMOWNCLOUD_PASSWORD: ${{ matrix.target == 'OwnCloudClassic' && secrets.TEST_CMOWNCLOUD_PASSWORD || '' }}
+      TEST_WEBDAV_SERVERURL: ${{ matrix.target == 'WebDav' && secrets.TEST_WEBDAV_SERVERURL || '' }}
+      TEST_WEBDAV_USERNAME: ${{ matrix.target == 'WebDav' && secrets.TEST_WEBDAV_USERNAME || '' }}
+      TEST_WEBDAV_PASSWORD: ${{ matrix.target == 'WebDav' && secrets.TEST_WEBDAV_PASSWORD || '' }}
+      TEST_CMNEXTCLOUD_SERVERURL: ${{ matrix.target == 'Nextcloud' && secrets.TEST_CMNEXTCLOUD_SERVERURL || '' }}
+      TEST_CMNEXTCLOUD_USERNAME: ${{ matrix.target == 'Nextcloud' && secrets.TEST_CMNEXTCLOUD_USERNAME || '' }}
+      TEST_CMNEXTCLOUD_PASSWORD: ${{ matrix.target == 'Nextcloud' && secrets.TEST_CMNEXTCLOUD_PASSWORD || '' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Authorize through the Avalonia login form and initialize the real browser
+        shell: pwsh
+        run: ./.github/scripts/test-avalonia-demo-login.ps1 -Target '${{ matrix.target }}'
+      - name: Retain sanitized live-login result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: avalonia-live-login-${{ matrix.target }}
+          path: artifacts/avalonia-live-login/
+          if-no-files-found: ignore

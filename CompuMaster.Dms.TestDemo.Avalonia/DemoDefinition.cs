@@ -28,16 +28,18 @@ internal sealed record DemoDefinition(DemoTarget Target)
         if (targets.Length > 1) throw new ArgumentException("Select only one DMS demo target.");
         return targets.SingleOrDefault() ?? DemoTarget.Offline;
     }
-    internal IDmsLoginProfile CreateProfile(string server, string username, string password, string customer)
+    internal IDmsLoginProfile CreateProfile(string server, string username, string password, string customer,
+        string organisation = "", string expectedTenant = "")
     {
         if (Target == DemoTarget.Offline) throw new InvalidOperationException("The offline demo does not authorize a remote provider.");
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password)) throw new ArgumentException(DemoText.Get("OpenDmsFailed"));
         if (RequiresCustomer && string.IsNullOrWhiteSpace(customer)) throw new ArgumentException(DemoText.Get("CustomerNumber"));
+        if (RequiresCustomer) return DemoScopevisioSelection.CreateProfile(username, password, customer, organisation, expectedTenant);
         return new DmsLoginProfile
         {
-            DmsProvider = Provider, Username = username.Trim(), Password = password,
+            DmsProvider = Provider, Username = username, Password = password,
             CustomerInstance = RequiresCustomer ? customer.Trim() : null,
-            BaseUrl = RequiresServer ? ResolveServerUrl(server.Trim(), username.Trim()) : null
+            BaseUrl = RequiresServer ? ResolveServerUrl(server, username) : null
         };
     }
     internal string ResolveServerUrl(string server, string username)
