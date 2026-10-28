@@ -37,6 +37,7 @@ internal sealed class DmsItemSharings : OperationWindow
     private readonly BaseDmsProvider provider;
     private readonly DmsResourceItem item;
     private readonly TextBlock receivedSummary = new() { Name = "ReceivedSharingSummary" };
+    private readonly Border receivedSummaryPanel;
     private readonly DataGrid internalShares = Grid("InternalSharings", ("ColumnType", "Type"), ("ColumnName", "Name"), ("ColumnAuthorizations", "Permissions"));
     private readonly DataGrid links = Grid("ExternalSharings", ("ColumnName", "Name"), ("ColumnAuthorizations", "Permissions"), ("ColumnLimitations", "Limitations"));
     private static DataGrid Grid(string name, params (string Key, string Binding)[] columns)
@@ -55,9 +56,10 @@ internal sealed class DmsItemSharings : OperationWindow
         Title = UiText.Get("SharingsTitle") + " – " + item.FullName;
         Height = item.ExtendedInfosIsReceivedShare == true ? 860 : 720;
         var content = new StackPanel { Spacing = 8 };
-        content.Children.Add(new Border { Padding = new Thickness(10), CornerRadius = new CornerRadius(4), Background = Brushes.LightBlue,
-            Child = receivedSummary });
-        receivedSummary.TextWrapping = TextWrapping.Wrap; receivedSummary.Foreground = Brushes.Black; receivedSummary.Text = SharingSummary.Format(item);
+        receivedSummaryPanel = new Border { Name = "ReceivedSharingSummaryPanel", Padding = new Thickness(10), CornerRadius = new CornerRadius(4), Background = Brushes.LightBlue,
+            Child = receivedSummary };
+        content.Children.Add(receivedSummaryPanel);
+        receivedSummary.TextWrapping = TextWrapping.Wrap; receivedSummary.Foreground = Brushes.Black; RefreshSummary();
         content.Children.Add(new TextBlock { Text = UiText.Format("CurrentOwner", item.ExtendedInfosOwner.DisplayName ?? UiText.Get("UnknownValue")) });
         content.Children.Add(SharingGroup("InternalSharings", internalShares, Toolbar(
             ("ActionAddUser", () => EditStandardAsync(false, null)), ("ActionAddGroup", () => EditStandardAsync(true, null)),
@@ -71,10 +73,15 @@ internal sealed class DmsItemSharings : OperationWindow
             foreach (var link in item.ExtendedInfosLinks?.ToArray() ?? Array.Empty<DmsLink>()) await link.RefreshAsync();
             // ToString can resolve provider metadata; prepare rows off the UI thread.
             var rows = await Task.Run(BuildRows);
-            internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links; receivedSummary.Text = SharingSummary.Format(item);
+            internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links; RefreshSummary();
         });
         internalShares.DoubleTapped += async (_, _) => await RunAsync(EditInternalAsync);
         links.DoubleTapped += async (_, _) => await RunAsync(EditSelectedLinkAsync);
+    }
+    private void RefreshSummary()
+    {
+        receivedSummary.Text = SharingSummary.FormatDialog(item);
+        receivedSummaryPanel.IsVisible = receivedSummary.Text.Length > 0;
     }
     private static GroupBox SharingGroup(string key, DataGrid list, Control actions) =>
         Dialogs.Group(key, new StackPanel { Spacing = 6, Children = { list, actions } });
@@ -109,7 +116,7 @@ internal sealed class DmsItemSharings : OperationWindow
     private async Task RefreshRowsAsync()
     {
         var rows = await Task.Run(BuildRows);
-        internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links; receivedSummary.Text = SharingSummary.Format(item);
+        internalShares.ItemsSource = rows.Internal; links.ItemsSource = rows.Links; RefreshSummary();
     }
     private Task EditInternalAsync()
     {

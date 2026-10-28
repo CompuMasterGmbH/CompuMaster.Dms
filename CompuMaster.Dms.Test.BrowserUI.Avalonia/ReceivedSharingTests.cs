@@ -14,6 +14,31 @@ namespace CompuMaster.Dms.Test.BrowserUI.Avalonia;
 [TestFixture]
 public sealed class ReceivedSharingTests
 {
+    [TestCase(true, true), TestCase(true, false), TestCase(true, null)]
+    [TestCase(false, true), TestCase(false, false), TestCase(false, null)]
+    [TestCase(null, true), TestCase(null, false), TestCase(null, null)]
+    public void Dialog_summary_keeps_only_received_or_unknown_information_while_properties_keep_both_directions(bool? received, bool? outgoing)
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            foreach (var language in new[] { "en", "de" })
+            {
+                CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(language);
+                var item = ReceivedItem(); item.ExtendedInfosIsReceivedShare = received; item.ExtendedInfosHasOutgoingSharings = outgoing;
+                var summary = SharingSummary.FormatDialog(item);
+                var receivedLine = UiText.Format("ReceivedSharingStatus", UiText.Get(received.HasValue ? received.Value ? "SharingYes" : "SharingNo" : "SharingUnknown"));
+                var outgoingLine = UiText.Format("OutgoingSharingStatus", UiText.Get(outgoing.HasValue ? outgoing.Value ? "SharingYes" : "SharingNo" : "SharingUnknown"));
+                Assert.That(summary.Contains(receivedLine), Is.EqualTo(received != false));
+                Assert.That(summary.Contains(outgoingLine), Is.EqualTo(!outgoing.HasValue));
+                Assert.That(summary.Contains(UiText.Get("OutgoingSharingExplanation")), Is.EqualTo(!outgoing.HasValue));
+                Assert.That(summary.Contains("Sharing person"), Is.EqualTo(received == true));
+                Assert.That(string.IsNullOrEmpty(summary), Is.EqualTo(received == false && outgoing.HasValue));
+                Assert.That(SharingSummary.Format(item), Does.Contain(receivedLine).And.Contain(outgoingLine));
+            }
+        }
+        finally { CultureInfo.CurrentUICulture = previous; }
+    }
     internal static DmsResourceItem ReceivedItem()
     {
         var item = new DmsResourceItem { Name = "Received.txt", FullName = "/Received.txt", ItemType = DmsResourceItem.ItemTypes.File,

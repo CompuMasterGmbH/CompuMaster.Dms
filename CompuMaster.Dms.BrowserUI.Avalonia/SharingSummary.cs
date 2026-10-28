@@ -8,9 +8,13 @@ namespace CompuMaster.Dms.BrowserUI.Avalonia;
 internal static class SharingSummary
 {
     private static string State(bool? value) => value.HasValue ? UiText.Get(value.Value ? "SharingYes" : "SharingNo") : UiText.Get("SharingUnknown");
-    internal static string Format(DmsResourceItem item)
+    internal static string Format(DmsResourceItem item) => FormatCore(item, false);
+    internal static string FormatDialog(DmsResourceItem item) => FormatCore(item, true);
+    private static string FormatCore(DmsResourceItem item, bool dialog)
     {
-        var lines = new List<string> { UiText.Format("ReceivedSharingStatus", State(item.ExtendedInfosIsReceivedShare)) };
+        var lines = new List<string>();
+        if (!dialog || item.ExtendedInfosIsReceivedShare != false)
+            lines.Add(UiText.Format("ReceivedSharingStatus", State(item.ExtendedInfosIsReceivedShare)));
         if (item.ExtendedInfosIsReceivedShare == true)
         {
             lines.Insert(0, UiText.Get("ReceivedSharingTitle"));
@@ -27,8 +31,11 @@ internal static class SharingSummary
                 lines.Add("");
             }
         }
-        lines.Add(UiText.Format("OutgoingSharingStatus", State(item.ExtendedInfosHasOutgoingSharings)));
-        lines.Add(UiText.Get("OutgoingSharingExplanation"));
-        return string.Join(Environment.NewLine, lines);
+        if (!dialog || !item.ExtendedInfosHasOutgoingSharings.HasValue)
+        {
+            lines.Add(UiText.Format("OutgoingSharingStatus", State(item.ExtendedInfosHasOutgoingSharings)));
+            lines.Add(UiText.Get("OutgoingSharingExplanation"));
+        }
+        return string.Join(Environment.NewLine, lines).TrimEnd();
     }
 }

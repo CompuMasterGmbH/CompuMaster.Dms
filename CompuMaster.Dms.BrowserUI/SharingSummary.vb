@@ -13,7 +13,16 @@ Friend NotInheritable Class SharingSummary
             (Not item.ExtendedInfosIsReceivedShare.HasValue AndAlso item.ExtendedInfosIsShared)
     End Sub
     Friend Shared Function Format(item As DmsResourceItem) As String
-        Dim lines As New List(Of String) From {UiStrings.Format("ReceivedSharingStatus", State(item.ExtendedInfosIsReceivedShare))}
+        Return FormatCore(item, False)
+    End Function
+    Friend Shared Function FormatDialog(item As DmsResourceItem) As String
+        Return FormatCore(item, True)
+    End Function
+    Private Shared Function FormatCore(item As DmsResourceItem, dialog As Boolean) As String
+        Dim lines As New List(Of String)
+        If Not dialog OrElse Not item.ExtendedInfosIsReceivedShare.HasValue OrElse item.ExtendedInfosIsReceivedShare.Value Then
+            lines.Add(UiStrings.Format("ReceivedSharingStatus", State(item.ExtendedInfosIsReceivedShare)))
+        End If
         If item.ExtendedInfosIsReceivedShare.GetValueOrDefault() Then
             lines.Insert(0, UiStrings.GetText("ReceivedSharingTitle"))
             For Each grant In If(item.ExtendedInfosReceivedSharings, New List(Of DmsReceivedShare))
@@ -32,8 +41,10 @@ Friend NotInheritable Class SharingSummary
                 lines.Add("")
             Next
         End If
-        lines.Add(UiStrings.Format("OutgoingSharingStatus", State(item.ExtendedInfosHasOutgoingSharings)))
-        lines.Add(UiStrings.GetText("OutgoingSharingExplanation"))
-        Return String.Join(Environment.NewLine, lines)
+        If Not dialog OrElse Not item.ExtendedInfosHasOutgoingSharings.HasValue Then
+            lines.Add(UiStrings.Format("OutgoingSharingStatus", State(item.ExtendedInfosHasOutgoingSharings)))
+            lines.Add(UiStrings.GetText("OutgoingSharingExplanation"))
+        End If
+        Return String.Join(Environment.NewLine, lines).TrimEnd()
     End Function
 End Class

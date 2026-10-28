@@ -14,6 +14,56 @@ namespace CompuMaster.Dms.Test.BrowserUI.WinUI;
 [TestFixture]
 public sealed class NativeUiTests
 {
+    [TestCase(false, false, false), TestCase(false, true, false), TestCase(false, null, true)]
+    [TestCase(null, false, true), TestCase(true, true, true)]
+    public Task Summary_panel_visibility_and_spacing_follow_available_information(bool? received, bool? outgoing, bool visible) => UiThread.Run(async () =>
+    {
+        var item = ReceivedSharingTests.ReceivedItem(); item.ExtendedInfosIsReceivedShare = received; item.ExtendedInfosHasOutgoingSharings = outgoing;
+        var dialog = new DmsItemSharings(new DemoDmsProvider(), item);
+        Task? pending = null;
+        try
+        {
+            pending = dialog.ShowDialog(UiThread.Owner); await Task.Delay(100);
+            var panel = Descendants(dialog.Content).OfType<Border>().Single(border => border.Name == "ReceivedSharingSummaryPanel");
+            Assert.That(panel.Visibility, Is.EqualTo(visible ? Visibility.Visible : Visibility.Collapsed));
+            var summary = Descendants(panel).OfType<TextBlock>().Single();
+            var reference = typeof(Wf.DmsItemSharings).Assembly.GetType("CompuMaster.Dms.BrowserUI.SharingSummary")!.GetMethod("FormatDialog", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+            Assert.That(summary.Text, Is.EqualTo(reference.Invoke(null, new object[] { item })));
+            if (!visible)
+            {
+                var content = (StackPanel)Descendants(dialog.Content).OfType<ScrollViewer>().Single(viewer => viewer.Name == "SharingScrollViewer").Content;
+                var ownerPosition = content.Children[1].TransformToVisual(content).TransformPoint(new Windows.Foundation.Point());
+                Assert.That(ownerPosition.Y, Is.EqualTo(0).Within(0.5), "A hidden summary must not leave a blank heading row.");
+            }
+        }
+        finally { dialog.Close(); if (pending is not null) await pending; }
+    });
+
+    [TestCase(720), TestCase(520)]
+    public Task Constrained_sharing_dialog_leaves_the_overlay_scrollbar_clear_of_content(int width) => UiThread.Run(async () =>
+    {
+        var dialog = new DmsItemSharings(new DemoDmsProvider(), ReceivedSharingTests.ReceivedItem());
+        Task? pending = null;
+        try
+        {
+            pending = dialog.ShowDialog(UiThread.Owner);
+            dialog.AppWindow.Resize(new Windows.Graphics.SizeInt32(width, 480));
+            await Task.Delay(150);
+            dialog.Content.UpdateLayout();
+            var viewer = Descendants(dialog.Content).OfType<ScrollViewer>().Single(scroll => scroll.Name == "SharingScrollViewer");
+            Assert.That(viewer.ScrollableHeight, Is.GreaterThan(0), "The test must exercise a visible vertical scrollbar.");
+            var controls = Descendants(viewer).OfType<FrameworkElement>().Where(element => element is GroupBox || element.Name == "ReceivedSharingSummaryPanel").ToArray();
+            Assert.That(controls.Length, Is.EqualTo(3));
+            foreach (var control in controls)
+            {
+                var right = control.TransformToVisual(viewer).TransformPoint(new Windows.Foundation.Point(control.ActualWidth, 0)).X;
+                Assert.That(control.ActualWidth, Is.GreaterThan(100));
+                Assert.That(right, Is.LessThanOrEqualTo(viewer.ActualWidth - 16 + 0.5), "The expanded native scrollbar needs a clear 16-DIP lane.");
+            }
+        }
+        finally { dialog.Close(); if (pending is not null) await pending; }
+    });
+
     private sealed class DisappearingFolderProvider : DemoDmsProvider
     {
         public override Task<List<DmsResourceItem>> ListDirectoryEntriesAsync(string remoteFolderPath, CancellationToken cancellationToken = default)
@@ -57,7 +107,7 @@ public sealed class NativeUiTests
             owner.Activate(); pending = dialog.ShowDialog(owner); await Task.Delay(100);
             var summary = Descendants(dialog.Content).OfType<TextBlock>().Single(text => text.Name == "ReceivedSharingSummary");
             Assert.That(summary.Text, Does.Contain(UiText.Get("ReceivedSharingTitle")).And.Contain("Sharing person").And.Contain("Original owner"));
-            var reference = typeof(Wf.DmsItemSharings).Assembly.GetType("CompuMaster.Dms.BrowserUI.SharingSummary")!.GetMethod("Format", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+            var reference = typeof(Wf.DmsItemSharings).Assembly.GetType("CompuMaster.Dms.BrowserUI.SharingSummary")!.GetMethod("FormatDialog", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
             Assert.That(summary.Text, Is.EqualTo(reference.Invoke(null, new object[] { item })));
             var grids = Descendants(dialog.Content).OfType<CommunityToolkit.WinUI.UI.Controls.DataGrid>().ToArray();
             Assert.That(grids.All(grid => grid.ItemsSource.Cast<object>().Count() == 0), Is.True, "Incoming grants never enter the editable outgoing lists.");
@@ -98,11 +148,12 @@ public sealed class NativeUiTests
             Assert.That(browser.Browser.FolderTree.RootNodes.Single().Children.Count, Is.GreaterThan(1));
             TreeViewItem? item = null;
             var deadline = DateTime.UtcNow.AddSeconds(3);
-            while (item is null && DateTime.UtcNow < deadline)
+            while (DateTime.UtcNow < deadline)
             {
                 browser.Browser.UpdateLayout();
                 item = browser.Browser.FolderTree.ContainerFromNode(browser.Browser.FolderTree.RootNodes.Single()) as TreeViewItem;
-                if (item is null) await Task.Delay(20);
+                if (item is not null && Microsoft.UI.Xaml.Automation.AutomationProperties.GetName(item) == "/") break;
+                await Task.Delay(20);
             }
             Assert.That(item, Is.Not.Null, "The native TreeView must realize its root container before reading its automation properties.");
             Assert.That(Microsoft.UI.Xaml.Automation.AutomationProperties.GetName(item!), Is.EqualTo("/"), "The rendered root must expose its directory name, not TreeViewNode.ToString().");
