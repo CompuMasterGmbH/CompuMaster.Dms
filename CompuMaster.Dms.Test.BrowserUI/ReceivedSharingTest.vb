@@ -9,6 +9,20 @@ Imports NUnit.Framework
 
 <TestFixture, Apartment(ApartmentState.STA), NonParallelizable>
 Public Class ReceivedSharingTest
+    <TestCase(False, False, False), TestCase(False, True, False), TestCase(False, Nothing, True), TestCase(Nothing, False, True), TestCase(True, True, True)>
+    Public Sub SummaryPanelVisibilityAndSpacingFollowAvailableInformation(received As Boolean?, outgoing As Boolean?, visible As Boolean)
+        Dim item As New DmsResourceItem With {.Name = "Summary.txt", .FullName = "/Summary.txt", .ItemType = DmsResourceItem.ItemTypes.File,
+            .ExtendedInfosIsReceivedShare = received, .ExtendedInfosHasOutgoingSharings = outgoing}
+        Using dispatcher As New UiTestDispatcher(), dialog As New Global.CompuMaster.Dms.BrowserUI.DmsItemSharings With {.DmsProvider = New NoDmsProvider(), .DmsItem = item, .ShowInTaskbar = False, .Opacity = 0}
+            dialog.Show() : dispatcher.WaitForEvents()
+            Dim panel = dialog.Controls.Find("ReceivedSharingSummaryPanel", True).Single()
+            Assert.That(panel.Visible, [Is].EqualTo(visible))
+            Dim text = dialog.Controls.Find("ReceivedSharingSummary", True).Single().Text
+            Assert.That(text.Contains(Global.CompuMaster.Dms.BrowserUI.UiStrings.GetText("OutgoingSharingExplanation")), [Is].EqualTo(Not outgoing.HasValue))
+            If Not visible Then Assert.That(dialog.GroupBoxInternalSharings.Top, [Is].EqualTo(14), "A hidden summary must not leave a blank heading row.")
+            dialog.Close()
+        End Using
+    End Sub
     <Test>
     Public Sub RemovingOutgoingGrantsPreservesTheReceivedDirectionAndAggregate()
         Dim item As New DmsResourceItem With {.ExtendedInfosIsReceivedShare = True, .ExtendedInfosHasOutgoingSharings = True}

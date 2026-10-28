@@ -144,8 +144,8 @@ Public Class DmsItemSharings
     Private Sub RefreshControls()
         Me.Text = Me.DmsProvider.Name & " - " & Me.DmsItem.FullName
         Me.LabelCurrentOwner.Text = UiStrings.Format("CurrentOwner", If(Me.DmsItem.ExtendedInfosOwner.DisplayName, UiStrings.GetText("UnknownValue")))
-        ReceivedSummaryLabel.Text = SharingSummary.Format(Me.DmsItem)
-        ReceivedSummaryPanel.Visible = True
+        ReceivedSummaryLabel.Text = SharingSummary.FormatDialog(Me.DmsItem)
+        ReceivedSummaryPanel.Visible = ReceivedSummaryLabel.Text.Length > 0
         ArrangeLocalizedControls()
         Me.ListViewInternalSharings.Items.Clear()
         'Add group sharings
