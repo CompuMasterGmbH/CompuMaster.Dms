@@ -321,8 +321,10 @@ public sealed partial class DmsBrowserControl : UserControl
             if (!SessionBusy)
             {
                 var retained = fileSelection.Retained(Session);
-                foreach (var selected in files.SelectedItems.Cast<FileRow>().Where(row => !retained.Contains(row)).ToArray()) files.SelectedItems.Remove(selected);
-                foreach (var row in retained) if (!files.SelectedItems.Contains(row)) files.SelectedItems.Add(row);
+                var retainedSet = retained.ToHashSet();
+                var previous = files.SelectedItems.Cast<FileRow>().ToHashSet();
+                foreach (var selected in previous.Where(row => !retainedSet.Contains(row))) files.SelectedItems.Remove(selected);
+                foreach (var row in retained) if (!previous.Contains(row)) files.SelectedItems.Add(row);
                 fileSelection.Capture(Session, Selection.Files);
             }
         }

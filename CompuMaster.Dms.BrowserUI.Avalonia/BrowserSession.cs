@@ -68,15 +68,16 @@ internal sealed class FileSelectionSnapshot
 {
     private sealed record Identity(string? ID, string? Path, DmsResourceItem.ItemTypes Type)
     {
-        internal static Identity From(DmsResourceItem item) => new(item.ItemType switch
+        internal static string? ResourceID(DmsResourceItem item) => item.ItemType switch
         {
             DmsResourceItem.ItemTypes.File => item.ExtendedInfosFileID,
             DmsResourceItem.ItemTypes.Folder => item.ExtendedInfosFolderID,
             DmsResourceItem.ItemTypes.Collection => item.ExtendedInfosCollectionID,
             _ => null
-        }, item.FullName, item.ItemType);
+        };
+        internal static Identity From(DmsResourceItem item) => new(ResourceID(item), item.FullName, item.ItemType);
         internal bool Matches(DmsResourceItem item) => item.ItemType == Type &&
-            (!string.IsNullOrEmpty(ID) ? string.Equals(ID, From(item).ID, StringComparison.Ordinal) :
+            (!string.IsNullOrEmpty(ID) ? string.Equals(ID, ResourceID(item), StringComparison.Ordinal) :
                 !string.IsNullOrEmpty(Path) && string.Equals(Path, item.FullName, StringComparison.Ordinal));
     }
     private BrowserSession? session;
@@ -98,13 +99,17 @@ internal sealed class FileSelectionSnapshot
             directoryIdentity is not null && (current.SelectedNode?.Item is not { } parent || !directoryIdentity.Matches(parent)))
             return Array.Empty<FileRow>();
         var result = new List<FileRow>();
+        var retained = new HashSet<FileRow>();
+        var byID = current.Files.ToLookup(row => (row.Item.ItemType, Identity.ResourceID(row.Item)));
+        var byPath = current.Files.ToLookup(row => (row.Item.ItemType, row.Item.FullName));
         foreach (var identity in selected)
         {
-            var matches = current.Files.Where(row => identity.Matches(row.Item)).ToArray();
+            var matches = !string.IsNullOrEmpty(identity.ID) ? byID[(identity.Type, identity.ID)].ToArray() :
+                !string.IsNullOrEmpty(identity.Path) ? byPath[(identity.Type, identity.Path)].ToArray() : Array.Empty<FileRow>();
             // IDs can appear in multiple collection locations; require an unambiguous location in that case.
             if (matches.Length > 1 && !string.IsNullOrEmpty(identity.ID))
                 matches = matches.Where(row => string.Equals(row.Item.FullName, identity.Path, StringComparison.Ordinal)).ToArray();
-            if (matches.Length == 1 && !result.Contains(matches[0])) result.Add(matches[0]);
+            if (matches.Length == 1 && retained.Add(matches[0])) result.Add(matches[0]);
         }
         return result.ToArray();
     }
