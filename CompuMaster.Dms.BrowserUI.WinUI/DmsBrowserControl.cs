@@ -13,6 +13,8 @@ namespace CompuMaster.Dms.BrowserUI.WinUI;
 public sealed partial class DmsBrowserControl : UserControl
 {
     private BrowserSession? session;
+    private readonly FileSelectionSnapshot fileSelection = new();
+    internal DmsItemSharings? ActiveSharingDialog { get; private set; }
     private readonly IDmsLoginProfile? profile;
     private Window? owner;
     private readonly TreeView tree = new() { Name = "DmsFolders", MinWidth = 180, SelectionMode = TreeViewSelectionMode.Single, CanDragItems = false, CanReorderItems = false };
@@ -122,9 +124,14 @@ public sealed partial class DmsBrowserControl : UserControl
         };
         tree.Collapsed += (_, e) => { if (!suppressSelection && nodes.TryGetValue(e.Node, out var node)) node.IsExpanded = false; };
         tree.SelectionChanged += async (_, _) =>
-        { if (!suppressSelection && tree.SelectedNode is { } selected && nodes.TryGetValue(selected, out var node)) await UiAsync(() => Session.SelectAsync(node), DmsBrowserFailurePhase.Action, "SelectFolder"); };
+        { if (!suppressSelection && !SessionBusy && tree.SelectedNode is { } selected && nodes.TryGetValue(selected, out var node) && !ReferenceEquals(node, Session.SelectedNode)) await UiAsync(() => Session.SelectAsync(node), DmsBrowserFailurePhase.Action, "SelectFolder"); };
         tree.DoubleTapped += (_, _) => { if (Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); };
-        files.SelectionChanged += (_, _) => { if (!suppressSelection) { UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty); } };
+        files.SelectionChanged += (_, _) =>
+        {
+            if (suppressSelection || SessionBusy) return;
+            if (session is not null) fileSelection.Capture(Session, Selection.Files);
+            UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty);
+        };
         files.DoubleTapped += async (_, _) =>
         { if (Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); else await UiAsync(OpenFilesAsync); };
         BuildActions();
@@ -235,7 +242,6 @@ public sealed partial class DmsBrowserControl : UserControl
         suppressSelection = true;
         try
         {
-            var selected = Selection.Files.ToHashSet();
             var retainedNodes = new HashSet<TreeViewNode>();
             void Reconcile(IList<TreeViewNode> target, IEnumerable<BrowserNode> children)
             {
@@ -276,8 +282,19 @@ public sealed partial class DmsBrowserControl : UserControl
                 var size = new TextBlock { Text = row.Size, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(size, 1); grid.Children.Add(size);
                 var date = new TextBlock { Text = row.LastModified?.ToString("g"), VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(date, 2); grid.Children.Add(date);
                 var item = new ListViewItem { Content = grid, Tag = row, HorizontalContentAlignment = HorizontalAlignment.Stretch };
-                files.Items.Add(item); if (selected.Contains(row.Item)) files.SelectedItems.Add(item);
+                files.Items.Add(item);
               }
+            }
+            if (!SessionBusy)
+            {
+                var retained = fileSelection.Retained(Session);
+                foreach (var selected in files.SelectedItems.Cast<ListViewItem>().Where(item => !retained.Contains((FileRow)item.Tag)).ToArray()) files.SelectedItems.Remove(selected);
+                foreach (var row in retained)
+                {
+                    var item = files.Items.Cast<ListViewItem>().Single(candidate => ReferenceEquals(candidate.Tag, row));
+                    if (!files.SelectedItems.Contains(item)) files.SelectedItems.Add(item);
+                }
+                fileSelection.Capture(Session, Selection.Files);
             }
         }
         finally { suppressSelection = false; }
@@ -286,8 +303,8 @@ public sealed partial class DmsBrowserControl : UserControl
     private void UpdateControls()
     {
         var busy = IsBusy; tree.IsEnabled = files.IsEnabled = (!busy || dragRunning && !SessionBusy) && initialized;
-        progress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
-        status.Text = busy ? UiText.Extra("Working…", "Wird ausgeführt…") : session?.CurrentPath ?? "";
+        progress.Visibility = busy && ActiveSharingDialog is null ? Visibility.Visible : Visibility.Collapsed;
+        status.Text = busy && ActiveSharingDialog is null ? UiText.Extra("Working…", "Wird ausgeführt…") : session?.CurrentPath ?? "";
         var fileMode = (session?.BrowseMode ?? Options.BrowseMode) == BrowseModes.FoldersAndFiles;
         filePanel.Visibility = fileMode ? Visibility.Visible : Visibility.Collapsed;
         columns.ColumnDefinitions[2].Width = new GridLength(fileMode ? 7 : 0, GridUnitType.Star);

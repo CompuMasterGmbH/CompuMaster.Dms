@@ -202,8 +202,10 @@ public sealed partial class DmsBrowserControl
             DmsResourceItem details = item;
             await Session.RunAsync(async () => details = await ResourceDetails.LoadAsync(Session.Provider, item));
             var dialog = new DmsItemSharings(Session.Provider, details);
-            await dialog.ShowDialog(Owner);
-            await Session.RefreshAsync();
+            ActiveSharingDialog = dialog; UpdateControls();
+            try { await dialog.ShowDialog(Owner); }
+            finally { ActiveSharingDialog = null; UpdateControls(); }
+            if (dialog.HasChanges) await Session.RefreshAsync();
         }
     }
     private async Task PropertiesAsync(bool selectedFile)
