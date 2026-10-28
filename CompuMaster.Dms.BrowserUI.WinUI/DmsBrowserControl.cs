@@ -14,6 +14,7 @@ public sealed partial class DmsBrowserControl : UserControl
 {
     private BrowserSession? session;
     private readonly FileSelectionSnapshot fileSelection = new();
+    private bool selectionOperationRunning;
     internal DmsItemSharings? ActiveSharingDialog { get; private set; }
     private readonly IDmsLoginProfile? profile;
     private Window? owner;
@@ -239,6 +240,9 @@ public sealed partial class DmsBrowserControl : UserControl
     private void AttachSession() => Session.Changed += Synchronize;
     private void Synchronize()
     {
+        // Capture before collection changes, including selection notifications queued by the native control.
+        if (SessionBusy && !selectionOperationRunning) fileSelection.Capture(Session, Selection.Files);
+        selectionOperationRunning = SessionBusy;
         suppressSelection = true;
         try
         {
