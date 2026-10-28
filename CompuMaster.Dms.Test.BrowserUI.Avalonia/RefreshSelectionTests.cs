@@ -31,6 +31,20 @@ internal sealed class FreshListingProvider : DemoDmsProvider
 public sealed class RefreshSelectionTests
 {
     [Test]
+    public async Task Large_multiselection_matches_fresh_rows_without_losing_or_duplicating_entries()
+    {
+        var provider = new FreshListingProvider();
+        for (var index = 0; index < 2000; index++) provider.AddFile($"/Documents/unittests_bulk_{index}.txt", "fixture");
+        var session = new BrowserSession(provider, new DmsBrowserOptions { SelectedFolder = "Documents" });
+        await session.InitializeAsync();
+        var ids = session.Files.Select(row => row.Item.ExtendedInfosFileID).ToArray();
+        var snapshot = new FileSelectionSnapshot(); snapshot.Capture(session, session.Files.Select(row => row.Item));
+        await session.RefreshAsync();
+        var retained = snapshot.Retained(session);
+        Assert.That(retained.Select(row => row.Item.ExtendedInfosFileID), Is.EquivalentTo(ids));
+        Assert.That(retained.Distinct().Count(), Is.EqualTo(ids.Length));
+    }
+    [Test]
     public async Task Refresh_retains_stable_ids_and_unambiguous_paths_but_rejects_replacements_and_ambiguity()
     {
         var provider = new FreshListingProvider();

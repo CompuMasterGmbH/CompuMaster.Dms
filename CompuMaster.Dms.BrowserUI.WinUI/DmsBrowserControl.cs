@@ -292,11 +292,14 @@ public sealed partial class DmsBrowserControl : UserControl
             if (!SessionBusy)
             {
                 var retained = fileSelection.Retained(Session);
-                foreach (var selected in files.SelectedItems.Cast<ListViewItem>().Where(item => !retained.Contains((FileRow)item.Tag)).ToArray()) files.SelectedItems.Remove(selected);
+                var retainedSet = retained.ToHashSet();
+                var previous = files.SelectedItems.Cast<ListViewItem>().ToHashSet();
+                var items = files.Items.Cast<ListViewItem>().ToDictionary(item => (FileRow)item.Tag);
+                foreach (var selected in previous.Where(item => !retainedSet.Contains((FileRow)item.Tag))) files.SelectedItems.Remove(selected);
                 foreach (var row in retained)
                 {
-                    var item = files.Items.Cast<ListViewItem>().Single(candidate => ReferenceEquals(candidate.Tag, row));
-                    if (!files.SelectedItems.Contains(item)) files.SelectedItems.Add(item);
+                    var item = items[row];
+                    if (!previous.Contains(item)) files.SelectedItems.Add(item);
                 }
                 fileSelection.Capture(Session, Selection.Files);
             }
