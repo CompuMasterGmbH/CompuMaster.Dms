@@ -282,6 +282,9 @@ Public Class DmsLinkCreationTest
             Dim otherRow As New Global.System.Windows.Forms.ListViewItem(otherFile.Name, 6) With {.Tag = otherFile}
             browser.ListViewDmsFiles.Items.Add(changedRow)
             browser.ListViewDmsFiles.Items.Add(otherRow)
+            Dim listHandle = browser.ListViewDmsFiles.Handle
+            changedRow.Selected = True
+            otherRow.Selected = True
 
             provider.RefreshedFile = New DmsResourceItem() With {.ItemType = DmsResourceItem.ItemTypes.File, .ExtendedInfosFileID = changedFile.ExtendedInfosFileID, .ExtendedInfosIsShared = True}
             browser.RefreshSharingVisuals(changedFile, provider)
@@ -298,6 +301,8 @@ Public Class DmsLinkCreationTest
             ClassicAssert.AreEqual(6, otherRow.ImageIndex)
             ClassicAssert.IsFalse(changedFile.ExtendedInfosIsShared)
             ClassicAssert.AreEqual(2, browser.ListViewDmsFiles.Items.Count)
+            ClassicAssert.IsTrue(changedRow.Selected)
+            ClassicAssert.IsTrue(otherRow.Selected)
         End Using
     End Sub
 

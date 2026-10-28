@@ -34,6 +34,7 @@ internal sealed record SharingRow(DmsShareBase? Share, string Description, strin
 
 internal sealed class DmsItemSharings : OperationWindow
 {
+    internal bool HasChanges { get; private set; }
     private readonly BaseDmsProvider provider;
     private readonly DmsResourceItem item;
     private readonly TextBlock receivedSummary = new() { Name = "ReceivedSharingSummary" };
@@ -126,21 +127,21 @@ internal sealed class DmsItemSharings : OperationWindow
     private async Task EditStandardAsync(bool group, DmsShareBase? existing)
     {
         var dialog = new DmsStandardShareSetup(provider, item, group, existing);
-        await dialog.ShowDialog(this); await RefreshRowsAsync();
+        if (await dialog.ShowDialog<bool>(this)) { HasChanges = true; await RefreshRowsAsync(); }
     }
     private Task EditSelectedLinkAsync() => EditLinkAsync((links.SelectedItem as SharingRow)?.Share as DmsLink
         ?? throw new DmsUserInputMissingException(UiText.Get("LinkSharingRequired")));
     private async Task EditLinkAsync(DmsLink? link)
     {
         if (link is not null) await link.RefreshAsync();
-        await new DmsLinkShareSetup(provider, item, link).ShowDialog(this);
-        await RefreshRowsAsync();
+        if (await new DmsLinkShareSetup(provider, item, link).ShowDialog<bool>(this)) { HasChanges = true; await RefreshRowsAsync(); }
     }
     private async Task DeleteAsync(DataGrid list)
     {
         var share = (list.SelectedItem as SharingRow)?.Share ?? throw new DmsUserInputMissingException(UiText.Get("UserSharingRequired"));
         if (!await Dialogs.ConfirmAsync(this, Dialogs.Caption("ActionDelete") + "?")) return;
         await SharingPolicy.DeleteAsync(provider, item, share);
+        HasChanges = true;
         await RefreshRowsAsync();
     }
     private async Task CopyLinkAsync()

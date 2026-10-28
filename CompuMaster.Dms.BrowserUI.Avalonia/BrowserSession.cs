@@ -64,8 +64,55 @@ internal sealed class FileRow
 
 internal enum ResourceAction { Copy, Rename, Move }
 
+internal sealed class FileSelectionSnapshot
+{
+    private sealed record Identity(string? ID, string? Path, DmsResourceItem.ItemTypes Type)
+    {
+        internal static Identity From(DmsResourceItem item) => new(item.ItemType switch
+        {
+            DmsResourceItem.ItemTypes.File => item.ExtendedInfosFileID,
+            DmsResourceItem.ItemTypes.Folder => item.ExtendedInfosFolderID,
+            DmsResourceItem.ItemTypes.Collection => item.ExtendedInfosCollectionID,
+            _ => null
+        }, item.FullName, item.ItemType);
+        internal bool Matches(DmsResourceItem item) => item.ItemType == Type &&
+            (!string.IsNullOrEmpty(ID) ? string.Equals(ID, From(item).ID, StringComparison.Ordinal) :
+                !string.IsNullOrEmpty(Path) && string.Equals(Path, item.FullName, StringComparison.Ordinal));
+    }
+    private BrowserSession? session;
+    private BrowserNode? directory;
+    private Identity? directoryIdentity;
+    private string? instanceID;
+    private Identity[] selected = Array.Empty<Identity>();
+    internal void Capture(BrowserSession current, IEnumerable<DmsResourceItem> items)
+    {
+        session = current; directory = current.SelectedNode;
+        directoryIdentity = directory?.Item is { } item ? Identity.From(item) : null;
+        instanceID = (current.Provider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID;
+        selected = items.Select(Identity.From).ToArray();
+    }
+    internal FileRow[] Retained(BrowserSession current)
+    {
+        if (!ReferenceEquals(session, current) || !ReferenceEquals(directory, current.SelectedNode) ||
+            instanceID != (current.Provider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID ||
+            directoryIdentity is not null && (current.SelectedNode?.Item is not { } parent || !directoryIdentity.Matches(parent)))
+            return Array.Empty<FileRow>();
+        var result = new List<FileRow>();
+        foreach (var identity in selected)
+        {
+            var matches = current.Files.Where(row => identity.Matches(row.Item)).ToArray();
+            // IDs can appear in multiple collection locations; require an unambiguous location in that case.
+            if (matches.Length > 1 && !string.IsNullOrEmpty(identity.ID))
+                matches = matches.Where(row => string.Equals(row.Item.FullName, identity.Path, StringComparison.Ordinal)).ToArray();
+            if (matches.Length == 1 && !result.Contains(matches[0])) result.Add(matches[0]);
+        }
+        return result.ToArray();
+    }
+}
+
 internal sealed partial class BrowserSession
 {
+    private (BrowserNode? Node, string? FolderID, string? CollectionID) listedScope;
     internal BrowserSession(BaseDmsProvider provider, DmsBrowserOptions options)
     {
         Provider = provider ?? throw new ArgumentNullException(nameof(provider));
@@ -198,14 +245,16 @@ internal sealed partial class BrowserSession
     }
     private async Task RefreshFilesCoreAsync(CancellationToken token)
     {
-        Files.Clear();
+        var scope = (SelectedNode, SelectedNode?.Item?.ExtendedInfosFolderID, SelectedNode?.Item?.ExtendedInfosCollectionID);
+        if (listedScope != scope) { Files.Clear(); listedScope = scope; }
         if (SelectedNode is null || BrowseMode == BrowseModes.Folders ||
-            SelectedNode.Item is null && !Provider.SupportsFilesInRootFolder) return;
+            SelectedNode.Item is null && !Provider.SupportsFilesInRootFolder) { Files.Clear(); return; }
         await Provider.ResetCachesForRemoteItemsAsync(CurrentPath, BaseDmsProvider.SearchItemType.Files, token);
         List<DmsResourceItem> files;
         try { files = await Provider.ListFileEntriesAsync(CurrentPath, token); }
         catch (Data.DirectoryNotFoundException) { RemoveMissing(CurrentPath); throw; }
         var duplicates = files.GroupBy(f => f.Name, StringComparer.Ordinal).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet();
+        Files.Clear();
         foreach (var file in files.OrderByDescending(f => f.LastModificationOnLocalTime))
             Files.Add(new FileRow(file, duplicates.Contains(file.Name)));
     }

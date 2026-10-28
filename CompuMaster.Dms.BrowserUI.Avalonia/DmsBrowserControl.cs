@@ -24,6 +24,8 @@ namespace CompuMaster.Dms.BrowserUI.Avalonia;
 public sealed partial class DmsBrowserControl : UserControl
 {
     private BrowserSession? session;
+    private readonly FileSelectionSnapshot fileSelection = new();
+    internal DmsItemSharings? ActiveSharingDialog { get; private set; }
     private readonly IDmsLoginProfile? profile;
     private readonly TreeView tree = new() { Name = "DmsFolders", MinWidth = 180 };
     private readonly DataGrid files = new() { Name = "DmsFiles", AutoGenerateColumns = false, IsReadOnly = true,
@@ -162,7 +164,12 @@ public sealed partial class DmsBrowserControl : UserControl
             if (Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection();
             else await UiAsync(OpenFilesAsync);
         };
-        files.SelectionChanged += (_, _) => { UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty); };
+        files.SelectionChanged += (_, _) =>
+        {
+            if (suppressSelection || SessionBusy) return;
+            if (session is not null) fileSelection.Capture(Session, Selection.Files);
+            UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty);
+        };
         var nameColumn = new DataGridTemplateColumn
         {
             Header = UiText.Get("ColumnName"), SortMemberPath = "Name", Width = new DataGridLength(1, DataGridLengthUnitType.Star),
@@ -304,7 +311,17 @@ public sealed partial class DmsBrowserControl : UserControl
     private void Synchronize()
     {
         suppressSelection = true;
-        try { tree.SelectedItem = Session.SelectedNode; }
+        try
+        {
+            tree.SelectedItem = Session.SelectedNode;
+            if (!SessionBusy)
+            {
+                var retained = fileSelection.Retained(Session);
+                foreach (var selected in files.SelectedItems.Cast<FileRow>().Where(row => !retained.Contains(row)).ToArray()) files.SelectedItems.Remove(selected);
+                foreach (var row in retained) if (!files.SelectedItems.Contains(row)) files.SelectedItems.Add(row);
+                fileSelection.Capture(Session, Selection.Files);
+            }
+        }
         finally { suppressSelection = false; }
         UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -313,8 +330,8 @@ public sealed partial class DmsBrowserControl : UserControl
         var busy = IsBusy;
         tree.IsEnabled = (!busy || dragRunning && !SessionBusy) && initialized;
         files.IsEnabled = (!busy || dragRunning && !SessionBusy) && initialized;
-        progress.IsVisible = busy;
-        status.Text = busy ? UiText.Extra("Working…", "Wird ausgeführt…") : session?.CurrentPath ?? "";
+        progress.IsVisible = busy && ActiveSharingDialog is null;
+        status.Text = busy && ActiveSharingDialog is null ? UiText.Extra("Working…", "Wird ausgeführt…") : session?.CurrentPath ?? "";
         columns.ColumnDefinitions[2].Width = session?.BrowseMode == BrowseModes.Folders ? new GridLength(0) : new GridLength(7, GridUnitType.Star);
         columns.Children[1].IsVisible = session?.BrowseMode != BrowseModes.Folders;
         files.IsVisible = session?.BrowseMode != BrowseModes.Folders;
@@ -575,8 +592,10 @@ public sealed partial class DmsBrowserControl : UserControl
             DmsResourceItem details = item;
             await Session.RunAsync(async () => details = await ResourceDetails.LoadAsync(Session.Provider, item));
             var dialog = new DmsItemSharings(Session.Provider, details);
-            await dialog.ShowDialog(Owner);
-            await Session.RefreshAsync();
+            ActiveSharingDialog = dialog; UpdateControls();
+            try { await dialog.ShowDialog(Owner); }
+            finally { ActiveSharingDialog = null; UpdateControls(); }
+            if (dialog.HasChanges) await Session.RefreshAsync();
         }
     }
     private async Task PropertiesAsync(bool selectedFile)
