@@ -27,14 +27,19 @@ internal sealed class WindowHost
         window.AppWindow.Resize(new SizeInt32(width, height));
         if (Environment.ProcessPath is { } executable && ExtractIconEx(executable, 0, out largeIcon, out smallIcon, 1) > 0)
         {
-            var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            if (largeIcon != 0) SendMessage(handle, 0x80, 1, largeIcon);
-            if (smallIcon != 0) SendMessage(handle, 0x80, 0, smallIcon);
+            try
+            {
+                // WinUI's titlebar also needs the AppWindow icon; WM_SETICON alone only updates Win32 consumers.
+                window.AppWindow.SetIcon(Win32Interop.GetIconIdFromIcon(largeIcon != 0 ? largeIcon : smallIcon));
+                var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                if (largeIcon != 0) SendMessage(handle, 0x80, 1, largeIcon);
+                if (smallIcon != 0) SendMessage(handle, 0x80, 0, smallIcon);
+            }
+            catch { ReleaseIcons(); throw; }
         }
         window.Closed += (_, _) =>
         {
-            if (largeIcon != 0) { DestroyIcon(largeIcon); largeIcon = 0; }
-            if (smallIcon != 0) { DestroyIcon(smallIcon); smallIcon = 0; }
+            ReleaseIcons();
             if (parent != 0) { EnableWindow(parent, true); SetForegroundWindow(parent); }
             completion.TrySetResult(result);
         };
@@ -68,6 +73,11 @@ internal sealed class WindowHost
         return completion.Task;
     }
     internal void Close(object? value = null) { result = value; window.Close(); }
+    private void ReleaseIcons()
+    {
+        if (largeIcon != 0) { DestroyIcon(largeIcon); largeIcon = 0; }
+        if (smallIcon != 0) { DestroyIcon(smallIcon); smallIcon = 0; }
+    }
     [DllImport("user32.dll")] private static extern bool EnableWindow(nint hwnd, bool enabled);
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint hwnd);
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern nint SetWindowLongPtr(nint hwnd, int index, nint value);

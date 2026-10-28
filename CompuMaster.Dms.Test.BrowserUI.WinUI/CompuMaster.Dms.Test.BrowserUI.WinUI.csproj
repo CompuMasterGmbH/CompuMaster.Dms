@@ -11,6 +11,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationManifest>../CompuMaster.Dms.TestDemo.WinUI/app.manifest</ApplicationManifest>
+    <ApplicationIcon>../CompuMaster.Dms.BrowserUI/favicon.ico</ApplicationIcon>
     <IsPackable>false</IsPackable>
     <Configurations>Debug;Release;CI_CD</Configurations>
     <ImplicitUsings>enable</ImplicitUsings>

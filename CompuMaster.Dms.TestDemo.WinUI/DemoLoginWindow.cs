@@ -34,6 +34,7 @@ internal sealed class DemoLoginWindow : Window
         this.showBrowser = showBrowser ?? ((owner, provider, options) => new DmsBrowser(provider, options).ShowDialogAsync(owner));
         this.chooseInstance = chooseInstance ?? (instances => RemoteInstanceSelector.ShowDefaultSelectionDialogAsync(this, instances));
         Title = definition.LoginTitle; AppWindow.Resize(new Windows.Graphics.SizeInt32(680, definition.RequiresCustomer ? 780 : 600));
+        SetApplicationIcon();
         fields.FlowDirection = System.Globalization.CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         fields.Children.Add(new TextBlock { Text = definition.Name, FontSize = 24, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
         void Field(string label, FrameworkElement input, bool visible = true)
@@ -84,6 +85,26 @@ internal sealed class DemoLoginWindow : Window
         }
         else foreach (var field in buffer.Fields) buffer.Remove(field);
     }
+    private void SetApplicationIcon()
+    {
+        if (Environment.ProcessPath is not { } executable || ExtractIconEx(executable, 0, out var large, out var small, 1) == 0) return;
+        try
+        {
+            AppWindow.SetIcon(Microsoft.UI.Win32Interop.GetIconIdFromIcon(large != 0 ? large : small));
+            var handle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            if (large != 0) SendMessage(handle, 0x80, 1, large);
+            if (small != 0) SendMessage(handle, 0x80, 0, small);
+        }
+        catch { if (large != 0) DestroyIcon(large); if (small != 0) DestroyIcon(small); throw; }
+        Closed += (_, _) => { if (large != 0) DestroyIcon(large); if (small != 0) DestroyIcon(small); };
+    }
+    [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern uint ExtractIconEx(string file, int index, out nint large, out nint small, uint count);
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern nint SendMessage(nint window, uint message, nint word, nint value);
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool DestroyIcon(nint icon);
+
     internal async Task ConnectAsync()
     {
         if (Connecting) return;
