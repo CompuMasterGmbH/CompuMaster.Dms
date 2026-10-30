@@ -45,26 +45,6 @@ The additional UI implementations are documented in [CompuMaster.Dms.BrowserUI.A
 | Avalonia | `CompuMaster.Dms.BrowserUI.Avalonia` | .NET 8 desktop on Windows, macOS and Linux |
 | WinUI 3 | `CompuMaster.Dms.BrowserUI.WinUI` | .NET 8 Windows desktop, Windows App SDK |
 
-### Light and dark appearance
-
-The same offline example is shown in all three frameworks: four files in `Documents`, fixed sizes and modification dates, and `Project brief.pdf` selected. Click any image to view it at full resolution. These are Windows client-area captures; native window borders are omitted.
-
-| Framework | Light | Dark |
-| --- | --- | --- |
-| WinForms | [![WinForms browser in light mode](docs/screenshots/browser-themes/winforms-browser-light.png)](docs/screenshots/browser-themes/winforms-browser-light.png) | [![WinForms browser in dark mode](docs/screenshots/browser-themes/winforms-browser-dark.png)](docs/screenshots/browser-themes/winforms-browser-dark.png) |
-| Avalonia | [![Avalonia browser in light mode](docs/screenshots/browser-themes/avalonia-browser-light.png)](docs/screenshots/browser-themes/avalonia-browser-light.png) | [![Avalonia browser in dark mode](docs/screenshots/browser-themes/avalonia-browser-dark.png)](docs/screenshots/browser-themes/avalonia-browser-dark.png) |
-| WinUI 3 | [![WinUI 3 browser in light mode](docs/screenshots/browser-themes/winui-browser-light.png)](docs/screenshots/browser-themes/winui-browser-light.png) | [![WinUI 3 browser in dark mode](docs/screenshots/browser-themes/winui-browser-dark.png)](docs/screenshots/browser-themes/winui-browser-dark.png) |
-
-The matching detail views use identical multiline text, making textboxes and foreground/background contrast comparable as well. All file and team names are synthetic; no DMS server or saved credentials are used.
-
-| Framework | Light details | Dark details |
-| --- | --- | --- |
-| WinForms | [![WinForms detail textbox in light mode](docs/screenshots/browser-themes/winforms-details-light.png)](docs/screenshots/browser-themes/winforms-details-light.png) | [![WinForms detail textbox in dark mode](docs/screenshots/browser-themes/winforms-details-dark.png)](docs/screenshots/browser-themes/winforms-details-dark.png) |
-| Avalonia | [![Avalonia detail textbox in light mode](docs/screenshots/browser-themes/avalonia-details-light.png)](docs/screenshots/browser-themes/avalonia-details-light.png) | [![Avalonia detail textbox in dark mode](docs/screenshots/browser-themes/avalonia-details-dark.png)](docs/screenshots/browser-themes/avalonia-details-dark.png) |
-| WinUI 3 | [![WinUI 3 detail textbox in light mode](docs/screenshots/browser-themes/winui-details-light.png)](docs/screenshots/browser-themes/winui-details-light.png) | [![WinUI 3 detail textbox in dark mode](docs/screenshots/browser-themes/winui-details-dark.png)](docs/screenshots/browser-themes/winui-details-dark.png) |
-
-See [appearance configuration](docs/BROWSER_APPEARANCE.md) for system/light/dark selection and developer-supplied palettes, and [screenshot regeneration](docs/screenshots/browser-themes/README.md) for the shared fixture and capture commands.
-
 Separate [Avalonia demo applications](CompuMaster.Dms.TestDemo.Avalonia/README.md) are available for WebDAV, Nextcloud, ownCloud Classic and Scopevisio Teamwork.
 
 The same provider-specific [WinUI demo applications](CompuMaster.Dms.TestDemo.WinUI/README.md) use native WinUI controls, shared login/persistence rules and the existing demo credential cache. A general offline demo is included in both variants.
@@ -166,6 +146,8 @@ See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between 
 
 ## Screenshots
 
+The Light/Dark comparisons below show the same example files and detail text in WinForms, Avalonia and WinUI 3. Click an image to view it at full resolution.
+
 ### Login form, customized for WebDAV
 
 ![WebDAV login form with the shared DMS artwork](https://raw.githubusercontent.com/CompuMasterGmbH/CompuMaster.Dms/4c2234dd2ef8c2a42e7cb397425ca53b0f6735ea/docs/screenshots/login-webdav.jpg)
@@ -174,8 +156,20 @@ See [Local test credentials](LOCAL_TEST_CREDENTIALS.md) for the mapping between 
 
 ![DMS browser displaying example folders and files](https://raw.githubusercontent.com/CompuMasterGmbH/CompuMaster.Dms/4c2234dd2ef8c2a42e7cb397425ca53b0f6735ea/docs/screenshots/browser-window.jpg)
 
+| Framework | Light | Dark |
+| --- | --- | --- |
+| WinForms | [![WinForms browser in light mode](docs/screenshots/browser-themes/winforms-browser-light.png)](docs/screenshots/browser-themes/winforms-browser-light.png) | [![WinForms browser in dark mode](docs/screenshots/browser-themes/winforms-browser-dark.png)](docs/screenshots/browser-themes/winforms-browser-dark.png) |
+| Avalonia | [![Avalonia browser in light mode](docs/screenshots/browser-themes/avalonia-browser-light.png)](docs/screenshots/browser-themes/avalonia-browser-light.png) | [![Avalonia browser in dark mode](docs/screenshots/browser-themes/avalonia-browser-dark.png)](docs/screenshots/browser-themes/avalonia-browser-dark.png) |
+| WinUI 3 | [![WinUI 3 browser in light mode](docs/screenshots/browser-themes/winui-browser-light.png)](docs/screenshots/browser-themes/winui-browser-light.png) | [![WinUI 3 browser in dark mode](docs/screenshots/browser-themes/winui-browser-dark.png)](docs/screenshots/browser-themes/winui-browser-dark.png) |
+
 ### Extended file properties windows
 ![image](https://user-images.githubusercontent.com/3033827/126822920-08a09683-a884-484b-a72d-724a7acfd41a.png)
+
+| Framework | Light details | Dark details |
+| --- | --- | --- |
+| WinForms | [![WinForms detail textbox in light mode](docs/screenshots/browser-themes/winforms-details-light.png)](docs/screenshots/browser-themes/winforms-details-light.png) | [![WinForms detail textbox in dark mode](docs/screenshots/browser-themes/winforms-details-dark.png)](docs/screenshots/browser-themes/winforms-details-dark.png) |
+| Avalonia | [![Avalonia detail textbox in light mode](docs/screenshots/browser-themes/avalonia-details-light.png)](docs/screenshots/browser-themes/avalonia-details-light.png) | [![Avalonia detail textbox in dark mode](docs/screenshots/browser-themes/avalonia-details-dark.png)](docs/screenshots/browser-themes/avalonia-details-dark.png) |
+| WinUI 3 | [![WinUI 3 detail textbox in light mode](docs/screenshots/browser-themes/winui-details-light.png)](docs/screenshots/browser-themes/winui-details-light.png) | [![WinUI 3 detail textbox in dark mode](docs/screenshots/browser-themes/winui-details-dark.png)](docs/screenshots/browser-themes/winui-details-dark.png) |
 
 ### Sharing setup
 Dialogs for sharing setup for internal users (user accounts) or external users (web links) depend on DMS provider
