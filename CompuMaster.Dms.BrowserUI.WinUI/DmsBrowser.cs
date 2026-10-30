@@ -19,7 +19,9 @@ public sealed class DmsBrowser : Window
     private DmsBrowser(DmsBrowserControl browser)
     {
         Browser = browser; host = new WindowHost(this, 1100, 760); Browser.AttachToWindow(this);
-        Title = browser.Options.FormTitle ?? UiText.Get("BrowseTitle"); Content = Browser;
+        Title = browser.Options.FormTitle ?? UiText.Get("BrowseTitle"); Content = BrowserAppearance.WindowContent(Browser);
+        BrowserAppearance.SetTheme((FrameworkElement)Content, browser.Options.Theme);
+        BrowserAppearance.SetPalettes((FrameworkElement)Content, browser.Options.LightPalette, browser.Options.DarkPalette);
         Browser.SelectionConfirmed += (_, _) => host.Close(Browser.Selection);
         Browser.Cancelled += (_, _) => { if (!Browser.IsBusy) host.Close(); };
         AppWindow.Closing += (_, e) =>

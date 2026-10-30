@@ -118,3 +118,5 @@ The component and Avalonia free framework/DataGrid/Fluent controls use MIT licen
 `THIRD-PARTY-NOTICES.txt` retains Avalonia's copyright and MIT permission notice. Keep it and the licenses/notices supplied with redistributed transitive packages, including desktop rendering/native assets. Dependencies are referenced rather than vendored; existing provider dependencies retain their terms. Images are linked unchanged from the existing BrowserUI assets. Existing WinForms/provider packages and APIs are unchanged.
 
 WinForms remains the leading implementation. Carry future applicable features/fixes to Avalonia and track verification in their originating issue/PR.
+
+Appearance supports System, Light and Dark modes plus optional scoped light/dark palettes. See [browser appearance](https://github.com/CompuMasterGmbH/CompuMaster.Dms/blob/main/docs/BROWSER_APPEARANCE.md) for examples, owned-dialog behavior and platform limitations.

@@ -48,6 +48,7 @@ internal sealed class WindowHost
     internal Task<object?> ShowAsync(Window? owner = null)
     {
         Owner = owner;
+        if (owner is not null) BrowserAppearance.Inherit(window, owner);
         if (owner is not null)
         {
             parent = WinRT.Interop.WindowNative.GetWindowHandle(owner);
@@ -94,7 +95,7 @@ internal class DialogWindow : Window
         get => (FrameworkElement)base.Content;
         set
         {
-            var content = value is ContentControl ? value : new ContentControl { Content = value, HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch };
+            var content = BrowserAppearance.WindowContent(value);
             content.KeyDown += (_, e) => { if (e.Key == VirtualKey.Escape) { e.Handled = true; OnEscape(); } };
             base.Content = content;
         }
@@ -181,23 +182,23 @@ internal static class Dialogs
         window.AppWindow.Resize(new SizeInt32(width, height));
         return window;
     }
-    internal static async Task MessageAsync(Window owner, string message, string? title = null)
+    internal static async Task MessageAsync(Window owner, string message, string? title = null, FrameworkElement? source = null)
     {
         DialogWindow? dialog = null;
         var text = new TextBox { Text = message, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap };
         dialog = Window(title ?? owner.Title, Layout(text, Buttons(Button("ActionOkay", () => dialog!.Close()))), 650, 420);
-        await dialog.ShowDialog(owner);
+        await BrowserAppearance.ShowDialog(dialog, owner, source);
     }
-    internal static async Task<bool> ConfirmAsync(Window owner, string message)
+    internal static async Task<bool> ConfirmAsync(Window owner, string message, FrameworkElement? source = null)
     {
         DialogWindow? dialog = null;
         var cancel = Button("ActionCancel", () => dialog!.Close(false));
         dialog = Window(owner.Title, Layout(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
             Buttons(Button("ActionOkay", () => dialog!.Close(true)), cancel)));
         dialog.Content.Loaded += (_, _) => cancel.Focus(FocusState.Programmatic);
-        return await dialog.ShowDialog<bool>(owner);
+        return await BrowserAppearance.ShowDialog<bool>(dialog, owner, source);
     }
-    internal static async Task<string?> InputAsync(Window owner, string prompt, string value = "")
+    internal static async Task<string?> InputAsync(Window owner, string prompt, string value = "", FrameworkElement? source = null)
     {
         DialogWindow? dialog = null;
         var input = new TextBox { Text = value, Name = "InputValue" };
@@ -206,9 +207,9 @@ internal static class Dialogs
         dialog = Window(owner.Title, Layout(body, Buttons(Button("ActionOkay", Save), Button("ActionCancel", () => dialog!.Close()))));
         input.KeyDown += (_, e) => { if (e.Key == VirtualKey.Enter) { e.Handled = true; Save(); } };
         input.Loaded += (_, _) => { input.Focus(FocusState.Programmatic); input.SelectAll(); };
-        return await dialog.ShowDialog<string>(owner);
+        return await BrowserAppearance.ShowDialog<string>(dialog, owner, source);
     }
-    internal static async Task<DialogChoice?> ChooseAsync(Window owner, string title, IReadOnlyList<DialogChoice> choices, string? selectedID = null, string? prompt = null)
+    internal static async Task<DialogChoice?> ChooseAsync(Window owner, string title, IReadOnlyList<DialogChoice> choices, string? selectedID = null, string? prompt = null, FrameworkElement? source = null)
     {
         DialogWindow? dialog = null;
         var list = new ListView { Name = "Choices", ItemsSource = choices, SelectionMode = ListViewSelectionMode.Single,
@@ -222,7 +223,7 @@ internal static class Dialogs
         dialog = Window(title, Layout(body, Buttons(Button("ActionOkay", Save), Button("ActionCancel", () => dialog!.Close()))), 560, 460);
         list.DoubleTapped += (_, _) => Save();
         list.KeyDown += (_, e) => { if (e.Key == VirtualKey.Enter) { e.Handled = true; Save(); } };
-        return await dialog.ShowDialog<DialogChoice>(owner);
+        return await BrowserAppearance.ShowDialog<DialogChoice>(dialog, owner, source);
     }
 }
 

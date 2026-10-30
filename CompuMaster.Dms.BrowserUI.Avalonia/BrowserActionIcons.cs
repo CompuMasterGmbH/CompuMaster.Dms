@@ -26,11 +26,16 @@ internal static class BrowserActionIcons
             "ActionCreateFolder" => "iconfinder_Folder-ui-ux-mobile-web_new",
             _ => null
         };
-        return resource is null ? null : new Image
+        if (resource is null) return null;
+        var image = new Image
         {
             Source = BrowserIcons.Load(resource), Width = 16, Height = 16,
             VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false
         };
+        void Update() => image.Source = image.ActualThemeVariant == global::Avalonia.Styling.ThemeVariant.Dark ? ThemeArtwork.ForDark(resource) : BrowserIcons.Load(resource);
+        image.PropertyChanged += (_, e) => { if (e.Property == ThemeVariantScope.ActualThemeVariantProperty) Update(); };
+        image.AttachedToVisualTree += (_, _) => Update();
+        return image;
     }
 
     internal static void Apply(Button button, string key)

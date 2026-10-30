@@ -238,6 +238,7 @@ Public Class DmsBrowserInstanceSelectionTest
     End Sub
 
     <TestCase(False, False), TestCase(False, True), TestCase(True, False), TestCase(True, True)>
+    <WorkstationFocus>
     Public Sub BottomActionsTabInVisualOrderInBothDirections(withInstance As Boolean, returnSelection As Boolean)
         Dim callback As RemoteInstanceSelector.SelectionDialogMethod = Function(owner, instances) "tenant-b"
         If Not withInstance Then callback = Nothing

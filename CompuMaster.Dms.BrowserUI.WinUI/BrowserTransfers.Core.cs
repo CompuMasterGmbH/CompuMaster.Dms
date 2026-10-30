@@ -20,7 +20,7 @@ public sealed partial class DmsBrowserControl
         await Session.RunAsync(async () =>
         {
             var dialog = new TransferWindow(TransferTitle("UploadTitle", provider), !provider.SupportsNonUniqueRemoteItems);
-            dialog.Show(Owner);
+            BrowserAppearance.UseSource(dialog, this); dialog.Show(Owner);
             Exception? failure = null;
             try
             {
@@ -98,7 +98,7 @@ public sealed partial class DmsBrowserControl
         foreach (var download in downloads) { Session.ValidateSource(download.Item); LocalPaths.Validate(download.Path, Options.LocalParentMustFolder); }
         if (downloads.Select(d => Path.GetFullPath(d.Path)).Distinct(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).Count() != downloads.Count)
             throw new DmsUserInputInvalidException(UiText.Get("DuplicateFileNameConflict"));
-        var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false); dialog.Show(Owner);
+        var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false); BrowserAppearance.UseSource(dialog, this); dialog.Show(Owner);
         try { await DownloadBatchAsync(downloads.Select(d => (d.Item, d.Path)).ToList(), dialog); }
         catch (OperationCanceledException) { }
         catch (Exception ex) { ReportFailure(ex, DmsBrowserFailurePhase.Action, "Download"); await dialog.FailureAsync(ex); }

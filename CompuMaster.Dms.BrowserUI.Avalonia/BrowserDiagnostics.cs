@@ -64,7 +64,7 @@ public sealed partial class DmsBrowserControl
         [System.Runtime.CompilerServices.CallerMemberName] string operation = "")
     {
         var failure = ReportFailure(ex, phase, operation);
-        if (!failure.SuppressDialog) await Dialogs.MessageAsync(Owner, BrowserErrorDetails.Format(ex, phase, operation));
+        if (!failure.SuppressDialog) await Dialogs.MessageAsync(Owner, BrowserErrorDetails.Format(ex, phase, operation), source: this);
     }
 }
 internal static class BrowserErrorDetails

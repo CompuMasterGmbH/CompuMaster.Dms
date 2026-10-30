@@ -297,4 +297,8 @@
   <data name="SharingNoPermissions" xml:space="preserve"><value>Keine</value></data>
   <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>Der angefragte Ordner ist auf dem Server nicht mehr verfügbar. Aktualisieren Sie bei Bedarf die übergeordnete Ansicht.</value></data>
   <data name="BrowserFileUnavailable" xml:space="preserve"><value>Die angefragte Datei ist auf dem Server nicht mehr verfügbar. Aktualisieren Sie bei Bedarf die Ansicht.</value></data>
+  <data name="Appearance" xml:space="preserve"><value>Darstellung</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Hell</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dunkel</value></data>
 </root>

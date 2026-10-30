@@ -142,7 +142,7 @@ public sealed partial class DmsBrowserControl
         Session.Require(FileOrFolderActions.AllowViewFileVersionHistory);
         var selected = SelectedFiles().Single();
         var dialog = new FileVersionHistoryDialog(Session.Provider, selected, Options);
-        await dialog.ShowDialog(Owner);
+        await BrowserAppearance.ShowDialog(dialog, Owner, this);
         if (dialog.CurrentFileChanged) await Session.RefreshAsync();
     }
 }

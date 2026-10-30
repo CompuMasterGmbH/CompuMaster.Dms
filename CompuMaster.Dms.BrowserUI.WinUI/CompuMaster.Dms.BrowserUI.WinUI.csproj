@@ -40,6 +40,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <ProjectReference Include="../CompuMaster.Dms.Providers/CompuMaster.Dms.Providers.vbproj" Condition="'$(DmsProvidersPackageVersion)' == ''" />
     <PackageReference Include="CompuMaster.Dms.Providers" Version="$(DmsProvidersPackageVersion)" Condition="'$(DmsProvidersPackageVersion)' != ''" />
+    <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserPalette.cs" Link="Shared/BrowserPalette.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserOptions.cs" Link="Shared/BrowserOptions.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/BrowserSession.cs" Link="Shared/BrowserSession.cs" />
     <Compile Include="../CompuMaster.Dms.BrowserUI.Avalonia/SharingPolicy.cs" Link="Shared/SharingPolicy.cs" />

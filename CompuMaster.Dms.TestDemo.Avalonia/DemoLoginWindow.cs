@@ -73,6 +73,7 @@ internal sealed class DemoLoginWindow : Window
         fields.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8,
             HorizontalAlignment = HorizontalAlignment.Right, Children = { connect, exit } });
         fields.Children.Add(Error);
+        fields.Children.Add(BrowserAppearance.CreateSelector(this));
         Content = new ScrollViewer { Margin = new Thickness(20), Content = fields };
         Server.Text = this.buffer.Read("server url"); Customer.Text = this.buffer.Read("customer no.");
         Username.Text = this.buffer.Read("username"); Password.Text = this.buffer.Read("password");
@@ -112,6 +113,7 @@ internal sealed class DemoLoginWindow : Window
             var tenant = ExpectedTenant.Text ?? "";
             var profile = definition.CreateProfile(Server.Text ?? "", Username.Text ?? "", Password.Text ?? "", Customer.Text ?? "", Organisation.Text ?? "", tenant);
             var options = definition.BrowserOptions(Root.Text);
+            options.Theme = BrowserAppearance.GetTheme(this);
             var provider = await authorize(profile);
             if (definition.RequiresCustomer)
             {

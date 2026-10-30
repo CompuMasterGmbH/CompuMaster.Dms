@@ -297,4 +297,8 @@
   <data name="SharingNoPermissions" xml:space="preserve"><value>无</value></data>
   <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>服务器上已无法访问请求的文件夹。请按需刷新上级视图。</value></data>
   <data name="BrowserFileUnavailable" xml:space="preserve"><value>服务器上已无法访问请求的文件。请按需刷新视图。</value></data>
+  <data name="Appearance" xml:space="preserve"><value>外观</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>系统</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>浅色</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>深色</value></data>
 </root>

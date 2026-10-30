@@ -71,7 +71,7 @@ public sealed partial class DmsBrowserControl
         var parent = selected[0]; LocalPaths.Validate(parent, Options.LocalParentMustFolder);
         await Session.RunAsync(async () =>
         {
-            var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false); dialog.Show(Owner);
+            var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false); BrowserAppearance.UseSource(dialog, this); dialog.Show(Owner);
             try
             {
                 var folder = node.Item ?? new DmsResourceItem { ItemType = DmsResourceItem.ItemTypes.Root, Name = "DMS", FullName = Session.Provider.BrowseInRootFolderName };

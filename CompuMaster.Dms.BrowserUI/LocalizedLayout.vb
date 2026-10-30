@@ -6,6 +6,7 @@ Friend NotInheritable Class LocalizedLayout
 
     Friend Shared Sub Bind(owner As Form, arrange As Action)
         InitialWindowDpi.Bind(owner)
+        BrowserAppearance.Bind(owner)
         Dim running As Boolean
         Dim dpiPending As Boolean
         Dim update As EventHandler = Sub(sender, e)

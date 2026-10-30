@@ -9,7 +9,7 @@ Imports CompuMaster.Dms.BrowserUI
 Imports CompuMaster.Dms.Providers
 Imports NUnit.Framework
 
-<TestFixture, Apartment(ApartmentState.STA)>
+<TestFixture, Apartment(ApartmentState.STA), WorkstationFocus>
 Public Class DmsBrowserFocusTest
     <TestCase("tree", 0), TestCase("tree", 1), TestCase("tree", 2)>
     <TestCase("files", 0), TestCase("files", 1), TestCase("files", 2)>

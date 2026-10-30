@@ -13,6 +13,10 @@ Imports NUnit.Framework
 ''' <summary>Provides the development workstation's GUI test countdown and ETA notice.</summary>
 <SetUpFixture>
 Public Class DevelopmentGuiTestSession
+    Private Shared ReadOnly NoticeGate As New Object()
+    Private Shared ActiveNotice As GuiTestNotice
+    Private Shared FocusDepth As Integer
+    Private Shared FocusTransition As System.Threading.Tasks.TaskCompletionSource(Of Boolean)
     Private NoticeThread As Thread
     Private ReadOnly StopRequested As New ManualResetEventSlim()
     Private ReadOnly RunClock As New Stopwatch()
@@ -48,7 +52,17 @@ Public Class DevelopmentGuiTestSession
                                 End Try
                                 If Not acquired Then Throw New InvalidOperationException("The workstation GUI-test window is reserved by another test process. Coordinate before starting another GUI run.")
                                 Using window As New GuiTestNotice(estimate, ready, StopRequested)
-                                    Application.Run(window)
+                                    SyncLock NoticeGate
+                                        ActiveNotice = window
+                                    End SyncLock
+                                    Try
+                                        Application.Run(window)
+                                    Finally
+                                        SyncLock NoticeGate
+                                            ActiveNotice = Nothing
+                                            FocusDepth = 0
+                                        End SyncLock
+                                    End Try
                                 End Using
                             Finally
                                 If acquired Then lease.ReleaseMutex()
@@ -91,6 +105,54 @@ Public Class DevelopmentGuiTestSession
             If completed AndAlso Not String.IsNullOrWhiteSpace(TimingKey) Then SaveHistory(TimingKey, RunClock.Elapsed.TotalSeconds / TimingUnits)
         End If
     End Sub
+
+    ''' <summary>Marks a focus-sensitive section and waits for its red three-second warning.</summary>
+    ''' <returns>A scope that restores the blue notice when the final focus-sensitive section ends.</returns>
+    Public Shared Function EnterFocusCriticalSection() As IDisposable
+        Dim window As GuiTestNotice
+        Dim transition As System.Threading.Tasks.TaskCompletionSource(Of Boolean)
+        SyncLock NoticeGate
+            window = ActiveNotice
+            If window Is Nothing Then Return New NoticeScope(Nothing)
+            FocusDepth += 1
+            If FocusDepth = 1 Then
+                Console.WriteLine("GUI notice: red focus phase; countdown=3s.")
+                FocusTransition = New System.Threading.Tasks.TaskCompletionSource(Of Boolean)(System.Threading.Tasks.TaskCreationOptions.RunContinuationsAsynchronously)
+                Dim pending = FocusTransition
+                window.BeginInvoke(New MethodInvoker(Sub() window.SetFocusCritical(True, Sub() pending.TrySetResult(True))))
+            End If
+            transition = FocusTransition
+        End SyncLock
+        Try
+            If Not transition.Task.Wait(TimeSpan.FromSeconds(10)) Then Throw New TimeoutException("The red focus-test countdown did not complete; focus-sensitive tests were not started.")
+        Catch
+            LeaveFocusCriticalSection(window)
+            Throw
+        End Try
+        Return New NoticeScope(Sub() LeaveFocusCriticalSection(window))
+    End Function
+
+    Private Shared Sub LeaveFocusCriticalSection(window As GuiTestNotice)
+        SyncLock NoticeGate
+            If ActiveNotice IsNot window OrElse FocusDepth = 0 Then Return
+            FocusDepth -= 1
+            If FocusDepth <> 0 Then Return
+            Console.WriteLine("GUI notice: blue ordinary phase.")
+            If Not window.IsDisposed Then window.BeginInvoke(New MethodInvoker(Sub() window.SetFocusCritical(False)))
+        End SyncLock
+    End Sub
+
+    Private NotInheritable Class NoticeScope
+        Implements IDisposable
+        Private Cleanup As Action
+        Friend Sub New(cleanup As Action)
+            Me.Cleanup = cleanup
+        End Sub
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Dim action = Interlocked.Exchange(Cleanup, Nothing)
+            action?.Invoke()
+        End Sub
+    End Class
 
     Friend Sub CompletePhysicalRun(success As Boolean)
         PhysicalRunCompleted = success
@@ -174,8 +236,11 @@ Public Class DevelopmentGuiTestSession
         Private Running As Boolean
         Private ExpectedFinish As DateTime
         Private DisplayFont As Font
+        Private FocusCritical As Boolean
+        Private ReadOnly FocusClock As New Stopwatch()
+        Private FocusReady As Action
 
-        Friend Sub New(estimateSeconds As Integer, ready As ManualResetEventSlim, stopRequested As ManualResetEventSlim)
+        Friend Sub New(estimateSeconds As Integer, ready As ManualResetEventSlim, stopRequested As ManualResetEventSlim, Optional focusCritical As Boolean = False)
             Estimate = estimateSeconds
             Me.Ready = ready
             Me.StopRequested = stopRequested
@@ -187,13 +252,14 @@ Public Class DevelopmentGuiTestSession
             StartPosition = FormStartPosition.Manual
             AutoScaleMode = AutoScaleMode.None
             Font = SystemFonts.MessageBoxFont
-            BackColor = Color.SkyBlue
+            Me.FocusCritical = focusCritical
+            BackColor = If(focusCritical, Color.Red, Color.SkyBlue)
             Dim screenBounds = Screen.PrimaryScreen.Bounds
             Size = New Size(screenBounds.Width \ 2, screenBounds.Height \ 2)
             Dim area = Screen.PrimaryScreen.WorkingArea
             Location = New Point(area.Right - Width - 18, area.Top + 18)
             Controls.Add(Display)
-            Display.Text = "GUI-Tests starten in 3 Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen."
+            Display.Text = If(focusCritical, "Fokus-Tests starten in 3 Sekunden." & Environment.NewLine & "Bitte Tastatur und Maus kurz nicht benutzen.", "GUI-Tests starten in 3 Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen.")
             FitDisplayFont()
             AddHandler ClientSizeChanged, Sub() FitDisplayFont()
             AddHandler Shown,
@@ -209,7 +275,10 @@ Public Class DevelopmentGuiTestSession
             Dim messages = {
                 "GUI-Tests starten in 3 Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen.",
                 "GUI-Tests laufen · ETA 23:59:59" & Environment.NewLine & "Geschätzte Restzeit: 86400 Sekunden.",
-                "GUI-Tests laufen weiterhin." & Environment.NewLine & "Schätzung überschritten um 86400 Sekunden."}
+                "GUI-Tests laufen weiterhin." & Environment.NewLine & "Schätzung überschritten um 86400 Sekunden.",
+                "Fokus-Tests starten in 3 Sekunden." & Environment.NewLine & "Bitte Tastatur und Maus kurz nicht benutzen.",
+                "Fokus-Tests laufen · ETA 23:59:59" & Environment.NewLine & "Bitte Tastatur und Maus kurz nicht benutzen." & Environment.NewLine & "Geschätzte Restzeit: 86400 Sekunden.",
+                "Fokus-Tests laufen weiterhin." & Environment.NewLine & "Bitte Tastatur und Maus kurz nicht benutzen." & Environment.NewLine & "Schätzung überschritten um 86400 Sekunden."}
             Dim lower As Single = 12
             Dim upper As Single = Math.Max(lower, (ClientSize.Height - Display.Padding.Vertical) \ 3)
             For iteration As Integer = 0 To 9
@@ -257,7 +326,9 @@ Public Class DevelopmentGuiTestSession
             If Not Running Then
                 Dim remaining = Math.Max(0, 3 - Clock.Elapsed.TotalSeconds)
                 If remaining > 0 Then
-                    Display.Text = $"GUI-Tests starten in {Math.Ceiling(remaining):0} Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen."
+                    Display.Text = If(FocusCritical,
+                        $"Fokus-Tests starten in {Math.Ceiling(remaining):0} Sekunden." & Environment.NewLine & "Bitte Tastatur und Maus kurz nicht benutzen.",
+                        $"GUI-Tests starten in {Math.Ceiling(remaining):0} Sekunden." & Environment.NewLine & "Testfenster können anschließend den Fokus übernehmen.")
                     Return
                 End If
                 Running = True
@@ -270,11 +341,28 @@ Public Class DevelopmentGuiTestSession
             End If
         End Sub
 
+        Friend Sub SetFocusCritical(value As Boolean, Optional ready As Action = Nothing)
+            FocusCritical = value
+            BackColor = If(value, Color.Red, Color.SkyBlue)
+            FocusReady = ready
+            If value Then FocusClock.Restart() Else FocusClock.Reset()
+            UpdateRunningText()
+        End Sub
+
         Private Sub UpdateRunningText()
+            If FocusCritical AndAlso FocusClock.IsRunning AndAlso FocusClock.Elapsed.TotalSeconds < 3 Then
+                Display.Text = $"Fokus-Tests starten in {Math.Ceiling(3 - FocusClock.Elapsed.TotalSeconds):0} Sekunden." & Environment.NewLine & "Bitte Tastatur und Maus kurz nicht benutzen."
+                Return
+            End If
+            Dim completed = FocusReady
+            FocusReady = Nothing
+            completed?.Invoke()
             Dim remaining = Estimate - Clock.Elapsed.TotalSeconds
+            Dim heading = If(FocusCritical, "Fokus-Tests", "GUI-Tests")
+            Dim instruction = If(FocusCritical, "Bitte Tastatur und Maus kurz nicht benutzen." & Environment.NewLine, "")
             Display.Text = If(remaining > 0,
-                $"GUI-Tests laufen · ETA {ExpectedFinish:HH:mm:ss}" & Environment.NewLine & $"Geschätzte Restzeit: {Math.Ceiling(remaining):0} Sekunden.",
-                "GUI-Tests laufen weiterhin." & Environment.NewLine & $"Schätzung überschritten um {Math.Floor(-remaining):0} Sekunden.")
+                $"{heading} laufen · ETA {ExpectedFinish:HH:mm:ss}" & Environment.NewLine & instruction & $"Geschätzte Restzeit: {Math.Ceiling(remaining):0} Sekunden.",
+                $"{heading} laufen weiterhin." & Environment.NewLine & instruction & $"Schätzung überschritten um {Math.Floor(-remaining):0} Sekunden.")
         End Sub
 
         Protected Overrides Sub Dispose(disposing As Boolean)
@@ -283,4 +371,27 @@ Public Class DevelopmentGuiTestSession
             If disposing Then DisplayFont?.Dispose()
         End Sub
     End Class
+End Class
+
+''' <summary>Warns before tests that depend on undisturbed workstation focus.</summary>
+<AttributeUsage(AttributeTargets.Class Or AttributeTargets.Method, Inherited:=True)>
+Public NotInheritable Class WorkstationFocusAttribute
+    Inherits TestActionAttribute
+    Implements NUnit.Framework.Interfaces.IApplyToTest
+    Private ReadOnly Scopes As New System.Collections.Concurrent.ConcurrentDictionary(Of String, IDisposable)()
+    ''' <inheritdoc/>
+    Public Overrides ReadOnly Property Targets As ActionTargets = ActionTargets.Test Or ActionTargets.Suite
+    ''' <inheritdoc/>
+    Public Overrides Sub BeforeTest(test As NUnit.Framework.Interfaces.ITest)
+        Scopes(test.Id) = DevelopmentGuiTestSession.EnterFocusCriticalSection()
+    End Sub
+    ''' <inheritdoc/>
+    Public Overrides Sub AfterTest(test As NUnit.Framework.Interfaces.ITest)
+        Dim scope As IDisposable = Nothing
+        If Scopes.TryRemove(test.Id, scope) Then scope.Dispose()
+    End Sub
+    ''' <inheritdoc/>
+    Public Sub ApplyToTest(test As NUnit.Framework.Internal.Test) Implements NUnit.Framework.Interfaces.IApplyToTest.ApplyToTest
+        test.Properties.Add(NUnit.Framework.Internal.PropertyNames.Category, "WorkstationFocus")
+    End Sub
 End Class

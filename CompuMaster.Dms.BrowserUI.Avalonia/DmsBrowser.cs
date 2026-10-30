@@ -33,6 +33,9 @@ public sealed class DmsBrowser : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://CompuMaster.Dms.BrowserUI.Avalonia/Assets/favicon.ico")));
         Content = Browser;
+        Opened += (_, _) => { if (Owner is Window owner) BrowserAppearance.Inherit(this, owner); };
+        BrowserAppearance.SetTheme(this, browser.Options.Theme);
+        BrowserAppearance.SetPalettes(this, browser.Options.LightPalette, browser.Options.DarkPalette);
         Browser.SelectionConfirmed += (_, _) => Close(Browser.Selection);
         Browser.Cancelled += (_, _) => Close();
         Closing += (_, e) =>

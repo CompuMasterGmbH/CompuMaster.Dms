@@ -25,11 +25,31 @@ internal static class BrowserActionIcons
             "ActionCreateFolder" => "iconfinder_Folder-ui-ux-mobile-web_new",
             _ => null
         };
-        return resource is null ? null : new Image
+        if (resource is null) return null;
+        var image = new Image
         {
             Source = BrowserIcons.Load(resource), Width = 16, Height = 16,
-            VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false
+            VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false, Tag = resource
         };
+        AttachTheme(image, resource, source => image.Source = source);
+        return image;
+    }
+    internal static void ApplyMenu(MenuFlyoutItem item, Image image)
+    {
+        var icon = new ImageIcon { Source = image.Source }; item.Icon = icon;
+        AttachTheme(item, (string)image.Tag, source => icon.Source = source);
+    }
+    private static void AttachTheme(FrameworkElement element, string resource, Action<Microsoft.UI.Xaml.Media.ImageSource> apply)
+    {
+        async void Update()
+        {
+            if (!element.IsLoaded) return;
+            var dark = element.ActualTheme == ElementTheme.Dark;
+            var source = dark ? await ThemeArtwork.ForDarkAsync(resource) : BrowserIcons.Load(resource);
+            if (element.IsLoaded && dark == (element.ActualTheme == ElementTheme.Dark)) apply(source);
+        }
+        element.ActualThemeChanged += (_, _) => Update();
+        element.Loaded += (_, _) => Update();
     }
 
     internal static void Apply(Button button, string key)

@@ -6,6 +6,17 @@ namespace CompuMaster.Dms.BrowserUI.WinUI;
 namespace CompuMaster.Dms.BrowserUI.Avalonia;
 #endif
 
+/// <summary>Selects the appearance of a browser and its owned dialogs.</summary>
+public enum BrowserTheme
+{
+    /// <summary>Inherits the host appearance or follows the operating system for standalone windows.</summary>
+    System,
+    /// <summary>Uses a light appearance.</summary>
+    Light,
+    /// <summary>Uses a dark appearance.</summary>
+    Dark
+}
+
 /// <summary>Identifies the visible browser content.</summary>
 public enum BrowseModes : byte
 {
@@ -57,6 +68,13 @@ public enum DialogOperationModes : byte
 /// <summary>Configures provider-independent browser workflows.</summary>
 public sealed class DmsBrowserOptions
 {
+    /// <summary>Gets or sets the initial appearance, defaulting to the host or system preference.</summary>
+    /// <remarks>Use the browser control's Appearance property to change appearance after construction.</remarks>
+    public BrowserTheme Theme { get; set; } = BrowserTheme.System;
+    /// <summary>Gets or sets the optional palette used when the effective appearance is light.</summary>
+    public BrowserPalette? LightPalette { get; set; }
+    /// <summary>Gets or sets the optional palette used when the effective appearance is dark.</summary>
+    public BrowserPalette? DarkPalette { get; set; }
     /// <summary>Gets or sets the title of the browser dialog.</summary>
     public string? FormTitle { get; set; }
     /// <summary>Gets or sets the remote directory treated as the browser root.</summary>

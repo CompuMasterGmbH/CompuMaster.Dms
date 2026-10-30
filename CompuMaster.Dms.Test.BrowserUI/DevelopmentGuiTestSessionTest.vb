@@ -32,17 +32,17 @@ Public Class DevelopmentGuiTestSessionTest
     End Sub
 
     ''' <summary>Verifies countdown, ETA, foreground preservation, and cleanup on native Windows.</summary>
-    <Test, Apartment(ApartmentState.STA), NonParallelizable>
+    <Test, Apartment(ApartmentState.STA), NonParallelizable, WorkstationFocus>
     Public Sub NativeNoticeDoesNotActivateAndClosesAfterCountdownAndEta()
         Using ready As New ManualResetEventSlim(), stopRequested As New ManualResetEventSlim(),
-              window As New DevelopmentGuiTestSession.GuiTestNotice(60, ready, stopRequested)
+              window As New DevelopmentGuiTestSession.GuiTestNotice(60, ready, stopRequested, focusCritical:=True)
             Dim foreground = GetForegroundWindow()
             window.Show()
             Application.DoEvents()
             Assert.That(window.TopMost, [Is].True)
             Assert.That(window.Width, [Is].EqualTo(Screen.PrimaryScreen.Bounds.Width \ 2))
             Assert.That(window.Height, [Is].EqualTo(Screen.PrimaryScreen.Bounds.Height \ 2))
-            Assert.That(window.BackColor, [Is].EqualTo(Color.SkyBlue))
+            Assert.That(window.BackColor, [Is].EqualTo(Color.Red))
             Assert.That(window.Controls(0).ForeColor, [Is].EqualTo(Color.White))
             Assert.That(window.Controls(0).Font.SizeInPoints, [Is].GreaterThan(SystemFonts.MessageBoxFont.SizeInPoints * 2))
             Assert.That(window.Controls(0).Text, Does.Contain("3 Sekunden"))
@@ -63,6 +63,36 @@ Public Class DevelopmentGuiTestSessionTest
                 Application.DoEvents()
             End While
             Assert.That(window.IsDisposed, [Is].True)
+        End Using
+    End Sub
+
+    <Test, Apartment(ApartmentState.STA)>
+    Public Sub OrdinaryNoticeIsBlueAndFocusTransitionWaitsThreeSeconds()
+        Using ready As New ManualResetEventSlim(), stopped As New ManualResetEventSlim(),
+              window As New DevelopmentGuiTestSession.GuiTestNotice(60, ready, stopped)
+            Assert.That(window.BackColor, [Is].EqualTo(Color.SkyBlue))
+            window.Show()
+            Dim initialDeadline = DateTime.UtcNow.AddSeconds(5)
+            While Not ready.IsSet AndAlso DateTime.UtcNow < initialDeadline
+                Application.DoEvents() : Thread.Sleep(10)
+            End While
+            Assert.That(ready.IsSet, [Is].True)
+            Dim clock = System.Diagnostics.Stopwatch.StartNew()
+            Dim mayStart As Boolean
+            window.SetFocusCritical(True, Sub() mayStart = True)
+            Assert.That(window.BackColor, [Is].EqualTo(Color.Red))
+            Assert.That(window.Controls(0).Text, Does.Contain("3 Sekunden"))
+            While Not mayStart AndAlso clock.Elapsed.TotalSeconds < 5
+                Application.DoEvents() : Thread.Sleep(10)
+                If clock.Elapsed.TotalSeconds < 3 Then Assert.That(mayStart, [Is].False)
+            End While
+            Assert.That(mayStart, [Is].True)
+            Assert.That(clock.Elapsed.TotalSeconds, [Is].GreaterThanOrEqualTo(3))
+            Assert.That(window.Controls(0).Text, Does.Contain("Tastatur und Maus"))
+            AssertTextFits(window)
+            window.SetFocusCritical(False)
+            Assert.That(window.BackColor, [Is].EqualTo(Color.SkyBlue))
+            window.Close()
         End Using
     End Sub
 

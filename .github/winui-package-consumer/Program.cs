@@ -41,6 +41,12 @@ public sealed partial class App : Application
             browser = new DmsBrowser(provider, new DmsBrowserOptions { SelectedFolder = "Documents", AllowedActions = (FileOrFolderActions)2047 });
             _ = browser.ShowAsync(); await browser.Browser.InitializeAsync(); await Task.Delay(150);
             if (browser.Selection.Folder?.Name != "Documents") throw new InvalidDataException("The installed component did not initialize the selected directory.");
+            browser.Browser.Appearance = BrowserTheme.Dark;
+            browser.Browser.DarkPalette = new BrowserPalette("#172334", "#24364A", "#EDF2FA", "#5399D5", "#081524", "#647A90");
+            await Task.Delay(30);
+            if (((FrameworkElement)browser.Content).ActualTheme != ElementTheme.Dark ||
+                ((Microsoft.UI.Xaml.Media.SolidColorBrush)((Microsoft.UI.Xaml.Controls.ContentControl)browser.Content).Background).Color != Windows.UI.Color.FromArgb(255, 23, 35, 52))
+                throw new InvalidDataException("The packaged dark appearance or custom palette did not apply.");
             // Exercise packaged DataGrid styles and grouped content, independently of repository project references.
             var type = assembly.GetType("CompuMaster.Dms.BrowserUI.WinUI.DmsItemSharings", true)!;
             sharing = (Window)Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic, null,

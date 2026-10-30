@@ -297,4 +297,8 @@
   <data name="SharingNoPermissions" xml:space="preserve"><value>لا شيء</value></data>
   <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>المجلد المطلوب لم يعد متاحًا على الخادم. حدّث عرض المجلد الأعلى عند الحاجة.</value></data>
   <data name="BrowserFileUnavailable" xml:space="preserve"><value>الملف المطلوب لم يعد متاحًا على الخادم. حدّث العرض عند الحاجة.</value></data>
+  <data name="Appearance" xml:space="preserve"><value>المظهر</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>النظام</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>فاتح</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>داكن</value></data>
 </root>

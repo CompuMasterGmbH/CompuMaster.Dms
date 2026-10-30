@@ -54,7 +54,11 @@ internal sealed class DemoLoginWindow : Window
         connect.Click += async (_, _) => await ConnectAsync(); exit.Click += (_, _) => Close();
         fields.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { connect, exit } });
         fields.Children.Add(Error);
-        container.Content = new ScrollViewer { Content = fields }; Content = container;
+        container.Content = new ScrollViewer { Content = fields };
+        var themedRoot = (ContentControl)Microsoft.UI.Xaml.Markup.XamlReader.Load("<ContentControl xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Background='{ThemeResource ApplicationPageBackgroundThemeBrush}' Foreground='{ThemeResource ApplicationForegroundThemeBrush}' HorizontalContentAlignment='Stretch' VerticalContentAlignment='Stretch'/>");
+        themedRoot.Template = (ControlTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load("<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='ContentControl'><Border Background='{TemplateBinding Background}'><ContentPresenter Content='{TemplateBinding Content}' ContentTemplate='{TemplateBinding ContentTemplate}' HorizontalAlignment='Stretch' VerticalAlignment='Stretch'/></Border></ControlTemplate>");
+        themedRoot.Content = container; Content = themedRoot;
+        fields.Children.Add(BrowserAppearance.CreateSelector(themedRoot));
         Server.Text = this.buffer.Read("server url") ?? ""; Customer.Text = this.buffer.Read("customer no.") ?? "";
         Username.Text = this.buffer.Read("username") ?? ""; Password.Password = this.buffer.Read("password") ?? "";
         Root.Text = this.buffer.Read("start path") ?? "/";
@@ -113,7 +117,8 @@ internal sealed class DemoLoginWindow : Window
         {
             var tenant = ExpectedTenant.Text;
             var profile = definition.CreateProfile(Server.Text, Username.Text, Password.Password, Customer.Text, Organisation.Text, tenant);
-            var options = definition.BrowserOptions(Root.Text); var provider = await authorize(profile);
+            var options = definition.BrowserOptions(Root.Text);
+            options.Theme = BrowserAppearance.GetTheme((FrameworkElement)Content); var provider = await authorize(profile);
             if (definition.RequiresCustomer)
             {
                 if (!await DemoScopevisioSelection.SelectAsync(provider, profile, tenant, chooseInstance)) return;
