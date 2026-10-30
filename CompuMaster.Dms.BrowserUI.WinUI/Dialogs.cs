@@ -182,10 +182,12 @@ internal static class Dialogs
         window.AppWindow.Resize(new SizeInt32(width, height));
         return window;
     }
+    internal static TextBox MessageText(string message) => new()
+    { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Text = message };
     internal static async Task MessageAsync(Window owner, string message, string? title = null, FrameworkElement? source = null)
     {
         DialogWindow? dialog = null;
-        var text = new TextBox { Text = message, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap };
+        var text = MessageText(message);
         dialog = Window(title ?? owner.Title, Layout(text, Buttons(Button("ActionOkay", () => dialog!.Close()))), 650, 420);
         await BrowserAppearance.ShowDialog(dialog, owner, source);
     }

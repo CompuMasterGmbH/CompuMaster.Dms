@@ -8,6 +8,9 @@
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(DmsDocumentationScreenshots)' == 'true'">
+    <DefineConstants>$(DefineConstants);DMS_DOCUMENTATION_SCREENSHOTS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="NUnit" Version="4.6.1" />
