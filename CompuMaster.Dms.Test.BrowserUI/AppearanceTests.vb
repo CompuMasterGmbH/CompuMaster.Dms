@@ -6,6 +6,10 @@ Imports NUnit.Framework
 
 <TestFixture, Apartment(ApartmentState.STA)>
 Public Class AppearanceTests
+    <TestCase(Nothing, False), TestCase(0, True), TestCase(1, False)>
+    Public Sub MissingWindowsPreferenceUsesTheLightDefault(value As Object, dark As Boolean)
+        Assert.That(BrowserAppearance.UsesDarkWindowsPreference(value), [Is].EqualTo(dark))
+    End Sub
     <Test>
     Public Sub CustomPalettesAreScopedInheritedAndResettable()
         Dim palette As New BrowserPalette("#172334", "#24364A", "#EDF2FA", "#5399D5", "#081524", "#647A90")
