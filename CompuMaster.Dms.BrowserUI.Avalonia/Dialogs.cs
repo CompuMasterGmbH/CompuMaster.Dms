@@ -40,23 +40,23 @@ internal static class Dialogs
         panel.Children.Add(buttons); panel.Children.Add(content);
         return panel;
     }
-    internal static async Task MessageAsync(Window owner, string message, string? title = null)
+    internal static async Task MessageAsync(Window owner, string message, string? title = null, global::Avalonia.StyledElement? source = null)
     {
         Window? dialog = null;
         var text = new TextBox { Text = message, IsReadOnly = true, AcceptsReturn = true, TextWrapping = global::Avalonia.Media.TextWrapping.Wrap };
         dialog = Window(title ?? owner.Title ?? "", Layout(text, Buttons(Button("ActionOkay", () => dialog!.Close()))), 650, 380);
-        await dialog.ShowDialog(owner);
+        await BrowserAppearance.ShowDialog(dialog, owner, source);
     }
-    internal static async Task<bool> ConfirmAsync(Window owner, string message)
+    internal static async Task<bool> ConfirmAsync(Window owner, string message, global::Avalonia.StyledElement? source = null)
     {
         Window? dialog = null;
         var yes = Button("ActionOkay", () => dialog!.Close(true));
         var no = Button("ActionCancel", () => dialog!.Close(false)); no.IsDefault = true; no.IsCancel = true;
         dialog = Window(owner.Title ?? "", Layout(new TextBlock { Text = message, TextWrapping = global::Avalonia.Media.TextWrapping.Wrap },
             Buttons(yes, no)));
-        return await dialog.ShowDialog<bool>(owner);
+        return await BrowserAppearance.ShowDialog<bool>(dialog, owner, source);
     }
-    internal static async Task<string?> InputAsync(Window owner, string prompt, string value = "")
+    internal static async Task<string?> InputAsync(Window owner, string prompt, string value = "", global::Avalonia.StyledElement? source = null)
     {
         Window? dialog = null;
         var input = new TextBox { Text = value, Margin = new Thickness(0, 12), Name = "InputValue" };
@@ -65,9 +65,9 @@ internal static class Dialogs
         var cancel = Button("ActionCancel", () => dialog!.Close()); cancel.IsCancel = true;
         dialog = Window(owner.Title ?? "", Layout(body, Buttons(ok, cancel)));
         dialog.Opened += (_, _) => { input.Focus(); input.SelectAll(); };
-        return await dialog.ShowDialog<string?>(owner);
+        return await BrowserAppearance.ShowDialog<string?>(dialog, owner, source);
     }
-    internal static async Task<DialogChoice?> ChooseAsync(Window owner, string title, IReadOnlyList<DialogChoice> choices, string? selectedID = null, string? prompt = null)
+    internal static async Task<DialogChoice?> ChooseAsync(Window owner, string title, IReadOnlyList<DialogChoice> choices, string? selectedID = null, string? prompt = null, global::Avalonia.StyledElement? source = null)
     {
         Window? dialog = null;
         var list = new ListBox { Name = "Choices", ItemsSource = choices,
@@ -83,7 +83,7 @@ internal static class Dialogs
         }
         dialog = Window(title, Layout(content, Buttons(ok, cancel)), 560, 420);
         list.DoubleTapped += (_, _) => { if (list.SelectedItem is DialogChoice selected) dialog.Close(selected); };
-        return await dialog.ShowDialog<DialogChoice?>(owner);
+        return await BrowserAppearance.ShowDialog<DialogChoice?>(dialog, owner, source);
     }
 }
 

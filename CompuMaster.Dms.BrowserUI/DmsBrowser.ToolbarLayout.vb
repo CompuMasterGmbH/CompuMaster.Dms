@@ -18,6 +18,7 @@ Partial Public Class DmsBrowser
         End If
         LocalizedLayout.FitColumnHeaders(Me.ListViewDmsFiles)
         Dim leftControls As New List(Of Control) From {Me.ButtonCreateNewFolder, Me.ButtonShowFiles}
+        If AppearanceSelector IsNot Nothing Then leftControls.Add(AppearanceSelector)
         If Me.InstanceButton IsNot Nothing AndAlso (Me.AllowedActions And FileOrFolderActions.AllowSwitchDmsInstance) <> 0 Then leftControls.Add(Me.InstanceButton)
         Dim rightControls As Control() = If(Me.DialogOperationModeInternal = DialogOperationModes.NoResults, New Control() {Me.ButtonClose}, New Control() {Me.ButtonOkay, Me.ButtonCancel})
         Dim rowHeight = leftControls.Concat(rightControls).Max(Function(control) control.Height)

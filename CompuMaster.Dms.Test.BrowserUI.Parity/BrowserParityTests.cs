@@ -403,4 +403,45 @@ public sealed class BrowserParityTests
         }
         finally { window.Close(); }
     }
+    [AvaloniaTest]
+    [TestCase(false, false), TestCase(true, false), TestCase(true, true)]
+    public async Task Appearance_modes_keep_both_browsers_readable(bool dark, bool custom)
+    {
+        var directory = Environment.GetEnvironmentVariable("DMS_THEME_SCREENSHOTS");
+        Native(() =>
+        {
+            using var dispatcher = new UiTestDispatcher();
+            using var browser = new ReferenceBrowser(new DemoDmsProvider(), 2047, false, true);
+            browser.Appearance = dark ? Wf.BrowserTheme.Dark : Wf.BrowserTheme.Light;
+            if (custom) browser.DarkPalette = new Wf.BrowserPalette("#172334", "#24364A", "#EDF2FA", "#5399D5", "#081524", "#647A90");
+            browser.Opacity = 1; browser.Show(); dispatcher.WaitForEvents();
+            var list = Member<Forms.ListView>(browser, "ListViewDmsFiles");
+            Assert.That(list.BackColor.GetBrightness(), dark ? Is.LessThan(0.3f) : Is.GreaterThan(0.8f));
+            Assert.That(list.ForeColor.GetBrightness(), dark ? Is.GreaterThan(0.8f) : Is.LessThan(0.3f));
+            Assert.That(browser.Controls.Find("BrowserThemeSelector", false).Single().Visible, Is.True);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+                using var image = new System.Drawing.Bitmap(browser.Width, browser.Height);
+                browser.DrawToBitmap(image, new System.Drawing.Rectangle(0, 0, browser.Width, browser.Height));
+                image.Save(Path.Combine(directory, "winforms-" + (custom ? "custom" : dark ? "dark" : "light") + ".png"));
+            }
+            return true;
+        });
+        var window = new Av.DmsBrowser(new DemoDmsProvider(), new() { SelectedFolder = "Documents", AllowedActions = (Av.FileOrFolderActions)2047,
+            DialogOperationMode = Av.DialogOperationModes.NoResults, Theme = dark ? Av.BrowserTheme.Dark : Av.BrowserTheme.Light,
+            DarkPalette = custom ? new Av.BrowserPalette("#172334", "#24364A", "#EDF2FA", "#5399D5", "#081524", "#647A90") : null });
+        try
+        {
+            window.Show(); await window.Browser.InitializeAsync(); window.UpdateLayout();
+            Assert.That(window.Browser.FileGrid.ActualThemeVariant, Is.EqualTo(dark ? global::Avalonia.Styling.ThemeVariant.Dark : global::Avalonia.Styling.ThemeVariant.Light));
+            if (!string.IsNullOrEmpty(directory))
+            {
+                using var image = new global::Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)window.Bounds.Width, (int)window.Bounds.Height));
+                image.Render(window); image.Save(Path.Combine(directory, "avalonia-" + (custom ? "custom" : dark ? "dark" : "light") + ".png"), global::Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+            }
+        }
+        finally { window.Close(); }
+    }
+
 }

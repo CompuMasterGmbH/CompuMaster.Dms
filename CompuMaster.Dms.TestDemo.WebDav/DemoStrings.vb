@@ -14,6 +14,9 @@ Friend NotInheritable Class DemoStrings
 
     Friend Shared Sub ApplyLoginLabels(form As Form)
         InitialWindowDpi.Bind(form)
+        Dim appearance = Global.CompuMaster.Dms.BrowserUI.BrowserAppearance.CreateSelector(form)
+        appearance.Left = form.Controls.Find("UsernameTextBox", True).Single().Left
+        form.Controls.Add(appearance)
         'Docking recalculates the artwork height after native DPI/non-client changes.
         'Top/bottom anchoring can retain the old non-client height during a monitor transition.
         Dim artwork = TryCast(form.Controls.Find("LogoPictureBox", False).SingleOrDefault(), PictureBox)
@@ -104,6 +107,10 @@ Friend NotInheritable Class DemoStrings
         Dim persist = DirectCast(form.Controls.Find("CheckboxPersistLoginCredentialsToDisk", False).Single(), CheckBox)
         persist.AutoSize = True
         persist.Size = persist.GetPreferredSize(Drawing.Size.Empty)
+        Dim appearance = form.Controls.Find("BrowserThemeSelector", False).Single()
+        appearance.Top = nextTop
+        appearance.Height = appearance.GetPreferredSize(Drawing.Size.Empty).Height
+        nextTop = appearance.Bottom + 8
         Dim buttonTop = Math.Max(nextTop, form.ClientSize.Height - signInButton.Height - 12)
         Dim persistTop = buttonTop
         If signInButton IsNot Nothing AndAlso persist.Right + 10 > signInButton.Left Then

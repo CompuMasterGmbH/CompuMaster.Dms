@@ -7,11 +7,21 @@ Imports CompuMaster.Dms.Data
 Imports CompuMaster.Dms
 Imports CompuMaster.VisualBasicCompatibility
 Imports CompuMaster.VisualBasicCompatibility.Information
-Imports InfoBox
 
 ''' <summary>Displays a remote DMS hierarchy and the configured file and folder actions.</summary>
 Public Class DmsBrowser
 
+    ''' <summary>Gets or sets the browser appearance, including subsequently opened dialogs.</summary>
+    Public Property Appearance As BrowserTheme
+        Get
+            Return BrowserAppearance.GetTheme(Me)
+        End Get
+        Set(value As BrowserTheme)
+            BrowserAppearance.SetTheme(Me, value)
+        End Set
+    End Property
+
+    Private ReadOnly AppearanceSelector As ComboBox
     Private Const DefaultDpi As Integer = 96
     Private Const MaximumImageListDimension As Integer = 256
     Private Const TreeIconLogicalSize As Integer = 24
@@ -34,6 +44,8 @@ Public Class DmsBrowser
         InitializeFileVersions()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
+        AppearanceSelector = BrowserAppearance.CreateSelector(Me)
+        Me.Controls.Add(AppearanceSelector)
         LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
     End Sub
 
@@ -894,7 +906,7 @@ Public Class DmsBrowser
         If TransferRunning OrElse ResourceActionRunning OrElse DragDownloadRunning Then Return
         Try
             Dim NewFolderName As String = Nothing
-            If Not UITools.TryInputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"), "", NewFolderName) Then Return
+            If Not UITools.TryInputBox(UiStrings.Format("NewFolderPrompt", Me.SelectedFolderPath), UiStrings.GetText("NewFolderTitle"), "", NewFolderName, Me) Then Return
             NewFolderName = NewFolderName.Trim()
             If Not IsValidResourceName(NewFolderName, Me.DmsProvider.DirectorySeparator) Then Throw New DmsUserInputInvalidException(UiStrings.GetText("InvalidDestinationName"))
             Dim parentNode As TreeNode = Me.TreeViewDmsFolders.SelectedNode
@@ -1378,7 +1390,7 @@ Public Class DmsBrowser
         Try
             Dim SelectedFiles As List(Of DmsResourceItem) = Me.CurrentSelectedFiles
             If SelectedFiles.Count = 0 Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFileSelected"))
-            If InfoBox.InformationBox.Show(UiStrings.GetText("DeleteFilesQuestion") & System.Environment.NewLine & System.Environment.NewLine & Strings.Join(SelectedFiles.ConvertAll(Of String)(Function(item) item.Name).ToArray, System.Environment.NewLine), title:=UiStrings.GetText("DeleteFilesTitle"), buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
+            If MessageBox.Show(Me, UiStrings.GetText("DeleteFilesQuestion") & System.Environment.NewLine & System.Environment.NewLine & Strings.Join(SelectedFiles.ConvertAll(Of String)(Function(item) item.Name).ToArray, System.Environment.NewLine), caption:=UiStrings.GetText("DeleteFilesTitle"), buttons:=MessageBoxButtons.YesNoCancel, icon:=MessageBoxIcon.Question) = DialogResult.Yes Then
                 Await Me.RunTransferAsync(Function() Me.RunOperationAndRefreshAsync(Function() Me.DeleteFilesForUiAsync(SelectedFiles), Function() Me.RefreshFilesListAsync()))
             End If
         Catch ex As Data.DmsUserErrorMessageException
@@ -1533,7 +1545,7 @@ Public Class DmsBrowser
 
     Private Function TryGetDestinationName(action As ResourceAction, source As DmsResourceItem, ByRef name As String) As Boolean
         Dim promptKey As String = If(action = ResourceAction.Rename, "RenameItemPrompt", "DestinationNamePrompt")
-        If Not UITools.TryInputBox(UiStrings.Format(promptKey, source.Name), UiStrings.GetText("DestinationNameTitle"), source.Name, name) Then Return False
+        If Not UITools.TryInputBox(UiStrings.Format(promptKey, source.Name), UiStrings.GetText("DestinationNameTitle"), source.Name, name, Me) Then Return False
         name = name.Trim()
         If Not IsValidResourceName(name, Me.DmsProvider.DirectorySeparator) Then
             Throw New DmsUserInputInvalidException(UiStrings.GetText("InvalidDestinationName"))
@@ -1812,7 +1824,7 @@ Public Class DmsBrowser
                                          Dim resource = Await Me.LoadResourceDetailsAsync(SelectedFile)
                                          Details = Await Me.PropertiesDetailsAsync(resource)
                                      End Function)
-            InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFile.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+            ShowPropertiesDialog(Details, UiStrings.Format("PropertiesTitle", SelectedFile.Name))
         Catch ex As Data.DmsUserErrorMessageException
             Me.HandleBrowserFailure(ex)
         Catch ex As DmsUserInputInvalidException
@@ -2031,11 +2043,11 @@ Public Class DmsBrowser
                                              Dim resource = Await Me.LoadResourceDetailsAsync(SelectedFolder)
                                              Details = Await Me.PropertiesDetailsAsync(resource)
                                          End Function)
-                InfoBox.InformationBox.Show(Details, title:=UiStrings.Format("PropertiesTitle", SelectedFolder.Name), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                ShowPropertiesDialog(Details, UiStrings.Format("PropertiesTitle", SelectedFolder.Name))
             Else
                 Dim details = Me.RootPropertiesDetails(selectedNode)
                 If details IsNot Nothing Then
-                    InfoBox.InformationBox.Show(details, title:=UiStrings.Format("PropertiesTitle", "/"), buttons:=InfoBox.InformationBoxButtons.OK, icon:=InformationBoxIcon.Information)
+                    ShowPropertiesDialog(details, UiStrings.Format("PropertiesTitle", "/"))
                 End If
             End If
         Catch ex As Data.DmsUserErrorMessageException
@@ -2166,7 +2178,7 @@ Public Class DmsBrowser
             Dim SelectedFolder As DmsResourceItem = Me.CurrentSelectedFolder
             If SelectedFolderNode Is Nothing AndAlso SelectedFolder Is Nothing Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("NoFolderSelected"))
             If SelectedFolderNode IsNot Nothing AndAlso (SelectedFolderNode Is Me.RootNode OrElse SelectedFolder Is Nothing OrElse SelectedFolder.ItemType = DmsResourceItem.ItemTypes.Root) Then Throw New Data.DmsUserErrorMessageException(UiStrings.GetText("RootFolderCannotBeDeleted"))
-            If InfoBox.InformationBox.Show(UiStrings.GetText("DeleteFolderQuestion") & System.Environment.NewLine & System.Environment.NewLine & SelectedFolder.Name, title:=UiStrings.GetText("DeleteFolderTitle"), buttons:=InfoBox.InformationBoxButtons.YesNoCancel, icon:=InformationBoxIcon.Question) = InformationBoxResult.Yes Then
+            If MessageBox.Show(Me, UiStrings.GetText("DeleteFolderQuestion") & System.Environment.NewLine & System.Environment.NewLine & SelectedFolder.Name, caption:=UiStrings.GetText("DeleteFolderTitle"), buttons:=MessageBoxButtons.YesNoCancel, icon:=MessageBoxIcon.Question) = DialogResult.Yes Then
                 Await Me.RunTransferAsync(Function() Me.DeleteDirectoryForUiAsync(SelectedFolderNode))
             End If
         Catch ex As Data.DmsUserErrorMessageException

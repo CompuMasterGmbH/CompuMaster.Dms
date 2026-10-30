@@ -25,7 +25,7 @@ public sealed partial class DmsBrowserControl
         dialog = Dialogs.Window(UiText.Get("DownloadConflictTitle"), Dialogs.Layout(body, Dialogs.Buttons(replace, skip, cancel)), 640, 300);
         return AwaitDecision();
         async Task<ConflictDecision> AwaitDecision() =>
-            await dialog.ShowDialog<ConflictDecision?>(owner) ?? new ConflictDecision(ConflictAction.Cancel, false);
+            await BrowserAppearance.ShowDialog<ConflictDecision?>(dialog, owner) ?? new ConflictDecision(ConflictAction.Cancel, false);
     }
     private async Task UploadFolderAsync()
     {
@@ -53,7 +53,7 @@ public sealed partial class DmsBrowserControl
         await Session.RunAsync(async () =>
         {
             var dialog = new TransferWindow(TransferTitle("UploadTitle", provider), !provider.SupportsNonUniqueRemoteItems);
-            dialog.Show(Owner);
+            BrowserAppearance.Inherit(dialog, Owner, this); dialog.Show(Owner);
             Exception? failure = null;
             try
             {
@@ -137,7 +137,7 @@ public sealed partial class DmsBrowserControl
         await Session.RunAsync(async () =>
         {
             var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false);
-            dialog.Show(Owner);
+            BrowserAppearance.Inherit(dialog, Owner, this); dialog.Show(Owner);
             try
             {
                 var folder = node.Item ?? new DmsResourceItem { ItemType = DmsResourceItem.ItemTypes.Root, Name = "DMS", FullName = Session.Provider.BrowseInRootFolderName };
@@ -161,7 +161,7 @@ public sealed partial class DmsBrowserControl
         foreach (var download in downloads) { Session.ValidateSource(download.Item); LocalPaths.Validate(download.Path, Options.LocalParentMustFolder); }
         if (downloads.Select(d => Path.GetFullPath(d.Path)).Distinct(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).Count() != downloads.Count)
             throw new DmsUserInputInvalidException(UiText.Get("DuplicateFileNameConflict"));
-        var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false); dialog.Show(Owner);
+        var dialog = new TransferWindow(TransferTitle("DownloadTitle", Session.Provider), false); BrowserAppearance.Inherit(dialog, Owner, this); dialog.Show(Owner);
         try { await DownloadBatchAsync(downloads.Select(d => (d.Item, d.Path)).ToList(), dialog); }
         catch (OperationCanceledException) { }
         catch (Exception ex) { ReportFailure(ex, DmsBrowserFailurePhase.Action, "Download"); await dialog.FailureAsync(ex); }

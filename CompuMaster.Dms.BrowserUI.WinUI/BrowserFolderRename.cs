@@ -40,7 +40,7 @@ public sealed partial class DmsBrowserControl
         {
             Session.ValidateName(name);
             var path = Session.Provider.CombinePath(Session.Provider.ParentDirectoryPath(resource.FullName), name);
-            if (await Session.ResourceActionAsync(resource, path, ResourceAction.Rename, question => Dialogs.ConfirmAsync(Owner, question)))
+            if (await Session.ResourceActionAsync(resource, path, ResourceAction.Rename, question => Dialogs.ConfirmAsync(Owner, question, source: this)))
                 await Session.SelectPathAsync(Session.RelativePath(path));
         });
     }

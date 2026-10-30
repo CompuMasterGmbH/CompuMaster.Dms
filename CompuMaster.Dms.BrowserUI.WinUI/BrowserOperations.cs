@@ -82,7 +82,7 @@ public sealed partial class DmsBrowserControl
 
     private async Task CreateFolderAsync()
     {
-        var name = await Dialogs.InputAsync(Owner, UiText.Format("NewFolderPrompt", Session.CurrentPath));
+        var name = await Dialogs.InputAsync(Owner, UiText.Format("NewFolderPrompt", Session.CurrentPath), source: this);
         if (name is not null) await Session.CreateDirectoryAsync(name.Trim());
     }
     private DmsResourceItem[] SelectedFiles() => Selection.Files.ToArray();
@@ -90,14 +90,14 @@ public sealed partial class DmsBrowserControl
     {
         var selected = SelectedFiles();
         if (selected.Length == 0) throw new DmsUserErrorMessageException(UiText.Get("NoFileSelected"));
-        if (await Dialogs.ConfirmAsync(Owner, UiText.Get("DeleteFilesQuestion") + "\n\n" + string.Join("\n", selected.Select(f => f.Name))))
+        if (await Dialogs.ConfirmAsync(Owner, UiText.Get("DeleteFilesQuestion") + "\n\n" + string.Join("\n", selected.Select(f => f.Name)), source: this))
             await Session.DeleteAsync(selected);
     }
     private async Task DeleteFolderAsync()
     {
         if (!MutableFolder) throw new DmsUserInputInvalidException(UiText.Get("RootFolderCannotBeDeleted"));
         var item = Session.SelectedNode!.Item!;
-        if (await Dialogs.ConfirmAsync(Owner, UiText.Get("DeleteFolderQuestion") + "\n\n" + item.Name)) await Session.DeleteAsync(new[] { item });
+        if (await Dialogs.ConfirmAsync(Owner, UiText.Get("DeleteFolderQuestion") + "\n\n" + item.Name, source: this)) await Session.DeleteAsync(new[] { item });
     }
     private async Task<string?> DestinationAsync()
     {
@@ -106,7 +106,7 @@ public sealed partial class DmsBrowserControl
             FormTitle = UiText.Get("SelectDestinationFolder"), InitialFolder = Options.InitialFolder, SelectedFolder = SelectedFolder,
             BrowseMode = BrowseModes.Folders, AllowedActions = Options.AllowedActions & FileOrFolderActions.AllowCreateFolders
         });
-        var selection = await picker.ShowDialogAsync(Owner);
+        var selection = await BrowserAppearance.ShowBrowserDialog(picker, Owner, this);
         return selection is null ? null : selection.Folder?.FullName ?? Session.Provider.BrowseInRootFolderName ?? "";
     }
     private async Task FileActionAsync(ResourceAction action)
@@ -124,13 +124,13 @@ public sealed partial class DmsBrowserControl
                 var name = source.Name;
                 if (sources.Length == 1)
                 {
-                    name = await Dialogs.InputAsync(Owner, UiText.Format(action == ResourceAction.Rename ? "RenameItemPrompt" : "DestinationNamePrompt", source.Name), name);
+                    name = await Dialogs.InputAsync(Owner, UiText.Format(action == ResourceAction.Rename ? "RenameItemPrompt" : "DestinationNamePrompt", source.Name), name, source: this);
                     if (name is null) return; name = name.Trim(); Session.ValidateName(name);
                 }
                 var path = Session.Provider.CombinePath(action == ResourceAction.Rename ? Session.Provider.ParentDirectoryPath(source.FullName) : destination, name);
-                if (!await Session.ResourceActionAsync(source, path, action, question => Dialogs.ConfirmAsync(Owner, question)))
+                if (!await Session.ResourceActionAsync(source, path, action, question => Dialogs.ConfirmAsync(Owner, question, source: this)))
                 {
-                    if (completed > 0) await Dialogs.MessageAsync(Owner, UiText.Format("ActionStoppedAfter", completed, sources.Length));
+                    if (completed > 0) await Dialogs.MessageAsync(Owner, UiText.Format("ActionStoppedAfter", completed, sources.Length), source: this);
                     return;
                 }
                 completed++;
@@ -144,11 +144,11 @@ public sealed partial class DmsBrowserControl
         var source = Session.SelectedNode!.Item!;
         var destination = action == ResourceAction.Rename ? Session.Provider.ParentDirectoryPath(source.FullName) : await DestinationAsync();
         if (destination is null) return;
-        var name = await Dialogs.InputAsync(Owner, UiText.Format(action == ResourceAction.Rename ? "RenameItemPrompt" : "DestinationNamePrompt", source.Name), source.Name);
+        var name = await Dialogs.InputAsync(Owner, UiText.Format(action == ResourceAction.Rename ? "RenameItemPrompt" : "DestinationNamePrompt", source.Name), source.Name, source: this);
         if (name is null) return;
         Session.ValidateName(name.Trim());
         var path = Session.Provider.CombinePath(destination, name.Trim());
-        if (await Session.ResourceActionAsync(source, path, action, question => Dialogs.ConfirmAsync(Owner, question)))
+        if (await Session.ResourceActionAsync(source, path, action, question => Dialogs.ConfirmAsync(Owner, question, source: this)))
             await Session.SelectPathAsync(Session.RelativePath(path));
     }
     private async Task OpenFilesAsync()
@@ -203,7 +203,7 @@ public sealed partial class DmsBrowserControl
             await Session.RunAsync(async () => details = await ResourceDetails.LoadAsync(Session.Provider, item));
             var dialog = new DmsItemSharings(Session.Provider, details);
             ActiveSharingDialog = dialog; UpdateControls();
-            try { await dialog.ShowDialog(Owner); }
+            try { await BrowserAppearance.ShowDialog(dialog, Owner, this); }
             finally { ActiveSharingDialog = null; UpdateControls(); }
             if (dialog.HasChanges) await Session.RefreshAsync();
         }
@@ -216,13 +216,13 @@ public sealed partial class DmsBrowserControl
         {
             var instance = (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance;
             await Dialogs.MessageAsync(Owner, UiText.Get("RootValue") + (instance is null ? "" : "\n\n" +
-                UiText.Get("PropertiesInstanceName") + instance.DisplayName + "\n" + UiText.Get("PropertiesInstanceId") + instance.ID));
+                UiText.Get("PropertiesInstanceName") + instance.DisplayName + "\n" + UiText.Get("PropertiesInstanceId") + instance.ID), source: this);
             return;
         }
         string details = "";
         await Session.RunAsync(async () => details = await ItemProperties.FormatAsync(Session.Provider,
             await ResourceDetails.LoadAsync(Session.Provider, item)));
-        await Dialogs.MessageAsync(Owner, details, UiText.Format("PropertiesTitle", item.Name));
+        await Dialogs.MessageAsync(Owner, details, UiText.Format("PropertiesTitle", item.Name), source: this);
     }
     private async Task ChangeInstanceAsync()
     {

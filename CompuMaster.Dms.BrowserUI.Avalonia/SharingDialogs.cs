@@ -23,7 +23,7 @@ public static class DmsSharingDialogs
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(provider);
         ArgumentNullException.ThrowIfNull(item);
-        return new DmsItemSharings(provider, item).ShowDialog(owner);
+        return BrowserAppearance.ShowDialog(new DmsItemSharings(provider, item), owner);
     }
 }
 
@@ -57,10 +57,10 @@ internal sealed class DmsItemSharings : OperationWindow
         Title = UiText.Get("SharingsTitle") + " – " + item.FullName;
         Height = item.ExtendedInfosIsReceivedShare == true ? 860 : 720;
         var content = new StackPanel { Spacing = 8 };
-        receivedSummaryPanel = new Border { Name = "ReceivedSharingSummaryPanel", Padding = new Thickness(10), CornerRadius = new CornerRadius(4), Background = Brushes.LightBlue,
+        receivedSummaryPanel = new Border { Name = "ReceivedSharingSummaryPanel", Padding = new Thickness(10), CornerRadius = new CornerRadius(4),
             Child = receivedSummary };
         content.Children.Add(receivedSummaryPanel);
-        receivedSummary.TextWrapping = TextWrapping.Wrap; receivedSummary.Foreground = Brushes.Black; RefreshSummary();
+        receivedSummary.TextWrapping = TextWrapping.Wrap; RefreshSummary();
         content.Children.Add(new TextBlock { Text = UiText.Format("CurrentOwner", item.ExtendedInfosOwner.DisplayName ?? UiText.Get("UnknownValue")) });
         content.Children.Add(SharingGroup("InternalSharings", internalShares, Toolbar(
             ("ActionAddUser", () => EditStandardAsync(false, null)), ("ActionAddGroup", () => EditStandardAsync(true, null)),
@@ -127,14 +127,14 @@ internal sealed class DmsItemSharings : OperationWindow
     private async Task EditStandardAsync(bool group, DmsShareBase? existing)
     {
         var dialog = new DmsStandardShareSetup(provider, item, group, existing);
-        if (await dialog.ShowDialog<bool>(this)) { HasChanges = true; await RefreshRowsAsync(); }
+        if (await BrowserAppearance.ShowDialog<bool>(dialog, this)) { HasChanges = true; await RefreshRowsAsync(); }
     }
     private Task EditSelectedLinkAsync() => EditLinkAsync((links.SelectedItem as SharingRow)?.Share as DmsLink
         ?? throw new DmsUserInputMissingException(UiText.Get("LinkSharingRequired")));
     private async Task EditLinkAsync(DmsLink? link)
     {
         if (link is not null) await link.RefreshAsync();
-        if (await new DmsLinkShareSetup(provider, item, link).ShowDialog<bool>(this)) { HasChanges = true; await RefreshRowsAsync(); }
+        if (await BrowserAppearance.ShowDialog<bool>(new DmsLinkShareSetup(provider, item, link), this)) { HasChanges = true; await RefreshRowsAsync(); }
     }
     private async Task DeleteAsync(DataGrid list)
     {

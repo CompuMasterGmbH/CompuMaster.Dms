@@ -297,4 +297,8 @@
   <data name="SharingNoPermissions" xml:space="preserve"><value>कोई नहीं</value></data>
   <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>अनुरोधित फ़ोल्डर अब सर्वर पर उपलब्ध नहीं है। आवश्यकता होने पर मूल दृश्य को ताज़ा करें।</value></data>
   <data name="BrowserFileUnavailable" xml:space="preserve"><value>अनुरोधित फ़ाइल अब सर्वर पर उपलब्ध नहीं है। आवश्यकता होने पर दृश्य को ताज़ा करें।</value></data>
+  <data name="Appearance" xml:space="preserve"><value>रूप</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>सिस्टम</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>हल्का</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>गहरा</value></data>
 </root>

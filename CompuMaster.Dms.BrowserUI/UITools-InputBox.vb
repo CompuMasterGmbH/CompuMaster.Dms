@@ -44,15 +44,15 @@ Partial Friend Class UITools
     End Function
 
     ''' <summary>Show an input dialog while distinguishing Cancel from an empty answer.</summary>
-    Public Shared Function TryInputBox(prompt As String, title As String, defaultResponse As String, ByRef response As String) As Boolean
+    Public Shared Function TryInputBox(prompt As String, title As String, defaultResponse As String, ByRef response As String, Optional owner As Form = Nothing) As Boolean
         response = defaultResponse
-        Return InputQuery(title, prompt, response)
+        Return InputQuery(title, prompt, response, owner)
     End Function
 
-    Private Shared Function InputQuery(ByVal caption As String, ByVal prompt As String, ByRef value As String) As Boolean
+    Private Shared Function InputQuery(ByVal caption As String, ByVal prompt As String, ByRef value As String, Optional owner As Form = Nothing) As Boolean
         Dim input As TextBox = Nothing
         Using form = CreateInputDialog(caption, prompt, value, input)
-            If form.ShowDialog() <> DialogResult.OK Then Return False
+            If If(owner Is Nothing, form.ShowDialog(), form.ShowDialog(owner)) <> DialogResult.OK Then Return False
             value = input.Text
             Return True
         End Using

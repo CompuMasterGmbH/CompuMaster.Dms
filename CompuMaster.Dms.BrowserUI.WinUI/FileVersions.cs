@@ -71,6 +71,6 @@ public sealed partial class DmsBrowserControl
         Session.Require(FileOrFolderActions.AllowViewFileVersionHistory);
         if (SelectedFiles().Length != 1) throw new DmsUserInputInvalidException(UiText.Get("ExactlyOneItemRequired"));
         var dialog = new FileVersionHistoryDialog(Session.Provider, SelectedFiles().Single(), Options);
-        await dialog.ShowDialog(Owner); if (dialog.CurrentFileChanged) await Session.RefreshAsync();
+        await BrowserAppearance.ShowDialog(dialog, Owner, this); if (dialog.CurrentFileChanged) await Session.RefreshAsync();
     }
 }

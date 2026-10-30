@@ -146,7 +146,7 @@ public sealed partial class DmsBrowserControl
                                 throw new InvalidOperationException(UiText.Get("DestinationOutsideBrowserRoot"));
                         }
                         if (Session.Provider.ParentDirectoryPath(file.FullName) == parent) continue;
-                        await Session.ResourceActionAsync(file, Session.Provider.CombinePath(parent, file.Name), ResourceAction.Move, question => Dialogs.ConfirmAsync(Owner, question));
+                        await Session.ResourceActionAsync(file, Session.Provider.CombinePath(parent, file.Name), ResourceAction.Move, question => Dialogs.ConfirmAsync(Owner, question, source: this));
                     }
                 });
             }

@@ -12,6 +12,7 @@ namespace CompuMaster.Dms.BrowserUI.WinUI;
 /// <remarks>Call AttachToWindow before initialization. The host must initialize WinUI and its XamlControlsResources.</remarks>
 public sealed partial class DmsBrowserControl : UserControl
 {
+    private ComboBox? themeSelector;
     private BrowserSession? session;
     private readonly FileSelectionSnapshot fileSelection = new();
     private bool selectionOperationRunning;
@@ -89,9 +90,34 @@ public sealed partial class DmsBrowserControl : UserControl
         "ActionCopy" or "ActionRename" or "ActionMove" or "ActionDelete" => MutableFolder,
         "ActionFolderSharings" => session?.SelectedNode?.Item is not { } item || !Session.CollectionManagementRestricted(item), _ => true
     };
+    /// <summary>Gets or sets the appearance of this browser and subsequently opened dialogs.</summary>
+    /// <remarks>System inherits the host preference. Set this property on the UI thread.</remarks>
+    public BrowserTheme Appearance
+    {
+        get => Options.Theme;
+        set
+        {
+            BrowserAppearance.SetTheme(this, value);
+            Options.Theme = value;
+            if (themeSelector is not null && themeSelector.SelectedIndex != (int)value) themeSelector.SelectedIndex = (int)value;
+            if (owner is DmsBrowser window) BrowserAppearance.SetTheme((FrameworkElement)window.Content, value);
+        }
+    }
+
+    /// <summary>Gets or sets the optional palette for light appearance on the UI thread.</summary>
+    public BrowserPalette? LightPalette
+    { get => Options.LightPalette; set { Options.LightPalette = value; BrowserAppearance.SetPalettes(this, value, Options.DarkPalette); if (owner is DmsBrowser window) BrowserAppearance.SetPalettes((FrameworkElement)window.Content, value, Options.DarkPalette); } }
+    /// <summary>Gets or sets the optional palette for dark appearance on the UI thread.</summary>
+    public BrowserPalette? DarkPalette
+    { get => Options.DarkPalette; set { Options.DarkPalette = value; BrowserAppearance.SetPalettes(this, Options.LightPalette, value); if (owner is DmsBrowser window) BrowserAppearance.SetPalettes((FrameworkElement)window.Content, Options.LightPalette, value); } }
+
     private void BuildControls()
     {
         FlowDirection = UiText.LayoutDirection;
+        BrowserAppearance.SetTheme(this, Options.Theme);
+        BrowserAppearance.SetPalettes(this, Options.LightPalette, Options.DarkPalette);
+        var appearance = themeSelector = BrowserAppearance.Selector(this, theme => Appearance = theme);
+        bottom.Children.Add(appearance);
         tree.ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load("<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><ContentPresenter Content='{Binding Content}' HorizontalAlignment='Stretch'/></DataTemplate>");
         columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
         columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
@@ -200,7 +226,7 @@ public sealed partial class DmsBrowserControl : UserControl
         void Menu(MenuFlyout menu, string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, bool sharing = false)
         {
             var item = new MenuFlyoutItem { Name = key, Text = Dialogs.Caption(key) };
-            if (BrowserActionIcons.Create(key, folderMenu: menu == folderMenu, menu: true) is { } icon) item.Icon = new ImageIcon { Source = icon.Source };
+            if (BrowserActionIcons.Create(key, folderMenu: menu == folderMenu, menu: true) is { } icon) BrowserActionIcons.ApplyMenu(item, icon);
             item.Click += async (_, _) => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key); menu.Items.Add(item);
             actions.Add((item, () => (!flag.HasValue || Allowed(flag.Value)) && (key is "FileVersionHistory" or "ActionDownloadFolder" ? enabled() : true),
                 () => Visible(flag, sharing) && (menu != folderMenu || FolderActionVisible(key)) && (key != "FileVersionHistory" || DmsProvider?.SupportsFileVersionHistory == true && session?.BrowseMode == BrowseModes.FoldersAndFiles)));

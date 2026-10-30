@@ -56,10 +56,10 @@ internal sealed class DmsItemSharings : OperationWindow
         Title = UiText.Get("SharingsTitle") + " – " + item.FullName;
         Height = item.ExtendedInfosIsReceivedShare == true ? 860 : 720;
         var content = new StackPanel { Spacing = 8 };
-        receivedSummaryPanel = new Border { Name = "ReceivedSharingSummaryPanel", Padding = new Thickness(10), CornerRadius = new CornerRadius(4), Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.LightBlue),
+        receivedSummaryPanel = new Border { Name = "ReceivedSharingSummaryPanel", Padding = new Thickness(10), CornerRadius = new CornerRadius(4),
             Child = receivedSummary };
         content.Children.Add(receivedSummaryPanel);
-        receivedSummary.TextWrapping = TextWrapping.Wrap; receivedSummary.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black); RefreshSummary();
+        receivedSummary.TextWrapping = TextWrapping.Wrap; RefreshSummary();
         content.Children.Add(new TextBlock { Text = UiText.Format("CurrentOwner", item.ExtendedInfosOwner.DisplayName ?? UiText.Get("UnknownValue")) });
         content.Children.Add(SharingGroup("InternalSharings", internalShares, Toolbar(
             ("ActionAddUser", () => EditStandardAsync(false, null)), ("ActionAddGroup", () => EditStandardAsync(true, null)),

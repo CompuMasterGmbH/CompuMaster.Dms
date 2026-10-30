@@ -297,4 +297,8 @@
   <data name="SharingNoPermissions" xml:space="preserve"><value>None</value></data>
   <data name="BrowserDirectoryUnavailable" xml:space="preserve"><value>The requested folder is no longer available on the server. Refresh the parent view if needed.</value></data>
   <data name="BrowserFileUnavailable" xml:space="preserve"><value>The requested file is no longer available on the server. Refresh the view if needed.</value></data>
+  <data name="Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
 </root>
