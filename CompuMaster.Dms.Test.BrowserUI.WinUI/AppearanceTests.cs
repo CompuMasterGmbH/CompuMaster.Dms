@@ -35,6 +35,29 @@ public sealed class AppearanceTests
             foreach (var nested in Descendants(child)) yield return nested;
         }
     }
+    [TestCase(false), TestCase(true)]
+    public Task Unloading_during_artwork_loading_discards_the_late_UI_update(bool decodeFails) => UiThread.Run(async () =>
+    {
+        var requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var decoded = new TaskCompletionSource<ThemeArtwork.Pixels>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var image = new Image { Width = 1, Height = 1, RequestedTheme = ElementTheme.Dark };
+        var assignments = 0;
+        BrowserActionIcons.AttachTheme(image, "Refresh", _ => assignments++, _ => { requested.TrySetResult(); return decoded.Task; });
+        var host = (Grid)UiThread.Owner.Content;
+        try
+        {
+            host.Children.Add(image); await requested.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            var beforeUnload = assignments;
+            host.Children.Remove(image);
+            while (image.IsLoaded) await Task.Delay(5);
+            await Task.Delay(10);
+            if (decodeFails) decoded.SetException(new System.Runtime.InteropServices.COMException("Expected decode shutdown failure.", unchecked((int)0x80004005)));
+            else decoded.SetResult(new ThemeArtwork.Pixels(new byte[4], 1, 1));
+            await Task.Delay(30);
+            Assert.That(assignments, Is.EqualTo(beforeUnload), "Decoded artwork must not update an unloaded native element.");
+        }
+        finally { host.Children.Remove(image); decoded.TrySetResult(new ThemeArtwork.Pixels(new byte[4], 1, 1)); }
+    });
     [Test]
     public Task Custom_palette_is_scoped_inherited_and_resettable() => UiThread.Run(async () =>
     {
