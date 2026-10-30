@@ -39,17 +39,25 @@ internal static class BrowserActionIcons
         var icon = new ImageIcon { Source = image.Source }; item.Icon = icon;
         AttachTheme(item, (string)image.Tag, source => icon.Source = source);
     }
-    private static void AttachTheme(FrameworkElement element, string resource, Action<Microsoft.UI.Xaml.Media.ImageSource> apply)
+    internal static void AttachTheme(FrameworkElement element, string resource, Action<Microsoft.UI.Xaml.Media.ImageSource> apply, Func<string, Task<ThemeArtwork.Pixels>>? readDark = null)
     {
+        var loaded = element.IsLoaded;
+        var generation = 0;
         async void Update()
         {
-            if (!element.IsLoaded) return;
+            if (!loaded || !element.IsLoaded) return;
+            var request = ++generation;
             var dark = element.ActualTheme == ElementTheme.Dark;
-            var source = dark ? await ThemeArtwork.ForDarkAsync(resource) : BrowserIcons.Load(resource);
-            if (element.IsLoaded && dark == (element.ActualTheme == ElementTheme.Dark)) apply(source);
+            ThemeArtwork.Pixels? pixels;
+            try { pixels = dark ? await (readDark ?? ThemeArtwork.ReadDarkAsync)(resource) : null; }
+            catch (System.Runtime.InteropServices.COMException) when (!loaded) { return; }
+            // Unloading invalidates outstanding requests without touching a closed native element.
+            if (!loaded || generation != request || !element.IsLoaded) return;
+            apply(pixels is null ? BrowserIcons.Load(resource) : ThemeArtwork.Image(resource, pixels));
         }
         element.ActualThemeChanged += (_, _) => Update();
-        element.Loaded += (_, _) => Update();
+        element.Loaded += (_, _) => { loaded = true; Update(); };
+        element.Unloaded += (_, _) => { loaded = false; generation++; };
     }
 
     internal static void Apply(Button button, string key)

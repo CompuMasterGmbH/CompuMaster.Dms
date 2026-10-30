@@ -7,13 +7,23 @@ namespace CompuMaster.Dms.BrowserUI.WinUI;
 
 internal static class ThemeArtwork
 {
-    private static readonly Dictionary<string, Task<WriteableBitmap>> Dark = new();
-    internal static Task<WriteableBitmap> ForDarkAsync(string resource)
+    internal sealed record Pixels(byte[] Data, int Width, int Height);
+    private static readonly Dictionary<string, Task<Pixels>> Decoded = new();
+    private static readonly Dictionary<string, WriteableBitmap> Images = new();
+    internal static Task<Pixels> ReadDarkAsync(string resource)
     {
-        if (!Dark.TryGetValue(resource, out var result)) Dark[resource] = result = DecodeAsync(resource);
+        if (!Decoded.TryGetValue(resource, out var result)) Decoded[resource] = result = Task.Run(() => DecodeAsync(resource));
         return result;
     }
-    private static async Task<WriteableBitmap> DecodeAsync(string resource)
+    internal static WriteableBitmap Image(string resource, Pixels pixels)
+    {
+        if (Images.TryGetValue(resource, out var cached)) return cached;
+        // Create UI objects synchronously only while the requesting element remains loaded.
+        var bitmap = new WriteableBitmap(pixels.Width, pixels.Height);
+        using (var output = bitmap.PixelBuffer.AsStream()) output.Write(pixels.Data);
+        bitmap.Invalidate(); Images[resource] = bitmap; return bitmap;
+    }
+    private static async Task<Pixels> DecodeAsync(string resource)
     {
         using var source = typeof(ThemeArtwork).Assembly.GetManifestResourceStream("Assets." + resource + ".png")!;
         using var stream = new InMemoryRandomAccessStream();
@@ -25,11 +35,8 @@ internal static class ThemeArtwork
         {
             if (pixels[x + 3] > 0 && Math.Max(pixels[x], Math.Max(pixels[x + 1], pixels[x + 2])) < 96)
                 pixels[x] = pixels[x + 1] = pixels[x + 2] = 230;
-            // WriteableBitmap expects premultiplied BGRA.
             for (var channel = 0; channel < 3; channel++) pixels[x + channel] = (byte)(pixels[x + channel] * pixels[x + 3] / 255);
         }
-        var bitmap = new WriteableBitmap((int)decoder.PixelWidth, (int)decoder.PixelHeight);
-        using var output = bitmap.PixelBuffer.AsStream(); await output.WriteAsync(pixels);
-        bitmap.Invalidate(); return bitmap;
+        return new Pixels(pixels, (int)decoder.PixelWidth, (int)decoder.PixelHeight);
     }
 }
