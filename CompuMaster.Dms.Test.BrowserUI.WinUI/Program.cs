@@ -33,12 +33,13 @@ internal static class Program
 public sealed partial class TestApp : Microsoft.UI.Xaml.Application
 {
     private readonly string[] args;
+    private Exception? runtimeFailure;
     private Microsoft.UI.Xaml.Window? window;
     internal TestApp(string[] args)
     {
         this.args = args;
         InitializeComponent();
-        UnhandledException += (_, e) => Console.Error.WriteLine("WinUI runtime failure: " + e.Exception);
+        UnhandledException += (_, e) => { runtimeFailure ??= e.Exception; Console.Error.WriteLine("WinUI runtime failure: " + e.Exception); };
     }
     protected override void OnLaunched(LaunchActivatedEventArgs arguments)
     {
@@ -54,7 +55,7 @@ public sealed partial class TestApp : Microsoft.UI.Xaml.Application
         body.Loaded += async (_, _) =>
         {
             if (started) return; started = true;
-            try { Environment.ExitCode = await Task.Run(() => new AutoRun(typeof(TestApp).Assembly).Execute(args)); }
+            try { var result = await Task.Run(() => new AutoRun(typeof(TestApp).Assembly).Execute(args)); Environment.ExitCode = runtimeFailure is null ? result : 1; }
             catch (Exception ex) { Console.Error.WriteLine(ex); Environment.ExitCode = 1; }
             finally { window.Close(); Exit(); }
         };

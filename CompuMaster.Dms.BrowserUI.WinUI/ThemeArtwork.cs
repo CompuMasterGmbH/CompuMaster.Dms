@@ -27,7 +27,10 @@ internal static class ThemeArtwork
     {
         using var source = typeof(ThemeArtwork).Assembly.GetManifestResourceStream("Assets." + resource + ".png")!;
         using var stream = new InMemoryRandomAccessStream();
-        await source.CopyToAsync(stream.AsStreamForWrite()); stream.Seek(0);
+        using var input = new MemoryStream(); await source.CopyToAsync(input);
+        using (var writer = new DataWriter(stream.GetOutputStreamAt(0)))
+        { writer.WriteBytes(input.ToArray()); await writer.StoreAsync(); }
+        stream.Seek(0);
         var decoder = await BitmapDecoder.CreateAsync(stream);
         var data = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(), ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage);
         var pixels = data.DetachPixelData();

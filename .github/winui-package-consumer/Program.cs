@@ -23,7 +23,8 @@ internal static class Program
 }
 public sealed partial class App : Application
 {
-    public App() { InitializeComponent(); UnhandledException += (_, e) => { Console.Error.WriteLine(e.Exception); Environment.ExitCode = 1; }; }
+    private Exception? runtimeFailure;
+    public App() { InitializeComponent(); UnhandledException += (_, e) => { runtimeFailure ??= e.Exception; Console.Error.WriteLine(e.Exception); Environment.ExitCode = 1; }; }
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         DmsBrowser? browser = null; Window? sharing = null;
@@ -55,11 +56,12 @@ public sealed partial class App : Application
             _ = (Task)show.Invoke(sharing, new object[] { browser })!;
             await Task.Delay(200);
             if (((FrameworkElement)sharing.Content).ActualHeight <= 0) throw new InvalidDataException("The installed sharing dialog did not render.");
+            if (runtimeFailure is not null) throw new InvalidOperationException("The native consumer reported a runtime failure.", runtimeFailure);
             Console.WriteLine("WinUI NuGet consumer passed: native runtime, browser, sharing/DataGrid, German resources, PRI and dependency isolation.");
             File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "consumer-success.json"), System.Text.Json.JsonSerializer.Serialize(new { NativeBrowser = true, SharingStyles = true, GermanResources = true, Pri = true, DependencyIsolation = true }));
             Environment.ExitCode = 0;
         }
         catch (Exception ex) { Console.Error.WriteLine(ex); Environment.ExitCode = 1; }
-        finally { sharing?.Close(); browser?.Close(); Exit(); }
+        finally { sharing?.Close(); browser?.Close(); if (runtimeFailure is not null) Environment.ExitCode = 1; Exit(); }
     }
 }
