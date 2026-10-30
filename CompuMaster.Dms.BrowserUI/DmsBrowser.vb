@@ -21,7 +21,6 @@ Public Class DmsBrowser
         End Set
     End Property
 
-    Private ReadOnly AppearanceSelector As ComboBox
     Private Const DefaultDpi As Integer = 96
     Private Const MaximumImageListDimension As Integer = 256
     Private Const TreeIconLogicalSize As Integer = 24
@@ -44,8 +43,14 @@ Public Class DmsBrowser
         InitializeFileVersions()
         ConfigureIconImageListsForDpi(Me.DeviceDpi)
         ApplyLocalizedText()
-        AppearanceSelector = BrowserAppearance.CreateSelector(Me)
-        Me.Controls.Add(AppearanceSelector)
+        Me.ButtonCreateNewFolder.Image = New Bitmap(My.Resources.Resources.iconfinder_Folder_ui_ux_mobile_web_new, 16, 16)
+        Me.ButtonClose.Image = New Bitmap(My.Resources.Resources.iconfinder_Export_ui_ux_mobile_web_4960710, 16, 16)
+        Me.ButtonCreateNewFolder.ImageAlign = ContentAlignment.MiddleLeft
+        Me.ButtonClose.ImageAlign = ContentAlignment.MiddleLeft
+        Me.ButtonCreateNewFolder.TextImageRelation = TextImageRelation.ImageBeforeText
+        Me.ButtonClose.TextImageRelation = TextImageRelation.ImageBeforeText
+        UpdateFileToolbarLayout()
+        UpdateSortHeaders()
         LocalizedLayout.Bind(Me, AddressOf ArrangeLocalizedBrowserControls)
     End Sub
 
@@ -1035,22 +1040,22 @@ Public Class DmsBrowser
             Case ListSortDirection.Descending
                 Select Case Me.FilesSortOrderColumn
                     Case FilesListingColumn.FileName
-                        Return New List(Of DmsResourceItem)(list.OrderBy(Of String)(Function(item) item.Name))
+                        Return New List(Of DmsResourceItem)(list.OrderByDescending(Of String)(Function(item) item.Name))
                     Case FilesListingColumn.Size
-                        Return New List(Of DmsResourceItem)(list.OrderBy(Of Long)(Function(item) item.ContentLength))
+                        Return New List(Of DmsResourceItem)(list.OrderByDescending(Of Long)(Function(item) item.ContentLength))
                     Case FilesListingColumn.LastModified
-                        Return New List(Of DmsResourceItem)(list.OrderBy(Of DateTime?)(Function(item) item.LastModificationOnLocalTime))
+                        Return New List(Of DmsResourceItem)(list.OrderByDescending(Of DateTime?)(Function(item) item.LastModificationOnLocalTime))
                     Case Else
                         Throw New NotImplementedException
                 End Select
             Case Else
                 Select Case Me.FilesSortOrderColumn
                     Case FilesListingColumn.FileName
-                        Return New List(Of DmsResourceItem)(list.OrderByDescending(Of String)(Function(item) item.Name))
+                        Return New List(Of DmsResourceItem)(list.OrderBy(Of String)(Function(item) item.Name))
                     Case FilesListingColumn.Size
-                        Return New List(Of DmsResourceItem)(list.OrderByDescending(Of Long)(Function(item) item.ContentLength))
+                        Return New List(Of DmsResourceItem)(list.OrderBy(Of Long)(Function(item) item.ContentLength))
                     Case FilesListingColumn.LastModified
-                        Return New List(Of DmsResourceItem)(list.OrderByDescending(Of DateTime?)(Function(item) item.LastModificationOnLocalTime))
+                        Return New List(Of DmsResourceItem)(list.OrderBy(Of DateTime?)(Function(item) item.LastModificationOnLocalTime))
                     Case Else
                         Throw New NotImplementedException
                 End Select
@@ -1196,6 +1201,7 @@ Public Class DmsBrowser
             Me.FilesSortOrderDirection = ListSortDirection.Ascending
         End If
         Me.FilesSortOrderColumn = CType(e.Column, FilesListingColumn)
+        UpdateSortHeaders()
         Dim files As List(Of DmsResourceItem) = TryCast(Me.ListViewDmsFiles.Tag, List(Of DmsResourceItem))
         If files Is Nothing Then Return
         Me.ListViewDmsFiles.Items.Clear()
@@ -1320,7 +1326,7 @@ Public Class DmsBrowser
                 f.Filter = UiStrings.GetText("AllFilesFilter")
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
-                    If Me.LocalParentMustFolder = Nothing OrElse f.FileName.StartsWith(Me.LocalParentMustFolder) Then
+                    If IsAllowedLocalTransferPath(f.FileName) Then
                         Dim TargetFile As String = f.FileName
                         Await Me.RunTransferAsync(Function() Me.DownloadWithDialogAsync({SelectedFiles(0)}, {TargetFile}))
                     Else
@@ -1338,7 +1344,7 @@ Public Class DmsBrowser
                 f.ShowNewFolderButton = True
                 DialogUserResult = f.ShowDialog()
                 If DialogUserResult = DialogResult.OK Then
-                    If Me.LocalParentMustFolder = Nothing OrElse f.SelectedPath.StartsWith(Me.LocalParentMustFolder) Then
+                    If IsAllowedLocalTransferPath(f.SelectedPath) Then
                         'Overwrite pre-checks
                         Dim OverwriteWarning As New System.Text.StringBuilder()
                         For MyCounter As Integer = 0 To SelectedFiles.Count - 1

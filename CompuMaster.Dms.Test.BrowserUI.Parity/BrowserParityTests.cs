@@ -189,10 +189,11 @@ public sealed partial class BrowserParityTests
         protected override void ShowFailureDialog(string message, string title, Forms.MessageBoxIcon icon) { }
     }
     private static Snapshot Reference(int flags, bool folders, bool sharing, bool versions, int selection, bool noResults, bool toggle,
-        string? root = null, string? selected = "Documents", BaseDmsProvider? provider = null)
+        string? root = null, string? selected = "Documents", BaseDmsProvider? provider = null, int toolbar = (int)Av.BrowserToolbarActions.Default)
     {
         using var dispatcher = new UiTestDispatcher();
         using var browser = new ReferenceBrowser(provider ?? new DemoDmsProvider { SharingSupported = sharing, VersionsSupported = versions }, flags, folders, noResults, root, selected);
+        browser.ToolbarActions = (Wf.BrowserToolbarActions)toolbar;
         browser.Show(); dispatcher.WaitForEvents();
         Assert.That(browser.Failure, Is.Null);
         var list = Member<Forms.ListView>(browser, "ListViewDmsFiles");
@@ -232,19 +233,21 @@ public sealed partial class BrowserParityTests
         return new(states, list.Items.Cast<Forms.ListViewItem>().Select(i => i.Text).Order().ToArray(), list.SelectedItems.Count);
     }
     [AvaloniaTest]
-    [TestCase(0, false, true, true, 0, false)]
-    [TestCase(2047, false, true, true, 0, false)]
-    [TestCase(2047, false, true, true, 1, false)]
-    [TestCase(2047, false, true, true, 2, true)]
-    [TestCase(2047, true, true, true, 0, true)]
-    [TestCase(2047, false, false, false, 1, false)]
-    [TestCase(1, false, true, true, 0, false)]
-    public async Task Action_availability_permissions_and_selection_match_the_running_WinForms_browser(int flags, bool folders, bool sharing, bool versions, int selection, bool noResults)
+    [TestCase(0, false, true, true, 0, false, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(2047, false, true, true, 0, false, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(2047, false, true, true, 1, false, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(2047, false, true, true, 2, true, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(2047, true, true, true, 0, true, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(2047, false, false, false, 1, false, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(1, false, true, true, 0, false, (int)Av.BrowserToolbarActions.Default)]
+    [TestCase(2047, false, true, true, 1, false, (int)Av.BrowserToolbarActions.None)]
+    [TestCase(2047, false, true, true, 1, false, (int)Av.BrowserToolbarActions.All)]
+    public async Task Action_availability_permissions_and_selection_match_the_running_WinForms_browser(int flags, bool folders, bool sharing, bool versions, int selection, bool noResults, int toolbar)
     {
-        var expected = Native(() => Reference(flags, folders, sharing, versions, selection, noResults, false));
+        var expected = Native(() => Reference(flags, folders, sharing, versions, selection, noResults, false, toolbar: toolbar));
         var browser = new Av.DmsBrowser(new DemoDmsProvider { SharingSupported = sharing, VersionsSupported = versions }, new Av.DmsBrowserOptions
         {
-            AllowedActions = (Av.FileOrFolderActions)flags, SelectedFolder = "Documents",
+            AllowedActions = (Av.FileOrFolderActions)flags, SelectedFolder = "Documents", ToolbarActions = (Av.BrowserToolbarActions)toolbar,
             BrowseMode = folders ? Av.BrowseModes.Folders : Av.BrowseModes.FoldersAndFiles,
             DialogOperationMode = noResults ? Av.DialogOperationModes.NoResults : Av.DialogOperationModes.ReturnSelectedItems
         });
@@ -320,7 +323,7 @@ public sealed partial class BrowserParityTests
     {
         var expected = Native(() => Reference(2047, false, true, true, 0, true, false, root, selected, new DmsBrowserScopedCollectionTest.ScopedProvider()));
         var browser = new Av.DmsBrowser(new DmsBrowserScopedCollectionTest.ScopedProvider(), new Av.DmsBrowserOptions
-        { AllowedActions = (Av.FileOrFolderActions)2047, InitialFolder = root, SelectedFolder = selected });
+        { AllowedActions = (Av.FileOrFolderActions)2047, InitialFolder = root, SelectedFolder = selected, ToolbarActions = Av.BrowserToolbarActions.All });
         try
         {
             browser.Show(); await browser.Browser.InitializeAsync();
@@ -418,7 +421,7 @@ public sealed partial class BrowserParityTests
             var list = Member<Forms.ListView>(browser, "ListViewDmsFiles");
             Assert.That(list.BackColor.GetBrightness(), dark ? Is.LessThan(0.3f) : Is.GreaterThan(0.8f));
             Assert.That(list.ForeColor.GetBrightness(), dark ? Is.GreaterThan(0.8f) : Is.LessThan(0.3f));
-            Assert.That(browser.Controls.Find("BrowserThemeSelector", false).Single().Visible, Is.True);
+            Assert.That(browser.Controls.Find("BrowserThemeSelector", false), Is.Empty);
             if (!string.IsNullOrEmpty(directory))
             {
                 Directory.CreateDirectory(directory);

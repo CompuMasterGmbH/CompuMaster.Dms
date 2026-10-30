@@ -102,6 +102,6 @@ Partial Public Class DmsBrowser
         ToolStripButtonSharingsFolder.Enabled = shareAllowed AndAlso enabled
         ToolStripFolderContextButtonShareFolder.Available = shareAllowed
         ToolStripFolderContextButtonShareFolder.Enabled = shareAllowed AndAlso enabled
-        ToolStripFolderShareActions.Visible = shareAllowed
+        UpdateFileToolbarLayout()
     End Sub
 End Class

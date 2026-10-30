@@ -44,6 +44,7 @@
     <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/DiagnosticsDetailsTests.cs" Link="DiagnosticsDetailsTests.cs" />
     <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/ReceivedSharingTests.cs" Link="ReceivedSharingTests.cs" />
     <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/RefreshSelectionTests.cs" Link="RefreshSelectionTests.cs" />
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/BrowserCustomizationTests.cs" Link="BrowserCustomizationTests.cs" />
     <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Avalonia/RefreshSelectionUiTests.cs" Link="RefreshSelectionUiTests.cs" />
   </ItemGroup>
 </Project>

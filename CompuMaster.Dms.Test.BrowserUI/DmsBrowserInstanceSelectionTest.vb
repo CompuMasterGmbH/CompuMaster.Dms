@@ -264,7 +264,7 @@ Public Class DmsBrowserInstanceSelectionTest
                 Assert.That(browser.ActiveControl, [Is].SameAs(expected(index)), "Shift+Tab reverses the same sequence.")
             Next
             browser.ButtonCreateNewFolder.Enabled = False
-            browser.ButtonShowFiles.Visible = False
+            browser.ShowFilesButtonVisible = False
             Dim firstAvailable As Control = expected(2)
             Assert.That(browser.SelectNextControl(browser.SplitContainer, True, True, False, False), [Is].True)
             Assert.That(browser.ActiveControl, [Is].SameAs(firstAvailable), "Unavailable actions must be skipped.")

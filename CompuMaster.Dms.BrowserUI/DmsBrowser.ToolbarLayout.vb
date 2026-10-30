@@ -17,8 +17,9 @@ Partial Public Class DmsBrowser
             Me.InstanceButton.Height = Math.Max(Me.ButtonCreateNewFolder.Height, wrapped.Height + Me.InstanceButton.Padding.Vertical + 16)
         End If
         LocalizedLayout.FitColumnHeaders(Me.ListViewDmsFiles)
-        Dim leftControls As New List(Of Control) From {Me.ButtonCreateNewFolder, Me.ButtonShowFiles}
-        If AppearanceSelector IsNot Nothing Then leftControls.Add(AppearanceSelector)
+        Dim leftControls As New List(Of Control)
+        If CreateFolderButtonVisible AndAlso (AllowedActions And FileOrFolderActions.AllowCreateFolders) <> 0 Then leftControls.Add(Me.ButtonCreateNewFolder)
+        If ShowFilesButtonVisible AndAlso (AllowedActions And FileOrFolderActions.AllowSwitchBrowseMode) <> 0 Then leftControls.Add(Me.ButtonShowFiles)
         If Me.InstanceButton IsNot Nothing AndAlso (Me.AllowedActions And FileOrFolderActions.AllowSwitchDmsInstance) <> 0 Then leftControls.Add(Me.InstanceButton)
         Dim rightControls As Control() = If(Me.DialogOperationModeInternal = DialogOperationModes.NoResults, New Control() {Me.ButtonClose}, New Control() {Me.ButtonOkay, Me.ButtonCancel})
         Dim rowHeight = leftControls.Concat(rightControls).Max(Function(control) control.Height)
@@ -60,6 +61,7 @@ Partial Public Class DmsBrowser
     End Sub
 
     Private Sub UpdateFileToolbarLayout()
+        ApplyPresentationVisibility()
         Me.FlowLayoutPanel1.PerformLayout()
         Me.SplitContainer.Panel2.PerformLayout()
     End Sub

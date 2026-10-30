@@ -122,11 +122,11 @@ Public Class DmsBrowserAsyncNavigationTest
             Dim calls As Integer = provider.FileCalls
             Dim sortHandler = GetType(Global.CompuMaster.Dms.BrowserUI.DmsBrowser).GetMethod("ListViewDmsFiles_ColumnClick", BindingFlags.NonPublic Or BindingFlags.Instance)
             sortHandler.Invoke(browser, {browser.ListViewDmsFiles, New ColumnClickEventArgs(0)})
-            ClassicAssert.AreEqual("z.txt", browser.ListViewDmsFiles.Items(0).Text)
+            ClassicAssert.AreEqual("a.txt", browser.ListViewDmsFiles.Items(0).Text)
             sortHandler.Invoke(browser, {browser.ListViewDmsFiles, New ColumnClickEventArgs(0)})
             ClassicAssert.AreEqual(calls, provider.FileCalls)
-            ClassicAssert.AreEqual("a.txt", browser.ListViewDmsFiles.Items(0).Text)
-            ClassicAssert.AreEqual("z.txt", browser.ListViewDmsFiles.Items(1).Text)
+            ClassicAssert.AreEqual("z.txt", browser.ListViewDmsFiles.Items(0).Text)
+            ClassicAssert.AreEqual("a.txt", browser.ListViewDmsFiles.Items(1).Text)
         End Using
     End Sub
 

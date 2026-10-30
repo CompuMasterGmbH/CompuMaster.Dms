@@ -11,7 +11,9 @@ Public Class DmsBrowserToolbarLayoutTest
 
     <Test>
     Public Sub FileToolbarHostUsesVisibleToolStripsToDetermineItsHeight()
-        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New SharingProvider())
+            browser.ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All
+            browser.AllowedActions = CType(2047, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions)
             browser.ShowInTaskbar = False
             browser.Opacity = 0
             browser.Show()
@@ -30,11 +32,12 @@ Public Class DmsBrowserToolbarLayoutTest
             splitContainer.Anchor = AnchorStyles.None
             splitContainer.Size = New Size(splitContainer.Panel1MinSize + splitContainer.SplitterWidth + targetFilePanelWidth, splitContainer.Height)
             splitContainer.SplitterDistance = splitContainer.Panel1MinSize
+            fileSharingToolbar.Visible = True
+            folderSharingToolbar.Visible = True
             PerformFilePanelLayout(browser, splitContainer, toolbarHost)
             Dim heightWithSharingToolbars As Integer = toolbarHost.Height
 
-            fileSharingToolbar.Visible = False
-            folderSharingToolbar.Visible = False
+            browser.ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All And Not (Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.FileSharings Or Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.FolderSharings)
             PerformFilePanelLayout(browser, splitContainer, toolbarHost)
 
             ClassicAssert.IsTrue(toolbarHost.AutoSize)
@@ -48,7 +51,9 @@ Public Class DmsBrowserToolbarLayoutTest
 
     <Test>
     Public Sub FileToolbarLayoutRemainsAdjacentToFileListWhenDialogIsResized()
-        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New SharingProvider())
+            browser.ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All
+            browser.AllowedActions = CType(2047, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions)
             browser.ShowInTaskbar = False
             browser.Opacity = 0
             browser.Show()
@@ -73,7 +78,9 @@ Public Class DmsBrowserToolbarLayoutTest
 
     <Test>
     Public Sub FileToolbarsUseDpiScaledIconsFromHighResolutionSources()
-        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser()
+        Using browser As New Global.CompuMaster.Dms.BrowserUI.DmsBrowser(New SharingProvider())
+            browser.ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All
+            browser.AllowedActions = CType(2047, Global.CompuMaster.Dms.BrowserUI.DmsBrowser.FileOrFolderActions)
             Dim toolbarNames As String() = {
                 "ToolStripFileActions",
                 "ToolStripFileShareActions",
@@ -100,6 +107,15 @@ Public Class DmsBrowserToolbarLayoutTest
             AssertToolbarIconSize(browser, toolbarNames, New Size(24, 24))
         End Using
     End Sub
+
+    Private Class SharingProvider
+        Inherits Global.CompuMaster.Dms.Providers.NoDmsProvider
+        Public Overrides ReadOnly Property SupportsSharingSetup As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+    End Class
 
     Private Shared Sub AssertToolbarIconSize(browser As Global.CompuMaster.Dms.BrowserUI.DmsBrowser, toolbarNames As IEnumerable(Of String), expectedSize As Size)
         For Each toolbarName As String In toolbarNames

@@ -39,7 +39,13 @@ public sealed partial class App : Application
             var resources = new ResourceManager("CompuMaster.Dms.BrowserUI.WinUI.UiStrings", assembly);
             if (resources.GetString("ActionUpload", CultureInfo.CurrentUICulture)?.Replace("&", "") != "Dateien hochladen") throw new InvalidDataException("German resources are missing.");
             var provider = new DemoDmsProvider();
-            browser = new DmsBrowser(provider, new DmsBrowserOptions { SelectedFolder = "Documents", AllowedActions = (FileOrFolderActions)2047 });
+            browser = new DmsBrowser(provider, new DmsBrowserOptions
+            {
+                SelectedFolder = "Documents", AllowedActions = (FileOrFolderActions)2047,
+                EnableInternalDragAndDrop = false, ToolbarActions = BrowserToolbarActions.All,
+                ShowFilesButtonVisible = false, CreateFolderButtonVisible = false,
+                FileDoubleClickAction = BrowserFileDoubleClickAction.None
+            });
             _ = browser.ShowAsync(); await browser.Browser.InitializeAsync(); await Task.Delay(150);
             if (browser.Selection.Folder?.Name != "Documents") throw new InvalidDataException("The installed component did not initialize the selected directory.");
             browser.Browser.Appearance = BrowserTheme.Dark;

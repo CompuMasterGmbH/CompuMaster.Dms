@@ -2,7 +2,7 @@
 
 These images are genuine component renders on Windows, generated from the shared `DocumentationScreenshotData` fixture. They contain no real files, accounts, credentials or server data. They show the standard Light/Dark modes without custom palettes.
 
-- Browser client areas: 1100 × 720 pixels, `Documents` selected, four matching rows and `Project brief.pdf` selected.
+- Browser client areas: 1100 × 720 pixels, `Documents` selected, four matching rows and `Project brief.pdf` selected. The default toolbar shows open, download, upload and refresh actions; additional actions remain in context menus. The footer has a right-aligned Close button and no theme selector or current-path label. Modification dates are sorted newest first, with the active header indicator visible.
 - Detail client areas: 650 × 380 pixels, the same complete multiline file-details text in every framework.
 - Locale: en-US. Fixed local modification dates: 2026-10-30, 10:00–10:45. Sizes and file order are shared.
 - Native OS borders are omitted consistently. Framework-native fonts, controls, selection styling and formatting remain visible; images are not retouched.

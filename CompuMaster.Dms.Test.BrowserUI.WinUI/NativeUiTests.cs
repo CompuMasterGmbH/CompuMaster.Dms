@@ -127,7 +127,7 @@ public sealed class NativeUiTests
             _ = browser.ShowAsync(); await browser.Browser.InitializeAsync(); await Task.Delay(100);
             string First() => ((FileRow)((ListViewItem)browser.Browser.FileGrid.Items[0]).Tag).Name;
             Assert.That(First(), Is.EqualTo("ZZZ-new.txt"));
-            var header = Descendants(browser.Browser).OfType<Microsoft.UI.Xaml.Controls.Button>().Single(button => button.Name == "ColumnName");
+            var header = Descendants(browser.Browser).OfType<Microsoft.UI.Xaml.Controls.Button>().Single(button => button.Name == "SortName");
             var peer = new Microsoft.UI.Xaml.Automation.Peers.ButtonAutomationPeer(header);
             var invoke = (Microsoft.UI.Xaml.Automation.Provider.IInvokeProvider)peer.GetPattern(Microsoft.UI.Xaml.Automation.Peers.PatternInterface.Invoke);
             invoke.Invoke(); await Task.Delay(20); Assert.That(First(), Is.EqualTo("AAA-old.txt"));
