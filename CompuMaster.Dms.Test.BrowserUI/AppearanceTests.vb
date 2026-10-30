@@ -11,6 +11,21 @@ Public Class AppearanceTests
         Assert.That(BrowserAppearance.UsesDarkWindowsPreference(value), [Is].EqualTo(dark))
     End Sub
     <Test>
+    Public Sub EmbeddedScopesThemeDynamicChildrenWithoutChangingTheHost()
+        Using host As New Form(), scope As New Panel(), input As New TextBox(), added As New TextBox()
+            host.Controls.Add(scope) : scope.Controls.Add(input)
+            Dim hostColor = host.BackColor
+            BrowserAppearance.SetTheme(scope, BrowserTheme.Dark)
+            scope.Controls.Add(added)
+            Assert.That(input.BackColor.GetBrightness(), [Is].LessThan(0.3F))
+            Assert.That(added.BackColor, [Is].EqualTo(input.BackColor))
+            Assert.That(host.BackColor, [Is].EqualTo(hostColor))
+            BrowserAppearance.SetTheme(scope, BrowserTheme.Light)
+            Assert.That(scope.BackColor.GetBrightness(), [Is].GreaterThan(0.8F))
+            Assert.That(added.BackColor.GetBrightness(), [Is].GreaterThan(0.8F))
+        End Using
+    End Sub
+    <Test>
     Public Sub CustomPalettesAreScopedInheritedAndResettable()
         Dim palette As New BrowserPalette("#172334", "#24364A", "#EDF2FA", "#5399D5", "#081524", "#647A90")
         Using owner As New Form(), dialog As New Form(), input As New TextBox()
