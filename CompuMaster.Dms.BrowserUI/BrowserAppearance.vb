@@ -33,6 +33,7 @@ Public NotInheritable Class BrowserAppearance
         If TypeOf root Is Form Then Bind(DirectCast(root, Form)) Else BindControl(root)
         Dim state = States.GetOrCreateValue(root)
         state.Theme = theme
+        state.ThemeAssigned = True
         For Each selector In root.Controls.Find("BrowserThemeSelector", False).OfType(Of ComboBox)()
             If selector.SelectedIndex <> CInt(theme) Then selector.SelectedIndex = CInt(theme)
         Next
@@ -90,11 +91,13 @@ Public NotInheritable Class BrowserAppearance
         If TypeOf root Is Form Then Bind(DirectCast(root, Form)) Else BindControl(root)
         Dim state = States.GetOrCreateValue(root)
         state.Light = light : state.Dark = dark
+        state.PaletteAssigned = True
         Refresh(root)
     End Sub
     Friend Shared Function Palette(root As Control, dark As Boolean) As BrowserPalette
         Dim state = States.GetOrCreateValue(root)
         Dim result = If(dark, state.Dark, state.Light)
+        If result Is Nothing AndAlso root.Parent IsNot Nothing Then Return Palette(root.Parent, dark)
         Dim form = TryCast(root, Form)
         If result Is Nothing AndAlso form IsNot Nothing AndAlso form.Owner IsNot Nothing Then Return Palette(form.Owner, dark)
         Return result
@@ -107,6 +110,7 @@ Public NotInheritable Class BrowserAppearance
         If SystemInformation.HighContrast Then Return False
         Dim mode = GetTheme(root)
         If mode <> BrowserTheme.System Then Return mode = BrowserTheme.Dark
+        If root.Parent IsNot Nothing Then Return IsDark(root.Parent)
         Dim form = TryCast(root, Form)
         If form IsNot Nothing AndAlso form.Owner IsNot Nothing Then Return IsDark(form.Owner)
         Try
@@ -133,6 +137,16 @@ Public NotInheritable Class BrowserAppearance
             Next
         End If
     End Sub
+
+    Private Shared Function AppearanceRoot(control As Control) As Control
+        Dim current = control
+        While current IsNot Nothing
+            Dim state = States.GetOrCreateValue(current)
+            If state.ThemeAssigned OrElse state.PaletteAssigned OrElse state.FormBound Then Return current
+            current = current.Parent
+        End While
+        Return control
+    End Function
 
     Private Shared Sub BindControl(control As Control)
         Dim state = States.GetOrCreateValue(control)
@@ -195,9 +209,9 @@ Public NotInheritable Class BrowserAppearance
         AddHandler control.ControlAdded,
             Sub(sender, e)
                 BindControl(e.Control)
-                Refresh(If(control.FindForm(), control))
+                Refresh(AppearanceRoot(control))
             End Sub
-        AddHandler control.HandleCreated, Sub(sender, e) Refresh(If(control.FindForm(), control))
+        AddHandler control.HandleCreated, Sub(sender, e) Refresh(AppearanceRoot(control))
         If control.ContextMenuStrip IsNot Nothing Then
             AddHandler control.ContextMenuStrip.Opening, Sub(sender, e) Apply(control.ContextMenuStrip, IsDark(If(control.FindForm(), control)), Palette(If(control.FindForm(), control), IsDark(If(control.FindForm(), control))))
         End If
@@ -209,11 +223,17 @@ Public NotInheritable Class BrowserAppearance
     Private Shared Sub Apply(control As Control, dark As Boolean, Optional palette As BrowserPalette = Nothing)
         BindControl(control)
         Dim state = States.GetOrCreateValue(control)
+        If state.ThemeAssigned Then dark = IsDark(control)
+        If state.ThemeAssigned OrElse state.PaletteAssigned Then palette = BrowserAppearance.Palette(control, dark)
         Dim contrast = SystemInformation.HighContrast
         If contrast Then palette = Nothing
         Dim input = TypeOf control Is TextBoxBase OrElse TypeOf control Is ListView OrElse TypeOf control Is TreeView OrElse TypeOf control Is ComboBox OrElse TypeOf control Is NumericUpDown OrElse TypeOf control Is DataGridView
         control.BackColor = If(contrast, If(input, SystemColors.Window, SystemColors.Control), If(dark, If(input, Field, Surface), state.Back))
         control.ForeColor = If(contrast, If(input, SystemColors.WindowText, SystemColors.ControlText), If(dark, TextColor, state.Fore))
+        If Not contrast AndAlso Not dark AndAlso state.ThemeAssigned AndAlso control.Parent IsNot Nothing Then
+            control.BackColor = If(input, SystemColors.Window, SystemColors.Control)
+            control.ForeColor = If(input, SystemColors.WindowText, SystemColors.ControlText)
+        End If
         If palette IsNot Nothing AndAlso Not contrast Then
             control.BackColor = Parse(If(input OrElse TypeOf control Is ButtonBase, palette.Surface, palette.Background))
             control.ForeColor = Parse(palette.Foreground)
@@ -278,7 +298,7 @@ Public NotInheritable Class BrowserAppearance
         End Sub
         Friend Theme As BrowserTheme
         Friend Light, Dark As BrowserPalette
-        Friend Bound, FormBound As Boolean
+        Friend Bound, FormBound, ThemeAssigned, PaletteAssigned As Boolean
         Friend Back, Fore As Color
         Friend Flat As FlatStyle
         Friend VisualStyles, ListOwnerDraw As Boolean
