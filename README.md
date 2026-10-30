@@ -64,13 +64,52 @@ There are following main modules for your use:
 
 All four demo logins use a shared document-management illustration. Applications can supply their own or provider-specific artwork through the additive `LoginForm(formIcon, loginImage)` constructor or the `LoginImage` property. See [demo login artwork](CompuMaster.Dms.TestDemo.WebDav/DemoAssets/README.md) for image ownership, reset behavior and asset provenance.
 
+### Browser action customization
+
+All three browsers distinguish permissions (`AllowedActions`) from presentation. Avalonia and WinUI expose the following settings on `DmsBrowserOptions`, configured before constructing the browser. WinForms exposes properties with the same names directly on `DmsBrowser`:
+
+| Setting | Default | Behavior |
+| --- | --- | --- |
+| `EnableInternalDragAndDrop` | `true` | Allows permitted moves inside this browser. Set to `false` to prevent accidental drag moves while retaining explicit context-menu copy/move actions. |
+| `ToolbarActions` | `BrowserToolbarActions.Default` | Shows Open, file/folder Download, file/folder Upload and Refresh. Copy, Move, Rename, Delete, Sharings, VersionHistory and Properties remain in their context menus. Combine individual enum flags to show additional toolbar buttons; `All` requests all permitted buttons and `None` removes the entire toolbar without a blank row. |
+| `ShowFilesButtonVisible` | `true` | Displays the browse-mode switch when `AllowSwitchBrowseMode` is granted. |
+| `CreateFolderButtonVisible` | `true` | Displays the bottom create-folder button when `AllowCreateFolders` is granted. Its permitted tree context-menu action remains available. |
+| `FileDoubleClickAction` | `BrowserFileDoubleClickAction.Open` | Opens the selected file(s), or optionally uses `Download` (destination picker) or `None`. Applies to both dialog operation modes; explicit confirmation buttons still return a selection. Open/Download require `AllowDownloadFiles`. |
+
+For example, in Avalonia or WinUI:
+
+```csharp
+var options = new DmsBrowserOptions
+{
+    EnableInternalDragAndDrop = false,
+    ToolbarActions = BrowserToolbarActions.Default | BrowserToolbarActions.VersionHistory,
+    ShowFilesButtonVisible = false,
+    CreateFolderButtonVisible = false,
+    FileDoubleClickAction = BrowserFileDoubleClickAction.Download
+};
+```
+
+The corresponding WinForms configuration is applied before showing the form:
+
+```vb
+browser.EnableInternalDragAndDrop = False
+browser.ToolbarActions = BrowserToolbarActions.Default Or BrowserToolbarActions.VersionHistory
+browser.ShowFilesButtonVisible = False
+browser.CreateFolderButtonVisible = False
+browser.FileDoubleClickAction = BrowserFileDoubleClickAction.Download
+```
+
+These settings never grant additional permissions or override provider capabilities. Incoming file/folder drops use the same `LocalParentMustFolder` restriction as upload buttons and reject paths outside it, including prefix collisions, traversal and linked-path escapes. When a local restriction is configured, outward drag downloads are unavailable: native drag targets do not reliably reveal their final destination. Use the validated download picker instead. Temporary Open previews retain their existing separate handling.
+
+Listings initially show the newest modification date first. Every sortable column header indicates the active direction; clicking a new column starts ascending and clicking the same column reverses its direction. Refresh preserves the chosen ordering. Close/confirmation actions occupy the right side of the footer; no current-directory path or theme selector takes up footer space.
+
 ### File transfers in BrowserUI
 
 Transfer dialogs display localized binary units, recent payload throughput and a per-file time estimate based on average throughput since that file started. Unknown counters and provider-finalization phases remain explicit. Failures include the exception message and diagnostic tooltips; closing an already displayed failure does not produce a second browser error or a success notification. Supported upload retries restart failed files from the beginning and skip successful files. Remaining files can be uploaded separately; byte-offset upload resume is not advertised.
 
 `Upload folder` and Explorer file/folder drops preserve the selected directory hierarchy, including empty folders. Folder-upload availability follows the existing file-upload action and `AllowUploadFiles`; drops are accepted only when upload is allowed and no operation is active. A drop on the file list uses its current directory; a drop on a tree node uses that node. Recursive planning rejects linked paths and conflicting selected destination names before making changes.
 
-Selected remote files can be dragged to Explorer or another Windows target supporting shell virtual files when `AllowDownloadFiles` is enabled. File content is downloaded on request after the drop, preserving selected resource IDs and using owned temporary files with bounded buffers. Only copying is offered; remote sources are retained. Other platforms can consume the provider APIs independently of the Windows Forms and shell UI.
+Selected remote files can be dragged to Explorer or another Windows target supporting shell virtual files when `AllowDownloadFiles` is enabled and `LocalParentMustFolder` is not set. File content is downloaded on request after the drop, preserving selected resource IDs and using owned temporary files with bounded buffers. Only copying is offered; remote sources are retained. Other platforms can consume the provider APIs independently of the Windows Forms and shell UI.
 
 `Download folder` is available from the selected tree node when `AllowDownloadFiles`
 is enabled. It downloads the complete hierarchy, including empty folders, into a
@@ -156,7 +195,7 @@ The Light/Dark comparisons below show the same example files and detail text in 
 
 ### Browser dialog window
 
-![DMS browser displaying example folders and files](https://raw.githubusercontent.com/CompuMasterGmbH/CompuMaster.Dms/4c2234dd2ef8c2a42e7cb397425ca53b0f6735ea/docs/screenshots/browser-window.jpg)
+The current default toolbar, footer and newest-first sorting are shown in all three frameworks.
 
 | Framework | Light | Dark |
 | --- | --- | --- |
@@ -174,7 +213,12 @@ The Light/Dark comparisons below show the same example files and detail text in 
 | WinUI 3 | [![WinUI 3 detail textbox in light mode](docs/screenshots/browser-themes/winui-details-light.png)](docs/screenshots/browser-themes/winui-details-light.png) | [![WinUI 3 detail textbox in dark mode](docs/screenshots/browser-themes/winui-details-dark.png)](docs/screenshots/browser-themes/winui-details-dark.png) |
 
 ### Sharing setup
-Dialogs for sharing setup for internal users (user accounts) or external users (web links) depend on DMS provider
+
+Sharing dialogs reflect the provider's supported permissions and link options. These WinUI 3 examples use synthetic offline data for a Teamwork collection and a Nextcloud folder. Click an image to view it at full resolution.
+
+| Scopevisio Teamwork | Nextcloud |
+| --- | --- |
+| [![WinUI 3 sharing setup for a Teamwork collection](docs/screenshots/sharing/winui-sharing-teamwork.png)](docs/screenshots/sharing/winui-sharing-teamwork.png) | [![WinUI 3 sharing setup for a Nextcloud folder](docs/screenshots/sharing/winui-sharing-nextcloud.png)](docs/screenshots/sharing/winui-sharing-nextcloud.png) |
 
 ## Received-sharing metadata
 

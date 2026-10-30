@@ -20,15 +20,30 @@ Friend NotInheritable Class LocalUploadPlan
         Dim destinations As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
         For Each root In roots
             cancellationToken.ThrowIfCancellationRequested()
-            If Not String.IsNullOrEmpty(localParent) Then
-                Dim parent = Path.GetFullPath(localParent).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                If Not root.Equals(parent, StringComparison.OrdinalIgnoreCase) AndAlso Not root.StartsWith(parent & Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) Then Throw New UnauthorizedAccessException(UiStrings.Format("OutsideRequiredFolder", localParent))
-            End If
+            ValidateLocalPath(root, localParent)
             If roots.Any(Function(other) Not other.Equals(root, StringComparison.OrdinalIgnoreCase) AndAlso Directory.Exists(other) AndAlso root.StartsWith(other.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) & Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) Then Continue For
             AddPath(root, Path.GetFileName(root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)).TrimEnd(":"c), files, paths, directories, destinations, cancellationToken)
         Next
         Return New LocalUploadPlan(files, paths, directories)
     End Function
+
+    Friend Shared Sub ValidateLocalPath(localPath As String, requiredParent As String)
+        If String.IsNullOrEmpty(localPath) Then Throw New ArgumentException(NameOf(localPath))
+        Dim full = Path.GetFullPath(localPath)
+        If String.IsNullOrEmpty(requiredParent) Then Return
+        Dim parent = Path.GetFullPath(requiredParent).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        If Not full.Equals(parent, StringComparison.OrdinalIgnoreCase) AndAlso Not full.StartsWith(parent & Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) Then
+            Throw New UnauthorizedAccessException(UiStrings.Format("OutsideRequiredFolder", requiredParent))
+        End If
+        'Reject linked ancestors too, including junctions above a selected file.
+        Dim current = full
+        While Not String.IsNullOrEmpty(current)
+            If (File.Exists(current) OrElse Directory.Exists(current)) AndAlso (File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then
+                Throw New IOException(UiStrings.Format("UploadLinkedPathUnsupported", current))
+            End If
+            current = Path.GetDirectoryName(current)
+        End While
+    End Sub
 
     Friend Shared Function NormalizeSourcePath(source As String) As String
         Dim full = Path.GetFullPath(source)

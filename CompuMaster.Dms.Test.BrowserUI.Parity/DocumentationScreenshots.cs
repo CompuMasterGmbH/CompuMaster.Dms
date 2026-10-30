@@ -38,9 +38,7 @@ public sealed partial class BrowserParityTests
                 browser.Appearance = dark ? Wf.BrowserTheme.Dark : Wf.BrowserTheme.Light;
                 browser.Opacity = 1; browser.Show(); dispatcher.WaitForEvents();
                 var list = Member<Forms.ListView>(browser, "ListViewDmsFiles");
-                var sort = typeof(Wf.DmsBrowser).GetMethod("ListViewDmsFiles_ColumnClick", BindingFlags.Instance | BindingFlags.NonPublic)!;
-                sort.Invoke(browser, new object[] { list, new Forms.ColumnClickEventArgs(0) });
-                sort.Invoke(browser, new object[] { list, new Forms.ColumnClickEventArgs(0) });
+                // Preserve the production default: latest modification first, with its header indicator.
                 Assert.That(list.Items.Cast<Forms.ListViewItem>().Select(item => item.Text), Is.EqualTo(DocumentationScreenshotData.Names));
                 list.Columns[0].Width = 300; list.Columns[1].Width = 100; list.Columns[2].Width = Math.Max(250, list.ClientSize.Width - 400);
                 list.Items[0].Selected = true; dispatcher.WaitForEvents();

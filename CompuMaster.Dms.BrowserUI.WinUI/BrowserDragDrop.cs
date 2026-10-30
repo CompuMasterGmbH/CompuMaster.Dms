@@ -26,7 +26,7 @@ public sealed partial class DmsBrowserControl
         }
         files.DragItemsStarting += (_, e) =>
         {
-            if (IsBusy || !HasFiles || !Allowed(FileOrFolderActions.AllowDownloadFiles) && !Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles)) { e.Cancel = true; return; }
+            if (IsBusy || !HasFiles || !CanDragDownload && !CanDragMove) { e.Cancel = true; return; }
             var selected = SelectedFiles();
             activeDrag = new RemoteDrag(Session.Provider, (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID, Options.InitialFolder,
                 selected.Select(file => new DmsResourceItem { ItemType = file.ItemType, Name = file.Name, FullName = file.FullName,
@@ -34,8 +34,8 @@ public sealed partial class DmsBrowserControl
             var context = activeDrag;
             dragNonce = Guid.NewGuid().ToString("N"); droppedTarget = null; dragFailure = null; dragRunning = true;
             e.Data.SetData(MoveFormat, dragNonce);
-            e.Data.RequestedOperation = Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles) ? DataPackageOperation.Move : DataPackageOperation.None;
-            if (Allowed(FileOrFolderActions.AllowDownloadFiles))
+            e.Data.RequestedOperation = CanDragMove ? DataPackageOperation.Move : DataPackageOperation.None;
+            if (CanDragDownload)
             {
                 e.Data.RequestedOperation |= DataPackageOperation.Copy;
                 e.Data.SetDataProvider(StandardDataFormats.StorageItems, request =>
@@ -46,7 +46,7 @@ public sealed partial class DmsBrowserControl
                         try
                         {
                             if (!ReferenceEquals(activeDrag, context) || Session.Provider != context.Provider ||
-                                (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID != context.Instance || !Allowed(FileOrFolderActions.AllowDownloadFiles)) throw new UnauthorizedAccessException();
+                                (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID != context.Instance || !CanDragDownload) throw new UnauthorizedAccessException();
                             if (selected.Select(file => file.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != selected.Length)
                                 throw new DmsUserInputInvalidException(UiText.Get("DuplicateFileNameConflict"));
                             var directory = Path.Combine(Path.GetTempPath(), "CompuMaster.Dms.WinUI", Guid.NewGuid().ToString("N"));
@@ -104,7 +104,7 @@ public sealed partial class DmsBrowserControl
     internal bool ValidMoveTarget(RemoteDrag context, BrowserNode? target)
     {
         if (!ReferenceEquals(context, activeDrag) || target is null || target.Placeholder || !Session.AllNodes().Contains(target) ||
-            !Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles) || Session.BrowseMode != BrowseModes.FoldersAndFiles ||
+            !CanDragMove || Session.BrowseMode != BrowseModes.FoldersAndFiles ||
             Session.Provider != context.Provider || Options.InitialFolder != context.Root || (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID != context.Instance ||
             target.Item?.ExtendedInfosCollisionDetected == true || target.Item is null && !Session.Provider.SupportsFilesInRootFolder) return false;
         var path = target.Item?.FullName ?? Session.Provider.BrowseInRootFolderName;
@@ -137,7 +137,7 @@ public sealed partial class DmsBrowserControl
             else if (!dragRunning && Allowed(FileOrFolderActions.AllowUploadFiles) && Session.BrowseMode == BrowseModes.FoldersAndFiles && node is not null && e.DataView.Contains(StandardDataFormats.StorageItems))
             {
                 var items = await e.DataView.GetStorageItemsAsync();
-                if (items.Count > 0 && (node.Item is not null || Session.Provider.SupportsFilesInRootFolder || items.All(item => item is StorageFolder)))
+                if (items.Count > 0 && (node.Item is not null || Session.Provider.SupportsFilesInRootFolder || items.All(item => item is StorageFolder)) && CanDropLocalPaths(items.Select(item => item.Path)))
                     e.AcceptedOperation = DataPackageOperation.Copy;
             }
             e.Handled = true;
@@ -158,7 +158,7 @@ public sealed partial class DmsBrowserControl
             }
             if (dragRunning || node is null || !Allowed(FileOrFolderActions.AllowUploadFiles) || Session.BrowseMode != BrowseModes.FoldersAndFiles || !e.DataView.Contains(StandardDataFormats.StorageItems)) return;
             var items = await e.DataView.GetStorageItemsAsync(); var paths = items.Select(item => item.Path).ToArray();
-            if (paths.Length == 0 || paths.Any(string.IsNullOrEmpty)) return;
+            if (!CanDropLocalPaths(paths)) return;
             e.Handled = true; await UiAsync(() => UploadPathsAsync(paths, node));
         }
         catch (Exception ex) { await ReportFailureAsync(ex, DmsBrowserFailurePhase.Action); }

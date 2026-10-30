@@ -35,7 +35,7 @@ public sealed partial class DmsBrowserControl
         {
             if (dragPress is null || dragRunning || IsBusy || !e.GetCurrentPoint(files).Properties.IsLeftButtonPressed ||
                 Math.Abs(e.GetPosition(files).X - dragStart.X) + Math.Abs(e.GetPosition(files).Y - dragStart.Y) < 6 || !HasFiles ||
-                !Allowed(FileOrFolderActions.AllowDownloadFiles) && !Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles)) return;
+                !CanDragDownload && !CanDragMove) return;
             var press = dragPress; dragPress = null;
             await StartRemoteDragAsync(press);
         };
@@ -50,7 +50,7 @@ public sealed partial class DmsBrowserControl
     internal bool ValidMoveTarget(RemoteDrag context, BrowserNode? target)
     {
         if (!ReferenceEquals(context, activeDrag) || target is null || target.Placeholder || !Session.AllNodes().Contains(target) ||
-            !Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles) || Session.BrowseMode != BrowseModes.FoldersAndFiles ||
+            !CanDragMove || Session.BrowseMode != BrowseModes.FoldersAndFiles ||
             Session.Provider != context.Provider || Options.InitialFolder != context.Root ||
             (DmsProvider as IDmsInstanceProvider)?.CurrentDmsInstance?.ID != context.Instance ||
             target.Item?.ExtendedInfosCollisionDetected == true || target.Item is null && !Session.Provider.SupportsFilesInRootFolder) return false;
@@ -71,7 +71,8 @@ public sealed partial class DmsBrowserControl
         }
         else if (!dragRunning && Allowed(FileOrFolderActions.AllowUploadFiles) && Session.BrowseMode == BrowseModes.FoldersAndFiles &&
             node is not null && !node.Placeholder && e.DataTransfer.TryGetFiles() is { Length: > 0 } local &&
-            (node.Item is not null || Session.Provider.SupportsFilesInRootFolder || local.All(f => f is IStorageFolder)))
+            (node.Item is not null || Session.Provider.SupportsFilesInRootFolder || local.All(f => f is IStorageFolder)) &&
+            CanDropLocalPaths(local.Select(f => f.TryGetLocalPath())))
             e.DragEffects = DragDropEffects.Copy;
         e.Handled = true;
     }
@@ -87,7 +88,7 @@ public sealed partial class DmsBrowserControl
         var storage = e.DataTransfer.TryGetFiles();
         if (storage is null) return;
         var paths = storage.Select(s => s.TryGetLocalPath()).ToArray();
-        if (paths.Any(p => p is null)) return;
+        if (!CanDropLocalPaths(paths)) return;
         e.Handled = true;
         await UiAsync(() => UploadPathsAsync(paths!, node));
     }
@@ -103,8 +104,8 @@ public sealed partial class DmsBrowserControl
         {
             var transfer = new DataTransfer();
             var move = new DataTransferItem(); move.Set(MoveFormat, context); transfer.Add(move);
-            var effects = Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles) ? DragDropEffects.Move : DragDropEffects.None;
-            if (Allowed(FileOrFolderActions.AllowDownloadFiles))
+            var effects = CanDragMove ? DragDropEffects.Move : DragDropEffects.None;
+            if (CanDragDownload)
             {
                 // Avalonia exposes real storage items to native desktop targets. Stage copies rather than requiring Windows OLE streams.
                 var directory = Path.Combine(Path.GetTempPath(), "CompuMaster.Dms.Avalonia", Guid.NewGuid().ToString("N"));

@@ -8,7 +8,8 @@ Partial Public Class DmsBrowser
     Private ActiveVersionHistory As FileVersionHistoryDialog
 
     Private Sub InitializeFileVersions()
-        VersionHistoryButton.Image = ToolStripButtonPropertiesFile.Image
+        VersionHistoryButton.Image = My.Resources.Resources.iconfinder_Clock_ui_ux_mobile_web_4960701
+        VersionHistoryContext.Image = VersionHistoryButton.Image
         ToolStripProperties.Items.Insert(0, VersionHistoryButton)
         ContextMenuStripFile.Items.Add(VersionHistoryContext)
         AddHandler VersionHistoryButton.Click, AddressOf ShowFileVersionHistory
@@ -33,7 +34,7 @@ Partial Public Class DmsBrowser
         Dim provider = If(_DmsProviderOverride, DmsProviderInstance)
         Dim visible = provider IsNot Nothing AndAlso provider.SupportsFileVersionHistory AndAlso
                       (AllowedActions And FileOrFolderActions.AllowViewFileVersionHistory) <> 0 AndAlso BrowseMode = BrowseModes.FoldersAndFiles
-        VersionHistoryButton.Available = visible
+        VersionHistoryButton.Available = visible AndAlso ShowsToolbarAction(BrowserToolbarActions.VersionHistory)
         VersionHistoryContext.Available = visible
         VersionHistoryButton.Enabled = CanViewSelectedFileVersions()
         VersionHistoryContext.Enabled = VersionHistoryButton.Enabled

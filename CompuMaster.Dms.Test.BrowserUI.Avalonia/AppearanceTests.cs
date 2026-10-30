@@ -54,7 +54,7 @@ public sealed class AppearanceTests
         finally { host.Close(); }
     }
     [AvaloniaTest]
-    public async Task Selector_switches_browser_window_and_owned_workflow_dialogs()
+    public async Task Host_api_switches_browser_window_and_owned_workflow_dialogs()
     {
         var browser = new DmsBrowser(new DemoDmsProvider());
         var dialog = new DmsItemSharings(new DemoDmsProvider(), ReceivedSharingTests.ReceivedItem());
@@ -62,8 +62,8 @@ public sealed class AppearanceTests
         try
         {
             browser.Show(); await browser.Browser.InitializeAsync();
-            var selector = browser.GetVisualDescendants().OfType<ComboBox>().Single(c => c.Name == "BrowserThemeSelector");
-            selector.SelectedIndex = (int)BrowserTheme.Dark;
+            Assert.That(browser.GetVisualDescendants().OfType<ComboBox>().Any(c => c.Name == "BrowserThemeSelector"), Is.False);
+            browser.Browser.Appearance = BrowserTheme.Dark;
             Assert.That(browser.Browser.Appearance, Is.EqualTo(BrowserTheme.Dark));
             Assert.That(browser.ActualThemeVariant, Is.EqualTo(ThemeVariant.Dark));
             pending = BrowserAppearance.ShowDialog(dialog, browser);
@@ -71,7 +71,6 @@ public sealed class AppearanceTests
             Assert.That(dialog.ActualThemeVariant, Is.EqualTo(ThemeVariant.Dark));
             Assert.That(dialog.GetVisualDescendants().OfType<DataGrid>().All(g => g.ActualThemeVariant == ThemeVariant.Dark), Is.True);
             browser.Browser.Appearance = BrowserTheme.Light;
-            Assert.That(selector.SelectedIndex, Is.EqualTo((int)BrowserTheme.Light));
             Assert.That(dialog.ActualThemeVariant, Is.EqualTo(ThemeVariant.Light));
         }
         finally { dialog.Close(); if (pending is not null) await pending; browser.Close(); }

@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/CompuMasterGmbH/CompuMaster.Dms/tree/main/CompuMaster.Dms.BrowserUI.WinUI</PackageProjectUrl>
-    <PackageReleaseNotes>Initial native WinUI 3 BrowserUI: provider-independent navigation, file/folder selection, recursive transfers, sharing, version history, localized dialogs, Windows file icons and dedicated provider demos. Implementation and acceptance: https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/151.</PackageReleaseNotes>
+    <PackageReleaseNotes>Configurable toolbar actions, internal drag moves, file double-click behavior and bottom-button visibility across WinForms, Avalonia and WinUI. Changed defaults: core toolbar actions only, Open on file double-click in both dialog modes, and newest files first with sort indicators. Removes browser theme selectors/current-path footers and improves action icons. Enforces local transfer restrictions for drops; outgoing drag downloads are disabled when their final destination cannot be verified. Updated browser and Teamwork/Nextcloud sharing screenshots. Details: https://github.com/CompuMasterGmbH/CompuMaster.Dms/issues/165.</PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

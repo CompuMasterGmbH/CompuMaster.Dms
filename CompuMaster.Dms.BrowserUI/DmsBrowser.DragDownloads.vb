@@ -33,7 +33,7 @@ Partial Public Class DmsBrowser
     End Class
 
     Friend Function CanDragDownload() As Boolean
-        Return Not DragDownloadRunning AndAlso Not TransferRunning AndAlso Not ResourceActionRunning AndAlso (AllowedActions And FileOrFolderActions.AllowDownloadFiles) <> 0 AndAlso BrowseMode = BrowseModes.FoldersAndFiles
+        Return String.IsNullOrEmpty(LocalParentMustFolder) AndAlso Not DragDownloadRunning AndAlso Not TransferRunning AndAlso Not ResourceActionRunning AndAlso (AllowedActions And FileOrFolderActions.AllowDownloadFiles) <> 0 AndAlso BrowseMode = BrowseModes.FoldersAndFiles
     End Function
 
     Private Async Sub DragRemoteFiles(sender As Object, e As ItemDragEventArgs)
@@ -85,7 +85,7 @@ Partial Public Class DmsBrowser
     End Sub
 
     Private Function CanStartRemoteMove() As Boolean
-        Return Not DragDownloadRunning AndAlso Not TransferRunning AndAlso Not ResourceActionRunning AndAlso
+        Return EnableInternalDragAndDrop AndAlso Not DragDownloadRunning AndAlso Not TransferRunning AndAlso Not ResourceActionRunning AndAlso
             (AllowedActions And FileOrFolderActions.AllowCopyRenameMoveFiles) <> 0 AndAlso BrowseMode = BrowseModes.FoldersAndFiles
     End Function
 
@@ -104,7 +104,7 @@ Partial Public Class DmsBrowser
     End Function
 
     Private Function CanMoveTo(context As RemoteDragContext, node As TreeNode, Optional ownsAction As Boolean = False) As Boolean
-        If context Is Nothing OrElse IsDisposed OrElse DmsProvider IsNot context.Provider OrElse InitialFolder <> context.Scope OrElse
+        If Not EnableInternalDragAndDrop OrElse context Is Nothing OrElse IsDisposed OrElse DmsProvider IsNot context.Provider OrElse InitialFolder <> context.Scope OrElse
             Not HasMatchingRemoteInstance(context) OrElse
             TransferRunning OrElse (ResourceActionRunning AndAlso Not ownsAction) OrElse
             (AllowedActions And FileOrFolderActions.AllowCopyRenameMoveFiles) = 0 OrElse BrowseMode <> BrowseModes.FoldersAndFiles OrElse
@@ -212,7 +212,7 @@ Partial Public Class DmsBrowser
     End Function
 
     Private Sub SupplyDraggedFile(file As DmsResourceItem, path As String)
-        If (AllowedActions And FileOrFolderActions.AllowDownloadFiles) = 0 Then Throw New UnauthorizedAccessException()
+        If Not String.IsNullOrEmpty(LocalParentMustFolder) OrElse (AllowedActions And FileOrFolderActions.AllowDownloadFiles) = 0 Then Throw New UnauthorizedAccessException()
         If ActiveRemoteDrag Is Nothing OrElse DmsProvider IsNot ActiveRemoteDrag.Provider OrElse InitialFolder <> ActiveRemoteDrag.Scope OrElse
             TryCast(DmsProvider, IDmsInstanceProvider)?.CurrentDmsInstance?.ID <> ActiveRemoteDrag.Instance Then Throw New InvalidOperationException("The remote drag context changed before downloading.")
         Using dialog = CreateTransferDialog({file.Name}, True)

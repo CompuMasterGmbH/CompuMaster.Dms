@@ -120,3 +120,5 @@ The component and Avalonia free framework/DataGrid/Fluent controls use MIT licen
 WinForms remains the leading implementation. Carry future applicable features/fixes to Avalonia and track verification in their originating issue/PR.
 
 Appearance supports System, Light and Dark modes plus optional scoped light/dark palettes. See [browser appearance](https://github.com/CompuMasterGmbH/CompuMaster.Dms/blob/main/docs/BROWSER_APPEARANCE.md) for examples, owned-dialog behavior and platform limitations.
+
+Browser action visibility, internal drag moves and file double-click behavior can be configured independently of permissions. See [browser action customization](../README.md#browser-action-customization) for settings and defaults, including local transfer restrictions.

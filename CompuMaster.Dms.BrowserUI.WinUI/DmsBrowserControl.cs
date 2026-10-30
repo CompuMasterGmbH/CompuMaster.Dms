@@ -12,7 +12,6 @@ namespace CompuMaster.Dms.BrowserUI.WinUI;
 /// <remarks>Call AttachToWindow before initialization. The host must initialize WinUI and its XamlControlsResources.</remarks>
 public sealed partial class DmsBrowserControl : UserControl
 {
-    private ComboBox? themeSelector;
     private BrowserSession? session;
     private readonly FileSelectionSnapshot fileSelection = new();
     private bool selectionOperationRunning;
@@ -26,6 +25,7 @@ public sealed partial class DmsBrowserControl : UserControl
     private readonly ProgressBar progress = new() { IsIndeterminate = true, Height = 3, Visibility = Visibility.Collapsed };
     private readonly TextBlock status = new() { Margin = new Thickness(6) };
     private readonly WrapPanel fileToolbar = new();
+    private readonly WrapPanel terminal = new();
     private readonly WrapPanel bottom = new();
     private readonly ToggleButton showFiles = new() { Name = "ActionShowFiles", Content = Dialogs.Caption("ActionShowFiles"), Margin = new Thickness(3) };
     private readonly List<(Control Control, Func<bool> Enabled, Func<bool> Visible)> actions = new();
@@ -41,6 +41,12 @@ public sealed partial class DmsBrowserControl : UserControl
     private Button? instanceButton;
     private string sort = "Modified";
     private bool descending = true;
+    private readonly Dictionary<string, Button> sortHeaders = new();
+    private void UpdateSortHeaders()
+    {
+        foreach (var (field, header) in sortHeaders)
+            header.Content = Dialogs.Caption((string)header.Tag) + (sort == field ? descending ? " ▼" : " ▲" : "");
+    }
     /// <summary>Creates a browser for an authorized provider.</summary>
     /// <param name="provider">The provider whose current instance is preserved by default.</param>
     /// <param name="options">The optional browser settings.</param>
@@ -80,6 +86,24 @@ public sealed partial class DmsBrowserControl : UserControl
     internal TreeView FolderTree => tree;
     internal ListView FileGrid => files;
     private Window Owner => owner ?? throw new InvalidOperationException("Call AttachToWindow before initializing the WinUI browser.");
+    internal async Task ActivateSelectedFilesAsync()
+    {
+        if (!HasFiles || IsBusy || !Allowed(FileOrFolderActions.AllowDownloadFiles)) return;
+        switch (Options.FileDoubleClickAction)
+        {
+            case BrowserFileDoubleClickAction.Open: await UiAsync(OpenFilesAsync); break;
+            case BrowserFileDoubleClickAction.Download: await UiAsync(DownloadFilesAsync); break;
+        }
+    }
+    private bool CanDragDownload => Allowed(FileOrFolderActions.AllowDownloadFiles) && string.IsNullOrEmpty(Options.LocalParentMustFolder);
+    private bool CanDragMove => Options.EnableInternalDragAndDrop && Allowed(FileOrFolderActions.AllowCopyRenameMoveFiles);
+    internal bool CanDropLocalPaths(IEnumerable<string?> paths)
+    {
+        var selected = paths.ToArray();
+        if (selected.Length == 0 || selected.Any(string.IsNullOrEmpty)) return false;
+        try { foreach (var path in selected) LocalPaths.Validate(path!, Options.LocalParentMustFolder); return true; }
+        catch { return false; }
+    }
     private bool HasFiles => initialized && files.SelectedItems.Count > 0 && Session.BrowseMode == BrowseModes.FoldersAndFiles;
     private bool HasFolderForFiles => initialized && Session.SelectedNode is not null && (Session.SelectedNode.Item is not null || Session.Provider.SupportsFilesInRootFolder);
     private bool MutableFolder => initialized && Session.SelectedNode?.Parent is not null && Session.SelectedNode.Item is not null && !Session.CollectionManagementRestricted(Session.SelectedNode.Item);
@@ -99,7 +123,6 @@ public sealed partial class DmsBrowserControl : UserControl
         {
             BrowserAppearance.SetTheme(this, value);
             Options.Theme = value;
-            if (themeSelector is not null && themeSelector.SelectedIndex != (int)value) themeSelector.SelectedIndex = (int)value;
             if (owner is DmsBrowser window) BrowserAppearance.SetTheme((FrameworkElement)window.Content, value);
         }
     }
@@ -116,8 +139,6 @@ public sealed partial class DmsBrowserControl : UserControl
         FlowDirection = UiText.LayoutDirection;
         BrowserAppearance.SetTheme(this, Options.Theme);
         BrowserAppearance.SetPalettes(this, Options.LightPalette, Options.DarkPalette);
-        var appearance = themeSelector = BrowserAppearance.Selector(this, theme => Appearance = theme);
-        bottom.Children.Add(appearance);
         tree.ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load("<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><ContentPresenter Content='{Binding Content}' HorizontalAlignment='Stretch'/></DataTemplate>");
         columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
         columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
@@ -133,12 +154,20 @@ public sealed partial class DmsBrowserControl : UserControl
         var headers = FileColumns();
         foreach (var (key, field, index) in new[] { ("ColumnName", "Name", 0), ("ColumnSize", "Size", 1), ("ColumnLastModification", "Modified", 2) })
         {
-            var button = Dialogs.Button(key, () => { descending = sort == field && !descending; sort = field; Synchronize(); });
+            var button = Dialogs.Button(key, () => { descending = sort == field && !descending; sort = field; UpdateSortHeaders(); Synchronize(); });
+            button.Name = "Sort" + field; button.Tag = key; sortHeaders[field] = button;
             Grid.SetColumn(button, index); headers.Children.Add(button);
         }
+        UpdateSortHeaders();
         Grid.SetRow(headers, 1); filePanel.Children.Add(headers);
         Grid.SetRow(files, 2); filePanel.Children.Add(files); Grid.SetColumn(filePanel, 2); columns.Children.Add(filePanel);
-        var footer = new StackPanel { Children = { status, bottom } };
+        var buttons = new Grid { FlowDirection = FlowDirection.LeftToRight };
+        bottom.FlowDirection = terminal.FlowDirection = UiText.LayoutDirection;
+        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        buttons.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(terminal, 1); terminal.HorizontalAlignment = HorizontalAlignment.Right;
+        buttons.Children.Add(bottom); buttons.Children.Add(terminal);
+        var footer = new StackPanel { Children = { status, buttons } };
         var content = new Grid { Margin = new Thickness(10), RowSpacing = 4 };
         content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         content.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -159,8 +188,12 @@ public sealed partial class DmsBrowserControl : UserControl
             if (session is not null) fileSelection.Capture(Session, Selection.Files);
             UpdateControls(); SelectionChanged?.Invoke(this, EventArgs.Empty);
         };
-        files.DoubleTapped += async (_, _) =>
-        { if (Options.DialogOperationMode == DialogOperationModes.ReturnSelectedItems) ConfirmSelection(); else await UiAsync(OpenFilesAsync); };
+        files.DoubleTapped += async (_, e) =>
+        {
+            var source = e.OriginalSource as DependencyObject;
+            while (source is not null && source is not ListViewItem) source = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(source);
+            if (source is ListViewItem) await ActivateSelectedFilesAsync();
+        };
         BuildActions();
         KeyDown += async (_, e) =>
         {
@@ -218,9 +251,8 @@ public sealed partial class DmsBrowserControl : UserControl
         void Action(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, MenuFlyout menu, bool sharing = false)
         {
             var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); BrowserActionIcons.Apply(button, key); fileToolbar.Children.Add(button);
-            var mandatory = key is "ActionUpload" or "ActionUploadFolder" or "ActionDownload" or "ActionOpen" or "ActionDelete";
             actions.Add((button, () => (!flag.HasValue || Allowed(flag.Value)) && (key is "FileVersionHistory" or "ActionDownloadFolder" ? enabled() : true),
-                () => mandatory || Visible(flag, sharing) && (key != "ActionFolderSharings" || FolderActionVisible(key)) && (key != "FileVersionHistory" || DmsProvider?.SupportsFileVersionHistory == true)));
+                () => Options.ShowsToolbarAction(key) && Visible(flag, sharing) && (key != "ActionFolderSharings" || FolderActionVisible(key)) && (key != "FileVersionHistory" || DmsProvider?.SupportsFileVersionHistory == true)));
             Menu(menu, key, action, flag, enabled, sharing);
         }
         void Menu(MenuFlyout menu, string key, Func<Task> action, FileOrFolderActions? flag, Func<bool> enabled, bool sharing = false)
@@ -249,7 +281,7 @@ public sealed partial class DmsBrowserControl : UserControl
         Menu(folderMenu, "ActionDelete", DeleteFolderAsync, FileOrFolderActions.AllowDeleteFiles, () => MutableFolder);
         Menu(folderMenu, "ActionCreateFolder", CreateFolderAsync, FileOrFolderActions.AllowCreateFolders, () => initialized);
         AddBottom("ActionCreateFolder", CreateFolderAsync, FileOrFolderActions.AllowCreateFolders);
-        bottom.Children.Add(showFiles); actions.Add((showFiles, () => true, () => Allowed(FileOrFolderActions.AllowSwitchBrowseMode)));
+        bottom.Children.Add(showFiles); actions.Add((showFiles, () => true, () => Options.ShowFilesButtonVisible && Allowed(FileOrFolderActions.AllowSwitchBrowseMode)));
         showFiles.Checked += async (_, _) => { if (!suppressSelection && initialized && !IsBusy) await UiAsync(() => SetBrowseModeAsync(BrowseModes.FoldersAndFiles)); };
         showFiles.Unchecked += async (_, _) => { if (!suppressSelection && initialized && !IsBusy) await UiAsync(() => SetBrowseModeAsync(BrowseModes.Folders)); };
         instanceButton = AddBottom("ChangeDmsInstance", ChangeInstanceAsync, FileOrFolderActions.AllowSwitchDmsInstance, () => Options.RemoteInstance.SelectionDialog is not null && DmsProvider is IDmsInstanceProvider && availableInstanceCount > 1);
@@ -259,9 +291,10 @@ public sealed partial class DmsBrowserControl : UserControl
     }
     private Button AddBottom(string key, Func<Task> action, FileOrFolderActions? flag, Func<bool>? visible = null)
     {
-        var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); bottom.Children.Add(button);
+        var button = Dialogs.Button(key, async () => await UiAsync(action, key == "ActionRefreshFiles" ? DmsBrowserFailurePhase.Refresh : DmsBrowserFailurePhase.Action, key)); button.Name = key; BrowserActionIcons.Apply(button, key);
+        (key is "ActionOkay" or "ActionCancel" or "ActionClose" ? terminal : bottom).Children.Add(button);
         if (key is "ActionCancel" or "ActionClose") terminalButtons.Add(button);
-        actions.Add((button, () => !flag.HasValue || Allowed(flag.Value), () => (key == "ActionCreateFolder" || Visible(flag)) && (visible?.Invoke() ?? true))); return button;
+        actions.Add((button, () => !flag.HasValue || Allowed(flag.Value), () => (Visible(flag) && (key != "ActionCreateFolder" || Options.CreateFolderButtonVisible)) && (visible?.Invoke() ?? true))); return button;
     }
     private void AttachSession() => Session.Changed += Synchronize;
     private void Synchronize()
@@ -337,13 +370,15 @@ public sealed partial class DmsBrowserControl : UserControl
     {
         var busy = IsBusy; tree.IsEnabled = files.IsEnabled = (!busy || dragRunning && !SessionBusy) && initialized;
         progress.Visibility = busy && ActiveSharingDialog is null ? Visibility.Visible : Visibility.Collapsed;
-        status.Text = busy && ActiveSharingDialog is null ? UiText.Extra("Working…", "Wird ausgeführt…") : session?.CurrentPath ?? "";
+        status.Visibility = busy && ActiveSharingDialog is null ? Visibility.Visible : Visibility.Collapsed;
+        status.Text = busy ? UiText.Extra("Working…", "Wird ausgeführt…") : "";
         var fileMode = (session?.BrowseMode ?? Options.BrowseMode) == BrowseModes.FoldersAndFiles;
         filePanel.Visibility = fileMode ? Visibility.Visible : Visibility.Collapsed;
         columns.ColumnDefinitions[2].Width = new GridLength(fileMode ? 7 : 0, GridUnitType.Star);
         suppressSelection = true; try { showFiles.IsChecked = fileMode; } finally { suppressSelection = false; }
         foreach (var action in actions)
         { action.Control.Visibility = action.Visible() ? Visibility.Visible : Visibility.Collapsed; action.Control.IsEnabled = !busy && (terminalButtons.Contains(action.Control) || initialized && action.Enabled()); }
+        fileToolbar.Visibility = fileToolbar.Children.OfType<FrameworkElement>().Any(child => child.Visibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed;
         if (instanceButton?.Visibility == Visibility.Visible && DmsProvider is IDmsInstanceProvider provider && provider.CurrentDmsInstance is { } instance)
             instanceButton.Content = UiText.Format("CurrentDmsInstance", instance.DisplayName);
     }

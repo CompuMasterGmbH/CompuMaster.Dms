@@ -18,6 +18,7 @@ Public Class FileVersionHistoryUiTest
     Public Sub BrowserEntryRequiresSupportRightsSingleFileAndIdleState()
         Using dispatcher As New UiTestDispatcher, provider As New VersionProvider, browser As New PreviewBrowser(provider)
             browser.Show()
+            browser.ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All
             browser.BrowseMode = DmsBrowser.BrowseModes.FoldersAndFiles
             browser.AllowedActions = AllVersionActions
             Assert.That(browser.VersionHistoryButton.Available, [Is].True)
@@ -46,6 +47,7 @@ Public Class FileVersionHistoryUiTest
                 dispatcher.Finish(work)
             End Try
             Assert.That(browser.VersionHistoryButton.Enabled, [Is].True)
+            browser.ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All
             browser.BrowseMode = DmsBrowser.BrowseModes.Folders
             Assert.That(browser.VersionHistoryButton.Available, [Is].False)
             Assert.That(browser.VersionHistoryContext.Available, [Is].False)

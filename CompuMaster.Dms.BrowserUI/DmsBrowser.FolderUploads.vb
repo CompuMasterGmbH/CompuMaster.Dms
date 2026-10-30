@@ -38,7 +38,7 @@ Partial Public Class DmsBrowser
     End Sub
 
     Private Sub UpdateUploadAccess()
-        UploadFolderButton.Available = ToolStripButtonUploadFile.Available
+        UploadFolderButton.Available = BrowseMode = BrowseModes.FoldersAndFiles AndAlso (AllowedActions And FileOrFolderActions.AllowUploadFiles) <> 0 AndAlso ShowsToolbarAction(BrowserToolbarActions.UploadFolder)
         UploadFolderButton.Enabled = ToolStripButtonUploadFile.Enabled
         UploadFolderContext.Available = ToolStripFileContextButtonUploadFile.Available
         UploadFolderContext.Enabled = ToolStripFileContextButtonUploadFile.Enabled
@@ -96,14 +96,14 @@ Partial Public Class DmsBrowser
         e.Effect = DragDropEffects.None
         If Not CanUploadDrop() OrElse (e.AllowedEffect And DragDropEffects.Copy) = 0 OrElse Not e.Data.GetDataPresent(DataFormats.FileDrop) Then Return
         Dim paths = TryCast(e.Data.GetData(DataFormats.FileDrop), String())
-        If CanUploadLocalPaths(paths, node) Then e.Effect = DragDropEffects.Copy
+        If CanUploadLocalPaths(paths, node) AndAlso paths.All(AddressOf IsAllowedLocalTransferPath) Then e.Effect = DragDropEffects.Copy
     End Sub
 
     Private Async Sub DropLocalPaths(sender As Object, e As DragEventArgs)
         If Not CanUploadDrop() OrElse Not e.Data.GetDataPresent(DataFormats.FileDrop) Then Return
         Dim node = UploadDropNode(DirectCast(sender, Control), New Point(e.X, e.Y))
         Dim paths = TryCast(e.Data.GetData(DataFormats.FileDrop), String())
-        If (e.AllowedEffect And DragDropEffects.Copy) = 0 OrElse Not CanUploadLocalPaths(paths, node) Then Return
+        If (e.AllowedEffect And DragDropEffects.Copy) = 0 OrElse Not CanUploadLocalPaths(paths, node) OrElse Not paths.All(AddressOf IsAllowedLocalTransferPath) Then Return
         Await UploadLocalSelectionAsync(paths, node)
     End Sub
 

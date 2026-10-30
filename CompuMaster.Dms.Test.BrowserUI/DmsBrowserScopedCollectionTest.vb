@@ -146,7 +146,7 @@ Public Class DmsBrowserScopedCollectionTest
     End Sub
 
     Private Shared Function OpenBrowser(provider As ScopedProvider, root As String, foldersOnly As Boolean) As DmsBrowser
-        Return New DmsBrowser(provider, Nothing, "Scoped collection audit", Nothing, root, "", If(foldersOnly, DmsBrowser.BrowseModes.Folders, DmsBrowser.BrowseModes.FoldersAndFiles), AllActions, DmsBrowser.DialogOperationModes.NoResults, "", "", "") With {.ShowInTaskbar = False}
+        Return New DmsBrowser(provider, Nothing, "Scoped collection audit", Nothing, root, "", If(foldersOnly, DmsBrowser.BrowseModes.Folders, DmsBrowser.BrowseModes.FoldersAndFiles), AllActions, DmsBrowser.DialogOperationModes.NoResults, "", "", "") With {.ShowInTaskbar = False, .ToolbarActions = Global.CompuMaster.Dms.BrowserUI.BrowserToolbarActions.All}
     End Function
 
     <Test>

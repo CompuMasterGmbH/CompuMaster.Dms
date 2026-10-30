@@ -20,7 +20,8 @@ internal static class BrowserActionIcons
             "ActionDelete" => "iconfinder_Trash-ui-ux-mobile-web_4960750",
             "ActionFileSharings" or "ActionFolderSharings" => "iconfinder_Group-ui-ux-mobile-web_4960717",
             "FileProperties" or "FolderProperties" => "iconfinder_setting-ui-ux-mobile-web_4960747",
-            "FileVersionHistory" when !menu => "iconfinder_setting-ui-ux-mobile-web_4960747",
+            "FileVersionHistory" => "iconfinder_Clock-ui-ux-mobile-web_4960701",
+            "ActionClose" => "iconfinder_Export-ui-ux-mobile-web_4960710",
             "ActionRefreshFiles" => folderMenu ? "iconfinder_View-ui-ux-mobile-web_4960757" : "Refresh",
             "ActionCreateFolder" => "iconfinder_Folder-ui-ux-mobile-web_new",
             _ => null

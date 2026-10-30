@@ -1,7 +1,7 @@
 ﻿# Browser appearance
 
 WinForms, Avalonia and WinUI support `BrowserTheme.System`, `Light` and `Dark`.
-The browser's localized appearance selector works in file and folder modes. Each browser has its own scope; changing it does not change the application-wide theme.
+Appearance is controlled by the host API; browsers do not display a theme selector. Each browser has its own scope; changing it does not change the application-wide theme.
 
 For Avalonia and WinUI, set initial options and change `browser.Browser.Appearance` afterwards:
 

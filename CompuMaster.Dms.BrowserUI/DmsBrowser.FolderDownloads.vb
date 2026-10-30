@@ -22,7 +22,7 @@ Partial Public Class DmsBrowser
 
     Private Sub UpdateFolderDownloadAccess()
         Dim allowed = (AllowedActions And FileOrFolderActions.AllowDownloadFiles) <> 0
-        DownloadFolderButton.Available = allowed AndAlso BrowseMode = BrowseModes.FoldersAndFiles
+        DownloadFolderButton.Available = allowed AndAlso BrowseMode = BrowseModes.FoldersAndFiles AndAlso ShowsToolbarAction(BrowserToolbarActions.DownloadFolder)
         DownloadFolderContext.Available = allowed
         Dim enabled = CanDownloadFolder() AndAlso TreeViewDmsFolders.Enabled
         DownloadFolderButton.Enabled = enabled

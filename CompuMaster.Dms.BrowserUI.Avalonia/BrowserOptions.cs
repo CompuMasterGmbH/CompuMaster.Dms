@@ -65,9 +65,98 @@ public enum DialogOperationModes : byte
     NoResults = 2
 }
 
+/// <summary>Identifies actions displayed in the toolbar in addition to their context menus.</summary>
+/// <remarks>Visibility never grants permission to execute an action.</remarks>
+[Flags]
+public enum BrowserToolbarActions
+{
+    /// <summary>Hides every toolbar action.</summary>
+    None = 0,
+    /// <summary>Shows the action for opening files.</summary>
+    Open = 1,
+    /// <summary>Shows the action for downloading files.</summary>
+    Download = 2,
+    /// <summary>Shows the action for downloading folders.</summary>
+    DownloadFolder = 4,
+    /// <summary>Shows the action for uploading files.</summary>
+    Upload = 8,
+    /// <summary>Shows the action for uploading folders.</summary>
+    UploadFolder = 16,
+    /// <summary>Shows the action for refreshing the listing.</summary>
+    Refresh = 32,
+    /// <summary>Shows the action for copying files.</summary>
+    Copy = 64,
+    /// <summary>Shows the action for moving files.</summary>
+    Move = 128,
+    /// <summary>Shows the action for renaming files.</summary>
+    Rename = 256,
+    /// <summary>Shows the action for deleting files.</summary>
+    Delete = 512,
+    /// <summary>Shows the action for managing file sharing.</summary>
+    FileSharings = 1024,
+    /// <summary>Shows the action for managing folder sharing.</summary>
+    FolderSharings = 2048,
+    /// <summary>Shows the action for viewing file properties.</summary>
+    FileProperties = 4096,
+    /// <summary>Shows the action for viewing folder properties.</summary>
+    FolderProperties = 8192,
+    /// <summary>Shows the action for viewing version history.</summary>
+    VersionHistory = 16384,
+    /// <summary>Shows the standard open, transfer and refresh actions.</summary>
+    Default = Open | Download | DownloadFolder | Upload | UploadFolder | Refresh,
+    /// <summary>Shows every action permitted by the host and provider.</summary>
+    All = 32767
+}
+
+/// <summary>Selects the action performed when files are double-clicked.</summary>
+public enum BrowserFileDoubleClickAction
+{
+    /// <summary>Opens selected files as temporary read-only previews when downloading is permitted.</summary>
+    Open,
+    /// <summary>Prompts for a download destination when downloading is permitted.</summary>
+    Download,
+    /// <summary>Performs no action.</summary>
+    None
+}
+
 /// <summary>Configures provider-independent browser workflows.</summary>
 public sealed class DmsBrowserOptions
 {
+    /// <summary>Gets or sets whether permitted resources can be moved by drag and drop inside this browser, defaulting to true.</summary>
+    public bool EnableInternalDragAndDrop { get; set; } = true;
+    /// <summary>Gets or sets the actions shown in the toolbar, subject to existing permissions and provider capabilities.</summary>
+    /// <remarks>Other permitted actions remain available through context menus. Configure before construction.</remarks>
+    public BrowserToolbarActions ToolbarActions { get; set; } = BrowserToolbarActions.Default;
+    /// <summary>Gets or sets whether the permitted browse-mode switch is displayed, defaulting to true.</summary>
+    public bool ShowFilesButtonVisible { get; set; } = true;
+    /// <summary>Gets or sets whether the permitted create-folder button is displayed, defaulting to true.</summary>
+    /// <remarks>The context-menu action remains available.</remarks>
+    public bool CreateFolderButtonVisible { get; set; } = true;
+    /// <summary>Gets or sets the file double-click action, defaulting to Open in both dialog modes.</summary>
+    /// <remarks>This setting does not grant download permission or change explicit selection confirmation.</remarks>
+    public BrowserFileDoubleClickAction FileDoubleClickAction { get; set; } = BrowserFileDoubleClickAction.Open;
+
+    internal bool ShowsToolbarAction(string key) => (ToolbarActions & ToolbarAction(key)) != 0;
+    private static BrowserToolbarActions ToolbarAction(string key) => key switch
+    {
+        "ActionOpen" => BrowserToolbarActions.Open,
+        "ActionDownload" => BrowserToolbarActions.Download,
+        "ActionDownloadFolder" => BrowserToolbarActions.DownloadFolder,
+        "ActionUpload" => BrowserToolbarActions.Upload,
+        "ActionUploadFolder" => BrowserToolbarActions.UploadFolder,
+        "ActionRefreshFiles" => BrowserToolbarActions.Refresh,
+        "ActionCopy" => BrowserToolbarActions.Copy,
+        "ActionMove" => BrowserToolbarActions.Move,
+        "ActionRename" => BrowserToolbarActions.Rename,
+        "ActionDelete" => BrowserToolbarActions.Delete,
+        "ActionFileSharings" => BrowserToolbarActions.FileSharings,
+        "ActionFolderSharings" => BrowserToolbarActions.FolderSharings,
+        "FileProperties" => BrowserToolbarActions.FileProperties,
+        "FolderProperties" => BrowserToolbarActions.FolderProperties,
+        "FileVersionHistory" => BrowserToolbarActions.VersionHistory,
+        _ => BrowserToolbarActions.None
+    };
+
     /// <summary>Gets or sets the initial appearance, defaulting to the host or system preference.</summary>
     /// <remarks>Use the browser control's Appearance property to change appearance after construction.</remarks>
     public BrowserTheme Theme { get; set; } = BrowserTheme.System;
@@ -88,7 +177,7 @@ public sealed class DmsBrowserOptions
     /// <summary>Gets or sets the dialog's result behavior.</summary>
     public DialogOperationModes DialogOperationMode { get; set; } = DialogOperationModes.ReturnSelectedItems;
     /// <summary>Gets or sets the required ancestor directory for uploads and downloads.</summary>
-    /// <remarks>Temporary previews are managed separately, as in the WinForms browser. Symbolic links cannot bypass this restriction.</remarks>
+    /// <remarks>Temporary previews are managed separately. External drag downloads are disabled when this restriction is set because their final destination cannot be verified. Symbolic links cannot bypass this restriction.</remarks>
     public string? LocalParentMustFolder { get; set; }
     /// <summary>Gets or sets the initially displayed local download directory.</summary>
     public string? LocalDefaultFolderDownloads { get; set; }
