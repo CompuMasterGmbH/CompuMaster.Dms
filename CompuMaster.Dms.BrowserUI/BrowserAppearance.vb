@@ -110,12 +110,17 @@ Public NotInheritable Class BrowserAppearance
         Dim form = TryCast(root, Form)
         If form IsNot Nothing AndAlso form.Owner IsNot Nothing Then Return IsDark(form.Owner)
         Try
-            Return Convert.ToInt32(Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1), Globalization.CultureInfo.InvariantCulture) = 0
+            Return UsesDarkWindowsPreference(Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1))
         Catch ex As System.Security.SecurityException
             Return False
         Catch ex As UnauthorizedAccessException
             Return False
         End Try
+    End Function
+
+    Friend Shared Function UsesDarkWindowsPreference(value As Object) As Boolean
+        'An absent Personalize key returns Nothing even when a default value is supplied.
+        Return value IsNot Nothing AndAlso Convert.ToInt32(value, Globalization.CultureInfo.InvariantCulture) = 0
     End Function
 
     Private Shared Sub Refresh(root As Control)
