@@ -35,6 +35,16 @@ public sealed class AppearanceTests
             foreach (var nested in Descendants(child)) yield return nested;
         }
     }
+    [TestCase("Refresh"), TestCase("iconfinder_Trash-ui-ux-mobile-web_4960750")]
+    public Task Dark_artwork_decodes_complete_pixels_and_creates_a_native_bitmap(string resource) => UiThread.Run(async () =>
+    {
+        var pixels = await ThemeArtwork.ReadDarkAsync(resource);
+        Assert.That(pixels.Width, Is.GreaterThan(0)); Assert.That(pixels.Height, Is.GreaterThan(0));
+        Assert.That(pixels.Data.Length, Is.EqualTo(pixels.Width * pixels.Height * 4));
+        Assert.That(Enumerable.Range(0, pixels.Width * pixels.Height).Any(index => pixels.Data[index * 4 + 3] == 255 && pixels.Data[index * 4] == 230 && pixels.Data[index * 4 + 1] == 230 && pixels.Data[index * 4 + 2] == 230), Is.True,
+            "Dark strokes must be lightened while retaining an opaque image.");
+        Assert.That(ThemeArtwork.Image(resource, pixels).PixelWidth, Is.EqualTo(pixels.Width));
+    });
     [TestCase(false), TestCase(true)]
     public Task Unloading_during_artwork_loading_discards_the_late_UI_update(bool decodeFails) => UiThread.Run(async () =>
     {
