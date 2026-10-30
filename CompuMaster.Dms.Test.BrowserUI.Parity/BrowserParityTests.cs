@@ -40,7 +40,7 @@ public sealed class WorkstationNotice
 }
 
 [TestFixture]
-public sealed class BrowserParityTests
+public sealed partial class BrowserParityTests
 {
     [AvaloniaTest]
     [TestCase("overview", "de")]

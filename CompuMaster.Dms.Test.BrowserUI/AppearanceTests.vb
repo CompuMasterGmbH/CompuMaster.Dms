@@ -11,6 +11,26 @@ Public Class AppearanceTests
         Assert.That(BrowserAppearance.UsesDarkWindowsPreference(value), [Is].EqualTo(dark))
     End Sub
     <Test>
+    Public Sub DarkListHeadersRenderReadableForegroundText()
+        Using form As New Form(), list As New ListView With {.Dock = DockStyle.Fill, .View = View.Details}
+            list.Columns.Add("Name", 180)
+            form.Controls.Add(list)
+            BrowserAppearance.SetTheme(form, BrowserTheme.Dark)
+            form.Show() : Application.DoEvents()
+            Using bitmap As New Bitmap(list.Width, list.Height)
+                list.DrawToBitmap(bitmap, list.ClientRectangle)
+                Dim brightTextPixels As Integer
+                For y As Integer = 5 To 15
+                    For x As Integer = 6 To 50
+                        If bitmap.GetPixel(x, y).GetBrightness() > 0.65F Then brightTextPixels += 1
+                    Next
+                Next
+                Assert.That(brightTextPixels, [Is].GreaterThan(5), "The dark header must draw readable light text inside its borders.")
+            End Using
+            form.Close()
+        End Using
+    End Sub
+    <Test>
     Public Sub EmbeddedScopesThemeDynamicChildrenWithoutChangingTheHost()
         Using host As New Form(), scope As New Panel(), input As New TextBox(), added As New TextBox()
             host.Controls.Add(scope) : scope.Controls.Add(input)

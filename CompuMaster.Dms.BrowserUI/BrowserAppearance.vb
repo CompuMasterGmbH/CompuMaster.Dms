@@ -183,7 +183,7 @@ Public NotInheritable Class BrowserAppearance
                     Using brush As New SolidBrush(list.BackColor)
                         e.Graphics.FillRectangle(brush, e.Bounds)
                     End Using
-                    e.DrawText(TextFormatFlags.Left Or TextFormatFlags.VerticalCenter)
+                    TextRenderer.DrawText(e.Graphics, e.Header.Text, list.Font, e.Bounds, list.ForeColor, TextFormatFlags.Left Or TextFormatFlags.VerticalCenter Or TextFormatFlags.EndEllipsis Or TextFormatFlags.SingleLine)
                 End Sub
             AddHandler list.DrawItem, Sub(sender, e)
                                           If list.View <> View.Details Then e.DrawDefault = True

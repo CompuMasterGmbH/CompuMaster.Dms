@@ -18,6 +18,9 @@
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN;DMS_WINUI</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(DmsDocumentationScreenshots)' == 'true'">
+    <DefineConstants>$(DefineConstants);DMS_DOCUMENTATION_SCREENSHOTS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
     <Using Remove="System.Windows.Forms" />
@@ -31,6 +34,7 @@
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoScopevisioSelection.cs" Link="DemoScopevisioSelection.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.WinUI/DemoLoginWindow.cs" Link="DemoLoginWindow.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoText.cs" Link="DemoText.cs" />
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Parity/DocumentationScreenshotData.cs" Link="DocumentationScreenshotData.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoDmsProvider.cs" Link="DemoDmsProvider.cs" />
     <EmbeddedResource Include="../CompuMaster.Dms.TestDemo.WebDav/DemoStrings*.resx" Link="%(Filename)%(Extension)">
       <ManifestResourceName>CompuMaster.Dms.TestDemo.WinUI.%(Filename)</ManifestResourceName>

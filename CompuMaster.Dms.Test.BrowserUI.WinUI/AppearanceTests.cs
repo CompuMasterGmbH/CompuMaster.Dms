@@ -35,6 +35,14 @@ public sealed class AppearanceTests
             foreach (var nested in Descendants(child)) yield return nested;
         }
     }
+    [TestCase("\n"), TestCase("\r\n")]
+    public Task Message_text_preserves_all_detail_lines(string newline) => UiThread.Run(() =>
+    {
+        var expected = "Name: Project brief.pdf\nSize: 2.40 MiB\nOwner: Documentation team";
+        var input = Dialogs.MessageText(expected.Replace("\n", newline));
+        Assert.That(input.Text.Replace("\r\n", "\n").Replace("\r", "\n"), Is.EqualTo(expected));
+        return Task.CompletedTask;
+    });
     [TestCase("Refresh"), TestCase("iconfinder_Trash-ui-ux-mobile-web_4960750")]
     public Task Dark_artwork_decodes_complete_pixels_and_creates_a_native_bitmap(string resource) => UiThread.Run(async () =>
     {
