@@ -4,6 +4,8 @@ DMS Browser component for Scopevisio Teamwork, CenterDevice, WebDAV (e.g. NextCl
 [![Github Release](https://img.shields.io/github/release/CompuMasterGmbH/CompuMaster.Dms.svg?maxAge=2592000&label=GitHub%20Release)](https://github.com/CompuMasterGmbH/CompuMaster.Dms/releases) 
 [![NuGet CompuMaster.Dms](https://img.shields.io/nuget/v/CompuMaster.Dms.Providers.svg?maxAge=2592000&label=NuGet%20CM.Dms.Providers)](https://www.nuget.org/packages/CompuMaster.Dms.Providers) 
 [![NuGet CompuMaster.Dms.BrowserUI](https://img.shields.io/nuget/v/CompuMaster.Dms.BrowserUI.svg?maxAge=2592000&label=NuGet%20CM.Dms.BrowserUI)](https://www.nuget.org/packages/CompuMaster.Dms.BrowserUI) 
+[![NuGet CompuMaster.Dms.BrowserUI.Avalonia](https://img.shields.io/nuget/v/CompuMaster.Dms.BrowserUI.Avalonia.svg?maxAge=2592000&label=NuGet%20CM.Dms.BrowserUI.Avalonia)](https://www.nuget.org/packages/CompuMaster.Dms.BrowserUI.Avalonia)
+[![NuGet CompuMaster.Dms.BrowserUI.WinUI](https://img.shields.io/nuget/v/CompuMaster.Dms.BrowserUI.WinUI.svg?maxAge=2592000&label=NuGet%20CM.Dms.BrowserUI.WinUI)](https://www.nuget.org/packages/CompuMaster.Dms.BrowserUI.WinUI)
 
 ## CompuMaster.Dms ecosystem
 
