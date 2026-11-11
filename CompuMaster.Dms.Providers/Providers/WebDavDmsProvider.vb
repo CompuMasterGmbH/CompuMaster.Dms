@@ -424,9 +424,6 @@ Namespace Providers
             Else
                 Throw New InvalidOperationException(ProviderStrings.Format("SubItemsOfFoundOutsideOfThisPath", Me.CustomWebApiUrl, res.Uri.ToString))
             End If
-            If Result.Name = Nothing AndAlso Result.FullName <> Nothing Then
-                Result.Name = Result.FullName.Substring(Result.FullName.LastIndexOf(Me.DirectorySeparator) + 1)
-            End If
             If res.IsCollection AndAlso (Result.FullName = Nothing OrElse Result.FullName = Me.DirectorySeparator) Then
                 Result.ItemType = DmsResourceItem.ItemTypes.Root
             ElseIf res.IsCollection Then
@@ -461,11 +458,14 @@ Namespace Providers
             Else
                 Result.Folder = ""
             End If
-            'Decoded URLs
-            Result.Name = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.Name))
-            Result.Folder = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.Folder))
-            Result.Collection = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.Collection))
-            Result.FullName = Tools.NotNullOrEmptyStringValue(System.Net.WebUtility.UrlDecode(Result.FullName))
+            'DAV displayname is already text. Decode only the URI path and a name inferred from it.
+            If Result.Name = Nothing AndAlso Result.FullName <> Nothing Then
+                Result.Name = Uri.UnescapeDataString(Result.FullName.Substring(LastDirSeparatorPosition + 1))
+            End If
+            Result.Name = Tools.NotNullOrEmptyStringValue(Result.Name)
+            Result.Folder = Uri.UnescapeDataString(Result.Folder)
+            Result.Collection = Tools.NotNullOrEmptyStringValue(Result.Collection)
+            Result.FullName = Uri.UnescapeDataString(Result.FullName)
             Result.ExtendedInfosOwner = ResourceOwner(res)
             If Result.ItemType = DmsResourceItem.ItemTypes.File Then
                 Dim fileIDProperty = XName.Get("fileid", "http://owncloud.org/ns")

@@ -91,6 +91,57 @@ public sealed partial class BrowserParityTests
         finally { dialog.Close(); owner.Close(); CultureInfo.CurrentUICulture = previous; }
     }
 
+    [AvaloniaTest]
+    [TestCase("+")]
+    [TestCase("%2B")]
+    public async Task WebDAV_folder_pickers_preselect_and_return_the_exact_plus_path(string plusInHref)
+    {
+        const string path = WebDavFolderPickerResponses.SelectedPath;
+        const string folder = WebDavFolderPickerResponses.Folder;
+        Native(() =>
+        {
+            using var responses = new WebDavFolderPickerResponses(plusInHref);
+            using var dispatcher = new UiTestDispatcher();
+            using var browser = new ReferenceBrowser(responses.CreateProvider(), 0, folders: true, noResults: false, selected: path);
+            browser.Show();
+            dispatcher.WaitForEvents();
+            Assert.That(browser.Failure, Is.Null);
+            var selected = Member<Forms.TreeView>(browser, "TreeViewDmsFolders").SelectedNode;
+            Assert.That(selected?.Text, Is.EqualTo(folder));
+            Assert.That(selected!.Parent!.Nodes.Cast<Forms.TreeNode>().Select(node => node.Text), Does.Contain("SuSa BWA"));
+            Member<Forms.Button>(browser, "ButtonOkay").PerformClick();
+            Assert.That(browser.DialogResult, Is.EqualTo(Forms.DialogResult.OK));
+            Assert.That(browser.SelectedFolder, Is.EqualTo(path));
+            return true;
+        });
+
+        using var avaloniaResponses = new WebDavFolderPickerResponses(plusInHref);
+        var owner = new Window();
+        var picker = new Av.DmsBrowser(avaloniaResponses.CreateProvider(), new Av.DmsBrowserOptions
+        {
+            SelectedFolder = path,
+            BrowseMode = Av.BrowseModes.Folders,
+            DialogOperationMode = Av.DialogOperationModes.ReturnSelectedItems
+        });
+        Exception? failure = null;
+        picker.OperationFailed += (_, args) => { failure = args.Exception; args.SuppressDialog = true; };
+        try
+        {
+            owner.Show();
+            var selection = picker.ShowDialog<Av.DmsBrowserSelection>(owner);
+            await picker.Browser.InitializeAsync();
+            Assert.That(failure, Is.Null);
+            Assert.That(picker.Browser.FolderTree.SelectedItem, Is.SameAs(picker.Browser.Session.SelectedNode));
+            Assert.That(picker.Browser.Session.SelectedNode?.Name, Is.EqualTo(folder));
+            var okay = picker.Browser.GetVisualDescendants().OfType<Button>().Single(button => button.Name == "ActionOkay");
+            Assert.That(okay.IsEnabled, Is.True);
+            okay.RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            var result = await selection.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.That(result?.SelectedFolder, Is.EqualTo(path));
+        }
+        finally { picker.Close(); owner.Close(); }
+    }
+
     private sealed record IconData(int Width, int Height, byte[] Pixels);
     private sealed record State(bool Visible, bool Enabled, bool? Checked = null, IconData? Icon = null);
     private sealed record Snapshot(Dictionary<string, State> Controls, string[] Files, int Selection);

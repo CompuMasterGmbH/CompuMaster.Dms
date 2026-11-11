@@ -136,6 +136,34 @@ Public Class WebDavOwnerMetadataTest
         Assert.That(resource.ExtendedInfosOwner.DisplayName, [Is].Null)
     End Sub
 
+    <TestCase(False, "+", False), TestCase(False, "%2B", False), TestCase(True, "+", False), TestCase(True, "%2B", False)>
+    <TestCase(False, "+", True), TestCase(False, "%2B", True), TestCase(True, "+", True), TestCase(True, "%2B", True)>
+    Public Async Function WebDavPathsPreservePlusAndDistinguishSpaces(useAsync As Boolean, plusInHref As String, absoluteHref As Boolean) As Task
+        Const ParentPath As String = "Remote+DmsSimulation"
+        Const Root As String = "/remote.php/dav/files/account/"
+        Dim hrefParent = If(absoluteHref, "https://example.test", "") & Root & ParentPath
+        Dim plusResponse = FolderResponse(hrefParent & "/SuSa" & plusInHref & "BWA/", "SuSa+BWA")
+        Dim spaceResponse = FolderResponse(hrefParent & "/SuSa%20BWA/", "SuSa BWA")
+        Dim missingDisplayName = FolderResponse(hrefParent & "/Fallback%2BName/", Nothing)
+        Dim literalPercent = FolderResponse(hrefParent & "/Literal%2520/", "Literal%20")
+        Dim response = "<d:multistatus xmlns:d='DAV:'>" & plusResponse & spaceResponse & missingDisplayName & literalPercent & "</d:multistatus>"
+        Dim provider = CreateProvider(New PropfindHandler(response), "https://example.test" & Root)
+
+        Dim items = If(useAsync,
+            Await provider.ListDirectoryEntriesAsync(ParentPath),
+            provider.ListAllRemoteItems(ParentPath, BaseDmsProvider.SearchItemType.Folders))
+
+        Assert.That(items.Select(Function(item) item.Name), [Is].EquivalentTo({"SuSa+BWA", "SuSa BWA", "Fallback+Name", "Literal%20"}))
+        Assert.That(items.Select(Function(item) item.FullName), [Is].EquivalentTo({ParentPath & "/SuSa+BWA", ParentPath & "/SuSa BWA", ParentPath & "/Fallback+Name", ParentPath & "/Literal%20"}))
+        Assert.That(items.All(Function(item) item.Folder = ParentPath), [Is].True)
+    End Function
+
+    Private Shared Function FolderResponse(href As String, displayName As String) As String
+        Dim displayNameProperty = If(displayName Is Nothing, "", "<d:displayname>" & displayName & "</d:displayname>")
+        Return "<d:response><d:href>" & href & "</d:href><d:propstat><d:prop>" & displayNameProperty &
+            "<d:resourcetype><d:collection/></d:resourcetype></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
+    End Function
+
     Private Shared Function CreateProvider(handler As HttpMessageHandler, Optional apiUrl As String = "https://example.test/") As WebDavDmsProvider
         Dim provider As New WebDavDmsProvider With {.CustomWebApiUrl = apiUrl}
         Dim field As FieldInfo = GetType(WebDavDmsProvider).GetField("WebDavClient", BindingFlags.Instance Or BindingFlags.NonPublic)
