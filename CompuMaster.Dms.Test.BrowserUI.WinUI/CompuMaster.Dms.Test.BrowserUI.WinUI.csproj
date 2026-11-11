@@ -34,6 +34,7 @@
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoScopevisioSelection.cs" Link="DemoScopevisioSelection.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.WinUI/DemoLoginWindow.cs" Link="DemoLoginWindow.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoText.cs" Link="DemoText.cs" />
+    <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Parity/WebDavFolderPickerResponses.cs" Link="WebDavFolderPickerResponses.cs" />
     <Compile Include="../CompuMaster.Dms.Test.BrowserUI.Parity/DocumentationScreenshotData.cs" Link="DocumentationScreenshotData.cs" />
     <Compile Include="../CompuMaster.Dms.TestDemo.Avalonia/DemoDmsProvider.cs" Link="DemoDmsProvider.cs" />
     <EmbeddedResource Include="../CompuMaster.Dms.TestDemo.WebDav/DemoStrings*.resx" Link="%(Filename)%(Extension)">

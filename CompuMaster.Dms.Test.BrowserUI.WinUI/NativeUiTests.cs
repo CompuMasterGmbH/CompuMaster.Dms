@@ -64,6 +64,37 @@ public sealed class NativeUiTests
         finally { dialog.Close(); if (pending is not null) await pending; }
     });
 
+    [TestCase("+")]
+    [TestCase("%2B")]
+    public Task WebDAV_folder_picker_preselects_and_returns_the_exact_plus_path(string plusInHref) => UiThread.Run(async () =>
+    {
+        using var responses = new WebDavFolderPickerResponses(plusInHref);
+        var browser = new DmsBrowser(responses.CreateProvider(), new DmsBrowserOptions
+        {
+            SelectedFolder = WebDavFolderPickerResponses.SelectedPath,
+            BrowseMode = BrowseModes.Folders,
+            DialogOperationMode = DialogOperationModes.ReturnSelectedItems
+        });
+        Exception? failure = null;
+        browser.OperationFailed += (_, args) => { failure = args.Exception; args.SuppressDialog = true; };
+        try
+        {
+            var selection = browser.ShowDialogAsync(UiThread.Owner);
+            await browser.Browser.InitializeAsync();
+            Assert.That(failure, Is.Null);
+            var selected = browser.Browser.FolderTree.SelectedNode?.Content as StackPanel;
+            Assert.That(selected?.Children.OfType<TextBlock>().Single().Text, Is.EqualTo(WebDavFolderPickerResponses.Folder));
+            var okay = Descendants(browser.Browser).OfType<Button>().Single(button => button.Name == "ActionOkay");
+            Assert.That(okay.IsEnabled, Is.True);
+            var peer = new Microsoft.UI.Xaml.Automation.Peers.ButtonAutomationPeer(okay);
+            var invoke = (Microsoft.UI.Xaml.Automation.Provider.IInvokeProvider)peer.GetPattern(Microsoft.UI.Xaml.Automation.Peers.PatternInterface.Invoke);
+            invoke.Invoke();
+            var result = await selection.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.That(result?.SelectedFolder, Is.EqualTo(WebDavFolderPickerResponses.SelectedPath));
+        }
+        finally { browser.Close(); }
+    });
+
     private sealed class DisappearingFolderProvider : DemoDmsProvider
     {
         public override Task<List<DmsResourceItem>> ListDirectoryEntriesAsync(string remoteFolderPath, CancellationToken cancellationToken = default)
