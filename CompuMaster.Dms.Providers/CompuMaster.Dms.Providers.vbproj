@@ -19,6 +19,7 @@
     <OptionStrict>On</OptionStrict>
     <Configurations>Debug;Release;CI_CD</Configurations>
     <Copyright>2019-2026 CompuMaster GmbH</Copyright>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">2026.11.12.2</VersionPrefix>
     <EnableNativeAsync Condition="'$(EnableNativeAsync)' == ''">true</EnableNativeAsync>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

@@ -13,6 +13,7 @@
     <Company>CompuMaster GmbH</Company>
     <Product>CompuMaster.Dms</Product>
     <Copyright>2019-2026 CompuMaster GmbH</Copyright>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">2026.11.12.2</VersionPrefix>
     <Description>Provider-independent DMS browser dialogs and controls for Avalonia on Windows, macOS and Linux. Includes file and folder selection, transfers, sharing, version history and instance selection.</Description>
     <PackageTags>DmsBrowser Avalonia Desktop CrossPlatform NextCloud OwnCloud CenterDevice Scopevisio Teamwork WebDAV API</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
