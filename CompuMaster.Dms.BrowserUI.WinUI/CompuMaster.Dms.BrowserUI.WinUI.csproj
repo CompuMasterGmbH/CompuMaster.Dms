@@ -19,6 +19,7 @@
     <Company>CompuMaster GmbH</Company>
     <Product>CompuMaster.Dms</Product>
     <Copyright>2019-2026 CompuMaster GmbH</Copyright>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">2026.11.12.2</VersionPrefix>
     <Description>Native WinUI 3 DMS browser controls and dialogs for Windows, including selection, transfers, sharing, versions and instance selection.</Description>
     <PackageTags>DmsBrowser WinUI WindowsAppSDK NextCloud OwnCloud Scopevisio Teamwork WebDAV</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
