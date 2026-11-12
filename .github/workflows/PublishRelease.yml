@@ -11,9 +11,6 @@ on:
   release:
     types: [created]
 
-    # Allows you to run this workflow manually from the Actions tab
-    workflow_dispatch:
-
 env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: .
@@ -37,7 +34,9 @@ env:
 jobs:
     publish:
         runs-on: windows-latest
-        #if: false # always skip job
+        permissions:
+            contents: write
+            id-token: write
 
         env:
           VersionPrefix: ${{  github.ref_name }}
@@ -174,8 +173,16 @@ jobs:
             - name: Pack CompuMaster.Dms.BrowserUI.WinUI
               run: dotnet pack --no-build --configuration=${{env.BUILD_CONFIGURATION}} ${{env.BUILD_PROJECT_WINUI}} --output .
 
+            - name: Authenticate to NuGet.org via Trusted Publishing
+              id: nuget-login
+              uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+              with:
+                  user: ${{ secrets.NUGET_USER }}
+
             - name: PushNuget Providers + WinForms + Avalonia + WinUI
-              run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate 
+              env:
+                  NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+              run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key "$env:NUGET_API_KEY" --skip-duplicate
 
             - name: Publish Package Artifacts
               uses: actions/upload-artifact@v6
